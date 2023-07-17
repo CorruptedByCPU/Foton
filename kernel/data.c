@@ -3,7 +3,7 @@
 ===============================================================================*/
 
 // terminal properties
-struct LIB_TERMINAL_STRUCTURE kinit_terminal;
+struct LIB_TERMINAL_STRUCTURE kernel_terminal;
 
 // our limine requests
 
