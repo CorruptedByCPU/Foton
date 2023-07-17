@@ -8,7 +8,7 @@ git submodule update --init
 
 clear
 
-rm -rf build/* && mkdir build/iso
+rm -rf build/* && mkdir -p build/iso
 
 C="clang"
 LD="ld"
