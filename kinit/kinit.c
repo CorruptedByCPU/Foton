@@ -3,46 +3,46 @@
 ===============================================================================*/
 
 	//----------------------------------------------------------------------
-	// constants, structures, definitions
-	// static --------------------------------------------------------------
+	// library
+	//----------------------------------------------------------------------
 	#include	"../library/color.h"
 	#include	"../library/color.c"
 	#include	"../library/font.h"
 	#include	"../library/font.c"
+	#include	"../library/terminal.h"
+	#include	"../library/terminal.c"
 	//----------------------------------------------------------------------
-
-// limine definitions
-#include	"../limine/limine.h"
-
-// limine requests
-static volatile struct limine_framebuffer_request limine_framebuffer_request = {
-	.id = LIMINE_FRAMEBUFFER_REQUEST,
-	.revision = 0
-};
+	// variables, structures, definitions
+	//----------------------------------------------------------------------
+	#include	"../limine/limine.h"
+	//----------------------------------------------------------------------
+	// variables
+	//----------------------------------------------------------------------
+	#include	"data.c"
+	//----------------------------------------------------------------------
 
 // our mighty init
 void kinit( void ) {
 	// linear framebuffer is available (with 32 bits per pixel)?
-	if( limine_framebuffer_request.response == NULL || limine_framebuffer_request.response -> framebuffer_count != 1 || limine_framebuffer_request.response -> framebuffers[ 0 ] -> bpp != 32 )
+	if( limine_framebuffer_request.response == NULL || ! limine_framebuffer_request.response -> framebuffer_count || limine_framebuffer_request.response -> framebuffers[ 0 ] -> bpp != STD_VIDEO_DEPTH_bit )
 		// no, infinite loop (screen will be black)
-		for(;;);
+		while( TRUE );
 
-	// set pointer to first pixel of video memory area
-	uint32_t *pixel = (uint32_t *) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address;
+	// update terminal properties
+	kinit_terminal.width		= limine_framebuffer_request.response -> framebuffers[ 0 ] -> width;
+	kinit_terminal.height		= limine_framebuffer_request.response -> framebuffers[ 0 ] -> height;
+	kinit_terminal.base_address	= (uint32_t *) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address;
+	kinit_terminal.scanline_pixel	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch >> STD_VIDEO_DEPTH_shift;
+	kinit_terminal.color_foreground	= STD_COLOR_WHITE;
+	kinit_terminal.color_background	= STD_COLOR_BLACK_light;
 
-	// change all pixels color to DARK
-	for( uint64_t y = 0; y < limine_framebuffer_request.response -> framebuffers[ 0 ] -> height; y++ ) {
-		for( uint64_t x = 0; x < limine_framebuffer_request.response -> framebuffers[ 0 ] -> width; x++ )
-			pixel[ x ] = 0x00101010;
-
-		// next line of pixels on framebuffer
-		pixel = (uint32_t *) ((uint64_t) pixel + limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch);
-	}
+	// initialize terminal
+	lib_terminal( &kinit_terminal );
 
 	// show welcome message
-	const char welcome[ 34 ] = "Foton, environment initialization.";
-	lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, welcome, sizeof( welcome ), STD_COLOR_GREEN_light, (uint32_t *) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address, limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch >> 2, LIB_FONT_ALIGN_left );
+	const char welcome[] = "Foton, environment initialization.\n";
+	lib_terminal_string( &kinit_terminal, welcome, sizeof( welcome ) );
 
 	// infinite loop
-	for(;;);
+	while( TRUE );
 }

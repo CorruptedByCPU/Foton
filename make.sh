@@ -8,7 +8,8 @@ git submodule update --init
 
 clear
 
-rm -rf build/* && mkdir -p build/iso
+rm -rf build && mkdir -p build/iso
+rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 C="clang -include std.h"

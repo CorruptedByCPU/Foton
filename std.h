@@ -23,5 +23,8 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
 
+	#define	STD_COLOR_mask					0xFF000000
+	#define	STD_COLOR_WHITE					0xFFFFFFFF
+	#define	STD_COLOR_BLACK_light				0xFF101010
 	#define	STD_COLOR_GREEN_light				0xFF00FF00
 #endif
