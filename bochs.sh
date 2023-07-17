@@ -1,11 +1,6 @@
+#!/bin/bash
 #=================================================================================
 # Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 #=================================================================================
 
-TIMEOUT=0
-
-:Foton
-
-PROTOCOL=limine
-KERNEL_PATH=$boot:///kinit.gz
-COMMENT=Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+/opt/bochs/bin/bochs -f tools/linux.bxrc -q
