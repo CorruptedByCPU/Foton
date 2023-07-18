@@ -2,6 +2,13 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+	//----------------------------------------------------------------------
+	// variables, structures, definitions
+	//----------------------------------------------------------------------
+	#ifndef	LIB_COLOR
+		#include	"color.h"
+	#endif
+
 uint32_t lib_color_blend( uint32_t background, uint32_t foreground ) {
 	// little scary :)
 	uint32_t a = (foreground & 0xFF000000) >> 24;

@@ -1,6 +1,16 @@
-/*==============================================================================
-Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
-==============================================================================*/
+/*===============================================================================
+ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+===============================================================================*/
+
+	//----------------------------------------------------------------------
+	// variables, structures, definitions
+	//----------------------------------------------------------------------
+	#ifndef	LIB_FONT
+		#include	"font.h"
+	#endif
+	#ifndef	LIB_TERMINAL
+		#include	"terminal.h"
+	#endif
 
 void lib_terminal( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// convert terminal height and width to characters

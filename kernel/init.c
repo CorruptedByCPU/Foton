@@ -20,12 +20,15 @@
 	//----------------------------------------------------------------------
 	#include	"data.c"
 	//----------------------------------------------------------------------
+	// kernel environment initialization routines
+	//----------------------------------------------------------------------
+	#include	"init/memory.c"
 
 // our mighty init
 void kernel_init( void ) {
 	// linear framebuffer is available (with 32 bits per pixel)?
 	if( limine_framebuffer_request.response == NULL || ! limine_framebuffer_request.response -> framebuffer_count || limine_framebuffer_request.response -> framebuffers[ 0 ] -> bpp != STD_VIDEO_DEPTH_bit )
-		// no, infinite loop (screen will be black)
+		// no, hold the door (screen will be black)
 		while( TRUE );
 
 	// update terminal properties
@@ -40,9 +43,11 @@ void kernel_init( void ) {
 	lib_terminal( &kernel_terminal );
 
 	// show welcome message
-	const char welcome[] = "Foton, environment initialization.\n";
-	lib_terminal_string( &kernel_terminal, welcome, sizeof( welcome ) );
+	lib_terminal_string( &kernel_terminal, "Foton, environment initialization.\n", 35 );
 
-	// infinite loop
+	// create binary memory map
+	kernel_init_memory();
+
+	// hold the door
 	while( TRUE );
 }
