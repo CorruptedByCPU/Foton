@@ -12,15 +12,23 @@
 	#include	"../library/terminal.h"
 	#include	"../library/terminal.c"
 	//----------------------------------------------------------------------
-	// variables, structures, definitions
+	// variables, structures, definitions of limine
 	//----------------------------------------------------------------------
 	#include	"../limine/limine.h"
+	//----------------------------------------------------------------------
+	// variables, structures, definitions of kernel
+	//----------------------------------------------------------------------
+	#include	"config.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
 	#include	"data.c"
 	//----------------------------------------------------------------------
-	// kernel environment initialization routines
+	// kernel routines, procedures
+	//----------------------------------------------------------------------
+	#include	"page.c"
+	//----------------------------------------------------------------------
+	// kernel environment initialization routines, procedures
 	//----------------------------------------------------------------------
 	#include	"init/memory.c"
 

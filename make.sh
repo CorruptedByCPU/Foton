@@ -18,11 +18,12 @@ rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 C="clang -include std.h"
 LD="ld.lld"
 
-# default optimization -O2
-#if
+# default optimization -O2, but it's always easier to debug kernel/software with "z" flag
+OPT="${1}"
+if [ -z "${OPT}" ]; then OPT="2"; fi
 
 # default configuration of clang for kernel making
-CFLAGS="-O2 -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -mno-3dnow"
+CFLAGS="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -mno-3dnow"
 LDFLAGS="-nostdlib -static -no-dynamic-linker"
 
 # build kernel file

@@ -27,4 +27,9 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 	#define	STD_COLOR_WHITE					0xFFFFFFFF
 	#define	STD_COLOR_BLACK_light				0xFF101010
 	#define	STD_COLOR_GREEN_light				0xFF00FF00
+
+	#define	STD_SHIFT_PAGE					12
+	#define	STD_SHIFT_512					9
+
+	#define	STD_PAGE_byte					0x1000
 #endif

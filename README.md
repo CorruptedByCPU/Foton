@@ -2,7 +2,7 @@
 
 Foton (eng. Photon) - is a similar project as Cyjon/Fern-Night, but compatibility will no longer be fully supported.
 
-Implemented (order by adding):
+Already implemented (order by adding):
 
 - libcolor.so library for color mixing,
 - libfont.so library for drawing characters,

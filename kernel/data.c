@@ -2,6 +2,9 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+// kernel environment variables/functions
+struct KERNEL *kernel = EMPTY;
+
 // terminal properties
 struct LIB_TERMINAL_STRUCTURE kernel_terminal;
 

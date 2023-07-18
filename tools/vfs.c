@@ -67,10 +67,6 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 	} __attribute__( (packed) );
 	//======================================================================
 
-#define	STATIC_PAGE_SIZE_byte		4096
-#define	MACRO_PAGE_ALIGN_UP( value )	(((value) + STATIC_PAGE_SIZE_byte - 1) & ~(STATIC_PAGE_SIZE_byte - 1))
-#define	EMPTY				0
-
 char path_export[] = "build/";
 char file_extension[] = ".vfs";
 char name_symlink[] = "..";
