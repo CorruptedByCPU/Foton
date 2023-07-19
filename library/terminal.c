@@ -219,9 +219,16 @@ void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, const char *s
 	uint64_t length = lib_string_length( (uint8_t *) string );
 	for( uint64_t i = 0; i < length; i++ ) {
 		// special character?
-		if( string[ i ] == '%' ) {
+		if( string[ i ] == '%' ) {	
+			// prefix before type?
+			uint64_t prefix = lib_string_length_scope_digit( &string[ ++i ] );
+			uint64_t prefix_value = lib_string_to_integer( &string[ i ], 10 );
+
+			// omit prefix value if existed
+			i += prefix;
+
 			// check sequence type
-			switch( string[ ++i ] ) {
+			switch( string[ i ] ) {
 				case '%': {
 					// just show '%' character
 					break;
@@ -232,7 +239,18 @@ void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, const char *s
 					uint64_t value = va_arg( argv, uint64_t );
 
 					// show 'value' on terminal
-					lib_terminal_value( terminal, value, 10 );
+					lib_terminal_value( terminal, value, 10, prefix_value );
+
+					// next character from string
+					continue;
+				}
+
+				case 'X': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// show 'value' on terminal
+					lib_terminal_value( terminal, value, 16, prefix_value );
 
 					// next character from string
 					continue;
@@ -259,13 +277,13 @@ void lib_terminal_string( struct LIB_TERMINAL_STRUCTURE *terminal, const char *s
 	lib_terminal_cursor_enable( terminal );
 }
 
-void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value, uint8_t base ) {
+void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value, uint8_t base, uint8_t prefix ) {
 	// if the base of the value is outside the accepted range
 	if( base < 2 || base > 36 ) return;	// end of operation
 
 	// space for value decoding
 	int8_t i = 0;
-	uint8_t string[ 20 ] = { 0x30 };	// 8 byte value
+	uint8_t string[ 64 ] = { [0 ... 63] = 0x30 };	// 8 byte value
 
 	// convert value to individual digits
 	while( value ) {
@@ -282,6 +300,9 @@ void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value
 
 	// empty value?
 	if( ! i ) i++;
+
+	// prefix wider than value?
+	if( prefix > i ) i = prefix;
 
 	// display generated digits from value
 	do { lib_terminal_char( terminal, string[ --i ] ); }

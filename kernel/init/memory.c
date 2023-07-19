@@ -16,7 +16,22 @@ void kernel_init_memory() {
 	uint64_t local_largest_byte = EMPTY;
 
 	// all available memory areas should be clean at kernel initialization
+	lib_terminal_string( &kernel_terminal, "Memory map:\n", 14 );
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
+		// show memory range and type
+		lib_terminal_printf( &kernel_terminal, " %16X - %16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );
+		switch( limine_memmap_request.response -> entries[ i ] -> type ) {
+			case LIMINE_MEMMAP_USABLE:			{ lib_terminal_printf( &kernel_terminal, "Usable\n" ); break; }
+			case LIMINE_MEMMAP_RESERVED:			{ lib_terminal_printf( &kernel_terminal, "Reserved\n" ); break; }
+			case LIMINE_MEMMAP_ACPI_RECLAIMABLE:		{ lib_terminal_printf( &kernel_terminal, "ACPI Reclaimable\n" ); break; }
+			case LIMINE_MEMMAP_ACPI_NVS:			{ lib_terminal_printf( &kernel_terminal, "ACPI NVS\n" ); break; }
+			case LIMINE_MEMMAP_BAD_MEMORY:			{ lib_terminal_printf( &kernel_terminal, "Corrupted Memory\n" ); break; }
+			case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:	{ lib_terminal_printf( &kernel_terminal, "Bootloader Reclaimable\n" ); break; }
+			case LIMINE_MEMMAP_KERNEL_AND_MODULES:		{ lib_terminal_printf( &kernel_terminal, "Kernel or Modules\n" ); break; }
+			case LIMINE_MEMMAP_FRAMEBUFFER:			{ lib_terminal_printf( &kernel_terminal, "Framebuffer\n" ); break; }
+			default:					{ lib_terminal_printf( &kernel_terminal, "{unknown}\n" ); }
+		}
+
 		// USABLE memory area?
 		if( limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_USABLE ) {
 			// clean it up
@@ -70,5 +85,5 @@ void kernel_init_memory() {
 	}
 
 	// inform about total memory area in KiB
-	lib_terminal_printf( &kernel_terminal, "Memory size: %u KiB (%u KiB free)\n", kernel -> page_total << STD_SHIFT_4, kernel -> page_available << STD_SHIFT_4 );
+	lib_terminal_printf( &kernel_terminal, "Memory size: %u KiB (%u KiB free)\n\n", kernel -> page_total << STD_SHIFT_4, kernel -> page_available << STD_SHIFT_4 );
 }

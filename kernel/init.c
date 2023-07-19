@@ -32,6 +32,8 @@
 	//----------------------------------------------------------------------
 	// kernel environment initialization routines, procedures
 	//----------------------------------------------------------------------
+	#include	"init/acpi.h"
+	#include	"init/acpi.c"
 	#include	"init/memory.c"
 
 // our mighty init
@@ -47,16 +49,19 @@ void kernel_init( void ) {
 	kernel_terminal.base_address		= (uint32_t *) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address;
 	kernel_terminal.scanline_pixel		= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch >> STD_VIDEO_DEPTH_shift;
 	kernel_terminal.color_foreground	= STD_COLOR_WHITE;
-	kernel_terminal.color_background	= STD_COLOR_BLACK_light;
+	kernel_terminal.color_background	= STD_COLOR_BLACK;
 
 	// initialize terminal
 	lib_terminal( &kernel_terminal );
 
 	// show welcome message
-	lib_terminal_printf( &kernel_terminal, "Foton, environment initialization.\n" );
+	lib_terminal_printf( &kernel_terminal, "/ Foton, environment initialization. /\n\n" );
 
 	// create binary memory map
 	kernel_init_memory();
+
+	// parse ACPI tables
+	kernel_init_acpi();
 
 	// hold the door
 	while( TRUE );

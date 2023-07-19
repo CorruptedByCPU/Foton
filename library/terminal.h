@@ -59,5 +59,5 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 	void lib_terminal_string( struct LIB_TERMINAL_STRUCTURE *terminal, const char *string, uint64_t length );
 
 	// convert value to string (regarded of base 2, 8, 10, 16 etc.) and draw on screen
-	void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value, uint8_t base );
+	void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value, uint8_t base, uint8_t prefix );
 #endif

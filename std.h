@@ -25,6 +25,7 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 
 	#define	STD_COLOR_mask					0xFF000000
 	#define	STD_COLOR_WHITE					0xFFFFFFFF
+	#define	STD_COLOR_BLACK					0xFF000000
 	#define	STD_COLOR_BLACK_light				0xFF101010
 	#define	STD_COLOR_GREEN_light				0xFF00FF00
 
