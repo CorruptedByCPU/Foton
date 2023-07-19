@@ -67,7 +67,7 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 	} __attribute__( (packed) );
 	//======================================================================
 
-char path_export[] = "build/";
+char path_export[] = "./";
 char file_extension[] = ".vfs";
 char name_symlink[] = "..";
 

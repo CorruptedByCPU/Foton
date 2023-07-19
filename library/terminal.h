@@ -49,6 +49,9 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 	// clear current line of terminal
 	void lib_terminal_drain_line( struct LIB_TERMINAL_STRUCTURE *terminal );
 
+	// main printing function
+	void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, const char *string, ... );
+
 	// move all lines up of terminal by one line
 	void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal );
 

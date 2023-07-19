@@ -8,6 +8,9 @@
 	#ifndef	LIB_FONT
 		#include	"font.h"
 	#endif
+	#ifndef	LIB_STRING
+		#include	"string.h"
+	#endif
 	#ifndef	LIB_TERMINAL
 		#include	"terminal.h"
 	#endif
@@ -203,6 +206,46 @@ void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 
 	// clear the current terminal line
 	lib_terminal_drain_line( terminal );
+}
+
+void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, const char *string, ... ) {
+	// properties of argument list
+	va_list argv;
+
+	// start of argument list
+	va_start( argv, string );
+
+	// for every character from string
+	uint64_t length = lib_string_length( (uint8_t *) string );
+	for( uint64_t i = 0; i < length; i++ ) {
+		// special character?
+		if( string[ i ] == '%' ) {
+			// check sequence type
+			switch( string[ ++i ] ) {
+				case '%': {
+					// just show '%' character
+					break;
+				}
+
+				case 'u': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// show 'value' on terminal
+					lib_terminal_value( terminal, value, 10 );
+
+					// next character from string
+					continue;
+				}
+			}
+		}
+
+		// no, show it
+		lib_terminal_char( terminal, string[ i ] );
+	}
+
+	// end of arguemnt list
+	va_end( argv );
 }
 
 void lib_terminal_string( struct LIB_TERMINAL_STRUCTURE *terminal, const char *string, uint64_t length ) {

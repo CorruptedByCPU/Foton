@@ -9,6 +9,8 @@
 	#include	"../library/color.c"
 	#include	"../library/font.h"
 	#include	"../library/font.c"
+	#include	"../library/string.h"
+	#include	"../library/string.c"
 	#include	"../library/terminal.h"
 	#include	"../library/terminal.c"
 	//----------------------------------------------------------------------
@@ -51,7 +53,7 @@ void kernel_init( void ) {
 	lib_terminal( &kernel_terminal );
 
 	// show welcome message
-	lib_terminal_string( &kernel_terminal, "Foton, environment initialization.\n", 35 );
+	lib_terminal_printf( &kernel_terminal, "Foton, environment initialization.\n" );
 
 	// create binary memory map
 	kernel_init_memory();
