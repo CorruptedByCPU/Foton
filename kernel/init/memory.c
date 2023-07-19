@@ -16,7 +16,7 @@ void kernel_init_memory() {
 	uint64_t local_largest_byte = EMPTY;
 
 	// all available memory areas should be clean at kernel initialization
-	lib_terminal_string( &kernel_terminal, "Memory map:\n", 14 );
+	lib_terminal_string( &kernel_terminal, "Memory map:\n", 12 );
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
 		// show memory range and type
 		lib_terminal_printf( &kernel_terminal, " %16X - %16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );

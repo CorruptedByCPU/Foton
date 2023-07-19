@@ -282,7 +282,7 @@ void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value
 	if( base < 2 || base > 36 ) return;	// end of operation
 
 	// space for value decoding
-	int8_t i = 0;
+	uint8_t i = 0;
 	uint8_t string[ 64 ] = { [0 ... 63] = 0x30 };	// 8 byte value
 
 	// convert value to individual digits
@@ -305,6 +305,5 @@ void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value
 	if( prefix > i ) i = prefix;
 
 	// display generated digits from value
-	do { lib_terminal_char( terminal, string[ --i ] ); }
-	while( i >= 0 );
+	while( i ) { lib_terminal_char( terminal, string[ --i ] ); }
 }
