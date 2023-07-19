@@ -21,6 +21,7 @@
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
 	#include	"config.h"
+	#include	"memory.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -28,6 +29,7 @@
 	//----------------------------------------------------------------------
 	// kernel routines, procedures
 	//----------------------------------------------------------------------
+	#include	"memory.c"
 	#include	"page.c"
 	//----------------------------------------------------------------------
 	// kernel environment initialization routines, procedures
@@ -35,6 +37,7 @@
 	#include	"init/acpi.h"
 	#include	"init/acpi.c"
 	#include	"init/memory.c"
+	#include	"init/page.c"
 
 // our mighty init
 void kernel_init( void ) {
@@ -62,6 +65,9 @@ void kernel_init( void ) {
 
 	// parse ACPI tables
 	kernel_init_acpi();
+
+	// recreate kernel's paging structures
+	kernel_init_page();
 
 	// hold the door
 	while( TRUE );

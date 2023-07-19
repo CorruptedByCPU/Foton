@@ -1,8 +1,8 @@
-/*==============================================================================
-Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
-==============================================================================*/
+/*===============================================================================
+ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+===============================================================================*/
 
-void kernel_init_acpi() {
+void kernel_init_acpi( void ) {
 	// RSDP pointer available?
 	if( limine_rsdp_request.response == NULL || ! limine_rsdp_request.response -> address ) {
 		// show error

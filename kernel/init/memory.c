@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_memory() {
+void kernel_init_memory( void ) {
 	// limine shared with us a memory map?
 	if( limine_memmap_request.response == NULL || ! limine_memmap_request.response -> entry_count ) {	// no
 		// show an error
@@ -51,7 +51,7 @@ void kernel_init_memory() {
 	}
 
 	// binary memory map base address will be placed after kernel environment variables/functions/rountines
-	kernel -> memory_base_address = (uint64_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
+	kernel -> memory_base_address = (uint32_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
 
 	// describe all memory areas marked as USBALE inside binary memory map
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
@@ -70,7 +70,7 @@ void kernel_init_memory() {
 
 				// register pages that are part of USABLE memory area
 				for( uint64_t j = limine_memmap_request.response -> entries[ i ] -> base >> STD_SHIFT_PAGE; j < (limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length) >> STD_SHIFT_PAGE; j++ )
-					kernel -> memory_base_address[ j / 64 ] |= 1 << j % 64;
+					kernel -> memory_base_address[ j / 32 ] |= 1 << j % 32;
 			}
 		}
 	}
@@ -78,7 +78,7 @@ void kernel_init_memory() {
 	// mark pages used by kernel environment variables/functions and binary memory map itself as mark as unavailable
 	for( uint64_t i = ((uint64_t) kernel & ~KERNEL_PAGE_mirror) >> STD_SHIFT_PAGE; i < MACRO_PAGE_ALIGN_UP( (((uint64_t) kernel -> memory_base_address & ~KERNEL_PAGE_mirror) + (kernel -> page_limit >> STD_SHIFT_8)) ) >> STD_SHIFT_PAGE; i++ ) {
 		// mark page as unavailable
-		kernel -> memory_base_address[ i / 64 ] &= ~(1 << i % 64);
+		kernel -> memory_base_address[ i / 32 ] &= ~(1 << i % 32);
 
 		// available pages
 		kernel -> page_available--;

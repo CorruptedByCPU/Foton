@@ -1,6 +1,6 @@
-/*=============================================================================
-Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
-=============================================================================*/
+/*===============================================================================
+ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+===============================================================================*/
 
 #ifndef	STD
 	#define	STD
@@ -31,6 +31,7 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 
 	#define	STD_SHIFT_4					2
 	#define	STD_SHIFT_8					3
+	#define	STD_SHIFT_64					6
 	#define	STD_SHIFT_512					9
 	#define	STD_SHIFT_PAGE					12
 
