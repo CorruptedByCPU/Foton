@@ -24,3 +24,13 @@ static volatile struct limine_rsdp_request limine_rsdp_request = {
 	.id = LIMINE_RSDP_REQUEST,
 	.revision = 0
 };
+
+static volatile struct limine_kernel_file_request limine_kernel_file_request = {
+	.id = LIMINE_KERNEL_FILE_REQUEST,
+	.revision = 0
+};
+
+static volatile struct limine_kernel_address_request limine_kernel_address_request = {
+	.id = LIMINE_KERNEL_ADDRESS_REQUEST,
+	.revision = 0
+};

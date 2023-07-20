@@ -7,6 +7,8 @@
 	//----------------------------------------------------------------------
 	#include	"../library/color.h"
 	#include	"../library/color.c"
+	#include	"../library/elf.h"
+	#include	"../library/elf.c"
 	#include	"../library/font.h"
 	#include	"../library/font.c"
 	#include	"../library/string.h"
@@ -22,6 +24,7 @@
 	//----------------------------------------------------------------------
 	#include	"config.h"
 	#include	"memory.h"
+	#include	"page.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -49,7 +52,7 @@ void kernel_init( void ) {
 	// update terminal properties
 	kernel_terminal.width			= limine_framebuffer_request.response -> framebuffers[ 0 ] -> width;
 	kernel_terminal.height			= limine_framebuffer_request.response -> framebuffers[ 0 ] -> height;
-	kernel_terminal.base_address		= (uint32_t *) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address;
+	kernel_terminal.base_address		= (uint32_t *) ((uintptr_t) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address | KERNEL_PAGE_mirror);
 	kernel_terminal.scanline_pixel		= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch >> STD_VIDEO_DEPTH_shift;
 	kernel_terminal.color_foreground	= STD_COLOR_WHITE;
 	kernel_terminal.color_background	= STD_COLOR_BLACK;
@@ -68,6 +71,9 @@ void kernel_init( void ) {
 
 	// recreate kernel's paging structures
 	kernel_init_page();
+
+	// reload new kernel environment paging array
+	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) );
 
 	// hold the door
 	while( TRUE );

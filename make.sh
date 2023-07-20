@@ -37,12 +37,15 @@ cp build/kernel.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd
 #===============================================================================
 lib=""	# include list of libraries
 
-for library in color string font terminal; do
+for library in color elf string font terminal; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS} || exit 1
 
 	# convert to shared
 	${C} -shared build/${library}.o -o build/root/lib${library}.so ${CFLAGS} -Wl,--as-needed,-T./tools/linker.library -L./build/root/ ${lib} || exit 1
+
+	# we do not need any additional information
+	strip -s build/root/lib${library}.so > /dev/null 2>&1
 
 	# update libraries list
 	lib="${lib} -l${library}"

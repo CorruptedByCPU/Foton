@@ -4,12 +4,14 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"11"
+#define	KERNEL_revision		"12"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
-// location of physical page address as logical
-#define	KERNEL_PAGE_mirror	0xFFFF800000000000
+#define	KERNEL_BASE_address	0xFFFFFFFF80000000	// higher half
+
+#define	KERNEL_STACK_address	0xFFFFFFFFFFFFE000	// minimal size, last 2 pages of logical address
+#define	KERNEL_STACK_pointer	0xFFFFFFFFFFFFF000
 
 struct KERNEL {
 	// variables of HPET management functions
