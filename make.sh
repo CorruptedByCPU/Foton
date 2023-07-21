@@ -17,10 +17,15 @@ rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 C="clang -include std.h"
 LD="ld.lld"
+ASM="nasm"
 
 # default optimization -O2, but it's always easier to debug kernel/software with "z" flag
 OPT="${1}"
 if [ -z "${OPT}" ]; then OPT="2"; fi
+
+# build subroutines required by kernel
+EXTERN=""
+${ASM} -f elf64 kernel/init/gdt.asm -o build/gdt.o & EXTERN="${EXTERN} build/gdt.o"
 
 # default configuration of clang for kernel making
 CFLAGS="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -mno-3dnow"
@@ -28,7 +33,7 @@ LDFLAGS="-nostdlib -static -no-dynamic-linker"
 
 # build kernel file
 ${C} -c kernel/init.c -o build/kernel.o ${CFLAGS} || exit 1;
-${LD} build/kernel.o -o build/kernel -T tools/linker.kernel ${LDFLAGS} || exit 1;
+${LD} ${EXTERN} build/kernel.o -o build/kernel -T tools/linker.kernel ${LDFLAGS} || exit 1;
 
 # copy kernel file and limine files onto destined iso folder
 gzip build/kernel

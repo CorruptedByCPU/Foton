@@ -14,6 +14,9 @@
 #define	KERNEL_STACK_pointer	0xFFFFFFFFFFFFF000
 
 struct KERNEL {
+	// variable of GDT management functions
+	struct KERNEL_GDT_STRUCTURE_HEADER	gdt_header;
+
 	// variables of HPET management functions
 	struct KERNEL_HPET_STRUCTURE_REGISTER	*hpet_base_address;
 	uint64_t	hpet_microtime;
@@ -33,4 +36,7 @@ struct KERNEL {
 	uint64_t	page_total;
 	uint64_t	page_available;
 	uint64_t	page_limit;
+
+	// variables of TSS management functions
+	struct KERNEL_TSS_STRUCTURE	tss_table;
 };

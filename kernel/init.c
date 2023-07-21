@@ -22,6 +22,8 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
+	#include	"gdt.h"
+	#include	"tss.h"
 	#include	"config.h"
 	#include	"memory.h"
 	#include	"page.h"
@@ -39,6 +41,7 @@
 	//----------------------------------------------------------------------
 	#include	"init/acpi.h"
 	#include	"init/acpi.c"
+	#include	"init/gdt.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
 
@@ -74,6 +77,9 @@ void kernel_init( void ) {
 
 	// reload new kernel environment paging array
 	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) );
+
+	// create Global Descriptor Table
+	kernel_init_gdt();
 
 	// hold the door
 	while( TRUE );
