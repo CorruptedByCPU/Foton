@@ -5,6 +5,17 @@
 #ifndef	KERNEL_LAPIC
 	#define	KERNEL_LAPIC
 
+	#define	KERNEL_LAPIC_Hz					1024
+
+	#define	KERNEL_LAPIC_IRQ_number				0x20
+	#define	KERNEL_LAPIC_INIT_READY_bit			12
+	#define	KERNEL_LAPIC_DF_FLAG_flat_mode			0xFFFFFFFF
+	#define	KERNEL_LAPIC_LD_FLAG_target_cpu			0x01000000
+	#define	KERNEL_LAPIC_SIV_FLAG_enable_apic		0b00000000000000000000000100000000
+	#define	KERNEL_LAPIC_SIV_FLAG_spurious_vector3		0b00000000000000000000000011111111
+	#define	KERNEL_LAPIC_LVT_TR_FLAG_mask_interrupts	0b00000000000000010000000000000000
+	#define	KERNEL_LAPIC_TDC_divide_by_1			0b111
+
 	struct	KERNEL_LAPIC_STRUCTURE {
 		uint8_t		reserved_0[ 32 ];
 		uint32_t	volatile id;	// 0x20

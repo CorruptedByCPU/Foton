@@ -49,7 +49,9 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 	while( TRUE ) {}
 }
 
+// why it doesn't preserve registers?
+__attribute__ (( preserve_all ))
 void kernel_idt_interrupt_default( struct KERNEL_IDT_STRUCTURE_RETURN *interrupt ) {
 	// tell APIC of current logical processor that the hardware interrupt is being handled properly
-	kernel -> lapic_base_address -> eoi = EMPTY;
+	kernel_lapic_accept();
 }

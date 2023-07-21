@@ -234,6 +234,17 @@ void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, const char *s
 					break;
 				}
 
+				case 'b': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// show 'value' on terminal
+					lib_terminal_value( terminal, value, 2, prefix_value );
+
+					// next character from string
+					continue;
+				}
+
 				case 'u': {
 					// retrieve value
 					uint64_t value = va_arg( argv, uint64_t );

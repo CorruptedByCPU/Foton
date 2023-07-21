@@ -27,9 +27,11 @@ if [ -z "${OPT}" ]; then OPT="2"; fi
 EXT=""
 ${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o & EXT="${EXT} build/gdt.o"
 ${ASM} -f elf64 kernel/idt.asm		-o build/idt.o & EXT="${EXT} build/idt.o"
+${ASM} -f elf64 kernel/hpet.asm		-o build/hpet.o & EXT="${EXT} build/hpet.o"
 
 # default configuration of clang for kernel making
-CFLAGS="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -mno-3dnow"
+# DEBUG="-mgeneral-regs-only"
+CFLAGS="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -mno-3dnow ${DEBUG}"
 LDFLAGS="-nostdlib -static -no-dynamic-linker"
 
 # build kernel file

@@ -46,4 +46,7 @@ void kernel_init_idt() {
 
 	// show IDT properties
 	lib_terminal_printf( &kernel_terminal, "IDT base address 0x%X\n\n", kernel -> idt_header.base_address );
+
+	// enable interrupt handling
+	__asm__ volatile( "sti" );
 }

@@ -25,6 +25,9 @@
 	#include	"idt.h"
 	#include	"gdt.h"
 	#include	"tss.h"
+	#include	"lapic.h"
+	#include	"hpet.h"
+	#include	"io_apic.h"
 	#include	"config.h"
 	#include	"lapic.h"
 	#include	"memory.h"
@@ -36,7 +39,10 @@
 	//----------------------------------------------------------------------
 	// kernel routines, procedures
 	//----------------------------------------------------------------------
+	#include	"lapic.c"
+	#include	"hpet.c"
 	#include	"idt.c"
+	#include	"io_apic.c"
 	#include	"memory.c"
 	#include	"page.c"
 	//----------------------------------------------------------------------
@@ -45,6 +51,7 @@
 	#include	"init/acpi.h"
 	#include	"init/acpi.c"
 	#include	"init/gdt.c"
+	#include	"init/hpet.c"
 	#include	"init/idt.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
@@ -88,6 +95,9 @@ void kernel_init( void ) {
 	// create Interrupt Descriptor Table
 	kernel_init_idt();
 
+	// configure HPET
+	kernel_init_hpet();
+
 	// hold the door
-	while( TRUE );
+	while( TRUE ) lib_terminal_printf( &kernel_terminal, "%u\n", kernel -> hpet_miliseconds );
 }
