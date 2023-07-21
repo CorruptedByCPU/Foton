@@ -1,6 +1,6 @@
-/*==============================================================================
-Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
-==============================================================================*/
+/*===============================================================================
+ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+===============================================================================*/
 
 void kernel_init_gdt() {
 	// prepare area for Global Descriptor Table
@@ -30,4 +30,7 @@ void kernel_init_gdt() {
 
 	// set valid descriptor values
 	kernel_gdt_reload();
+
+	// show GDT properties
+	lib_terminal_printf( &kernel_terminal, "GDT base address 0x%X\n", kernel -> gdt_header.base_address );
 }

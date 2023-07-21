@@ -24,8 +24,9 @@ OPT="${1}"
 if [ -z "${OPT}" ]; then OPT="2"; fi
 
 # build subroutines required by kernel
-EXTERN=""
-${ASM} -f elf64 kernel/init/gdt.asm -o build/gdt.o & EXTERN="${EXTERN} build/gdt.o"
+EXT=""
+${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o & EXT="${EXT} build/gdt.o"
+${ASM} -f elf64 kernel/idt.asm		-o build/idt.o & EXT="${EXT} build/idt.o"
 
 # default configuration of clang for kernel making
 CFLAGS="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -mno-3dnow"
@@ -33,7 +34,7 @@ LDFLAGS="-nostdlib -static -no-dynamic-linker"
 
 # build kernel file
 ${C} -c kernel/init.c -o build/kernel.o ${CFLAGS} || exit 1;
-${LD} ${EXTERN} build/kernel.o -o build/kernel -T tools/linker.kernel ${LDFLAGS} || exit 1;
+${LD} ${EXT} build/kernel.o -o build/kernel -T tools/linker.kernel ${LDFLAGS} || exit 1;
 
 # copy kernel file and limine files onto destined iso folder
 gzip build/kernel

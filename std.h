@@ -31,6 +31,8 @@
 
 	#define	STD_SHIFT_4					2
 	#define	STD_SHIFT_8					3
+	#define	STD_SHIFT_16					4
+	#define	STD_SHIFT_32					5
 	#define	STD_SHIFT_64					6
 	#define	STD_SHIFT_512					9
 	#define	STD_SHIFT_PAGE					12

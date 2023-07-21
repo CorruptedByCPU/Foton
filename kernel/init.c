@@ -22,9 +22,11 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
+	#include	"idt.h"
 	#include	"gdt.h"
 	#include	"tss.h"
 	#include	"config.h"
+	#include	"lapic.h"
 	#include	"memory.h"
 	#include	"page.h"
 	//----------------------------------------------------------------------
@@ -34,6 +36,7 @@
 	//----------------------------------------------------------------------
 	// kernel routines, procedures
 	//----------------------------------------------------------------------
+	#include	"idt.c"
 	#include	"memory.c"
 	#include	"page.c"
 	//----------------------------------------------------------------------
@@ -42,6 +45,7 @@
 	#include	"init/acpi.h"
 	#include	"init/acpi.c"
 	#include	"init/gdt.c"
+	#include	"init/idt.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
 
@@ -80,6 +84,9 @@ void kernel_init( void ) {
 
 	// create Global Descriptor Table
 	kernel_init_gdt();
+
+	// create Interrupt Descriptor Table
+	kernel_init_idt();
 
 	// hold the door
 	while( TRUE );
