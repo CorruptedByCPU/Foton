@@ -41,11 +41,11 @@ void kernel_init_idt() {
 	// configure header of Interrupt Descriptor Table
 	kernel -> idt_header.limit = STD_PAGE_byte;
 
-	// load new Interrupt Descriptor Table
-	__asm__ volatile( "lidt (%0)" :: "r" (&kernel -> idt_header) );
-
 	// show IDT properties
 	lib_terminal_printf( &kernel_terminal, "IDT base address 0x%X\n\n", kernel -> idt_header.base_address );
+
+	// load new Interrupt Descriptor Table
+	__asm__ volatile( "lidt (%0)" :: "r" (&kernel -> idt_header) );
 
 	// enable interrupt handling
 	__asm__ volatile( "sti" );

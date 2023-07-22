@@ -33,6 +33,6 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 	extern void kernel_hpet_uptime_entry( void );
 
 	// function counting miliseconds
-	__attribute__ (( preserve_all ))	// why it doesn't preserve registers?
+	__attribute__ (( preserve_all ))
 	void kernel_hpet_uptime( void );
 #endif

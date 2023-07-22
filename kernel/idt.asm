@@ -272,9 +272,6 @@ kernel_idt_exception_security:
 	jmp	kernel_idt_exception_entry
 
 kernel_idt_exception_entry:
-	; bochs breakpoint
-	xchg	bx,	bx
-
 	; keep original registers
 	push	rax
 	push	rbx
