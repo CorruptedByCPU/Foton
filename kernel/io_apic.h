@@ -18,6 +18,9 @@
 		uint32_t	iowin;
 	} __attribute__( (packed) );
 
+	// check if irq line is available for use
+	uint8_t kernel_io_apic_available( uint8_t irq );
+
 	// connect I/O APIC interrupt line to IDT
 	void kernel_io_apic_connect( uint8_t irq, uint32_t io_apic_register );
 #endif

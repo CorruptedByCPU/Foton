@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"15"
+#define	KERNEL_revision		"16"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -23,9 +23,11 @@ struct KERNEL {
 	// variables of HPET management functions
 	volatile struct KERNEL_HPET_STRUCTURE_REGISTER	*hpet_base_address;
 	uint64_t	hpet_miliseconds;
+	uint8_t		hpet_timers;
 
 	// variables of I/O APIC management functions
 	volatile struct KERNEL_IO_APIC_STRUCTURE_REGISTER	*io_apic_base_address;
+	uint32_t	io_apic_irq_lines;
 
 	// variables of APIC management functions
 	volatile struct KERNEL_LAPIC_STRUCTURE	*lapic_base_address;

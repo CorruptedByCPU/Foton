@@ -24,6 +24,9 @@ void lib_terminal( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	terminal -> scanline_char = terminal -> width / terminal -> width_char;
 	terminal -> scanline_line = terminal -> scanline_pixel * LIB_FONT_HEIGHT_pixel;
 
+	// by default, clear area before drawing character
+	terminal -> flags = LIB_TERMINAL_FLAG_clean;
+
 	// set cursor initial position
 	terminal -> cursor_x = EMPTY;
 	terminal -> cursor_y = EMPTY;

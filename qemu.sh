@@ -7,4 +7,3 @@ qemu-system-x86_64			\
 	--enable-kvm			\
 	-m 8				\
 	-cdrom build/foton.iso		\
-	-rtc base=localtime 		\

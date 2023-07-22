@@ -85,15 +85,19 @@ void kernel_init_acpi( void ) {
 
 				// I/O APIC entry found?
 				struct KERNEL_INIT_ACPI_STRUCTURE_IO_APIC *local_io_apic = (struct KERNEL_INIT_ACPI_STRUCTURE_IO_APIC *) local_list;
-				if( local_io_apic -> type == KERNEL_INIT_ACPI_APIC_TYPE_io_apic )
+				if( local_io_apic -> type == KERNEL_INIT_ACPI_APIC_TYPE_io_apic ) {
 					// I/O APIC supports interrupt vectors 0+?
 					if( local_io_apic -> gsib == EMPTY ) {
 						// store base address of I/O APIC
 						kernel -> io_apic_base_address = (struct KERNEL_IO_APIC_STRUCTURE_REGISTER *) (uintptr_t) (local_io_apic -> base_address | KERNEL_PAGE_mirror);
 
+						// register available IRQ lines
+						kernel -> io_apic_irq_lines = -1;	// all available
+
 						// show message regarding I/O APIC
 						lib_terminal_printf( &kernel_terminal, " I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
 					}
+				}
 
 				// check next entry on list
 				local_list += local_entry_length;

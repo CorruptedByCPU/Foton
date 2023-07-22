@@ -99,5 +99,5 @@ void kernel_init( void ) {
 	kernel_init_hpet();
 
 	// hold the door
-	while( TRUE ) lib_terminal_printf( &kernel_terminal, "%u\n", kernel -> hpet_miliseconds );
+	while( TRUE );
 }

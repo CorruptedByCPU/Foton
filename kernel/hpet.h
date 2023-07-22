@@ -5,10 +5,6 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 #ifndef	KERNEL_HPET
 	#define KERNEL_HPET
 
-	#define	KERNEL_HPET_TIMER_UPTIME_irq	0x08
-
-	#define	KERNEL_HPET_IO_APIC_register	KERNEL_IO_APIC_iowin + (KERNEL_HPET_TIMER_UPTIME_irq * 0x02)
-
 	#define	KERNEL_HPET_TIMER_offset	0x0100
 
 	struct KERNEL_HPET_STRUCTURE_REGISTER {
