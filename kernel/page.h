@@ -6,7 +6,7 @@
 	#define	KERNEL_PAGE
 
 	// location of physical page address as logical
-	#define	KERNEL_PAGE_mirror	0xFFFF800000000000
+	#define	KERNEL_PAGE_logical	0xFFFF800000000000
 
 	// i really doesn't see any good reason to use 5-level paging for this project
 	#define	KERNEL_PAGE_PML5_mask	0xFFFF000000000000
@@ -28,4 +28,7 @@
 	#define	KERNEL_PAGE_PML2_byte			0x0000000040000000
 	#define	KERNEL_PAGE_PML3_byte			0x0000008000000000
 	#define	KERNEL_PAGE_PML4_byte			0x0001000000000000
+
+	// fills up N pages with EMPTY value
+	void kernel_page_clean( uintptr_t address, uint64_t n );
 #endif

@@ -4,12 +4,12 @@
 
 uintptr_t kernel_memory_alloc_page( void ) {
 	// alloc only 1 page
-	return kernel_memory_alloc( 1 ) & ~KERNEL_PAGE_mirror;
+	return kernel_memory_alloc( 1 ) & ~KERNEL_PAGE_logical;	// each operation on "pages" is performed on their physical addresses
 }
 
 uintptr_t kernel_memory_alloc( uint64_t N ) {
 	// initialize page ID
-	uint64_t p = EMPTY;
+	uintptr_t p = EMPTY;
 
 	// search for requested length of area
 	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N )) ) return EMPTY;
@@ -18,7 +18,13 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	kernel -> page_available -= N;
 
 	// convert page ID to logical address
-	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror;
+	p = (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;
+
+	// we need to guarantee clean memory area before use
+	kernel_page_clean( (uintptr_t) p, N );
+
+	// convert page ID to logical address
+	return (uintptr_t) p;
 }
 
 uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {

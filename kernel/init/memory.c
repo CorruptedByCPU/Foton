@@ -34,15 +34,12 @@ void kernel_init_memory( void ) {
 
 		// USABLE memory area?
 		if( limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_USABLE ) {
-			// clean it up
-			kernel_page_clean( limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> length >> STD_SHIFT_PAGE );
-
 			// inside largest continous memory area we will create kernel environment metadata and a binary memory map next to it
 
 			// this area is larger than previous one?
 			if( local_largest_byte < limine_memmap_request.response -> entries[ i ] -> length ) {
 				// keep logical address of largest continous memory area (reflected in Higher Half)
-				kernel = (struct KERNEL *) (limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_mirror);
+				kernel = (struct KERNEL *) (limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_logical);
 
 				// keep size information
 				local_largest_byte = limine_memmap_request.response -> entries[ i ] -> length;
@@ -76,7 +73,7 @@ void kernel_init_memory( void ) {
 	}
 
 	// mark pages used by kernel environment variables/functions and binary memory map itself as mark as unavailable
-	for( uint64_t i = ((uint64_t) kernel & ~KERNEL_PAGE_mirror) >> STD_SHIFT_PAGE; i < MACRO_PAGE_ALIGN_UP( (((uint64_t) kernel -> memory_base_address & ~KERNEL_PAGE_mirror) + (kernel -> page_limit >> STD_SHIFT_8)) ) >> STD_SHIFT_PAGE; i++ ) {
+	for( uint64_t i = ((uint64_t) kernel & ~KERNEL_PAGE_logical) >> STD_SHIFT_PAGE; i < MACRO_PAGE_ALIGN_UP( (((uint64_t) kernel -> memory_base_address & ~KERNEL_PAGE_logical) + (kernel -> page_limit >> STD_SHIFT_8)) ) >> STD_SHIFT_PAGE; i++ ) {
 		// mark page as unavailable
 		kernel -> memory_base_address[ i / 32 ] &= ~(1 << i % 32);
 

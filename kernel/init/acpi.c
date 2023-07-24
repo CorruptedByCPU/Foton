@@ -66,7 +66,7 @@ void kernel_init_acpi( void ) {
 		struct KERNEL_INIT_ACPI_STRUCTURE_MADT *local_madt = (struct KERNEL_INIT_ACPI_STRUCTURE_MADT *) local_entry;
 		if( local_madt -> signature == KERNEL_INIT_ACPI_MADT_signature ) {
 			// store base address and size of LAPIC entry
-			kernel -> lapic_base_address = (struct KERNEL_LAPIC_STRUCTURE *) (uintptr_t) (local_madt -> lapic_address | KERNEL_PAGE_mirror);
+			kernel -> lapic_base_address = (struct KERNEL_LAPIC_STRUCTURE *) (uintptr_t) (local_madt -> lapic_address | KERNEL_PAGE_logical);
 
 			// show message regarding LAPIC
 			lib_terminal_printf( &kernel_terminal, " LAPIC base address 0x%X\n", (uint64_t) kernel -> lapic_base_address );
@@ -89,7 +89,7 @@ void kernel_init_acpi( void ) {
 					// I/O APIC supports interrupt vectors 0+?
 					if( local_io_apic -> gsib == EMPTY ) {
 						// store base address of I/O APIC
-						kernel -> io_apic_base_address = (struct KERNEL_IO_APIC_STRUCTURE_REGISTER *) (uintptr_t) (local_io_apic -> base_address | KERNEL_PAGE_mirror);
+						kernel -> io_apic_base_address = (struct KERNEL_IO_APIC_STRUCTURE_REGISTER *) (uintptr_t) (local_io_apic -> base_address | KERNEL_PAGE_logical);
 
 						// register available IRQ lines
 						kernel -> io_apic_irq_lines = -1;	// all available
@@ -109,7 +109,7 @@ void kernel_init_acpi( void ) {
 		struct KERNEL_INIT_ACPI_STRUCTURE_HPET *local_hpet = (struct KERNEL_INIT_ACPI_STRUCTURE_HPET *) local_entry;
 		if( local_hpet -> signature == KERNEL_INIT_ACPI_HPET_signature ) {
 			// store base address of HPET
-			kernel -> hpet_base_address = (struct KERNEL_HPET_STRUCTURE_REGISTER *) (uintptr_t) (local_hpet -> base_address | KERNEL_PAGE_mirror);
+			kernel -> hpet_base_address = (struct KERNEL_HPET_STRUCTURE_REGISTER *) (uintptr_t) (local_hpet -> base_address | KERNEL_PAGE_logical);
 
 			// show message regarding HPET
 			lib_terminal_printf( &kernel_terminal, " HPET base address 0x%X\n", (uint64_t) kernel -> hpet_base_address );
