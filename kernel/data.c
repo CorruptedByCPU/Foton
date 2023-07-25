@@ -34,3 +34,8 @@ static volatile struct limine_kernel_address_request limine_kernel_address_reque
 	.id = LIMINE_KERNEL_ADDRESS_REQUEST,
 	.revision = 0
 };
+
+static volatile struct limine_smp_request limine_smp_request = {
+	.id = LIMINE_SMP_REQUEST,
+	.revision = 0
+};

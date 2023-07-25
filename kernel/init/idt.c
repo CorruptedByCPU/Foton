@@ -46,7 +46,4 @@ void kernel_init_idt() {
 
 	// load new Interrupt Descriptor Table
 	__asm__ volatile( "lidt (%0)" :: "r" (&kernel -> idt_header) );
-
-	// enable interrupt handling
-	__asm__ volatile( "sti" );
 }

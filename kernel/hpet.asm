@@ -1,6 +1,6 @@
-;===============================================================================
-;Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
-;===============================================================================
+;=================================================================================
+; Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+;=================================================================================
 
 ; get pointer from HPET handling function
 extern	kernel_hpet_uptime
@@ -26,5 +26,5 @@ kernel_hpet_uptime_entry:
 	; restore ogirinal registers
 	pop	r11
 
-	; return from the procedure
+	; return from routine
 	iretq

@@ -32,6 +32,8 @@
 	#include	"lapic.h"
 	#include	"memory.h"
 	#include	"page.h"
+	#include	"task.h"
+	#include	"tss.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -45,16 +47,25 @@
 	#include	"io_apic.c"
 	#include	"memory.c"
 	#include	"page.c"
+	#include	"task.c"
+	//----------------------------------------------------------------------
+	// variables, structures, definitions of kernel environment initialization
+	//----------------------------------------------------------------------
+	#include	"init/acpi.h"
+	#include	"init/lapic.h"
+	#include	"init/reload.h"
 	//----------------------------------------------------------------------
 	// kernel environment initialization routines, procedures
 	//----------------------------------------------------------------------
-	#include	"init/acpi.h"
 	#include	"init/acpi.c"
 	#include	"init/gdt.c"
 	#include	"init/hpet.c"
 	#include	"init/idt.c"
+	#include	"init/lapic.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
+	#include	"init/task.c"
+	#include	"init/reload.c"
 
 // our mighty init
 void kernel_init( void ) {
@@ -95,9 +106,12 @@ void kernel_init( void ) {
 	// create Interrupt Descriptor Table
 	kernel_init_idt();
 
+	// create Task queue and insert kernel into it
+	kernel_init_task();
+
 	// configure HPET
 	kernel_init_hpet();
 
-	// hold the door
-	while( TRUE );
+	// reload BSP configuration
+	kernel_init_reload();
 }

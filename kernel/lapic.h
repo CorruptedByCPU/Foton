@@ -5,7 +5,7 @@
 #ifndef	KERNEL_LAPIC
 	#define	KERNEL_LAPIC
 
-	#define	KERNEL_LAPIC_Hz					1024
+	#define	KERNEL_LAPIC_Hz					32768
 
 	#define	KERNEL_LAPIC_IRQ_number				0x20
 	#define	KERNEL_LAPIC_INIT_READY_bit			12
@@ -42,4 +42,7 @@
 		uint8_t		reserved_B[ 76 ];
 		uint32_t	tdc;	// 0x03E0	Timer - Divide Configuration
 	} __attribute__( (packed) );
+
+	// returns CPU id
+	uint8_t kernel_lapic_id();
 #endif

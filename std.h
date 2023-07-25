@@ -34,8 +34,10 @@
 	#define	STD_SHIFT_16					4
 	#define	STD_SHIFT_32					5
 	#define	STD_SHIFT_64					6
+	#define	STD_SHIFT_PTR					STD_SHIFT_64
 	#define	STD_SHIFT_512					9
 	#define	STD_SHIFT_PAGE					12
 
 	#define	STD_PAGE_byte					0x1000
+	#define	STD_PAGE_mask					0xFFFFFFFFFFFFF000
 #endif

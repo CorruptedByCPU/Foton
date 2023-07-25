@@ -5,6 +5,8 @@
 #ifndef	KERNEL_TSS
 	#define	KERNEL_TSS
 
+	#define	KERNEL_TSS_OFFSET	0x07
+
 	struct	KERNEL_TSS_STRUCTURE {
 		uint32_t	reserved;
 		uint64_t	rsp0;
