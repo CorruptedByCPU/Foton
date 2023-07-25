@@ -3,9 +3,8 @@
 ===============================================================================*/
 
 void kernel_task( void ) {
-	// reload CPU cycle counter in APIC controller
-	kernel_lapic_reload();
+	// we do not have task query yet, so lock all CPUs
 
-	// accept current interrupt call
-	kernel_lapic_accept();
+	// hold the door
+	while( TRUE );
 }

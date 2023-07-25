@@ -3,6 +3,20 @@
 ===============================================================================*/
 
 void kernel_init_reload() {
+	MACRO_DEBUF();
+
+	// reload kernel environment paging array
+	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_logical), "r" ((uintptr_t) KERNEL_STACK_pointer) );
+
+	// reload the Global Descriptor Table
+	__asm__ volatile( "lgdt (%0)" :: "r" (&kernel -> gdt_header) );
+
+	// reset to valid descriptor values
+	kernel_gdt_reload();
+
+	// reload the Interrupt Descriptor Table
+	__asm__ volatile( "lidt (%0)" :: "r" (&kernel -> idt_header) );
+
 	// create a TSS descriptor for current BS/A processor
 	uint8_t id = kernel_lapic_id();
 
@@ -37,6 +51,9 @@ void kernel_init_reload() {
 
 	// accept current interrupt call (if exist)
 	kernel_lapic_accept();
+
+	// BS/A initialized
+	kernel -> cpu_count++;
 
 	// enable interrupt handling
 	__asm__ volatile( "sti" );

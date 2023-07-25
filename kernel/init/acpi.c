@@ -115,7 +115,4 @@ void kernel_init_acpi( void ) {
 			lib_terminal_printf( &kernel_terminal, " HPET base address 0x%X\n", (uint64_t) kernel -> hpet_base_address );
 		}
 	}
-
-	// separate ACPI messages with new line
-	lib_terminal_char( &kernel_terminal, '\n' );
 }

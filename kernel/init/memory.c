@@ -82,5 +82,5 @@ void kernel_init_memory( void ) {
 	}
 
 	// inform about total memory area in KiB
-	lib_terminal_printf( &kernel_terminal, "Memory size: %u KiB (%u KiB free)\n\n", kernel -> page_total << STD_SHIFT_4, kernel -> page_available << STD_SHIFT_4 );
+	lib_terminal_printf( &kernel_terminal, "Memory size: %u KiB (%u KiB free)\n", kernel -> page_total << STD_SHIFT_4, kernel -> page_available << STD_SHIFT_4 );
 }
