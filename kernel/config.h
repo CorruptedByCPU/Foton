@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"20"
+#define	KERNEL_revision		"21"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -48,7 +48,9 @@ struct KERNEL {
 
 	// variables of Task management functions
 	struct KERNEL_TASK_STRUCTURE	*task_base_address;
-	uintptr_t	*task_ap_address;	// contains pointers to task inside queue by specified AP id
+	struct KERNEL_TASK_STRUCTURE	**task_cpu_address;	// contains pointers to task inside queue by specified CPU id
+	uint8_t		task_cpu_semaphore;
+	uint64_t	task_limit;
 
 	// variables of TSS management functions
 	struct KERNEL_TSS_STRUCTURE	tss_table;

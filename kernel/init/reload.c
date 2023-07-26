@@ -3,8 +3,6 @@
 ===============================================================================*/
 
 void kernel_init_reload( void ) {
-	MACRO_DEBUF();
-
 	// reload kernel environment paging array
 	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_logical), "r" ((uintptr_t) KERNEL_STACK_pointer) );
 
