@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_lapic_init() {
+void kernel_lapic_init( void ) {
 	// turn off Task Priority and Priority Sub-Class
 	kernel -> lapic_base_address -> tp = EMPTY;
 

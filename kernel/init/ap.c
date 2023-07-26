@@ -2,9 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_ap() {
-	MACRO_DEBUF();
-
+void kernel_init_ap( void ) {
 	// other CPUs are available?
 	if( limine_smp_request.response == NULL ) return;	// no
 
@@ -22,7 +20,7 @@ void kernel_init_ap() {
 		// AP is initializing
 		local_smp_count++;
 
-		// wait for AP initialization finish
+		// wait for each AP initialization to finish
 
 		// it's very important to wait :) because all additional CPUs at initialization
 		// will use the same stack pointer as BSP

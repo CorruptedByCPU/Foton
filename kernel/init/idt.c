@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_idt() {
+void kernel_init_idt( void ) {
 	// prepare area for Interrupt Descriptor Table
 	kernel -> idt_header.base_address = (struct KERNEL_IDT_STRUCTURE_ENTRY *) kernel_memory_alloc( 1 );
 

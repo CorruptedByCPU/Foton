@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_hpet() {
+void kernel_init_hpet( void ) {
 	// HPET controler available?
 	if( ! kernel -> hpet_base_address ) {
 		// no, show proper information

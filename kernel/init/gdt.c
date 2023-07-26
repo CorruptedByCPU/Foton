@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_gdt() {
+void kernel_init_gdt( void ) {
 	// prepare area for Global Descriptor Table
 	kernel -> gdt_header.base_address = (struct KERNEL_GDT_STRUCTURE_ENTRY *) kernel_memory_alloc( 1 );
 

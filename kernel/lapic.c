@@ -8,12 +8,12 @@ void kernel_lapic_accept( void ) {
 	kernel -> lapic_base_address -> eoi = EMPTY;
 }
 
-uint8_t kernel_lapic_id() {
+uint8_t kernel_lapic_id( void ) {
 	// return BSP/logical CPU ID
 	return kernel -> lapic_base_address -> id >> 24;
 }
 
-void kernel_lapic_reload() {
+void kernel_lapic_reload( void ) {
 	// to call internal clock interrupt in about N cycles
 	kernel -> lapic_base_address -> tic = KERNEL_LAPIC_Hz;
 }

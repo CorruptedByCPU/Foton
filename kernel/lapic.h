@@ -44,5 +44,5 @@
 	} __attribute__( (packed) );
 
 	// returns CPU id
-	uint8_t kernel_lapic_id();
+	uint8_t kernel_lapic_id( void );
 #endif

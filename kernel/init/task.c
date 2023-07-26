@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_task() {
+void kernel_init_task( void ) {
 	// prepare area for Task entries
 	kernel -> task_base_address = (struct KERNEL_TASK_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_TASK_limit * sizeof( struct KERNEL_TASK_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 

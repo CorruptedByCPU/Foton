@@ -5,5 +5,5 @@
 #ifndef	KERNEL_INIT_LAPIC
 	#define	KERNEL_INIT_LAPIC
 
-	void kernel_lapic_init();
+	void kernel_lapic_init( void );
 #endif
