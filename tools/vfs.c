@@ -77,9 +77,16 @@ struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) &file_so;
 DIR *isdir;
 
 int main( int argc, char *argv[] ) {
+	// arg_length
+	uint64_t arg_length = strlen( argv[ 1 ] );
+	if( argv[ 1 ][ arg_length - 1 ] == '/' ) argv[ 1 ][ arg_length ] = EMPTY;
+
 	// prepare import path
-	char path_import[ sizeof( argv[ 1 ] ) ];
+	char path_import[ arg_length + 1 ];
 	snprintf( path_import, sizeof( path_import ), "%s%c", argv[ 1 ], 0x2F );
+
+// debug
+printf( "work dir (%s)\n", path_import );
 
 	// prepare vfs header
 	struct LIB_VFS_STRUCTURE *vfs = malloc( sizeof( struct LIB_VFS_STRUCTURE ) * LIB_VFS_default );
@@ -98,7 +105,7 @@ int main( int argc, char *argv[] ) {
 	strncpy( (char *) &vfs[ 1 ].name, name_symlink, 2 );
 
 	// included files
-	uint64_t files_included = 2;
+	uint64_t files_included = LIB_VFS_default;
 
 	// directory entry
 	struct dirent *entry = NULL;
@@ -111,8 +118,10 @@ int main( int argc, char *argv[] ) {
 		// ignore system files
 		if( ! strcmp( entry -> d_name, "." ) || ! strcmp( entry -> d_name, ".." ) ) continue;
 
+printf( "file: %s", entry -> d_name );
+
 		// file name longer than limit?
-		if( strlen( entry -> d_name ) > LIB_VFS_name_limit ) { printf( "Name \"%s\" too long.", entry -> d_name ); return -1; }
+		if( strlen( entry -> d_name ) > LIB_VFS_name_limit ) { printf( " [name \"%s\" too long]\n", entry -> d_name ); return -1; }
 
 		// resize header for new file
 		vfs = realloc( vfs, sizeof( struct LIB_VFS_STRUCTURE ) * (files_included + 1) );
@@ -122,8 +131,10 @@ int main( int argc, char *argv[] ) {
 		strcpy( (char *) vfs[ files_included ].name, entry -> d_name );
 
 		// combine path to file
-		char path_local[ sizeof( argv[ 1 ] ) + vfs[ files_included ].length ];
-		snprintf( path_local, sizeof( path_local ), "%s%s", path_import, vfs[ files_included ].name );
+		char path_local[ sizeof( argv[ 1 ] ) + vfs[ files_included ].length + 1 ];
+		snprintf( path_local, sizeof( path_local ), "%s%c%s", path_import, 0x2F, vfs[ files_included ].name );
+
+printf( " (path %s)\n", path_local );
 
 		// Insert
 
@@ -142,7 +153,16 @@ int main( int argc, char *argv[] ) {
 		if( elf -> type == LIB_ELF_TYPE_executable ) vfs[ files_included ].type = LIB_VFS_TYPE_regular_file;
 		else if( elf -> type == LIB_ELF_TYPE_shared_object ) vfs[ files_included ].type = LIB_VFS_TYPE_shared_object;
 		else if( finfo.st_mode & S_IFLNK ) vfs[ files_included ].type = LIB_VFS_TYPE_symbolic_link;
-		if( (isdir = opendir( path_local )) != NULL) { vfs[ files_included ].type = LIB_VFS_TYPE_directory; closedir( isdir ); }
+		else if( (isdir = opendir( path_local )) != NULL) {
+			vfs[ files_included ].type = LIB_VFS_TYPE_directory; closedir( isdir );
+
+			// prepare directory path
+			char path_directory[ 6 + sizeof( argv[ 1 ] ) + strlen( entry -> d_name ) ];
+			snprintf( path_directory, sizeof( path_directory ), "./vfs %s%c%s", argv[ 1 ], 0x2F, entry -> d_name );
+
+			// prepare subdirectory structure file
+			system( path_directory );
+		}
 
 		// next directory entry
 		files_included++;
@@ -175,6 +195,8 @@ int main( int argc, char *argv[] ) {
 	char path_local[ sizeof( path_export ) + sizeof( argv[ 1 ] ) + sizeof( file_extension ) ];
 	snprintf( path_local, sizeof( path_local ), "%s%s%s", path_export, argv[ 1 ], file_extension );
 
+	printf( "converted to %s\n", path_local );
+
 	// open new package for write
 	FILE *fvfs = fopen( path_local, "w" );
 
@@ -183,18 +205,33 @@ int main( int argc, char *argv[] ) {
 	fwrite( vfs, size, 1, fvfs );
 
 	// append files described in header
-	for( uint64_t i = LIB_VFS_default; i < files_included - 1; i++ ) {
+	for( uint64_t i = LIB_VFS_default; i < files_included - 2; i++ ) {
 		// align file to offset
 		for( uint64_t j = 0; j < MACRO_PAGE_ALIGN_UP( size ) - size; j++ ) fputc( '\x00', fvfs );
 
-		// combine path to file
-		char path_insert[ sizeof( path_import ) + vfs[ i ].length ];
-		snprintf( path_insert, sizeof( path_insert ), "%s%s", path_import, vfs[ i ].name );
+		if( vfs[ i ].type & LIB_VFS_TYPE_directory ) {
+			// combine path to file
+			char path_insert[ sizeof( path_import ) + vfs[ i ].length + 1];
+			snprintf( path_insert, sizeof( path_insert ), "%s%s.vfs", path_import, vfs[ i ].name );
 
-		// append file to package
-		FILE *file = fopen( path_insert, "r" );
-		for( uint64_t f = 0; f < vfs[ i ].size; f++ ) fputc( fgetc( file ), fvfs );
-		fclose( file );
+			printf( "Append directory: %s\n", path_insert );
+
+			// append file to package
+			FILE *file = fopen( path_insert, "r" );
+			for( uint64_t f = 0; f < vfs[ i ].size; f++ ) fputc( fgetc( file ), fvfs );
+			fclose( file );
+		} else {
+			// combine path to file
+			char path_insert[ sizeof( path_import ) + 1 + vfs[ i ].length ];
+			snprintf( path_insert, sizeof( path_insert ), "%s%c%s", path_import, 0x2F, vfs[ i ].name );
+
+			printf( "Append file: %s\n", path_insert );
+
+			// append file to package
+			FILE *file = fopen( path_insert, "r" );
+			for( uint64_t f = 0; f < vfs[ i ].size; f++ ) fputc( fgetc( file ), fvfs );
+			fclose( file );
+		}
 
 		// last data offset in Bytes
 		size = vfs[ i ].offset + vfs[ i ].size;
