@@ -13,6 +13,8 @@
 	#include	"../library/font.c"
 	#include	"../library/string.h"
 	#include	"../library/string.c"
+	#include	"../library/tar.h"
+	#include	"../library/tar.c"
 	#include	"../library/terminal.h"
 	#include	"../library/terminal.c"
 	//----------------------------------------------------------------------
@@ -34,6 +36,7 @@
 	#include	"page.h"
 	#include	"task.h"
 	#include	"tss.h"
+	#include	"storage.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -48,6 +51,7 @@
 	#include	"memory.c"
 	#include	"page.c"
 	#include	"task.c"
+	#include	"storage.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
@@ -67,6 +71,7 @@
 	#include	"init/task.c"
 	#include	"init/reload.c"
 	#include	"init/ap.c"
+	#include	"init/storage.c"
 
 // our mighty init
 void kernel_init( void ) {
@@ -115,6 +120,9 @@ void kernel_init( void ) {
 
 	// initialize other CPUs
 	kernel_init_ap();
+
+	// register all available storage devices
+	kernel_init_storage();
 
 	// reload BSP configuration
 	kernel_init_reload();

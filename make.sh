@@ -46,7 +46,7 @@ cp build/kernel.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd
 #===============================================================================
 lib=""	# include list of libraries
 
-for library in color elf string font terminal; do
+for library in tar color elf string font terminal; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS} || exit 1
 
@@ -62,7 +62,7 @@ done
 #===============================================================================
 
 # prepare virtual file system with content of all available software, libraries, files
-tar czf build/iso/root.gz build/root --owner=0:0
+(cd build/root && tar czf ../../build/iso/root.gz * --owner=0:0)
 
 # convert iso directory to iso file
 xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label build/iso -o build/foton.iso > /dev/null 2>&1
