@@ -27,25 +27,23 @@ uint8_t lib_vfs_check( uintptr_t address, uint64_t size_byte ) {
 }
 
 struct KERNEL_STORAGE_STRUCTURE_FILE lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, uint8_t *path, uint64_t length ) {
-	MACRO_DEBUF();
-
 	// start from root directory?
-	if( *path == '/' ) {
+	if( *path == '/' )
 		// find root directory structure
 		while( vfs[ 0 ].offset != vfs[ 1 ].offset ) vfs = (struct LIB_VFS_STRUCTURE *) vfs[ 1 ].offset;
 
-		// remove leading '/' and ending slash from path
-		while( *path == '/' ) { path++; length--; }
-		while( path[ length - 1 ] == '/' ) length--;
-	}
+	// remove all '/' from end of path
+	while( path[ length - 1 ] == '/' ) length--;
 
 	// parse path
 	while( TRUE ) {
-		// first name in path
-		uint64_t filename_length = EMPTY;
+		// remove leading '/'
+		while( *path == '/' ) { path++; length--; };
 
-		// increment until slash
-		while( filename_length < length && path[ filename_length ] != '/' ) filename_length++;
+		// first file name
+		uint64_t filename_length = lib_string_word_end( path, length, '/' );
+
+MACRO_DEBUF();
 
 		// select file from current directory structure
 		do { if( vfs -> length == filename_length && lib_string_compare( path, (uint8_t *) vfs -> name, filename_length ) ) break;
@@ -58,9 +56,6 @@ struct KERNEL_STORAGE_STRUCTURE_FILE lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs
 		if( length > filename_length ) {
 			// select next file from path
 			path += filename_length;
-
-			// remove leading '/'
-			while( *path == '/' ) { path++; length--; };
 
 			// continue
 			continue;

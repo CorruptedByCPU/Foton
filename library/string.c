@@ -92,3 +92,13 @@ uint64_t lib_string_to_integer( const char *string, uint8_t base ) {
 	// return value
 	return value;
 }
+
+uint64_t lib_string_word_end( uint8_t string[], uint64_t length, uint8_t separator ) {
+	// search from the beginning
+	for( uint64_t i = 0; i < length; i++ )
+		// separator located?
+		if( string[ i ] == '/' ) return i;
+
+	// the whole string is "word"
+	return length;
+}
