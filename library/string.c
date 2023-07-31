@@ -9,6 +9,16 @@
 		#include	"string.h"
 	#endif
 
+uint8_t lib_string_compare( uint8_t *source, uint8_t *target, uint64_t length ) {
+	// compare both strings
+	for( uint64_t i = 0; i < length; i++ )
+		// they are different?
+		if( source[ i ] != target[ i ] ) return FALSE;
+
+	// equal
+	return TRUE;
+}
+
 uint64_t lib_string_length( uint8_t *string ) {
 	// length of string
 	uint64_t length = 0;

@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"22"
+#define	KERNEL_revision		"25"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -40,11 +40,16 @@ struct KERNEL {
 	uint32_t	*memory_base_address;
 	uint8_t		memory_semaphore;
 
-	// variables of page management functions
+	// variables of Page management functions
 	uint64_t	*page_base_address;
 	uint64_t	page_total;
 	uint64_t	page_available;
 	uint64_t	page_limit;
+
+	// variables of Storage management functions
+	struct KERNEL_STORAGE_STRUCTURE	*storage_base_address;
+	uint64_t	storage_root_id;
+	uint8_t		storage_semaphore;
 
 	// variables of Task management functions
 	struct KERNEL_TASK_STRUCTURE	*task_base_address;

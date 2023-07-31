@@ -1,6 +1,6 @@
-/*==============================================================================
-Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
-==============================================================================*/
+/*===============================================================================
+ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+===============================================================================*/
 
 #ifndef	LIB_ELF
 	#define	LIB_ELF
@@ -9,6 +9,11 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 
 	#define	LIB_ELF_FLAG_execute		0b00000001	// segment is executable
 	#define	LIB_ELF_FLAG_write		0b00000010	// segment is writable
+
+	#define	LIB_ELF_TYPE_unknown		0x00
+	#define	LIB_ELF_TYPE_relocatable	0x01
+	#define	LIB_ELF_TYPE_executable		0x02
+	#define	LIB_ELF_TYPE_shared_object	0x03
 
 	struct	LIB_ELF_STRUCTURE {
 		uint32_t	magic_number;
