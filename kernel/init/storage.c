@@ -34,7 +34,7 @@ void kernel_init_storage() {
 		if( ! kernel -> storage_base_address[ i ].device_type ) continue;	// leave it
 
 		// properties of file
-		struct KERNEL_STORAGE_STRUCTURE_FILE file = kernel -> storage_base_address[ i ].storage_file( i, (uint8_t *) "/system/bin/init", 17 );
+		struct KERNEL_STORAGE_STRUCTURE_FILE file = kernel -> storage_base_address[ i ].storage_file( i, (uint8_t *) "/system/bin/init", 16 );
 
 		// storage contains requested file?
 		if( file.id ) {	// yes 

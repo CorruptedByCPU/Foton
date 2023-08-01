@@ -43,28 +43,21 @@ struct KERNEL_STORAGE_STRUCTURE_FILE lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs
 		// first file name
 		uint64_t filename_length = lib_string_word_end( path, length, '/' );
 
-MACRO_DEBUF();
-
 		// select file from current directory structure
 		do { if( vfs -> length == filename_length && lib_string_compare( path, (uint8_t *) vfs -> name, filename_length ) ) break;
 		} while( (++vfs) -> length );
 
 		// file found?
-		if( ! vfs -> length ) break;	// no
-
-		// this is requested file?
-		if( length > filename_length ) {
-			// select next file from path
-			path += filename_length;
-
-			// continue
-			continue;
-		}
+		if( ! vfs -> length ) return (struct KERNEL_STORAGE_STRUCTURE_FILE) { EMPTY };	// file not found
 
 		// last file from path is requested one?
 		if( length == filename_length && lib_string_compare( path, (uint8_t *) vfs -> name, filename_length ) ) return (struct KERNEL_STORAGE_STRUCTURE_FILE) { (uint64_t) vfs, vfs -> size };
-	}
 
-	// file not found
-	return (struct KERNEL_STORAGE_STRUCTURE_FILE) { EMPTY };
+		// change directory
+		vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+
+		// remove parsed directory from path
+		path += filename_length;
+		length -= filename_length;
+	}
 }
