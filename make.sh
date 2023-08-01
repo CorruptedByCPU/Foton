@@ -11,8 +11,11 @@ git submodule update --init
 clear
 
 # remove all obsolete files, which could interference
-rm -rf build && mkdir -p build/{iso,root/system/{bin,lib}}
+rm -rf build && mkdir -p build/iso
 rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
+
+# copy default filesystem structure
+cp -rf root build
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 C="clang -include std.h"
@@ -46,7 +49,7 @@ cp build/kernel.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd
 #===============================================================================
 lib=""	# include list of libraries
 
-for library in tar color elf string font terminal; do
+for library in color elf string vfs font terminal; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS} || exit 1
 
@@ -62,7 +65,7 @@ done
 #===============================================================================
 
 # prepare virtual file system with content of all available software, libraries, files
-(cd build && clang -include ../std.h ../tools/vfs.c -o vfs && ./vfs root && gzip -k root.vfs && cp root.vfs.gz iso/root.gz)
+(cd build && clang -include ../std.h ../tools/vfs.c -o vfs && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs && cp root.vfs.gz iso/root.gz)
 
 # convert iso directory to iso file
 xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label build/iso -o build/foton.iso > /dev/null 2>&1

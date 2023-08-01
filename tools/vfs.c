@@ -101,7 +101,7 @@ int main( int argc, char *argv[] ) {
 		if( (isdir = opendir( path_local )) != NULL ) {
 			// prepare directory path
 			char path_directory[ 6 + sizeof( argv[ 1 ] ) + LIB_VFS_name_limit ];
-			snprintf( path_directory, sizeof( path_directory ), "./vfs %s/%s", argv[ 1 ], entry -> d_name );
+			snprintf( path_directory, sizeof( path_directory ), "./vfs %s/%s internal", argv[ 1 ], entry -> d_name );
 
 			// prepare subdirectory file structure
 			system( path_directory );
@@ -204,12 +204,15 @@ int main( int argc, char *argv[] ) {
 	// release header
 	free( vfs );
 
-	// align magic value to uint32_t size
-	for( uint8_t a = 0; a < sizeof( uint32_t ) - (size % sizeof( uint32_t )); a++ ) fputc( '\x00', fvfs );
+	// append magic value only to root directory
+	if( argc == 2 ) {
+		// align magic value to uint32_t size
+		for( uint8_t a = 0; a < sizeof( uint32_t ) - (size % sizeof( uint32_t )); a++ ) fputc( '\x00', fvfs );
 
-	// append magic value to end of vfs file
-	uint32_t magic = LIB_VFS_magic;
-	fwrite( &magic, LIB_VFS_length, 1, fvfs );
+		// append magic value to end of vfs file
+		uint32_t magic = LIB_VFS_magic;
+		fwrite( &magic, LIB_VFS_length, 1, fvfs );
+	}
 
 	// close package
 	fclose( fvfs );

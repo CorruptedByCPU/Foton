@@ -13,7 +13,9 @@
 	#define	LIB_VFS_shift			6
 	#define	LIB_VFS_default			2
 
-	#define	LIB_VFS_TYPE_regular_file	0b00000001
+	#define	LIB_VFS_BLOCK_size		4096
+
+  #define	LIB_VFS_TYPE_regular_file	0b00000001
 	#define	LIB_VFS_TYPE_directory		0b00000010
 	#define	LIB_VFS_TYPE_symbolic_link	0b00000100
 	#define	LIB_VFS_TYPE_shared_object	0b00001000

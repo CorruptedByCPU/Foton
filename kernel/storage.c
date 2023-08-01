@@ -26,3 +26,13 @@ struct KERNEL_STORAGE_STRUCTURE *kernel_storage_register( uint8_t type ) {
 	// no available space
 	return EMPTY;
 }
+
+struct KERNEL_STORAGE_STRUCTURE_FILE kernel_storage_file( uint64_t storage, uint8_t *path, uint16_t length ) {
+	// if storage type of VFS
+	if( kernel -> storage_base_address -> device_type == KERNEL_STORAGE_TYPE_vfs )
+		// return properties of file
+		return lib_vfs_file( (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ storage ].device_block_first, path, length );
+
+	// file not found
+	return (struct KERNEL_STORAGE_STRUCTURE_FILE) { EMPTY };
+};

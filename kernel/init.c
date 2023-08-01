@@ -13,8 +13,8 @@
 	#include	"../library/font.c"
 	#include	"../library/string.h"
 	#include	"../library/string.c"
-	#include	"../library/tar.h"
-	#include	"../library/tar.c"
+	#include	"../library/vfs.h"
+	#include	"../library/vfs.c"
 	#include	"../library/terminal.h"
 	#include	"../library/terminal.c"
 	//----------------------------------------------------------------------
@@ -71,6 +71,7 @@
 	#include	"init/task.c"
 	#include	"init/reload.c"
 	#include	"init/ap.c"
+	#include	"init/vfs.c"
 	#include	"init/storage.c"
 
 // our mighty init

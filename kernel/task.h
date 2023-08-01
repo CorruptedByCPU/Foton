@@ -16,6 +16,8 @@
 		uintptr_t		rsp;
 		uint64_t		pid;
 		uint64_t		sleep;
+		uint64_t		storage;
+		uint64_t		directory;
 		volatile uint16_t	flags;
 		uint8_t			length;
 		uint8_t			name[ 32 ];	// for now its enough

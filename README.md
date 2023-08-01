@@ -14,4 +14,6 @@ Already reimplemented:
 - libstring.so library - performing operations on strings,
 - libterminal.so library - framebuffer management in text-mode.
 - Round Robin - task queue type,
-- SMP - unlock other available CPUs.
+- SMP - unlock other available CPUs,
+- libvfs.so library - root filesystem,
+- Storage management.
