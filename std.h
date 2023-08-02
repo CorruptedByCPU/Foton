@@ -77,8 +77,26 @@
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
 
-	// function definitions
+	#ifdef	SOFTWARE
+		// function definitions
 
-	// initial function of every process
-	extern int64_t _main( uint64_t argc, const char *argv[] );
+		void std_syscall_empty( void );
+
+		// initial function of every process
+		extern int64_t _main( uint64_t argc, const char *argv[] );
+
+		// initialization of process environment
+		void _entry( void ) {
+			// sad hack :|
+			__asm__ volatile( "testw $0x08, %sp\nje .+4\npushq $0x00" );
+
+			// execute process flow
+			int64_t result;	// initialize local variable
+			__asm__ volatile( "call _main" : "=a" (result) );
+
+			// execute leave out routine
+			__asm__ volatile( "" :: "a" (STD_SYSCALL_EXIT) );
+			std_syscall_empty();
+		}
+	#endif
 #endif

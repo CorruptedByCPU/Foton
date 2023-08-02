@@ -2,6 +2,11 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+	//-----------------------------------------------------------------------
+	// variables, structures, definitions
+	//-----------------------------------------------------------------------
+	#include	"../std.h"
+
 inline void std_syscall_empty( void ) {
 	// call syscall of kernel
 	__asm__ volatile( "push %%rax\npush %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\npop %%rax" :: );
@@ -49,18 +54,4 @@ inline uintptr_t std_syscall_pointer() {
 
 	// return a pointer
 	return rax;
-}
-
-// initialization of process environment
-static void _entry( void ) {
-	// sad hack :|
-	__asm__ volatile( "testw $0x08, %sp\nje .+4\npushq $0x00" );
-
-	// execute process flow
-	int64_t result;	// initialize local variable
-	__asm__ volatile( "call _main" : "=a" (result) );
-
-	// execute leave out routine
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_EXIT) );
-	std_syscall_empty();
 }
