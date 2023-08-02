@@ -52,6 +52,7 @@
 	#include	"page.c"
 	#include	"task.c"
 	#include	"storage.c"
+	#include	"syscall.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
