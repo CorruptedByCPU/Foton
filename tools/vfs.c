@@ -32,13 +32,13 @@ void vfs_default( struct LIB_VFS_STRUCTURE *vfs ) {
 	// prepare default symlinks for root directory
 	vfs[ 0 ].offset = EMPTY;
 	vfs[ 0 ].length = 1;
-	vfs[ 0 ].mode = LIB_VFS_MODE_user_read | LIB_VFS_MODE_user_write | LIB_VFS_MODE_group_read | LIB_VFS_MODE_group_write | LIB_VFS_MODE_other_read;
-	vfs[ 0 ].type = LIB_VFS_TYPE_symbolic_link;
+	vfs[ 0 ].mode = STD_FILE_MODE_default_directory;
+	vfs[ 0 ].type = STD_FILE_TYPE_symbolic_link;
 	strncpy( (char *) &vfs[ 0 ].name, name_symlink, 1 );
 	vfs[ 1 ].offset = EMPTY;
 	vfs[ 1 ].length = 2;
-	vfs[ 1 ].mode = LIB_VFS_MODE_user_read | LIB_VFS_MODE_user_write | LIB_VFS_MODE_group_read | LIB_VFS_MODE_group_write | LIB_VFS_MODE_other_read;
-	vfs[ 1 ].type = LIB_VFS_TYPE_symbolic_link;
+	vfs[ 1 ].mode = STD_FILE_MODE_default_directory;
+	vfs[ 1 ].type = STD_FILE_TYPE_symbolic_link;
 	strncpy( (char *) &vfs[ 1 ].name, name_symlink, 2 );
 }
 
@@ -97,6 +97,9 @@ int main( int argc, char *argv[] ) {
 		stat( (char *) path_local, &finfo );	// get file specification
 		vfs[ files_included ].size = finfo.st_size;
 
+		// mode
+		vfs[ files_included ].mode = finfo.st_mode & STD_FILE_MODE_mask;
+
 		// type is directory?
 		if( (isdir = opendir( path_local )) != NULL ) {
 			// prepare directory path
@@ -110,25 +113,18 @@ int main( int argc, char *argv[] ) {
 			char path_insert[ sizeof( argv[ 1 ] ) + LIB_VFS_name_limit + 1];
 			snprintf( path_insert, sizeof( path_insert ), "%s/%s.vfs", argv[ 1 ], entry -> d_name );
 
-			vfs[ files_included ].mode = LIB_VFS_MODE_user_read | LIB_VFS_MODE_user_exec;
-
 			// size of file in Bytes
 			struct stat finfo;
 			stat( (char *) path_insert, &finfo );	// get file specification
 			vfs[ files_included ].size = finfo.st_size;
 
-			vfs[ files_included++ ].type = LIB_VFS_TYPE_directory;
+			vfs[ files_included++ ].type = STD_FILE_TYPE_directory;
 
 			continue;
 		}
 
-		// get file properties
-		FILE *so = fopen( path_local, "r" ); fgets( file_so, sizeof( struct LIB_ELF_STRUCTURE ) - 1, so ); fclose( so );
-
 		// type
-		if( elf -> type == LIB_ELF_TYPE_shared_object ) { vfs[ files_included ].type = LIB_VFS_TYPE_shared_object; vfs[ files_included ].mode = LIB_VFS_MODE_user_exec | LIB_VFS_MODE_group_exec | LIB_VFS_MODE_other_exec; }
-		else if( elf -> type == LIB_ELF_TYPE_executable ) { vfs[ files_included ].type = LIB_VFS_TYPE_regular_file; vfs[ files_included ].mode = LIB_VFS_MODE_user_exec | LIB_VFS_MODE_group_exec | LIB_VFS_MODE_other_exec; }
-		else vfs[ files_included ].type = LIB_VFS_TYPE_unknown;
+		vfs[ files_included ].type = STD_FILE_TYPE_regular_file;
 
 		// next directory entry
 		files_included++;
@@ -177,7 +173,7 @@ int main( int argc, char *argv[] ) {
 		// align file to offset
 		for( uint64_t j = 0; j < MACRO_PAGE_ALIGN_UP( size ) - size; j++ ) fputc( '\x00', fvfs );
 
-		if( vfs[ i ].type & LIB_VFS_TYPE_directory ) {
+		if( vfs[ i ].type & STD_FILE_TYPE_directory ) {
 			// combine path to file
 			char path_insert[ sizeof( path_import ) + LIB_VFS_name_limit + 1];
 			snprintf( path_insert, sizeof( path_insert ), "%s/%s.vfs", path_import, vfs[ i ].name );

@@ -26,7 +26,7 @@ uint8_t lib_vfs_check( uintptr_t address, uint64_t size_byte ) {
 	return FALSE;
 }
 
-struct KERNEL_STORAGE_STRUCTURE_FILE lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, uint8_t *path, uint64_t length ) {
+struct STD_FILE_STRUCTURE lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, uint8_t *path, uint64_t length ) {
 	// start from root directory?
 	if( *path == '/' )
 		// find root directory structure
@@ -48,10 +48,10 @@ struct KERNEL_STORAGE_STRUCTURE_FILE lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs
 		} while( (++vfs) -> length );
 
 		// file found?
-		if( ! vfs -> length ) return (struct KERNEL_STORAGE_STRUCTURE_FILE) { EMPTY };	// file not found
+		if( ! vfs -> length ) return (struct STD_FILE_STRUCTURE) { EMPTY };	// file not found
 
 		// last file from path is requested one?
-		if( length == filename_length && lib_string_compare( path, (uint8_t *) vfs -> name, filename_length ) ) return (struct KERNEL_STORAGE_STRUCTURE_FILE) { (uint64_t) vfs, vfs -> size };
+		if( length == filename_length && lib_string_compare( path, (uint8_t *) vfs -> name, filename_length ) ) return (struct STD_FILE_STRUCTURE) { (uint64_t) vfs, vfs -> size, vfs -> type, vfs -> mode, vfs -> uid, vfs -> guid };
 
 		// change directory
 		vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;

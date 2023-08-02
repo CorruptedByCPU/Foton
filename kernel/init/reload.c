@@ -44,6 +44,17 @@ void kernel_init_reload( void ) {
 	// enable X87, SSE, AVX support
 	__asm__ volatile( "xorq %rcx, %rcx\nxgetbv\nor $0x3, %eax\nxsetbv" );
 
+	//--------------------------------------------------------------------------
+	// enable syscall/sysret support
+	__asm__ volatile( "movl $0xC0000080, %ecx\nrdmsr\nor $1, %eax\nwrmsr" );	// enable SCE flag
+	// set code/stack segments for kernel and process
+	__asm__ volatile( "wrmsr" :: "a" (EMPTY), "d" (0x00180008), "c" (KERNEL_INIT_RELOAD_MSR_STAR) );
+	// set the kernel entry routin
+	__asm__ volatile( "wrmsr" :: "a" ((uintptr_t) kernel_syscall), "d" ((uintptr_t) kernel_syscall >> 32), "c" (KERNEL_INIT_RELOAD_MSR_LSTAR) );
+	// disable IF flag and DF after calling syscall
+	__asm__ volatile( "wrmsr" :: "a" ((uint32_t) KERNEL_TASK_EFLAGS_if | KERNEL_TASK_EFLAGS_df), "d" (EMPTY ), "c" (KERNEL_INIT_RELOAD_MSR_EFLAGS) );
+	//--------------------------------------------------------------------------
+
 	// initialize LAPIC of BS/A processor
 	kernel_lapic_init();
 
