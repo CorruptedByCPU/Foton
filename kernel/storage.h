@@ -10,14 +10,9 @@
 	#define	KERNEL_STORAGE_TYPE_vfs	0b00000001
 
 	struct KERNEL_STORAGE_STRUCTURE {
-		uint8_t					device_type;
-		uint64_t				device_block_count;
-		uint64_t				device_block_first;
-		struct KERNEL_STORAGE_STRUCTURE_FILE	(*storage_file)( uint64_t storage_id, uint8_t *path, uint64_t length );
-	};
-
-	struct KERNEL_STORAGE_STRUCTURE_FILE {
-		uint64_t	id;
-		uint64_t	size_byte;
+		uint8_t				device_type;
+		uint64_t			device_block_count;
+		uint64_t			device_block_first;
+		struct STD_STRUCTURE_FILE	(*storage_file)( uint64_t storage_id, uint8_t *path, uint64_t length );
 	};
 #endif

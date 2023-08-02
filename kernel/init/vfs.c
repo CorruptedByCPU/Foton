@@ -14,10 +14,10 @@ void kernel_init_vfs( struct LIB_VFS_STRUCTURE *vfs, uintptr_t root ) {
 		// modify offset depending on file type
 		switch( vfs -> type ) {
 			// for default symbolic links
-			case LIB_VFS_TYPE_symbolic_link: { if( vfs -> length == 2 && lib_string_compare( vfs -> name, (uint8_t *) "..", vfs -> length ) ) vfs -> offset = root; break; }
+			case STD_FILE_TYPE_symbolic_link: { if( vfs -> length == 2 && lib_string_compare( vfs -> name, (uint8_t *) "..", vfs -> length ) ) vfs -> offset = root; break; }
 
 			// for directories
-			case LIB_VFS_TYPE_directory: { kernel_init_vfs( (struct LIB_VFS_STRUCTURE *) vfs -> offset, dir ); break; }
+			case STD_FILE_TYPE_directory: { kernel_init_vfs( (struct LIB_VFS_STRUCTURE *) vfs -> offset, dir ); break; }
 		}
 	// until end of file list
 	} while( (++vfs) -> length );
