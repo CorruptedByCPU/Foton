@@ -37,6 +37,7 @@
 	#include	"task.h"
 	#include	"tss.h"
 	#include	"storage.h"
+	#include	"library.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -74,6 +75,7 @@
 	#include	"init/ap.c"
 	#include	"init/vfs.c"
 	#include	"init/storage.c"
+	#include	"init/library.c"
 
 // our mighty init
 void kernel_init( void ) {
@@ -125,6 +127,9 @@ void kernel_init( void ) {
 
 	// register all available storage devices
 	kernel_init_storage();
+
+	// create library management space
+	kernel_init_library();
 
 	// reload BSP configuration
 	kernel_init_reload();

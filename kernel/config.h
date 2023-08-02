@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"29"
+#define	KERNEL_revision		"30"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -35,6 +35,10 @@ struct KERNEL {
 	// variables of APIC management functions
 	volatile struct KERNEL_LAPIC_STRUCTURE	*lapic_base_address;
 	uint64_t	lapic_id_highest;
+
+	// variables of Library management functions
+	struct KERNEL_LIBRARY_STRUCTURE	*library_base_address;
+	uint32_t	*library_map_address;
 
 	// variables of Memory management functions
 	uint32_t	*memory_base_address;

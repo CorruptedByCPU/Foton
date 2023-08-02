@@ -34,7 +34,7 @@ void kernel_init_storage() {
 		if( ! kernel -> storage_base_address[ i ].device_type ) continue;	// leave it
 
 		// properties of file
-		struct STD_STRUCTURE_FILE file = kernel -> storage_base_address[ i ].storage_file( i, (uint8_t *) "/system/bin/init", 16 );
+		struct STD_FILE_STRUCTURE file = kernel -> storage_base_address[ i ].storage_file( i, (uint8_t *) "/system/bin/init", 16 );
 
 		// storage contains requested executable file of root user?
 		if( file.id && ! file.uid && file.mode & STD_FILE_MODE_user_exec ) {	// yes

@@ -13,6 +13,6 @@
 		uint8_t				device_type;
 		uint64_t			device_block_count;
 		uint64_t			device_block_first;
-		struct STD_STRUCTURE_FILE	(*storage_file)( uint64_t storage_id, uint8_t *path, uint64_t length );
+		struct STD_FILE_STRUCTURE	(*storage_file)( uint64_t storage_id, uint8_t *path, uint64_t length );
 	};
 #endif
