@@ -2,17 +2,12 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-	//-----------------------------------------------------------------------
-	// variables, structures, definitions
-	//-----------------------------------------------------------------------
-	#include	"../std.h"
-
-inline void std_syscall_empty( void ) {
+void std_syscall_empty( void ) {
 	// call syscall of kernel
 	__asm__ volatile( "push %%rax\npush %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\npop %%rax" :: );
 }
 
-inline uint8_t std_syscall_bool() {
+uint8_t std_syscall_bool() {
 	// initialize local variable
 	uint8_t rax;
 
@@ -23,7 +18,7 @@ inline uint8_t std_syscall_bool() {
 	return rax;
 }
 
-inline int64_t std_syscall_signed() {
+int64_t std_syscall_signed() {
 	// initialize local variable
 	int64_t rax;
 
@@ -34,7 +29,7 @@ inline int64_t std_syscall_signed() {
 	return rax;
 }
 
-inline uint64_t std_syscall_unsigned() {
+uint64_t std_syscall_unsigned() {
 	// initialize local variable
 	uint64_t rax;
 
@@ -45,7 +40,7 @@ inline uint64_t std_syscall_unsigned() {
 	return rax;
 }
 
-inline uintptr_t std_syscall_pointer() {
+uintptr_t std_syscall_pointer() {
 	// initialize local variable
 	uintptr_t rax;
 

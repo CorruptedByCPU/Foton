@@ -80,6 +80,7 @@
 	#ifdef	SOFTWARE
 		// function definitions
 
+		// requests syscall and returns nothing
 		void std_syscall_empty( void );
 
 		// initial function of every process
