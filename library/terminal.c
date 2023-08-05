@@ -6,13 +6,13 @@
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
 	#ifndef	LIB_FONT
-		#include	"font.h"
+		#include	"./font.h"
 	#endif
 	#ifndef	LIB_STRING
-		#include	"string.h"
+		#include	"./string.h"
 	#endif
 	#ifndef	LIB_TERMINAL
-		#include	"terminal.h"
+		#include	"./terminal.h"
 	#endif
 
 void lib_terminal( struct LIB_TERMINAL_STRUCTURE *terminal ) {
@@ -44,7 +44,7 @@ void lib_terminal( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	lib_terminal_drain( terminal );
 }
 
-void lib_terminal_char( struct LIB_TERMINAL_STRUCTURE *terminal, const char ascii ) {
+void lib_terminal_char( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t ascii ) {
 	// disable cursor, no CPU power waste
 	lib_terminal_cursor_disable( terminal );
 
@@ -211,7 +211,7 @@ void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	lib_terminal_drain_line( terminal );
 }
 
-void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, const char *string, ... ) {
+void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *string, ... ) {
 	// properties of argument list
 	va_list argv;
 
@@ -219,7 +219,7 @@ void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, const char *s
 	va_start( argv, string );
 
 	// for every character from string
-	uint64_t length = lib_string_length( (uint8_t *) string );
+	uint64_t length = lib_string_length( string );
 	for( uint64_t i = 0; i < length; i++ ) {
 		// special character?
 		if( string[ i ] == '%' ) {	
@@ -269,6 +269,17 @@ void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, const char *s
 					// next character from string
 					continue;
 				}
+
+				case 's': {
+					// retrieve substring
+					uint8_t *substring = va_arg( argv, uint8_t * );
+					
+					// show 'substring' on terminal
+					lib_terminal_string( terminal, substring, lib_string_length( substring ) );
+
+					// next character from string
+					continue;
+				}
 			}
 		}
 
@@ -280,7 +291,7 @@ void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, const char *s
 	va_end( argv );
 }
 
-void lib_terminal_string( struct LIB_TERMINAL_STRUCTURE *terminal, const char *string, uint64_t length ) {
+void lib_terminal_string( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *string, uint64_t length ) {
 	// disable cursor, no CPU power waste
 	lib_terminal_cursor_disable( terminal );
 

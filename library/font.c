@@ -6,10 +6,10 @@
 	// variables, structures, definitions
 	//-----------------------------------------------------------------------
 	#ifndef	LIB_COLOR
-		#include	"color.h"
+		#include	"./color.h"
 	#endif
 	#ifndef	LIB_FONT
-		#include	"font.h"
+		#include	"./font.h"
 	#endif
 	//-----------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ static uint8_t lib_font_char( uint8_t font, uint64_t scanline_pixel, uint32_t *p
 }
 
 // calculate string width in pixels
-uint64_t lib_font_length_string( uint8_t font, const char *string, uint64_t length ) {
+uint64_t lib_font_length_string( uint8_t font, uint8_t *string, uint64_t length ) {
 	// for non-monospace font style
 	if( font == LIB_FONT_FAMILY_ROBOTO ) {
 		// string init width
@@ -98,7 +98,7 @@ uint64_t lib_font_length_string( uint8_t font, const char *string, uint64_t leng
 }
 
 // main function of library
-uint64_t lib_font( uint8_t font, const char *string, uint64_t length, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t align ) {
+uint64_t lib_font( uint8_t font, uint8_t *string, uint64_t length, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t align ) {
 	// no support for empty strings or if there is at least 1 character not printable
 	if( ! lib_font_length_string( font, string, length ) ) return EMPTY;
 
@@ -136,5 +136,5 @@ uint64_t lib_font_value( uint8_t font, uint64_t value, uint8_t base, uint32_t co
 	if( index == 64 ) index--;
 
 	// show value
-	return lib_font( font, (const char *) &string[ index ], 64 - index, color, pixel, scanline_pixel, align );
+	return lib_font( font, (uint8_t *) &string[ index ], 64 - index, color, pixel, scanline_pixel, align );
 }

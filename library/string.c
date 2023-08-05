@@ -6,7 +6,7 @@
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
 	#ifndef	LIB_STRING
-		#include	"string.h"
+		#include	"./string.h"
 	#endif
 
 uint8_t lib_string_compare( uint8_t *source, uint8_t *target, uint64_t length ) {
@@ -30,7 +30,7 @@ uint64_t lib_string_length( uint8_t *string ) {
 	return length;
 }
 
-uint64_t lib_string_length_scope_digit( const char *string ) {
+uint64_t lib_string_length_scope_digit( uint8_t *string ) {
 	// amount of digits in string
 	uint64_t length = 0;
 
@@ -41,7 +41,7 @@ uint64_t lib_string_length_scope_digit( const char *string ) {
 	return length;
 }
 
-uint64_t lib_string_to_integer( const char *string, uint8_t base ) {
+uint64_t lib_string_to_integer( uint8_t *string, uint8_t base ) {
 	// calculated value
 	uint64_t value = EMPTY;
 

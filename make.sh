@@ -18,7 +18,7 @@ rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 cp -rf root build
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
-C="clang -include library/std.h"
+C="clang -include ./library/std.h"
 LD="ld.lld"
 ASM="nasm"
 
@@ -85,7 +85,7 @@ done
 #===============================================================================
 
 # prepare virtual file system with content of all available software, libraries, files
-(cd build && clang -include ../library/std.h ../tools/vfs.c -o vfs && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs && cp root.vfs.gz iso/root.gz)
+(cd build && clang ../tools/vfs.c -o vfs && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs && cp root.vfs.gz iso/root.gz)
 
 # convert iso directory to iso file
 xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label build/iso -o build/foton.iso > /dev/null 2>&1

@@ -9,7 +9,7 @@
 	#include	"stdint.h"
 	#include	"stddef.h"
 	#include	"stdarg.h"
-	#include	"macro.h"
+	#include	"./macro.h"
 
 	#define	EMPTY						0
 
@@ -84,7 +84,7 @@
 		void std_syscall_empty( void );
 
 		// initial function of every process
-		extern int64_t _main( uint64_t argc, const char *argv[] );
+		extern int64_t _main( uint64_t argc, uint8_t *argv[] );
 
 		// initialization of process environment
 		void _entry( void ) {
@@ -100,4 +100,13 @@
 			std_syscall_empty();
 		}
 	#endif
+
+	//------------------------------------------------------------------------------
+	// substitute of libc
+	//------------------------------------------------------------------------------
+
+	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) {
+		// copy source content inside target
+		for( uint8_t i = 0; i < length; i++) target[ i ] = source[ i ];
+	}
 #endif

@@ -32,5 +32,5 @@ void kernel_init_gdt( void ) {
 	kernel_gdt_reload();
 
 	// show GDT properties
-	lib_terminal_printf( &kernel_terminal, "GDT base address 0x%X\n", kernel -> gdt_header.base_address );
+	lib_terminal_printf( &kernel_terminal, (uint8_t *) "GDT base address 0x%X\n", kernel -> gdt_header.base_address );
 }

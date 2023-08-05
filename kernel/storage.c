@@ -27,12 +27,23 @@ struct KERNEL_STORAGE_STRUCTURE *kernel_storage_register( uint8_t type ) {
 	return EMPTY;
 }
 
-struct STD_FILE_STRUCTURE kernel_storage_file( uint64_t storage, uint8_t *path, uint16_t length ) {
-	// if storage type of VFS
-	if( kernel -> storage_base_address -> device_type == KERNEL_STORAGE_TYPE_vfs )
-		// return properties of file
-		return lib_vfs_file( (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ storage ].device_block_first, path, length );
+struct STD_FILE_STRUCTURE kernel_storage_file( uint64_t storage_id, uint8_t *path, uint16_t length ) {
+	// different approach, regarded of device type
+	switch( kernel -> storage_base_address[ storage_id ].device_type ) {
+		case KERNEL_STORAGE_TYPE_vfs:
+			// return properties of file
+			return lib_vfs_file( (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ storage_id ].device_block, path, length );
+	}
 
 	// file not found
 	return (struct STD_FILE_STRUCTURE) { EMPTY };
+};
+
+void kernel_storage_read( uint64_t storage_id, uint64_t file_id, uintptr_t target_address ) {
+	// different approach, regarded of device type
+	switch( kernel -> storage_base_address[ storage_id ].device_type ) {
+		case KERNEL_STORAGE_TYPE_vfs:
+			// return properties of file
+			return lib_vfs_read( (struct LIB_VFS_STRUCTURE *) file_id, target_address );
+	}
 };

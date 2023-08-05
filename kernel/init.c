@@ -54,6 +54,8 @@
 	#include	"task.c"
 	#include	"storage.c"
 	#include	"syscall.c"
+	#include	"library.c"
+	#include	"exec.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
@@ -96,7 +98,7 @@ void kernel_init( void ) {
 	lib_terminal( &kernel_terminal );
 
 	// show welcome message
-	lib_terminal_printf( &kernel_terminal, "  _____     _              \n |  ___|__ | |_ ___  _ __  \n | |_ / _ \\| __/ _ \\| \'_ \\ \n |  _| (_) | || (_) | | | |\n |_|  \\___/ \\__\\___/|_| |_|\n                           \n" );
+	lib_terminal_printf( &kernel_terminal, (uint8_t *) "  _____     _              \n |  ___|__ | |_ ___  _ __  \n | |_ / _ \\| __/ _ \\| \'_ \\ \n |  _| (_) | || (_) | | | |\n |_|  \\___/ \\__\\___/|_| |_|\n                           \n" );
 
 	// create binary memory map
 	kernel_init_memory();
@@ -130,6 +132,9 @@ void kernel_init( void ) {
 
 	// create library management space
 	kernel_init_library();
+
+	// execute first process
+	kernel_exec( (uint8_t *) "/system/bin/init", 16 );
 
 	// reload BSP configuration
 	kernel_init_reload();

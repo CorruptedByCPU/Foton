@@ -5,14 +5,11 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
-	#ifndef	LIB_VFS
-		#include	"vfs.h"
-	#endif
 	#ifndef	LIB_STRING
-		#include	"string.h"
+		#include	"./string.h"
 	#endif
-	#ifndef	KERNEL_STORAGE
-		#include	"../kernel/storage.h"
+	#ifndef	LIB_VFS
+		#include	"./vfs.h"
 	#endif
 
 uint8_t lib_vfs_check( uintptr_t address, uint64_t size_byte ) {
@@ -60,4 +57,11 @@ struct STD_FILE_STRUCTURE lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, uint8_t *
 		path += filename_length;
 		length -= filename_length;
 	}
+}
+
+void lib_vfs_read( struct LIB_VFS_STRUCTURE *vfs, uintptr_t target_address ) {
+	// copy content of file to destination
+	uint8_t *source = (uint8_t *) vfs -> offset;
+	uint8_t *target = (uint8_t *) target_address;
+	for( uint64_t i = 0; i < vfs -> size; i++ ) target[ i ] = source[ i ];
 }
