@@ -107,6 +107,6 @@
 
 	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) {
 		// copy source content inside target
-		for( uint8_t i = 0; i < length; i++) target[ i ] = source[ i ];
+		for( uint64_t i = 0; i < length; i++) target[ i ] = source[ i ];
 	}
 #endif

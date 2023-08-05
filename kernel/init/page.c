@@ -34,7 +34,7 @@ void kernel_init_page( void ) {
 	struct LIB_ELF_STRUCTURE_HEADER *limine_file_elf64_header_entry = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) limine_file_elf64_header + limine_file_elf64_header -> headers_offset);
 
 	// retrieve flags and map kernel file segments in proper place
-	for( uint16_t i = 0; i < limine_file_elf64_header -> header_entry_count; i++ ) {
+	for( uint16_t i = 0; i < limine_file_elf64_header -> h_entry_count; i++ ) {
 		// ignore blank entries
 		if( ! limine_file_elf64_header_entry[ i ].type || ! limine_file_elf64_header_entry[ i ].memory_size ) continue;
 

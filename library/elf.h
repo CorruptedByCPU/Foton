@@ -15,6 +15,8 @@
 	#define	LIB_ELF_TYPE_executable		0x02
 	#define	LIB_ELF_TYPE_shared_object	0x03
 
+	#define	LIB_ELF_HEADER_TYPE_load	1
+
 	#define	LIB_ELF_SECTION_TYPE_null	0x00
 	#define	LIB_ELF_SECTION_TYPE_progbits	0x01
 	#define	LIB_ELF_SECTION_TYPE_rela	0x04
@@ -43,7 +45,7 @@
 		uint32_t	flags;
 		uint16_t	header_size;
 		uint16_t	header_table_size;
-		uint16_t	header_entry_count;
+		uint16_t	h_entry_count;
 		uint16_t	section_table_size;
 		uint16_t	s_entry_count;
 		uint16_t	correlation;
