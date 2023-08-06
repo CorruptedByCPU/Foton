@@ -29,6 +29,9 @@
 	#define	KERNEL_PAGE_PML3_byte			0x0000008000000000
 	#define	KERNEL_PAGE_PML4_byte			0x0001000000000000
 
+	#define	KERNEL_PAGE_ENTRY_stack			223
+	#define	KERNEL_PAGE_ENTRY_stack_context		511
+
 	// fills up N pages with EMPTY value
 	void kernel_page_clean( uintptr_t address, uint64_t n );
 #endif

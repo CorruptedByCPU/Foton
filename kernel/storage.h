@@ -7,12 +7,15 @@
 
 	#define	KERNEL_STORAGE_limit	(STD_PAGE_byte / sizeof( struct KERNEL_STORAGE_STRUCTURE ))	// hard limit
 
-	#define	KERNEL_STORAGE_TYPE_vfs	0b00000001
+	#define	KERNEL_STORAGE_TYPE_vfs		1
+	#define	KERNEL_STORAGE_TYPE_nvme	2
+	#define	KERNEL_STORAGE_TYPE_usb		3
+	#define	KERNEL_STORAGE_TYPE_ahci	4
 
 	struct KERNEL_STORAGE_STRUCTURE {
-		uint8_t				device_type;
-		uint64_t			device_block_count;
-		uint64_t			device_block_first;
-		struct STD_FILE_STRUCTURE	(*storage_file)( uint64_t storage_id, uint8_t *path, uint64_t length );
+		uint8_t		device_type;
+		uint64_t	device_id;
+		uint64_t	device_block;
+		uint64_t	device_size_byte;
 	};
 #endif

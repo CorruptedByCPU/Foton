@@ -18,7 +18,7 @@ rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 cp -rf root build
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
-C="clang -include std.h"
+C="clang -include ./library/std.h"
 LD="ld.lld"
 ASM="nasm"
 
@@ -37,6 +37,7 @@ ${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o & EXT="${EXT} build/syscal
 # default configuration of clang for kernel making
 # DEBUG="-mgeneral-regs-only"
 CFLAGS="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -mno-3dnow ${DEBUG}"
+CFLAGS_SOFTWARE="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone ${DEBUG}"
 LDFLAGS="-nostdlib -static -no-dynamic-linker"
 
 # build kernel file
@@ -48,6 +49,7 @@ gzip -k build/kernel
 cp build/kernel.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin build/iso
 
 #===============================================================================
+
 lib=""	# include list of libraries
 
 for library in std color elf string vfs font terminal; do
@@ -63,10 +65,27 @@ for library in std color elf string vfs font terminal; do
 	# update libraries list
 	lib="${lib} -l${library}"
 done
+
+#===============================================================================
+
+for software in `(cd software && ls *.c)`; do
+	# program name
+	name=${software::$(expr ${#software} - 2)}
+
+	# build
+	${C} -DSOFTWARE -c software/${name}.c -o build/${name}.o ${CFLAGS_SOFTWARE} || exit 1
+
+	# connect with libraries (if necessery)
+	${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/linker.software ${LDFLAGS}
+
+	# we do not need any additional information
+	strip -s build/root/system/bin/${name} > /dev/null 2>&1
+done
+
 #===============================================================================
 
 # prepare virtual file system with content of all available software, libraries, files
-(cd build && clang -include ../std.h ../tools/vfs.c -o vfs && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs && cp root.vfs.gz iso/root.gz)
+(cd build && clang ../tools/vfs.c -o vfs && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs && cp root.vfs.gz iso/root.gz)
 
 # convert iso directory to iso file
 xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label build/iso -o build/foton.iso > /dev/null 2>&1

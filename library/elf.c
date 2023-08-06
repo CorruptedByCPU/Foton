@@ -6,7 +6,7 @@
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
 	#ifndef	LIB_ELF
-		#include	"elf.h"
+		#include	"./elf.h"
 	#endif
 
 uint8_t lib_elf_identify( uintptr_t address ) {

@@ -9,7 +9,7 @@
 	#include	"stdint.h"
 	#include	"stddef.h"
 	#include	"stdarg.h"
-	#include	"macro.h"
+	#include	"./macro.h"
 
 	#define	EMPTY						0
 
@@ -77,8 +77,42 @@
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
 
-	// function definitions
+	#ifdef	SOFTWARE
+		// function definitions
 
-	// initial function of every process
-	extern int64_t _main( uint64_t argc, const char *argv[] );
+		// requests syscall and returns nothing
+		void std_syscall_empty( void );
+
+		// initial function of every process
+		extern int64_t _main( uint64_t argc, uint8_t *argv[] );
+
+		// initialization of process environment
+		void _entry( void ) {
+			// sad hack :|
+			__asm__ volatile( "testw $0x08, %sp\nje .+4\npushq $0x00" );
+
+			// execute process flow
+			int64_t result;	// initialize local variable
+			__asm__ volatile( "call _main" : "=a" (result) );
+
+			// execute leave out routine
+			__asm__ volatile( "" :: "a" (STD_SYSCALL_EXIT) );
+			std_syscall_empty();
+		}
+	#endif
+
+	//------------------------------------------------------------------------------
+	// substitute of libc
+	//------------------------------------------------------------------------------
+
+	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) {
+		// copy source content inside target
+		for( uint64_t i = 0; i < length; i++) target[ i ] = source[ i ];
+	}
+
+	void memset( uint8_t *cache, uint8_t value, uint64_t length ) {
+		// fill cache with definied value
+		for( uint64_t i = 0; i < length; i++ )
+			cache[ i ] = value;
+	}
 #endif

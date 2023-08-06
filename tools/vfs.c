@@ -17,7 +17,34 @@
 	// library -------------------------------------------------------------
 	#include	"../library/vfs.h"
 	#include	"../library/elf.h"
+	#include	"../library/macro.h"
 	//======================================================================
+
+	#define	EMPTY				0
+
+	#define	STD_FILE_MODE_mask		0b0000000111111111
+	#define	STD_FILE_MODE_other_exec	0b0000000000000001
+	#define	STD_FILE_MODE_other_write	0b0000000000000010
+	#define	STD_FILE_MODE_other_read	0b0000000000000100
+	#define	STD_FILE_MODE_group_exec	0b0000000000001000
+	#define	STD_FILE_MODE_group_write	0b0000000000010000
+	#define	STD_FILE_MODE_group_read	0b0000000000100000
+	#define	STD_FILE_MODE_user_exec		0b0000000001000000
+	#define	STD_FILE_MODE_user_write	0b0000000010000000
+	#define	STD_FILE_MODE_user_read		0b0000000100000000
+	#define	STD_FILE_MODE_sticky		0b0000001000000000
+	#define	STD_FILE_MODE_default_directory	(STD_FILE_MODE_user_read | STD_FILE_MODE_user_write | STD_FILE_MODE_user_exec | STD_FILE_MODE_group_read | STD_FILE_MODE_group_write | STD_FILE_MODE_group_exec | STD_FILE_MODE_other_read | STD_FILE_MODE_other_exec)
+
+	#define	STD_FILE_TYPE_fifo		0b00000001
+	#define	STD_FILE_TYPE_character_device	0b00000010
+	#define	STD_FILE_TYPE_directory		0b00000100
+	#define	STD_FILE_TYPE_block_device	0b00001000
+	#define	STD_FILE_TYPE_regular_file	0b00010000
+	#define	STD_FILE_TYPE_symbolic_link	0b00100000
+	#define	STD_FILE_TYPE_socket		0b01000000
+
+	#define	STD_PAGE_byte			0x1000
+	#define	STD_PAGE_mask			0xFFFFFFFFFFFFF000
 
 char path_export[] = "./";
 char file_extension[] = ".vfs";

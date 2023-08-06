@@ -3,6 +3,9 @@
 ===============================================================================*/
 
 void kernel_init_page( void ) {
+	// allow all BS/A processors to write on read-only pages inside ring0
+	__asm__ volatile( "movq %cr0, %rax\nandq $~(1 << 16), %rax\nmovq %rax, %cr0" );
+
 	// alloc 1 page for PML4 kernel environment array
 	kernel -> page_base_address = (uint64_t *) kernel_memory_alloc( 1 );
 
@@ -31,10 +34,10 @@ void kernel_init_page( void ) {
 	struct LIB_ELF_STRUCTURE *limine_file_elf64_header = (struct LIB_ELF_STRUCTURE *) limine_file -> address;
 
 	// kernel file ELF64 header properties
-	struct LIB_ELF_STRUCTURE_HEADER *limine_file_elf64_header_entry = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) limine_file_elf64_header + limine_file_elf64_header -> header_table_position);
+	struct LIB_ELF_STRUCTURE_HEADER *limine_file_elf64_header_entry = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) limine_file_elf64_header + limine_file_elf64_header -> headers_offset);
 
 	// retrieve flags and map kernel file segments in proper place
-	for( uint16_t i = 0; i < limine_file_elf64_header -> header_entry_count; i++ ) {
+	for( uint16_t i = 0; i < limine_file_elf64_header -> h_entry_count; i++ ) {
 		// ignore blank entries
 		if( ! limine_file_elf64_header_entry[ i ].type || ! limine_file_elf64_header_entry[ i ].memory_size ) continue;
 

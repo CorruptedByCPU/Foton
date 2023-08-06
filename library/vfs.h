@@ -23,6 +23,6 @@
 		uint16_t	uid;
 		uint16_t	guid;
 		uint8_t		type;
-		uint8_t		name[ LIB_VFS_name_limit + 1 ];	// last is STATIC_ASCII_TERMINATOR
+		uint8_t		name[ LIB_VFS_name_limit ];
 	};
 #endif

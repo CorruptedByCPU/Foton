@@ -6,7 +6,7 @@ void kernel_init_acpi( void ) {
 	// RSDP pointer available?
 	if( limine_rsdp_request.response == NULL || ! limine_rsdp_request.response -> address ) {
 		// show error
-		lib_terminal_printf( &kernel_terminal, "Hello Darkness, My Old Friend." );
+		lib_terminal_printf( &kernel_terminal, (uint8_t *) "Hello Darkness, My Old Friend." );
 
 		// hold the door
 		while( TRUE );
@@ -25,7 +25,7 @@ void kernel_init_acpi( void ) {
 	// check revision number of RSDP header
 	if( local_rsdp_or_xsdp_header -> revision == EMPTY ) {
 		// show message regarding ACPI
-		lib_terminal_printf( &kernel_terminal, "RSDT (Root System Description Pointer) found.\n" );
+		lib_terminal_printf( &kernel_terminal, (uint8_t *) "RSDT (Root System Description Pointer) found.\n" );
 
 		// RSDT header properties
 		struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *local_rsdt = (struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address);
@@ -37,7 +37,7 @@ void kernel_init_acpi( void ) {
 		local_list_rsdt_address = (uint32_t *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address + sizeof( struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT ));
 	} else {
 		// show message regarding ACPI
-		lib_terminal_printf( &kernel_terminal, "XSDT (eXtended System Descriptor Table) found.\n" );
+		lib_terminal_printf( &kernel_terminal, (uint8_t *) "XSDT (eXtended System Descriptor Table) found.\n" );
 
 		// XSDT header properties
 		struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *local_xsdt = (struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> xsdt_address);
@@ -69,7 +69,7 @@ void kernel_init_acpi( void ) {
 			kernel -> lapic_base_address = (struct KERNEL_LAPIC_STRUCTURE *) (uintptr_t) (local_madt -> lapic_address | KERNEL_PAGE_logical);
 
 			// show message regarding LAPIC
-			lib_terminal_printf( &kernel_terminal, " LAPIC base address 0x%X\n", (uint64_t) kernel -> lapic_base_address );
+			lib_terminal_printf( &kernel_terminal, (uint8_t *) " LAPIC base address 0x%X\n", (uint64_t) kernel -> lapic_base_address );
 
 			// length of MADT list
 			uint64_t local_size = (uint32_t) local_madt -> length - sizeof( struct KERNEL_INIT_ACPI_STRUCTURE_MADT );
@@ -95,7 +95,7 @@ void kernel_init_acpi( void ) {
 						kernel -> io_apic_irq_lines = -1;	// all available
 
 						// show message regarding I/O APIC
-						lib_terminal_printf( &kernel_terminal, " I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
+						lib_terminal_printf( &kernel_terminal, (uint8_t *) " I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
 					}
 				}
 
@@ -112,7 +112,7 @@ void kernel_init_acpi( void ) {
 			kernel -> hpet_base_address = (struct KERNEL_HPET_STRUCTURE_REGISTER *) (uintptr_t) (local_hpet -> base_address | KERNEL_PAGE_logical);
 
 			// show message regarding HPET
-			lib_terminal_printf( &kernel_terminal, " HPET base address 0x%X\n", (uint64_t) kernel -> hpet_base_address );
+			lib_terminal_printf( &kernel_terminal, (uint8_t *) " HPET base address 0x%X\n", (uint64_t) kernel -> hpet_base_address );
 		}
 	}
 }

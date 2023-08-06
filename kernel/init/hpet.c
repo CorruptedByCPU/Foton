@@ -6,7 +6,7 @@ void kernel_init_hpet( void ) {
 	// HPET controler available?
 	if( ! kernel -> hpet_base_address ) {
 		// no, show proper information
-		lib_terminal_printf( &kernel_terminal, "HPET controller not available. Operating system halted!\n" );
+		lib_terminal_printf( &kernel_terminal, (uint8_t *) "HPET controller not available. Operating system halted!\n" );
 
 		// hold the door
 		while( TRUE );
@@ -37,7 +37,7 @@ void kernel_init_hpet( void ) {
 			// capable IRQ line for I/O APIC found?
 			if( ((irq >> j) & 1) && kernel_io_apic_available( j ) ) {
 				// show information about uptime Timer
-				lib_terminal_printf( &kernel_terminal, "HPET: Timer %u selected for uptime, IRQ line 0x%2X.\n", i, j );
+				lib_terminal_printf( &kernel_terminal, (uint8_t *) "HPET: Timer %u selected for uptime, IRQ line 0x%2X.\n", i, j );
 			
 				// IRQ number of IDT and I/O APIC
 				volatile uint64_t bits = (uint64_t) j << 9;
@@ -80,7 +80,7 @@ void kernel_init_hpet( void ) {
 	}
 
 	// show proper message
-	lib_terminal_printf( &kernel_terminal, "HPET: No capable timer found. Operating system halted.\n" );
+	lib_terminal_printf( &kernel_terminal, (uint8_t *) "HPET: No capable timer found. Operating system halted.\n" );
 
 	// hold the door
 	while( TRUE );
