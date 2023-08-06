@@ -44,9 +44,6 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// insert into paging, context stack of new process
 	kernel_page_alloc( (uintptr_t *) exec -> cr3, KERNEL_STACK_address, 2, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
 
-// debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "|rela\n" );
-
 	// set initial startup configuration for new process
 	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) exec -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
 
@@ -138,8 +135,17 @@ lib_terminal_printf( &kernel_terminal, (uint8_t *) "|rela\n" );
 	// connect required functions new locations / from another library
 	kernel_exec_link( elf_s, elf -> s_entry_count, exec_base_address );
 
-	// to be continued
-	return EMPTY;
+	// release workbench
+	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( file.size_byte ) >> STD_SHIFT_PAGE );
+
+	// map kernel space to process
+	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) exec -> cr3 );
+
+	// process ready to run
+	exec -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
+
+	// return PID of created job
+	return exec -> pid;
 }
 
 void kernel_exec_link( struct LIB_ELF_STRUCTURE_SECTION *elf_s, uint64_t elf_s_count, uintptr_t exec_base_address ) {
@@ -190,13 +196,13 @@ void kernel_exec_link( struct LIB_ELF_STRUCTURE_SECTION *elf_s, uint64_t elf_s_c
 			got[ i ] = dynsym[ rela[ i ].index ].address + exec_base_address;
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "  [changed address of local function '%s' to %X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) "  [changed address of local function '%s' to %X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
 		} else {
 			// retrieve library function address
 			got[ i ] = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "   [acquired function address of '%s' as 0x%X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) "   [acquired function address of '%s' as 0x%X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
 		}
 	}
 }

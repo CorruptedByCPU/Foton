@@ -15,9 +15,6 @@ void kernel_task( void ) {
 
 	//----------------------------------------------------------------------
 
-	// lock access to below routine, only 1 CPU at a time
-	while( __sync_val_compare_and_swap( &kernel -> task_cpu_semaphore, UNLOCK, LOCK ) );
-
 	// convert task pointer to entry id
 	uint64_t entry_id = (uint64_t) kernel -> task_cpu_address[ current_cpu_id ] - (uint64_t) kernel -> task_base_address;
 
@@ -28,7 +25,10 @@ void kernel_task( void ) {
 			// start from begining of task queue
 			entry_id = 0; continue;
 		}
-			
+
+		// lock access to below routine, only 1 CPU at a time
+		while( __sync_val_compare_and_swap( &kernel -> task_cpu_semaphore, UNLOCK, LOCK ) );
+
 		// if task is active, and no one is parsing it
 		if( kernel -> task_base_address[ entry_id ].flags & KERNEL_TASK_FLAG_active && ! (kernel -> task_base_address[ entry_id ].flags & KERNEL_TASK_FLAG_exec) ) {
 			// of course, if task is not sleeping too :)
@@ -43,6 +43,9 @@ void kernel_task( void ) {
 			// entry found
 			break;
 		}
+
+		// unlock access
+		kernel -> task_cpu_semaphore = UNLOCK;
 	}
 
 	// unlock access
@@ -51,7 +54,7 @@ void kernel_task( void ) {
 	//----------------------------------------------------------------------
 
 	// reload paging tables for new task area
-	__asm__ volatile( "mov %0, %%cr3" ::"r" (kernel -> task_cpu_address[ current_cpu_id ] -> cr3 & ~STD_PAGE_mask) );
+	__asm__ volatile( "mov %0, %%cr3" ::"r" (kernel -> task_cpu_address[ current_cpu_id ] -> cr3 & ~KERNEL_PAGE_logical) );
 
 	// restore previous  stack pointer of new task
 	__asm__ volatile( "movq %0, %%rsp" : "=rm" (kernel -> task_cpu_address[ current_cpu_id ] -> rsp) );
@@ -61,6 +64,35 @@ void kernel_task( void ) {
 
 	// accept current interrupt call
 	kernel_lapic_accept();
+
+	// first run of the task?
+	if( kernel -> task_cpu_address[ current_cpu_id ] -> flags & KERNEL_TASK_FLAG_init ) {
+		// disable init flag
+		kernel -> task_cpu_address[ current_cpu_id ] -> flags &= ~KERNEL_TASK_FLAG_init;
+
+		// if daemon, pass a pointer to the kernel environment specification
+		if( kernel -> task_cpu_address[ current_cpu_id ] -> flags & KERNEL_TASK_FLAG_service ) __asm__ volatile( "" :: "D" (kernel), "S" (EMPTY) );
+		else {
+			// retrieve from stack
+			uint64_t *arg = (uint64_t *) (kernel -> task_cpu_address[ current_cpu_id ] -> rsp + offsetof( struct KERNEL_IDT_STRUCTURE_RETURN, rsp ) );
+			uint64_t *argc = (uint64_t *) *arg;
+
+			// length of string
+			__asm__ volatile( "" :: "D" (*argc) );
+			
+			// pointer to string
+			__asm__ volatile( "" :: "S" (*arg + 0x08) );
+		}
+
+		// reset FPU state
+		__asm__ volatile( "fninit" );
+
+		// kernel guarantee clean registers at first run
+		__asm__ volatile( "xor %r15, %r15\nxor %r14, %r14\nxor %r13, %r13\nxor %r12, %r12\nxor %r11, %r11\nxor %r10, %r10\nxor %r9, %r9\nxor %r8, %r8\nxor %ebp, %ebp\nxor %edx, %edx\nxor %ecx, %ecx\nxor %ebx, %ebx\nxor %eax, %eax\n" );
+
+		// run the task in exception mode
+		__asm__ volatile( "iretq" );
+	}
 }
 
 struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {

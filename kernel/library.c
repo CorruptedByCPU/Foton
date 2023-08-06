@@ -40,7 +40,7 @@ uint8_t kernel_library_find( uint8_t *name, uint8_t length ) {
 
 uintptr_t kernel_library_function( uint8_t *string, uint64_t length ) {
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "  {looking for '%s'}\n", string );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) "  {looking for '%s'}\n", string );
 
 	// search in every loaded library
 	for( uint64_t i = 0; i < KERNEL_LIBRARY_limit; i++ ) {
@@ -107,13 +107,13 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE_SECTION *elf_s, uint64_t elf_
 			got[ i ] = dynsym[ rela[ i ].index ].address + library_base_address;
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "  [changed address of local function '%s' to %X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) "  [changed address of local function '%s' to %X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
 		} else {
 			// retrieve library function address
 			got[ i ] = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "   [acquired function address of '%s' as 0x%X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) "   [acquired function address of '%s' as 0x%X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
 		}
 	}
 }
@@ -156,7 +156,7 @@ void kernel_library_load( uint8_t *name, uint64_t length ) {
 	kernel_library( elf );
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "Library: parsing '%s'\n", name );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) "Library: parsing '%s'\n", name );
 
 	// ELF header properties
 	struct LIB_ELF_STRUCTURE_HEADER *elf_h = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> headers_offset);
@@ -173,13 +173,13 @@ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Library: parsing '%s'\n", na
 	}
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) " Space length: 0x%X Bytes\n", library_space_page << STD_SHIFT_PAGE );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) " Space length: 0x%X Bytes\n", library_space_page << STD_SHIFT_PAGE );
 
 	// acquire memory space inside library environment
 	uintptr_t library_base_address = (kernel_memory_acquire( kernel -> library_map_address, library_space_page ) << STD_SHIFT_PAGE) + KERNEL_LIBRARY_base_address;
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) " Base address: 0x%X\n", library_base_address );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) " Base address: 0x%X\n", library_base_address );
 
 	// map aquired memory space for library
 	kernel_page_alloc( kernel -> page_base_address, library_base_address, library_space_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_library );
@@ -198,7 +198,7 @@ lib_terminal_printf( &kernel_terminal, (uint8_t *) " Base address: 0x%X\n", libr
 		uint8_t *target = (uint8_t *) library_base_address + elf_h[ i ].virtual_address;
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) " Segment offset 0x%X moved to 0x%X\n", source - workbench, target );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) " Segment offset 0x%X moved to 0x%X\n", source - workbench, target );
 
 		// copy segment content in place
 		for( uint64_t j = 0; j < elf_h[ i ].segment_size; j++ ) target[ j ] = source[ j ];
@@ -217,7 +217,7 @@ lib_terminal_printf( &kernel_terminal, (uint8_t *) " Segment offset 0x%X moved t
 	}
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "  String table at 0x%X\n  Dynamic linking information at 0x%X\n", library -> strtab, (uint64_t) library -> dynamic_linking );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) "  String table at 0x%X\n  Dynamic linking information at 0x%X\n", library -> strtab, (uint64_t) library -> dynamic_linking );
 
 	// connect required functions new locations / from another library
 	kernel_library_link( elf_s, elf -> s_entry_count, library_base_address );
@@ -230,7 +230,7 @@ lib_terminal_printf( &kernel_terminal, (uint8_t *) "  String table at 0x%X\n  Dy
 	library -> flags |= KERNEL_LIBRARY_FLAG_active;
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) " +%s installed.\n", name );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) " +%s installed.\n", name );
 
 	// release workbench space
 	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( file.size_byte ) >> STD_SHIFT_PAGE );
