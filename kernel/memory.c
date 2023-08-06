@@ -71,3 +71,20 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {
 	// no available memory area
 	return EMPTY;
 }
+
+void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
+	// mark pages as available
+	for( uint64_t i = p; i < p + N; i++ )
+		memory_map[ i / 32 ] |= 1 << i % 32;
+}
+
+void kernel_memory_release( uintptr_t address, uint64_t N ) {
+	// clean page before releasing, kernel guarantees clean pages on allocation
+	kernel_page_clean( address, N );
+
+	// release occupied pages inside kernels binary memory map
+	kernel_memory_dispose( kernel -> memory_base_address, (address & ~KERNEL_PAGE_logical) >> STD_SHIFT_PAGE, N );
+
+	// more available pages
+	kernel -> page_available += N;
+}

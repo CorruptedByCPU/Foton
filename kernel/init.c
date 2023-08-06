@@ -35,6 +35,7 @@
 	#include	"memory.h"
 	#include	"page.h"
 	#include	"task.h"
+	#include	"exec.h"
 	#include	"tss.h"
 	#include	"storage.h"
 	#include	"library.h"
@@ -134,7 +135,7 @@ void kernel_init( void ) {
 	kernel_init_library();
 
 	// execute first process
-	kernel_exec( (uint8_t *) "/system/bin/init", 16 );
+	kernel_exec( (uint8_t *) "init", 4 );
 
 	// reload BSP configuration
 	kernel_init_reload();

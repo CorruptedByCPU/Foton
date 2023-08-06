@@ -3,6 +3,9 @@
 ===============================================================================*/
 
 void kernel_init_page( void ) {
+	// allow all BS/A processors to write on read-only pages inside ring0
+	__asm__ volatile( "movq %cr0, %rax\nandq $~(1 << 16), %rax\nmovq %rax, %cr0" );
+
 	// alloc 1 page for PML4 kernel environment array
 	kernel -> page_base_address = (uint64_t *) kernel_memory_alloc( 1 );
 

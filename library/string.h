@@ -17,6 +17,9 @@
 	// returns value from string conversion regarded  to base, until found something else than digit
 	uint64_t lib_string_to_integer( uint8_t *string, uint8_t base );
 
+	// returns length of first printable word
+	uint64_t lib_string_word( uint8_t *string, uint64_t length );
+
 	// returns length of string before separator
-	uint64_t lib_string_word_end( uint8_t string[], uint64_t length, uint8_t separator );
+	uint64_t lib_string_word_end( uint8_t *string, uint64_t length, uint8_t separator );
 #endif

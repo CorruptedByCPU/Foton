@@ -62,3 +62,51 @@ void kernel_task( void ) {
 	// accept current interrupt call
 	kernel_lapic_accept();
 }
+
+struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
+	// deny modification of job queue
+	while( __sync_val_compare_and_swap( &kernel -> task_cpu_semaphore, UNLOCK, LOCK ) );
+
+	// find an free entry
+	for( uint64_t i = 0; i < KERNEL_TASK_limit; i++ ) {
+		// free entry?
+		if( kernel -> task_base_address[ i ].flags ) continue;	// no
+
+		// mark entry as "in use""
+		kernel -> task_base_address[ i ].flags = KERNEL_TASK_FLAG_secured;
+
+		// ID of new job
+		kernel -> task_base_address[ i ].pid = ++kernel -> task_id;
+
+		// number of characters representing process name
+		kernel -> task_base_address[ i ].length = length;
+
+		// set process name
+		if( length > KERNEL_TASK_NAME_limit ) length = KERNEL_TASK_NAME_limit;
+		for( uint16_t n = 0; n < length; n++ ) kernel -> task_base_address[ i ].name[ n ] = name[ n ]; kernel -> task_base_address[ i ].name[ length ] = EMPTY;
+
+		// number of jobs in queue
+		kernel -> task_count++;
+
+		// free access to job queue
+		kernel -> task_cpu_semaphore = UNLOCK;
+
+		// new task initiated
+		return (struct KERNEL_TASK_STRUCTURE *) &kernel -> task_base_address[ i ];
+	}
+
+	// free access to job queue
+	kernel -> task_cpu_semaphore = UNLOCK;
+
+	// no free entry
+	return EMPTY;
+}
+
+int64_t kernel_task_pid() {
+	// based on ID of active BS/A processor
+	// get from list of active jobs, number of current record in job queue
+	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel -> task_cpu_address[ kernel_lapic_id() ];
+
+	// get ID of process
+	return task -> pid;
+}

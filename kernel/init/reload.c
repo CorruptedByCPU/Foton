@@ -38,6 +38,9 @@ void kernel_init_reload( void ) {
 	// reset FPU state
 	__asm__ volatile( "fninit" );
 
+	// allow all BS/A processors to write on read-only pages
+	__asm__ volatile( "movq %cr0, %rax\nandq $~(1 << 16), %rax\nmovq %rax, %cr0" );
+
 	// enable OSXSAVE, OSFXSR support
 	__asm__ volatile( "movq %cr4, %rax\norq $0b1000000011000000000, %rax\nmovq %rax, %cr4" );
 

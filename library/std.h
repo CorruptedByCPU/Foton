@@ -109,4 +109,10 @@
 		// copy source content inside target
 		for( uint64_t i = 0; i < length; i++) target[ i ] = source[ i ];
 	}
+
+	void memset( uint8_t *cache, uint8_t value, uint64_t length ) {
+		// fill cache with definied value
+		for( uint64_t i = 0; i < length; i++ )
+			cache[ i ] = value;
+	}
 #endif

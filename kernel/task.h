@@ -18,17 +18,26 @@
 	#define	KERNEL_TASK_EFLAGS_df		0b000000000000010000000000
 	#define	KERNEL_TASK_EFLAGS_default	KERNEL_TASK_EFLAGS_if
 
+	#define	KERNEL_TASK_NAME_limit		255
+
+	#define	KERNEL_TASK_STACK_pointer	KERNEL_LIBRARY_base_address
+
 	struct	KERNEL_TASK_STRUCTURE {
 		uintptr_t		cr3;
 		uintptr_t		rsp;
 		int64_t			pid;
 		uint64_t		sleep;
 		uint64_t		storage;
+		uint64_t		page;	// amount of pages assigned to process
+		uint64_t		stack;	// size of stack in Pages
 		volatile uint16_t	flags;
 		uint8_t			length;
-		uint8_t			name[ 32 ];	// for now its enough
+		uint8_t			name[ KERNEL_TASK_NAME_limit ];
 	};
 
 	// external routine (assembly language)
 	extern void kernel_task_entry( void );
+
+	// returns current task PID number
+	int64_t kernel_task_pid();
 #endif

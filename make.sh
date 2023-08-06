@@ -69,17 +69,17 @@ done
 #===============================================================================
 
 for software in `(cd software && ls *.c)`; do
-		# program name
-		name=${software::$(expr ${#software} - 2)}
+	# program name
+	name=${software::$(expr ${#software} - 2)}
 
-		# build
-		${C} -DSOFTWARE -c software/${name}.c -o build/${name}.o ${CFLAGS_SOFTWARE} || exit 1
+	# build
+	${C} -DSOFTWARE -c software/${name}.c -o build/${name}.o ${CFLAGS_SOFTWARE} || exit 1
 
-		# connect with libraries (if necessery)
-		${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/linker.software ${LDFLAGS}
+	# connect with libraries (if necessery)
+	${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/linker.software ${LDFLAGS}
 
-		# we do not need any additional information
-		strip -s build/root/system/bin/${name} > /dev/null 2>&1
+	# we do not need any additional information
+	strip -s build/root/system/bin/${name} > /dev/null 2>&1
 done
 
 #===============================================================================
