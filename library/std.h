@@ -98,6 +98,9 @@
 			// execute leave out routine
 			__asm__ volatile( "" :: "a" (STD_SYSCALL_EXIT) );
 			std_syscall_empty();
+
+			// SHOULD NOT HAPPEN... Hodor, You know what to do :D
+			while( TRUE );
 		}
 	#endif
 

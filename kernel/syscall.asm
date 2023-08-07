@@ -31,13 +31,16 @@ section	.text
 ; align routine to full address
 align	0x08,	db	0x00
 kernel_syscall:
+; debug
+; xchg	bx,	bx
+
 	; keep RIP and EFLAGS registers of process
 	xchg	qword [rsp + 0x08],	rcx
 	xchg	qword [rsp],	r11
 
 	; feature available?
 	cmp	rax,	(kernel_syscall_list_end - kernel_syscall_list) / 0x08
-	jbe	.available	; yes
+	jb	.available	; yes
 
 	; no kernel feature selected
 	mov	rax,	-1

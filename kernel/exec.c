@@ -129,11 +129,8 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// process memory usage
 	exec -> page += exec_page;
 
-	// ELF section properties
-	struct LIB_ELF_STRUCTURE_SECTION *elf_s = (struct LIB_ELF_STRUCTURE_SECTION *) ((uintptr_t) elf + elf -> sections_offset);
-
 	// connect required functions new locations / from another library
-	kernel_exec_link( elf_s, elf -> s_entry_count, exec_base_address );
+	kernel_library_link( elf, exec_base_address, FALSE );
 
 	// release workbench
 	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( file.size_byte ) >> STD_SHIFT_PAGE );
@@ -146,63 +143,4 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 
 	// return PID of created job
 	return exec -> pid;
-}
-
-void kernel_exec_link( struct LIB_ELF_STRUCTURE_SECTION *elf_s, uint64_t elf_s_count, uintptr_t exec_base_address ) {
-	// we need to know where is
-
-	// dynamic relocations
-	struct LIB_ELF_STRUCTURE_DYNAMIC_RELOCATION *rela = EMPTY;
-	uint64_t rela_entry_count = EMPTY;
-
-	// global offset table
-	uint64_t *got = EMPTY;
-
-	// string table
-	uint8_t *strtab = EMPTY;
-
-	// and at last dynamic symbols
-	struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL *dynsym = EMPTY;
-
-	// retrieve information about them
-	for( uint64_t i = 0; i < elf_s_count; i++ ) {
-		// function names?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_strtab ) if( ! strtab ) strtab = (uint8_t *) (exec_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
-		
-		// global offset table?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_progbits ) if( ! got ) got = (uint64_t *) (exec_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address) + 0x03;	// first 3 entries are reserved
-		
-		// dynamic relocations?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_rela ) {
-			// get pointer to structure
-			rela = (struct LIB_ELF_STRUCTURE_DYNAMIC_RELOCATION *) (exec_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
-
-			// and number of entries
-			rela_entry_count = elf_s[ i ].size_byte / sizeof( struct LIB_ELF_STRUCTURE_DYNAMIC_RELOCATION );
-		}
-		
-		// dynamic symbols?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_dynsym ) dynsym = (struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL *) (exec_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
-	}
-
-	// external libraries are not required?
-	if( ! rela ) return;	// yes
-
-	// for each entry in dynamic symbols
-	for( uint64_t i = 0; i < rela_entry_count; i++ ) {
-		// it's a local function?
-		if( dynsym[ rela[ i ].index ].address ) {
-			// update address of local function
-			got[ i ] = dynsym[ rela[ i ].index ].address + exec_base_address;
-
-// debug
-// lib_terminal_printf( &kernel_terminal, (uint8_t *) "  [changed address of local function '%s' to %X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
-		} else {
-			// retrieve library function address
-			got[ i ] = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
-
-// debug
-// lib_terminal_printf( &kernel_terminal, (uint8_t *) "   [acquired function address of '%s' as 0x%X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
-		}
-	}
 }

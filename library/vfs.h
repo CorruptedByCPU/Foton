@@ -25,4 +25,7 @@
 		uint8_t		type;
 		uint8_t		name[ LIB_VFS_name_limit ];
 	};
+
+	// returns TRUE if at specified address is VFS structure
+	uint8_t lib_vfs_check( uintptr_t address, uint64_t size_byte );
 #endif
