@@ -93,7 +93,7 @@ void kernel_init( void ) {
 	kernel_terminal.base_address		= (uint32_t *) ((uintptr_t) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address | KERNEL_PAGE_logical);
 	kernel_terminal.scanline_pixel		= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch >> STD_VIDEO_DEPTH_shift;
 	kernel_terminal.color_foreground	= STD_COLOR_WHITE;
-	kernel_terminal.color_background	= STD_COLOR_BLACK;
+	kernel_terminal.color_background	= STD_COLOR_BLUE;
 
 	// initialize terminal
 	lib_terminal( &kernel_terminal );

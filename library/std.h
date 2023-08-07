@@ -22,10 +22,11 @@
 	// listed alphabetically below
 
 	#define	STD_COLOR_mask					0xFF000000
-	#define	STD_COLOR_WHITE					0xFFF0F0F0
-	#define	STD_COLOR_BLACK					0xFF101010
+	#define	STD_COLOR_WHITE					0xFFFFFFFF
+	#define	STD_COLOR_BLACK					0xFF000000
 	#define	STD_COLOR_BLACK_light				0xFF101010
 	#define	STD_COLOR_GREEN_light				0xFF10FF10
+	#define	STD_COLOR_BLUE					0xFF003366
 	#define	STD_COLOR_RED_light				0xFFFF1010
 
 	#define	STD_FILE_MODE_mask				0b0000000111111111

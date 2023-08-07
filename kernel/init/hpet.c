@@ -13,7 +13,7 @@ void kernel_init_hpet( void ) {
 	}
 
 	// retrieve amount of available timers
-	uint8_t timer_count = (kernel -> hpet_base_address -> general_capabilities_and_id >> 8) & 0b00011111;
+	uint8_t timer_count = ((kernel -> hpet_base_address -> general_capabilities_and_id >> 8) & 0b011111) + 1;
 
 	// register available timers of HPET
 	for( uint8_t i = 0; i < timer_count; i++ ) kernel -> hpet_timers |= 1 << i;
@@ -35,7 +35,7 @@ void kernel_init_hpet( void ) {
 		// check capable IRQ lines of this Timer
 		for( uint8_t j = 2; j < 24; j++ ) {
 			// capable IRQ line for I/O APIC found?
-			if( ((irq >> j) & 1) && kernel_io_apic_available( j ) ) {
+			if( (irq >> j) & 1 ) {
 				// show information about uptime Timer
 				lib_terminal_printf( &kernel_terminal, (uint8_t *) "HPET: Timer %u selected for uptime, IRQ line 0x%2X.\n", i, j );
 			
