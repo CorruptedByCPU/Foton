@@ -73,10 +73,22 @@
 	#define	STD_SHIFT_PAGE					12
 
 	#define	STD_SYSCALL_EXIT				0x00
+	#define	STD_SYSCALL_FRAMEBUFFER				0x01
+
+	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
+		uint32_t	*base_address;
+		uint16_t	width_pixel;
+		uint16_t	height_pixel;
+		uint32_t	pitch_byte;
+		int64_t		owner_pid;
+	};
 
 	#define	STD_VIDEO_DEPTH_shift				2
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
+
+	// returns properties of available framebuffer ()
+	void std_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
 
 	#ifdef	SOFTWARE
 		// function definitions

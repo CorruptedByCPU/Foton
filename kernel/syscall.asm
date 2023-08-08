@@ -5,7 +5,8 @@
 ;------------------------------------------------------------------------------
 ; get pointers from kernel environment
 ;------------------------------------------------------------------------------
-; extern	kernel_syscall_exit
+extern	kernel_syscall_exit
+extern	kernel_syscall_framebuffer
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -19,7 +20,8 @@ section	.rodata
 ; align routine to full address
 align	0x08,	db	0x00
 kernel_syscall_list:
-	; dq	kernel_syscall_exit
+	dq	kernel_syscall_exit
+	dq	kernel_syscall_framebuffer
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

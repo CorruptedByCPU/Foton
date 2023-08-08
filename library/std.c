@@ -9,7 +9,7 @@ void std_syscall_empty( void ) {
 
 uint8_t std_syscall_bool() {
 	// initialize local variable
-	uint8_t rax;
+	uint8_t rax = EMPTY;
 
 	// call the kernel function
 	__asm__ volatile( "push %%rcx\npush %%r11\nsyscall \npop %%r11\npop %%rcx\n" : "=a" (rax) );
@@ -20,7 +20,7 @@ uint8_t std_syscall_bool() {
 
 int64_t std_syscall_signed() {
 	// initialize local variable
-	int64_t rax;
+	int64_t rax = EMPTY;
 
 	// call the kernel function
 	__asm__ volatile( "push %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\n" : "=a" (rax) );
@@ -31,7 +31,7 @@ int64_t std_syscall_signed() {
 
 uint64_t std_syscall_unsigned() {
 	// initialize local variable
-	uint64_t rax;
+	uint64_t rax = EMPTY;
 
 	// call the kernel function
 	__asm__ volatile( "push %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\n" : "=a" (rax) );
@@ -42,11 +42,21 @@ uint64_t std_syscall_unsigned() {
 
 uintptr_t std_syscall_pointer() {
 	// initialize local variable
-	uintptr_t rax;
+	uintptr_t rax = EMPTY;
 
 	// call the kernel function
 	__asm__ volatile( "push %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\n" : "=a" (rax) );
 
 	// return a pointer
 	return rax;
+}
+
+//------------------------------------------------------------------------------
+
+void std_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FRAMEBUFFER), "D" (framebuffer) );
+
+	// return nothing
+	return std_syscall_empty();
 }
