@@ -47,6 +47,9 @@ void kernel_init_memory( void ) {
 		}
 	}
 
+	// initialize crucial variables
+	kernel_page_clean( (uintptr_t) kernel, MACRO_PAGE_ALIGN_UP( sizeof( struct KERNEL ) ) >> STD_SHIFT_PAGE );
+
 	// binary memory map base address will be placed after kernel environment variables/functions/rountines
 	kernel -> memory_base_address = (uint32_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
 
@@ -72,7 +75,7 @@ void kernel_init_memory( void ) {
 		}
 	}
 
-	// mark pages used by kernel environment variables/functions and binary memory map itself as mark as unavailable
+	// mark pages used by kernel environment variables/functions and binary memory map itself as unavailable
 	for( uint64_t i = ((uint64_t) kernel & ~KERNEL_PAGE_logical) >> STD_SHIFT_PAGE; i < MACRO_PAGE_ALIGN_UP( (((uint64_t) kernel -> memory_base_address & ~KERNEL_PAGE_logical) + (kernel -> page_limit >> STD_SHIFT_8)) ) >> STD_SHIFT_PAGE; i++ ) {
 		// mark page as unavailable
 		kernel -> memory_base_address[ i / 32 ] &= ~(1 << i % 32);
