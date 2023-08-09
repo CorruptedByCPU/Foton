@@ -67,6 +67,7 @@
 	// kernel environment initialization routines, procedures
 	//----------------------------------------------------------------------
 	#include	"init/acpi.c"
+	#include	"init/env.c"
 	#include	"init/gdt.c"
 	#include	"init/hpet.c"
 	#include	"init/idt.c"
@@ -93,13 +94,13 @@ void kernel_init( void ) {
 	kernel_terminal.base_address		= (uint32_t *) ((uintptr_t) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address | KERNEL_PAGE_logical);
 	kernel_terminal.scanline_pixel		= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch >> STD_VIDEO_DEPTH_shift;
 	kernel_terminal.color_foreground	= STD_COLOR_WHITE;
-	kernel_terminal.color_background	= STD_COLOR_BLACK;
+	kernel_terminal.color_background	= STD_COLOR_BLUE;
 
 	// initialize terminal
 	lib_terminal( &kernel_terminal );
 
 	// show welcome message
-	lib_terminal_printf( &kernel_terminal, (uint8_t *) "  _____     _              \n |  ___|__ | |_ ___  _ __  \n | |_ / _ \\| __/ _ \\| \'_ \\ \n |  _| (_) | || (_) | | | |\n |_|  \\___/ \\__\\___/|_| |_|\n                           \n" );
+	lib_terminal_printf( &kernel_terminal, (uint8_t *) "\n  _|_|_|_|            _|\n  _|        _|_|    _|_|_|_|    _|_|    _|_|_|\n  _|_|_|  _|    _|    _|      _|    _|  _|    _|\n  _|      _|    _|    _|      _|    _|  _|    _|\n  _|        _|_|        _|_|    _|_|    _|    _|\n\n" );
 
 	// create binary memory map
 	kernel_init_memory();
@@ -133,6 +134,9 @@ void kernel_init( void ) {
 
 	// create library management space
 	kernel_init_library();
+
+	// fill in remaining necessary variables / functions
+	kernel_init_env();
 
 	// execute first process
 	kernel_exec( (uint8_t *) "init", 4 );

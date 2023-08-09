@@ -23,6 +23,9 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// load file into workbench space
 	kernel_storage_read( kernel -> storage_root_id, file.id, workbench );
 
+	//----------------------------------------------------------------------
+
+
 	// file contains proper ELF header?
 	if( ! lib_elf_identify( workbench ) ) return EMPTY;	// no
 
@@ -35,11 +38,17 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// load libraries required by file
 	kernel_library( elf );
 
+	//----------------------------------------------------------------------
+
 	// create a new job in task queue
 	struct KERNEL_TASK_STRUCTURE *exec = kernel_task_add( name, length );
 
+	//----------------------------------------------------------------------
+
 	// prepare Paging table for new process
 	exec -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_logical;
+
+	//----------------------------------------------------------------------
 
 	// insert into paging, context stack of new process
 	kernel_page_alloc( (uintptr_t *) exec -> cr3, KERNEL_STACK_address, 2, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
@@ -62,7 +71,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// set the process entry address
 	context -> rip = elf -> entry_ptr;
 
-	//---------------
+	//----------------------------------------------------------------------
 
 	// length of name with arguments properties
 	uint64_t args = (length & ~0x0F) + 0x18;
@@ -88,7 +97,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// process stack size
 	exec -> stack += MACRO_PAGE_ALIGN_UP( args ) >> STD_SHIFT_PAGE;
 
-	//---------------
+	//----------------------------------------------------------------------
 
 	// calculate space required by configured executable
 	uint64_t exec_page = EMPTY;
@@ -129,11 +138,23 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// process memory usage
 	exec -> page += exec_page;
 
-	// ELF section properties
-	struct LIB_ELF_STRUCTURE_SECTION *elf_s = (struct LIB_ELF_STRUCTURE_SECTION *) ((uintptr_t) elf + elf -> sections_offset);
+	//----------------------------------------------------------------------
+
+	// create virtual memory map for process, no less than kernels
+	exec -> memory_map = (uint32_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) >> STD_SHIFT_PAGE );
+
+	// fill in binary memory map
+	for( uint64_t i = 0; i < MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) >> STD_SHIFT_32; i++ ) exec -> memory_map[ i ] = -1;
+
+	// mark as occupied pages used by the executable
+	kernel_memory_acquire( exec -> memory_map, exec_page );
+
+	//----------------------------------------------------------------------
 
 	// connect required functions new locations / from another library
-	kernel_exec_link( elf_s, elf -> s_entry_count, exec_base_address );
+	kernel_library_link( elf, exec_base_address, FALSE );
+
+	//----------------------------------------------------------------------
 
 	// release workbench
 	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( file.size_byte ) >> STD_SHIFT_PAGE );
@@ -146,63 +167,4 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 
 	// return PID of created job
 	return exec -> pid;
-}
-
-void kernel_exec_link( struct LIB_ELF_STRUCTURE_SECTION *elf_s, uint64_t elf_s_count, uintptr_t exec_base_address ) {
-	// we need to know where is
-
-	// dynamic relocations
-	struct LIB_ELF_STRUCTURE_DYNAMIC_RELOCATION *rela = EMPTY;
-	uint64_t rela_entry_count = EMPTY;
-
-	// global offset table
-	uint64_t *got = EMPTY;
-
-	// string table
-	uint8_t *strtab = EMPTY;
-
-	// and at last dynamic symbols
-	struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL *dynsym = EMPTY;
-
-	// retrieve information about them
-	for( uint64_t i = 0; i < elf_s_count; i++ ) {
-		// function names?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_strtab ) if( ! strtab ) strtab = (uint8_t *) (exec_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
-		
-		// global offset table?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_progbits ) if( ! got ) got = (uint64_t *) (exec_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address) + 0x03;	// first 3 entries are reserved
-		
-		// dynamic relocations?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_rela ) {
-			// get pointer to structure
-			rela = (struct LIB_ELF_STRUCTURE_DYNAMIC_RELOCATION *) (exec_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
-
-			// and number of entries
-			rela_entry_count = elf_s[ i ].size_byte / sizeof( struct LIB_ELF_STRUCTURE_DYNAMIC_RELOCATION );
-		}
-		
-		// dynamic symbols?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_dynsym ) dynsym = (struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL *) (exec_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
-	}
-
-	// external libraries are not required?
-	if( ! rela ) return;	// yes
-
-	// for each entry in dynamic symbols
-	for( uint64_t i = 0; i < rela_entry_count; i++ ) {
-		// it's a local function?
-		if( dynsym[ rela[ i ].index ].address ) {
-			// update address of local function
-			got[ i ] = dynsym[ rela[ i ].index ].address + exec_base_address;
-
-// debug
-// lib_terminal_printf( &kernel_terminal, (uint8_t *) "  [changed address of local function '%s' to %X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
-		} else {
-			// retrieve library function address
-			got[ i ] = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
-
-// debug
-// lib_terminal_printf( &kernel_terminal, (uint8_t *) "   [acquired function address of '%s' as 0x%X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
-		}
-	}
 }

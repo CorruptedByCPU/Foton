@@ -79,12 +79,14 @@ void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
 }
 
 void kernel_memory_release( uintptr_t address, uint64_t N ) {
-	// clean page before releasing, kernel guarantees clean pages on allocation
-	kernel_page_clean( address, N );
-
 	// release occupied pages inside kernels binary memory map
 	kernel_memory_dispose( kernel -> memory_base_address, (address & ~KERNEL_PAGE_logical) >> STD_SHIFT_PAGE, N );
 
 	// more available pages
 	kernel -> page_available += N;
+}
+
+void kernel_memory_release_page( uintptr_t address ) {
+	// release page from binary memory map
+	kernel_memory_release( address | KERNEL_PAGE_logical, 1 );
 }

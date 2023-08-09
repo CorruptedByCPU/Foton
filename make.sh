@@ -14,6 +14,9 @@ clear
 rm -rf build && mkdir -p build/iso
 rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 
+# git deosn't allow empty folder
+mkdir -p root/system/{bin,lib}
+
 # copy default filesystem structure
 cp -rf root build
 

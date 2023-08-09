@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"34"
+#define	KERNEL_revision		"37"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -19,6 +19,13 @@ struct KERNEL {
 
 	// variable of GDT management functions
 	struct KERNEL_GDT_STRUCTURE_HEADER	gdt_header;
+
+	// variables of Framebuffer functions
+	uint32_t	*framebuffer_base_address;
+	uint16_t	framebuffer_width_pixel;
+	uint16_t	framebuffer_height_pixel;
+	uint32_t	framebuffer_pitch_byte;
+	int64_t		framebuffer_owner_pid;
 
 	// variable of IDT management functions
 	struct KERNEL_IDT_STRUCTURE_HEADER	idt_header;

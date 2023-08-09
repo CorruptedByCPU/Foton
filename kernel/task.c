@@ -95,6 +95,12 @@ void kernel_task( void ) {
 	}
 }
 
+struct KERNEL_TASK_STRUCTURE *kernel_task_active() {
+	// from list of active tasks on individual logical processors
+	// select currently processed position relative to current logical processor
+	return (struct KERNEL_TASK_STRUCTURE *) kernel -> task_cpu_address[ kernel_lapic_id() ];
+}
+
 struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 	// deny modification of job queue
 	while( __sync_val_compare_and_swap( &kernel -> task_cpu_semaphore, UNLOCK, LOCK ) );

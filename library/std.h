@@ -22,10 +22,11 @@
 	// listed alphabetically below
 
 	#define	STD_COLOR_mask					0xFF000000
-	#define	STD_COLOR_WHITE					0xFFF0F0F0
-	#define	STD_COLOR_BLACK					0xFF101010
+	#define	STD_COLOR_WHITE					0xFFFFFFFF
+	#define	STD_COLOR_BLACK					0xFF000000
 	#define	STD_COLOR_BLACK_light				0xFF101010
 	#define	STD_COLOR_GREEN_light				0xFF10FF10
+	#define	STD_COLOR_BLUE					0xFF003366
 	#define	STD_COLOR_RED_light				0xFFFF1010
 
 	#define	STD_FILE_MODE_mask				0b0000000111111111
@@ -72,10 +73,24 @@
 	#define	STD_SHIFT_PAGE					12
 
 	#define	STD_SYSCALL_EXIT				0x00
+	#define	STD_SYSCALL_FRAMEBUFFER				0x01
+	#define	STD_SYSCALL_MEMORY_ALLOC			0x02
+	#define	STD_SYSCALL_MEMORY_RELEASE			0x03
+
+	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
+		uint32_t	*base_address;
+		uint16_t	width_pixel;
+		uint16_t	height_pixel;
+		uint32_t	pitch_byte;
+		int64_t		owner_pid;
+	};
 
 	#define	STD_VIDEO_DEPTH_shift				2
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
+
+	// returns properties of available framebuffer ()
+	void std_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
 
 	#ifdef	SOFTWARE
 		// function definitions
@@ -98,11 +113,14 @@
 			// execute leave out routine
 			__asm__ volatile( "" :: "a" (STD_SYSCALL_EXIT) );
 			std_syscall_empty();
+
+			// SHOULD NOT HAPPEN... Hodor, You know what to do :D
+			while( TRUE );
 		}
 	#endif
 
 	//------------------------------------------------------------------------------
-	// substitute of libc
+	// substitute of internal functions required by clang
 	//------------------------------------------------------------------------------
 
 	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) {
@@ -115,4 +133,11 @@
 		for( uint64_t i = 0; i < length; i++ )
 			cache[ i ] = value;
 	}
+
+	//------------------------------------------------------------------------------
+	// substitute of libc
+	//------------------------------------------------------------------------------
+
+	void *malloc( size_t byte );
+	void free( void *source );
 #endif

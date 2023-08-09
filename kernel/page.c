@@ -280,3 +280,22 @@ void kernel_page_merge( uint64_t *pml4_kernel, uint64_t *pml4_process ) {
 		}
 	}
 }
+
+uintptr_t kernel_page_remove( uintptr_t *pml4, uintptr_t address ) {
+	// locate page table pointers
+	uintptr_t *pml3 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ (address & ~KERNEL_PAGE_PML5_mask) / (KERNEL_PAGE_PML3_byte)] ) | KERNEL_PAGE_logical);
+	uintptr_t *pml2 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ ((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) / KERNEL_PAGE_PML2_byte ] ) | KERNEL_PAGE_logical);
+	uintptr_t *pml1 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ (((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) / KERNEL_PAGE_PML1_byte ] ) | KERNEL_PAGE_logical);
+
+	// which page will be removed?
+	uintptr_t removed = pml1[ ((((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte ];
+
+	// is it shared?
+	if( removed & KERNEL_PAGE_FLAG_shared ) return EMPTY;	// do not allow
+
+	// remove page from paging
+	pml1[ ((((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte ] = EMPTY;
+
+	// return removed page address
+	return MACRO_PAGE_ALIGN_DOWN( removed );
+}
