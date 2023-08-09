@@ -7,6 +7,8 @@
 ;------------------------------------------------------------------------------
 extern	kernel_syscall_exit
 extern	kernel_syscall_framebuffer
+extern	kernel_syscall_memory_alloc
+extern	kernel_syscall_memory_release
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -22,6 +24,8 @@ align	0x08,	db	0x00
 kernel_syscall_list:
 	dq	kernel_syscall_exit
 	dq	kernel_syscall_framebuffer
+	dq	kernel_syscall_memory_alloc
+	dq	kernel_syscall_memory_release
 kernel_syscall_list_end:
 
 ; 64 bit procedure code
@@ -40,6 +44,10 @@ kernel_syscall:
 	xchg	qword [rsp + 0x08],	rcx
 	xchg	qword [rsp],	r11
 
+	; preserve original registers
+	push	rcx
+	push	r11
+
 	; feature available?
 	cmp	rax,	(kernel_syscall_list_end - kernel_syscall_list) / 0x08
 	jb	.available	; yes
@@ -55,6 +63,10 @@ kernel_syscall:
 	call	qword [kernel_syscall_list + rax * 0x08]
 
 .return:
+	; restore original registers
+	pop	r11
+	pop	rcx
+
 	; restore the RIP and EFLAGS registers of the process
 	xchg	qword [rsp],	r11
 	xchg	qword [rsp + 0x08],	rcx

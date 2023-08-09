@@ -23,6 +23,9 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// load file into workbench space
 	kernel_storage_read( kernel -> storage_root_id, file.id, workbench );
 
+	//----------------------------------------------------------------------
+
+
 	// file contains proper ELF header?
 	if( ! lib_elf_identify( workbench ) ) return EMPTY;	// no
 
@@ -35,11 +38,17 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// load libraries required by file
 	kernel_library( elf );
 
+	//----------------------------------------------------------------------
+
 	// create a new job in task queue
 	struct KERNEL_TASK_STRUCTURE *exec = kernel_task_add( name, length );
 
+	//----------------------------------------------------------------------
+
 	// prepare Paging table for new process
 	exec -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_logical;
+
+	//----------------------------------------------------------------------
 
 	// insert into paging, context stack of new process
 	kernel_page_alloc( (uintptr_t *) exec -> cr3, KERNEL_STACK_address, 2, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
@@ -62,7 +71,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// set the process entry address
 	context -> rip = elf -> entry_ptr;
 
-	//---------------
+	//----------------------------------------------------------------------
 
 	// length of name with arguments properties
 	uint64_t args = (length & ~0x0F) + 0x18;
@@ -88,7 +97,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// process stack size
 	exec -> stack += MACRO_PAGE_ALIGN_UP( args ) >> STD_SHIFT_PAGE;
 
-	//---------------
+	//----------------------------------------------------------------------
 
 	// calculate space required by configured executable
 	uint64_t exec_page = EMPTY;
@@ -129,8 +138,23 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// process memory usage
 	exec -> page += exec_page;
 
+	//----------------------------------------------------------------------
+
+	// create virtual memory map for process, no less than kernels
+	exec -> memory_map = (uint32_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) >> STD_SHIFT_PAGE );
+
+	// fill in binary memory map
+	for( uint64_t i = 0; i < MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) >> STD_SHIFT_32; i++ ) exec -> memory_map[ i ] = -1;
+
+	// mark as occupied pages used by the executable
+	kernel_memory_acquire( exec -> memory_map, exec_page );
+
+	//----------------------------------------------------------------------
+
 	// connect required functions new locations / from another library
 	kernel_library_link( elf, exec_base_address, FALSE );
+
+	//----------------------------------------------------------------------
 
 	// release workbench
 	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( file.size_byte ) >> STD_SHIFT_PAGE );

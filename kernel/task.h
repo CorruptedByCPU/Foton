@@ -32,10 +32,14 @@
 		uint64_t		storage;
 		uint64_t		page;	// amount of pages assigned to process
 		uint64_t		stack;	// size of stack in Pages
+		uint32_t		*memory_map;
 		volatile uint16_t	flags;
 		uint8_t			length;
 		uint8_t			name[ KERNEL_TASK_NAME_limit ];
 	};
+
+	// returns pointer to structure of currently executed task
+	struct KERNEL_TASK_STRUCTURE *kernel_task_active();
 
 	// external routine (assembly language)
 	extern void kernel_task_entry( void );

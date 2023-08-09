@@ -2,61 +2,37 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void std_syscall_empty( void ) {
-	// call syscall of kernel
-	__asm__ volatile( "push %%rax\npush %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\npop %%rax" :: );
+	//----------------------------------------------------------------------
+	// variables, structures, definitions
+	//----------------------------------------------------------------------
+	#ifndef	LIB_STD
+		#include	"./std.h"
+	#endif
+
+	//----------------------------------------------------------------------
+	// std routines, procedures
+	//----------------------------------------------------------------------
+	#include	"./std/syscall.c"
+
+	//------------------------------------------------------------------------------
+	// substitute of libc
+	//------------------------------------------------------------------------------
+
+void *malloc( size_t byte ) {
+	// assign place for area of definied size
+	uint64_t *target = (uint64_t *) std_memory_alloc( byte + 0x10 );
+
+	// set metadata of area
+	*target = MACRO_PAGE_ALIGN_UP( byte + 0x10 ) >> STD_SHIFT_PAGE;
+
+	// return allocated area pointer
+	return target + 0x02;
 }
 
-uint8_t std_syscall_bool() {
-	// initialize local variable
-	uint8_t rax = EMPTY;
+void free( void *source ) {
+	// move pointer to metadata area
+	uint64_t *byte = source - 0x10;
 
-	// call the kernel function
-	__asm__ volatile( "push %%rcx\npush %%r11\nsyscall \npop %%r11\npop %%rcx\n" : "=a" (rax) );
-
-	// return TRUE/FALSE
-	return rax;
-}
-
-int64_t std_syscall_signed() {
-	// initialize local variable
-	int64_t rax = EMPTY;
-
-	// call the kernel function
-	__asm__ volatile( "push %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\n" : "=a" (rax) );
-
-	// return value
-	return rax;
-}
-
-uint64_t std_syscall_unsigned() {
-	// initialize local variable
-	uint64_t rax = EMPTY;
-
-	// call the kernel function
-	__asm__ volatile( "push %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\n" : "=a" (rax) );
-
-	// return unsigned value
-	return rax;
-}
-
-uintptr_t std_syscall_pointer() {
-	// initialize local variable
-	uintptr_t rax = EMPTY;
-
-	// call the kernel function
-	__asm__ volatile( "push %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\n" : "=a" (rax) );
-
-	// return a pointer
-	return rax;
-}
-
-//------------------------------------------------------------------------------
-
-void std_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
-	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_FRAMEBUFFER), "D" (framebuffer) );
-
-	// return nothing
-	return std_syscall_empty();
+	// release assigned area
+	std_memory_release( (uintptr_t) byte, *byte );
 }

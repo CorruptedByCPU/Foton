@@ -74,6 +74,8 @@
 
 	#define	STD_SYSCALL_EXIT				0x00
 	#define	STD_SYSCALL_FRAMEBUFFER				0x01
+	#define	STD_SYSCALL_MEMORY_ALLOC			0x02
+	#define	STD_SYSCALL_MEMORY_RELEASE			0x03
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -118,7 +120,7 @@
 	#endif
 
 	//------------------------------------------------------------------------------
-	// substitute of libc
+	// substitute of internal functions required by clang
 	//------------------------------------------------------------------------------
 
 	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) {
@@ -131,4 +133,11 @@
 		for( uint64_t i = 0; i < length; i++ )
 			cache[ i ] = value;
 	}
+
+	//------------------------------------------------------------------------------
+	// substitute of libc
+	//------------------------------------------------------------------------------
+
+	void *malloc( size_t byte );
+	void free( void *source );
 #endif
