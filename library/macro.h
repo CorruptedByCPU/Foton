@@ -9,4 +9,14 @@
 
 	#define	MACRO_PAGE_ALIGN_UP( value )(((value) + STD_PAGE_byte - 1) & ~(STD_PAGE_byte - 1))
 	#define	MACRO_PAGE_ALIGN_DOWN( value )((value) & ~(STD_PAGE_byte - 1))
+
+	#define	MACRO_STR2( x ) #x
+	#define	MACRO_STR( x ) MACRO_STR2( x )
+
+	#define MACRO_IMPORT_FILE_AS_STRING( name, file ) __asm__( ".section .rodata\n.global " MACRO_STR( name ) "\n.balign 16\n" MACRO_STR( name ) ":\n.incbin \"" file "\"\n.byte 0x00\n" ); \
+		extern const __attribute__( ( aligned( 16 ) ) ) void* name; \
+
+	#define MACRO_IMPORT_FILE_AS_ARRAY( name, file ) __asm__( ".section .rodata\n.global file_" MACRO_STR( name ) "_start\n.global file_" MACRO_STR( name ) "_end\n.balign 16\nfile_" MACRO_STR( name ) "_start:\n.incbin \"" file "\"\nfile_" MACRO_STR( name ) "_end:\n" ); \
+		extern const __attribute__( ( aligned( 16 ) ) ) void* file_ ## name ## _start; \
+		extern const void* file_ ## name ## _end;
 #endif

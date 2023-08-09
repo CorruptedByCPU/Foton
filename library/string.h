@@ -11,6 +11,9 @@
 	// returns amount of bytes until first EMPTY found
 	uint64_t lib_string_length( uint8_t *string );
 
+	// returns amount of bytes until line feed found
+	uint64_t lib_string_length_line( uint8_t *string );
+
 	// returns amount of digits inside string, until found something else than digit
 	uint64_t lib_string_length_scope_digit( uint8_t *string );
 

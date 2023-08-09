@@ -139,5 +139,7 @@
 	//------------------------------------------------------------------------------
 
 	void *malloc( size_t byte );
+	void *realloc( void *source, size_t byte );
 	void free( void *source );
+	double strtof( uint8_t *string, uint64_t length );
 #endif
