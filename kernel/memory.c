@@ -90,3 +90,21 @@ void kernel_memory_release_page( uintptr_t address ) {
 	// release page from binary memory map
 	kernel_memory_release( address | KERNEL_PAGE_logical, 1 );
 }
+
+uintptr_t kernel_memory_share( uintptr_t address, uint64_t page ) {
+	// task properties
+	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+
+	// acquire N continuous pages
+	uintptr_t allocated = EMPTY;
+	if( (allocated = kernel_memory_acquire( task -> memory_map, page )) ) {
+		// map memory area to process
+		kernel_page_map( (uintptr_t *) task -> cr3, address, (uintptr_t) KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_shared );
+
+		// return the address of the first page in the collection
+		return KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE);
+	}
+
+	// no free space
+	return EMPTY;
+}

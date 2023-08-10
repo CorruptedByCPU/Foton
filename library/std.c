@@ -21,15 +21,18 @@
 	// substitute of libc
 	//------------------------------------------------------------------------------
 
+	// multiples of 0x10, but not less than 0x10
+	#define	STD_ALLOC_METADATA_byte	0x10
+
 void *malloc( size_t byte ) {
 	// assign place for area of definied size
-	uint64_t *target = (uint64_t *) std_memory_alloc( byte + 0x10 );
+	uint64_t *target = (uint64_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( byte + STD_ALLOC_METADATA_byte ) >> STD_SHIFT_PAGE );
 
 	// set metadata of area
-	*target = MACRO_PAGE_ALIGN_UP( byte + 0x10 ) >> STD_SHIFT_PAGE;
+	*target = MACRO_PAGE_ALIGN_UP( byte + STD_ALLOC_METADATA_byte ) - STD_ALLOC_METADATA_byte;
 
 	// return allocated area pointer
-	return target + 0x02;
+	return target + (STD_ALLOC_METADATA_byte >> STD_SHIFT_8);
 }
 
 void *realloc( void *source, size_t byte ) {
@@ -37,20 +40,22 @@ void *realloc( void *source, size_t byte ) {
 	uint64_t *ptr = (uint64_t *) MACRO_PAGE_ALIGN_DOWN( (uintptr_t) source );
 
 	// do we need wider area?
-	if( byte > (*ptr << STD_SHIFT_PAGE) ) {	// yes
+	if( byte > *ptr ) {	// yes
 		// alloc new area
 		uint64_t *target = (uint64_t *) malloc( byte );
 
 		// copy content
-		memcpy( (uint8_t *) source, (uint8_t *) target, byte );
+		memcpy( (uint8_t *) target, (uint8_t *) source, (uint64_t) *ptr );
 
 		// release old area
 		free( source );
 
 		// return pointer to new allocated area
 		return target;
-	} else	// no
-		return source;
+	}
+	
+	// no
+	return source;
 }
 
 void free( void *source ) {
@@ -58,7 +63,7 @@ void free( void *source ) {
 	uint64_t *ptr = (uint64_t *) MACRO_PAGE_ALIGN_DOWN( (uintptr_t) source );
 
 	// release assigned area
-	std_memory_release( (uintptr_t) ptr, *ptr );
+	std_memory_release( (uintptr_t) ptr, MACRO_PAGE_ALIGN_UP( *ptr + STD_ALLOC_METADATA_byte ) >> STD_SHIFT_PAGE );
 }
 
 double strtof( uint8_t *string, uint64_t length ) {

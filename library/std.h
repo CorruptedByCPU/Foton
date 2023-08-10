@@ -81,7 +81,7 @@
 		uint32_t	*base_address;
 		uint16_t	width_pixel;
 		uint16_t	height_pixel;
-		uint32_t	pitch_byte;
+		uint64_t	pitch_byte;
 		int64_t		owner_pid;
 	};
 

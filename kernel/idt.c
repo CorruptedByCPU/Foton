@@ -32,7 +32,16 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 		case 11: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "Segment Not Present" ); break; }
 		case 12: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "Stack-Segment Fault" ); break; }
 		case 13: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "General Protection Fault" ); break; }
-		case 14: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "Page Fault" ); break; }
+		case 14: {
+			// show exteption type
+			lib_terminal_printf( &kernel_terminal, (uint8_t *) "Page Fault\n" );
+			
+			// debug
+			lib_terminal_printf( &kernel_terminal, (uint8_t *) "RAX 0x%16X   RBX 0x%16X\nRCX 0x%16X   RDX 0x%16X\nRBP 0x%16X\nR8  0x%16X   R9  0x%16X\nR10 0x%16X   R11 0x%16X\nR12 0x%16X   R13 0x%16X\nR14 0x%16X   R15 0x%16X\n", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rbp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
+			
+			// done
+			break;
+		}
 		case 16: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "x87 Floating-Point" ); break; }
 		case 17: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "Alignment Check" ); break; }
 		case 18: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "Machine Check" ); break; }
@@ -44,6 +53,10 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 		case 30: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "Security" ); break; }
 		default: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "{unknown}" ); break; }
 	}
+
+	// show task name
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	lib_terminal_printf( &kernel_terminal, (uint8_t *) "Task: '%s' near 0x%X)\n", task -> name, exception -> cr2 );
 
 	// hold the door
 	while( TRUE ) {}

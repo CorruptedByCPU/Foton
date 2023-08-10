@@ -61,7 +61,7 @@ void kernel_init_hpet( void ) {
 				timer -> comparator = (uint64_t) 100000;
 
 				// connect HPET controller Timer 0 to interrupt handler
-				kernel_idt_mount( KERNEL_IDT_IRQ_offset + j, KERNEL_IDT_TYPE_irq, (uintptr_t) kernel_hpet_uptime_entry );
+				kernel_idt_mount( KERNEL_IDT_IRQ_offset + j, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) kernel_hpet_uptime_entry );
 
 				// connect interrupt vector from IDT table in I/O APIC controller
 				volatile uint32_t hpet_irq_io_apic_register = KERNEL_IO_APIC_iowin + (j * 0x02);
