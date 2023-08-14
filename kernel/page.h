@@ -35,6 +35,9 @@
 	// fills up N pages with EMPTY value
 	void kernel_page_clean( uintptr_t address, uint64_t n );
 
+	// alloc N pages for process
+	uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uint16_t flags );
+
 	// connect source with target address for definies paging array
 	uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags );
 #endif

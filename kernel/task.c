@@ -11,7 +11,7 @@ void kernel_task( void ) {
 	__asm__ volatile( "mov %%rsp, %0" : "=rm" (current -> rsp) );
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "-%s, cpu %u, rsp 0x%X\n", current -> name, kernel_lapic_id(), current -> rsp );
+// if( kernel -> cpu_count > 1 ) lib_terminal_printf( &kernel_terminal, (uint8_t *) "-%s, cpu %u, rsp 0x%X\n", current -> name, kernel_lapic_id(), current -> rsp );
 
 	// current task execution stopped
 	current -> flags &= ~KERNEL_TASK_FLAG_exec;
@@ -24,7 +24,7 @@ lib_terminal_printf( &kernel_terminal, (uint8_t *) "-%s, cpu %u, rsp 0x%X\n", cu
 	//----------------------------------------------------------------------
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "+%s, cpu %u, rsp 0x%X\n", next -> name, kernel_lapic_id(), next -> rsp );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) "+%s, cpu %u, rsp 0x%X\n", next -> name, kernel_lapic_id(), next -> rsp );
 
 	// reload paging tables for next task area
 	__asm__ volatile( "mov %0, %%cr3" ::"r" (next -> cr3 & ~KERNEL_PAGE_logical) );

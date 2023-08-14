@@ -56,7 +56,7 @@ cp build/kernel.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd
 lib=""	# include list of libraries
 
 # keep parsing libraries by. dependencies and alphabetically
-for library in color elf string font std rgl terminal vfs; do
+for library in color elf math string font std rgl terminal vfs; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 

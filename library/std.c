@@ -98,3 +98,33 @@ double strtof( uint8_t *string, uint64_t length ) {
 	// return double point value
 	return result;
 }
+
+uint64_t abs( int64_t i ) {
+	// return absolute value of
+	return i < 0 ? -i : i;
+}
+
+double fmod( double x, double y ) {
+	// return modulo of
+	return x - (int64_t) (x / y) * y;
+}
+
+float sqrtf( float x ) {
+	union {
+		int64_t	i;
+		float	x;
+	} u;
+
+	u.x = x;
+	u.i = (1 << 29) + (u.i >> 1) - (1 << 22);
+
+	u.x = u.x + x / u.x;
+	u.x = 0.25f * u.x + x / u.x;
+
+	return u.x;
+}
+
+double maxf( double first, double second ) {
+	if( first > second ) return first;
+	else return second;
+}

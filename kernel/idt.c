@@ -16,6 +16,9 @@ void kernel_idt_mount( uint8_t id, uint16_t type, uintptr_t address ) {
 }
 
 void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
+	// task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+
 	// show type of exception
 	lib_terminal_printf( &kernel_terminal, (uint8_t *) "Exception: " );
 	switch( exception -> id ) {
@@ -33,11 +36,17 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 		case 12: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "Stack-Segment Fault" ); break; }
 		case 13: { lib_terminal_printf( &kernel_terminal, (uint8_t *) "General Protection Fault" ); break; }
 		case 14: {
-			// show exteption type
-			lib_terminal_printf( &kernel_terminal, (uint8_t *) "Page Fault\n" );
-			
+			// exception for process stack space?
+			if( MACRO_PAGE_ALIGN_UP( exception -> cr2 ) == KERNEL_TASK_STACK_pointer - (task -> stack << STD_SHIFT_PAGE) ) {
+				// describe additional space under process stack
+				kernel_page_alloc( (uintptr_t *) task -> cr3, KERNEL_TASK_STACK_pointer - (++task -> stack << STD_SHIFT_PAGE), 1, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
+
+				// done
+				return;
+			}
+
 			// debug
-			lib_terminal_printf( &kernel_terminal, (uint8_t *) "RAX 0x%16X   RBX 0x%16X\nRCX 0x%16X   RDX 0x%16X\nRBP 0x%16X\nR8  0x%16X   R9  0x%16X\nR10 0x%16X   R11 0x%16X\nR12 0x%16X   R13 0x%16X\nR14 0x%16X   R15 0x%16X\n", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rbp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
+			lib_terminal_printf( &kernel_terminal, (uint8_t *) "Page Fault\nRAX 0x%16X   RBX 0x%16X\nRCX 0x%16X   RDX 0x%16X\nRBP 0x%16X\nR8  0x%16X   R9  0x%16X\nR10 0x%16X   R11 0x%16X\nR12 0x%16X   R13 0x%16X\nR14 0x%16X   R15 0x%16X\n", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rbp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
 			
 			// done
 			break;
@@ -55,7 +64,6 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 	}
 
 	// show task name
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 	lib_terminal_printf( &kernel_terminal, (uint8_t *) "Task: '%s' near 0x%X)\n", task -> name, exception -> cr2 );
 
 	// hold the door
