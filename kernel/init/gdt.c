@@ -31,6 +31,9 @@ void kernel_init_gdt( void ) {
 	// set valid descriptor values
 	kernel_gdt_reload();
 
+	// initialize stack pointer inside TSS table
+	kernel -> tss_table.rsp0 = KERNEL_STACK_pointer;
+
 	// show GDT properties
 	lib_terminal_printf( &kernel_terminal, (uint8_t *) "GDT base address 0x%X\n", kernel -> gdt_header.base_address );
 }

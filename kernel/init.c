@@ -139,7 +139,7 @@ void kernel_init( void ) {
 	kernel_init_env();
 
 	// execute first process
-	kernel_exec( (uint8_t *) "init", 4 );
+	kernel_exec( (uint8_t *) "demo", 4 );
 
 	// reload BSP configuration
 	kernel_init_reload();

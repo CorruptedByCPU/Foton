@@ -9,7 +9,7 @@ if [ -z "${SMP}" ]; then SMP="2"; fi
 
 # default Memory size: 8 MiB
 MEM="${2}"
-if [ -z "${MEM}" ]; then MEM="8"; fi
+if [ -z "${MEM}" ]; then MEM="16"; fi
 
 qemu-system-x86_64			\
 	--enable-kvm			\

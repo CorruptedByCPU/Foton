@@ -280,6 +280,32 @@ void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *stri
 					// next character from string
 					continue;
 				}
+				case '.':
+				case 'f': {
+					// prefix before type?
+					uint64_t suffix = lib_string_length_scope_digit( (uint8_t *) &string[ i + 1 ] );
+					uint64_t s_value = lib_string_to_integer( (uint8_t *) &string[ i + 1 ], 10 );
+
+					// value
+					double f = va_arg( argv, double );
+					if( f < 0.0f ) { f = -f; lib_terminal_char( terminal, '-' ); }
+
+					// number of digits after dot
+					uint64_t s_digits = 1;
+					if( s_value ) for( uint8_t m = 0; m < s_value; m++ ) s_digits *= 10;
+					else s_digits = 1000000;	// if not specified set default
+
+					// show 'value'
+					lib_terminal_value( terminal, (uint64_t) f, 10, 1 );
+					lib_terminal_char( terminal, '.' );
+					lib_terminal_value( terminal, (uint64_t) ((double) (f - (uint64_t) f) * (double) s_digits), 10, s_value );
+
+					// omit suffix and dot if exist
+					i += suffix;
+
+					// next character from string
+					break;
+				}
 			}
 		}
 

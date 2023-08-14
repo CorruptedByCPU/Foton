@@ -25,7 +25,6 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 
 	//----------------------------------------------------------------------
 
-
 	// file contains proper ELF header?
 	if( ! lib_elf_identify( workbench ) ) return EMPTY;	// no
 

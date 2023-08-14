@@ -35,6 +35,9 @@ void kernel_init_reload( void ) {
 	// select task from queue which CPU is now processing
 	kernel -> task_cpu_address[ current_cpu_id ] = &kernel -> task_base_address[ 0 ];
 
+	// disable Emulation, enable Monitoring
+	__asm__ volatile( "movq %cr0, %rax\nand $0xFFFB, %ax\nor $0x02, %ax\nmovq %rax, %cr0" );
+
 	// reset FPU state
 	__asm__ volatile( "fninit" );
 

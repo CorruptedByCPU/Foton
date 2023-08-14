@@ -178,7 +178,7 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 			got[ i ] = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
 
 // debug
-// lib_terminal_printf( &kernel_terminal, (uint8_t *) "   [acquired function address of '%s' as 0x%X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
+// lib_terminal_printf( &kernel_terminal, (uint8_t *) "  [acquired function address of '%s' as 0x%X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
 		}
 	}
 }

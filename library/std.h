@@ -81,7 +81,7 @@
 		uint32_t	*base_address;
 		uint16_t	width_pixel;
 		uint16_t	height_pixel;
-		uint32_t	pitch_byte;
+		uint64_t	pitch_byte;
 		int64_t		owner_pid;
 	};
 
@@ -139,5 +139,11 @@
 	//------------------------------------------------------------------------------
 
 	void *malloc( size_t byte );
+	void *realloc( void *source, size_t byte );
 	void free( void *source );
+	double strtof( uint8_t *string, uint64_t length );
+	uint64_t abs( int64_t i );
+	double fmod( double x, double y );
+	float sqrtf( float x );
+	double maxf( double first, double second );
 #endif

@@ -13,7 +13,7 @@ void kernel_init_task( void ) {
 	kernel -> task_cpu_address = (struct KERNEL_TASK_STRUCTURE **) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( limine_smp_request.response -> cpu_count << STD_SHIFT_PTR ) >> STD_SHIFT_PAGE );
 
 	// attach task switch routine to APIC timer interrupt handler
-	kernel_idt_mount( KERNEL_IDT_IRQ_offset, KERNEL_IDT_TYPE_irq, (uintptr_t) kernel_task_entry );
+	kernel_idt_mount( KERNEL_IDT_IRQ_offset, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) kernel_task_entry );
 
 	// we need to create first entry inside task queue for kernel itself
 

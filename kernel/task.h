@@ -46,4 +46,7 @@
 
 	// returns current task PID number
 	int64_t kernel_task_pid();
+
+	// selecting new task to execute by BS/A
+	struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i );
 #endif
