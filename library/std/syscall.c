@@ -76,3 +76,11 @@ void std_memory_release( uintptr_t source, uint64_t byte ) {
 	// return nothing
 	return std_syscall_empty();
 }
+
+uint64_t std_uptime( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_UPTIME) );
+
+	// return value
+	return std_syscall_unsigned();
+}

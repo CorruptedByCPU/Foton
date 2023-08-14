@@ -76,3 +76,8 @@ void kernel_syscall_memory_release( uintptr_t source, uint64_t page) {
 		kernel_memory_dispose( task -> memory_map, i, 1 );
 	}
 }
+
+uint64_t kernel_syscall_uptime() {
+	// return uptime
+	return kernel -> hpet_miliseconds;
+}

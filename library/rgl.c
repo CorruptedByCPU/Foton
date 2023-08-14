@@ -98,10 +98,8 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCT
 
 	lib_rgl_vector_normalize( (vector3f *) &normal );
 
-	vector3f camera_ray = lib_rgl_vector_substract( (vector3f *) &parse -> point[ 0 ], (vector3f *) &rgl -> camera );
-
 	// show only visible triangles
-	if( normal.z < 0.0f ) {	// lib_rgl_vector_product_dot( (vector3f *) &normal, (vector3f *) &camera_ray ) < 0.0f ) {
+	if( normal.z < 0.0f ) {
 		// light source position
 		vector3f light = { 0.0f, 1.0f, -1.0f };
 		lib_rgl_vector_normalize( (vector3f *) &light );
@@ -308,8 +306,8 @@ void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_T
 			// pixel is inside workbench?
 			int64_t x = p.x + (rgl -> width_pixel / 2);
 			int64_t y = p.y + (rgl -> height_pixel / 2);
-			if( x < 0 || x >= rgl -> width_pixel ) continue;	// no
-			if( y < 0 || y >= rgl -> height_pixel ) continue;	// no
+			if( x < 0 || x > rgl -> width_pixel ) continue;	// no
+			if( y < 0 || y > rgl -> height_pixel ) continue;	// no
 
 			// pixel inside triangle?
 			if( ! lib_rgl_edge( (vector2d *) &p1, (vector2d *) &p2, (vector2d *) &p ) ) continue;
@@ -320,10 +318,7 @@ void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_T
 			rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ] = triangle -> color;
 		}
 
-	uint32_t color = triangle -> color;
-	// if( ! rgl -> wireless ) color = 0xFF202020;
-
-	lib_rgl_line( rgl, p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), color );
-	lib_rgl_line( rgl, p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), color );
-	lib_rgl_line( rgl, p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), color );
+	lib_rgl_line( rgl, p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), triangle -> color );
+	lib_rgl_line( rgl, p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), triangle -> color );
+	lib_rgl_line( rgl, p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), triangle -> color );
 }

@@ -7,8 +7,11 @@
 	//----------------------------------------------------------------------
 	#include	"../library/rgl.h"
 	#include	"../library/string.h"
+	#include	"../library/terminal.h"
 
 struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
+
+struct LIB_TERMINAL_STRUCTURE terminal;
 
 // MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/earth.obj" );
 MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/teapot.obj" );
@@ -22,6 +25,22 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// initialize RGL library
 	struct LIB_RGL_STRUCTURE *rgl = lib_rgl( framebuffer.width_pixel, framebuffer.height_pixel, framebuffer.base_address );
+
+	//----------------------------------------------------------------------
+
+	// update terminal properties
+	terminal.width			= framebuffer.width_pixel;
+	terminal.height			= framebuffer.height_pixel;
+	terminal.base_address		= rgl -> workbench_base_address;
+	terminal.scanline_pixel		= framebuffer.pitch_byte >> STD_VIDEO_DEPTH_shift;
+	terminal.color_foreground	= STD_COLOR_WHITE;
+	terminal.color_background	= STD_COLOR_BLACK;
+
+	// initialize terminal
+	lib_terminal( &terminal );
+
+	// disable cursor
+	lib_terminal_cursor_disable( &terminal );
 
 	//----------------------------------------------------------------------
 
@@ -132,7 +151,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_rgl_clean( rgl );
 
 		// next angle
-		angle += 1.0f;
+		angle += 0.1f;
 
 		// calculate rotation matrixes
 		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle / 2.0f );
