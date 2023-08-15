@@ -15,8 +15,8 @@ struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
 struct LIB_TERMINAL_STRUCTURE terminal;
 
 // MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/test.obj" );
-// MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/earth.obj" );
-MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/teapot.obj" );
+MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/earth.obj" );
+// MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/teapot.obj" );
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// obtain information about kernels framebuffer
@@ -163,7 +163,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_rgl_clean( rgl );
 
 		// next angle
-		angle += 0.5f;
+		angle += 0.10f;
 
 		// calculate rotation matrixes
 		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle / 2.0f );
@@ -174,12 +174,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 0.5f );
 
 		// world transformation matrix
-		struct LIB_RGL_STRUCTURE_MATRIX w_matrix;
+		struct LIB_RGL_STRUCTURE_MATRIX w_matrix = lib_rgl_return_matrix_identity();
 
 		// connect all matrixes into one
-		w_matrix = lib_rgl_multiply_matrix( &z_matrix, &x_matrix );
-		w_matrix = lib_rgl_multiply_matrix( &w_matrix, &y_matrix );
-		w_matrix = lib_rgl_multiply_matrix( &w_matrix, &t_matrix );
+		w_matrix = lib_rgl_multiply_matrix( &x_matrix, &y_matrix );
+		w_matrix = lib_rgl_multiply_matrix( &w_matrix, &z_matrix );
 
 		// amount of faces to sort
 		uint64_t sc = 0;
@@ -191,6 +190,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// convert
 			lib_rgl_multiply( &parse[ i ], &w_matrix );
+			lib_rgl_multiply( &parse[ i ], &t_matrix );
 
 			// check if face will be visible
 			if( lib_rgl_projection( rgl, &parse[ i ] ) ) {

@@ -103,14 +103,14 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCT
 	// show only visible triangles
 	if( lib_rgl_vector_product_dot( (vector3f *) &normal, (vector3f *) &camera_ray ) < 0.0f ) {
 		// light source position
-		vector3f light = { 0.0f, 0.0f, -1.0f };
+		vector3f light = { -0.5f, -0.5f, -1.0f };
 		lib_rgl_vector_normalize( (vector3f *) &light );
 
 		// dot product
 		double dp = maxf( 0.1f, lib_rgl_vector_product_dot( (vector3f *) &normal, (vector3f *) &light ) );
 
 		// select color
-		dp = (15.0f * dp) * 15;
+		dp *= 240.0f;
 		parse -> color = ( 0xFF000000 | (uint8_t) dp << 16 | (uint8_t) dp << 8 | (uint8_t) dp );
 
 		// triangle visible
