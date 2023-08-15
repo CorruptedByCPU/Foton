@@ -5,6 +5,7 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
+	#include	"../library/math.h"
 	#include	"../library/rgl.h"
 	#include	"../library/string.h"
 	#include	"../library/terminal.h"
@@ -13,6 +14,7 @@ struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
 
 struct LIB_TERMINAL_STRUCTURE terminal;
 
+// MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/test.obj" );
 // MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/earth.obj" );
 MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/teapot.obj" );
 
@@ -145,13 +147,23 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// angle of rotation
 	double angle = 0.0f;
 
+	// properties of projection
+	double near = 0.0f;
+	double far = 100.0f;
+	double hfov = 90.0f;
+	double vfov = hfov * ((double) rgl -> height_pixel / (double) rgl -> width_pixel);
+	double aspect = (double) rgl -> width_pixel / (double) rgl -> height_pixel;
+
+	// array of projection
+	struct LIB_RGL_STRUCTURE_MATRIX p_matrix = lib_rgl_return_matrix_projection( near, far, hfov, aspect );
+
 	// main loop
 	while( TRUE ) {
 		// clean workbench with default background color
 		lib_rgl_clean( rgl );
 
 		// next angle
-		angle += 0.1f;
+		angle += 0.5f;
 
 		// calculate rotation matrixes
 		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle / 2.0f );
@@ -159,7 +171,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		struct LIB_RGL_STRUCTURE_MATRIX y_matrix = lib_rgl_return_matrix_rotate_y( angle );
 
 		// calculate movement matrix
-		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 0.0f );
+		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 0.5f );
 
 		// world transformation matrix
 		struct LIB_RGL_STRUCTURE_MATRIX w_matrix;
@@ -182,6 +194,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// check if face will be visible
 			if( lib_rgl_projection( rgl, &parse[ i ] ) ) {
+				// convert to our display frustum
+				lib_rgl_multiply( &parse[ i ], &p_matrix );
+
 				// if yes, add to sorting list
 				sort[ sc ] = &parse[ i ];
 

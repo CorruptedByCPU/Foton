@@ -70,6 +70,8 @@
 	// returns calculated matrix for movement at X, Y, Z axis
 	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_translate( double x, double y, double z );
 
+	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_projection( double near, double far, double fov, double aspect );
+
 	double lib_rgl_vector_product_dot( vector3f *v0, vector3f *v1 );
 	vector3f lib_rgl_vector_product_cross( vector3f *v0, vector3f *v1 );
 	double lib_rgl_vector_length( vector3f *v );
