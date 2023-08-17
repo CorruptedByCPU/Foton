@@ -76,6 +76,7 @@
 	#define	STD_SYSCALL_FRAMEBUFFER				0x01
 	#define	STD_SYSCALL_MEMORY_ALLOC			0x02
 	#define	STD_SYSCALL_MEMORY_RELEASE			0x03
+	#define	STD_SYSCALL_UPTIME				0x04
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -91,6 +92,9 @@
 
 	// returns properties of available framebuffer ()
 	void std_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
+
+	// returns current miliseconds from system initialization
+	uint64_t std_uptime( void );
 
 	#ifdef	SOFTWARE
 		// function definitions

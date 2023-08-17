@@ -28,10 +28,17 @@
 		vector3f	camera;
 	};
 
+	struct	LIB_RGL_STRUCTURE_MATERIAL {
+		uint32_t	Kd;
+		uint8_t		length;
+		uint8_t		name[ 255 ];
+	};
+
 	struct	LIB_RGL_STRUCTURE_TRIANGLE {
 		vector3f	point[ 3 ];
 		double		z_depth;
-		uint32_t	color;
+		uint64_t	material;
+		double		light;
 	};
 
 	struct LIB_RGL_STRUCTURE_MATRIX {
@@ -70,6 +77,8 @@
 	// returns calculated matrix for movement at X, Y, Z axis
 	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_translate( double x, double y, double z );
 
+	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_projection( double near, double far, double fov, double aspect );
+
 	double lib_rgl_vector_product_dot( vector3f *v0, vector3f *v1 );
 	vector3f lib_rgl_vector_product_cross( vector3f *v0, vector3f *v1 );
 	double lib_rgl_vector_length( vector3f *v );
@@ -79,5 +88,5 @@
 	void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high );
 	inline uint8_t lib_rgl_edge( vector2d *a, vector2d *b, vector2d *c );
 	void lib_rgl_line( struct LIB_RGL_STRUCTURE *rgl, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t color );
-	void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *triangle );
+	void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *triangle, struct LIB_RGL_STRUCTURE_MATERIAL *material );
 #endif
