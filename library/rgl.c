@@ -315,6 +315,8 @@ uint32_t lib_rgl_color( uint32_t argb, double light ) {
 }
 
 void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *triangle, struct LIB_RGL_STRUCTURE_MATERIAL *material ) {
+	uint32_t color = lib_rgl_color( material[ triangle -> material ].Kd, triangle -> light / 8.0f );
+
 	vector2d p0 = { (int64_t) triangle -> point[ 0 ].x, (int64_t) triangle -> point[ 0 ].y };
 	vector2d p1 = { (int64_t) triangle -> point[ 1 ].x, (int64_t) triangle -> point[ 1 ].y };
 	vector2d p2 = { (int64_t) triangle -> point[ 2 ].x, (int64_t) triangle -> point[ 2 ].y };
@@ -351,10 +353,9 @@ void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_T
 			if( ! lib_rgl_edge( (vector2d *) &p0, (vector2d *) &p1, (vector2d *) &p ) ) continue;
 
 			// draw it
-			rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ] = lib_rgl_color( material[ triangle -> material ].Kd, triangle -> light / 4.0f );
+			rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ] = color;
 		}
 
-	uint32_t color = lib_rgl_color( material[ triangle -> material ].Kd, triangle -> light / 5.0f );
 	lib_rgl_line( rgl, p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), color );
 	lib_rgl_line( rgl, p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), color );
 	lib_rgl_line( rgl, p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), color );

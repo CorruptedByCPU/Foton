@@ -14,10 +14,8 @@ struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
 
 struct LIB_TERMINAL_STRUCTURE terminal;
 
-// MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/test.obj" );
-// MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/teapot.obj" );
-MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/earth.obj" );
-MACRO_IMPORT_FILE_AS_ARRAY( material, "./root/system/var/earth.mtl" );
+MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/test.obj" );
+MACRO_IMPORT_FILE_AS_ARRAY( material, "./root/system/var/test.mtl" );
 
 uint8_t string_material[ 6 ] = "newmtl";
 uint8_t string_material_change[ 6 ] = "usemtl";
@@ -264,7 +262,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// calculate rotation matrixes
 		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle / 2.0f );
-		struct LIB_RGL_STRUCTURE_MATRIX x_matrix = lib_rgl_return_matrix_rotate_x( 0.0f );
+		struct LIB_RGL_STRUCTURE_MATRIX x_matrix = lib_rgl_return_matrix_rotate_x( angle / 3.0f );
 		struct LIB_RGL_STRUCTURE_MATRIX y_matrix = lib_rgl_return_matrix_rotate_y( angle );
 
 		// calculate movement matrix
