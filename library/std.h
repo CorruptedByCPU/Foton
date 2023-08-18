@@ -77,6 +77,7 @@
 	#define	STD_SYSCALL_MEMORY_ALLOC			0x02
 	#define	STD_SYSCALL_MEMORY_RELEASE			0x03
 	#define	STD_SYSCALL_UPTIME				0x04
+	#define	STD_SYSCALL_LOG					0x05
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -150,4 +151,5 @@
 	double fmod( double x, double y );
 	float sqrtf( float x );
 	double maxf( double first, double second );
+	void log( const char *string, ... );
 #endif

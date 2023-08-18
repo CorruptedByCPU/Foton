@@ -81,3 +81,11 @@ uint64_t kernel_syscall_uptime() {
 	// return uptime
 	return kernel -> hpet_miliseconds;
 }
+
+void kernel_syscall_log( uint8_t *string, uint64_t length ) {
+	// if string pointer is above software environment memory area
+	if( (uint64_t) string > KERNEL_PAGE_logical ) return;	// do not allow it
+
+	// show content of string
+	for( uint64_t i = 0; i < length; i++ ) lib_terminal_printf( &kernel_terminal, (uint8_t *) "%c", (uint64_t) string[ i ] );
+}

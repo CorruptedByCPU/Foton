@@ -243,14 +243,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	double angle = 0.0f;
 
 	// properties of projection
-	double near = 0.0f;
-	double far = 10.0f;
-	double hfov = 90.0f;
-	double vfov = hfov * ((double) rgl -> height_pixel / (double) rgl -> width_pixel);
-	double aspect = (double) rgl -> width_pixel / (double) rgl -> height_pixel;
+	double fov = 90.0f;
 
 	// array of projection
-	struct LIB_RGL_STRUCTURE_MATRIX p_matrix = lib_rgl_return_matrix_projection( near, far, hfov, aspect );
+	struct LIB_RGL_STRUCTURE_MATRIX p_matrix = lib_rgl_return_matrix_projection( rgl, fov );
+
+	struct LIB_RGL_STRUCTURE_MATRIX z_matrix = { 0.0f };
+	struct LIB_RGL_STRUCTURE_MATRIX x_matrix = { 0.0f };
+	struct LIB_RGL_STRUCTURE_MATRIX y_matrix = { 0.0f };
 
 	// main loop
 	while( TRUE ) {
@@ -261,12 +261,16 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		angle += 0.01f;
 
 		// calculate rotation matrixes
-		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle / 2.0f );
-		struct LIB_RGL_STRUCTURE_MATRIX x_matrix = lib_rgl_return_matrix_rotate_x( angle / 3.0f );
+		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle / 3.0f );
+		struct LIB_RGL_STRUCTURE_MATRIX x_matrix = lib_rgl_return_matrix_rotate_x( angle / 2.0f );
 		struct LIB_RGL_STRUCTURE_MATRIX y_matrix = lib_rgl_return_matrix_rotate_y( angle );
 
 		// calculate movement matrix
 		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 1.0f );
+
+		// calculate scale matrix
+		// double scale = 2000.0f;
+		// struct LIB_RGL_STRUCTURE_MATRIX s_matrix = lib_rgl_return_matrix_scale( scale, scale, scale );
 
 		// world transformation matrix
 		struct LIB_RGL_STRUCTURE_MATRIX w_matrix = lib_rgl_return_matrix_identity();
@@ -286,6 +290,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// convert
 			lib_rgl_multiply( &parse[ i ], &w_matrix );
 			lib_rgl_multiply( &parse[ i ], &t_matrix );
+			// lib_rgl_multiply( &parse[ i ], &s_matrix );
+
+			log( "%u\n", (int64_t) parse[ i ].point[ 0 ].x );
 
 			// check if face will be visible
 			if( lib_rgl_projection( rgl, &parse[ i ] ) ) {
@@ -303,7 +310,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// sort faces by Z axis
-		lib_rgl_sort_quick( sort, 1, sc - 1 );
+		// lib_rgl_sort_quick( sort, 1, sc - 1 );
 
 		// draw every triangle on workbench
 		for( uint64_t i = 0; i < sc; i++ ) lib_rgl_triangle( rgl, sort[ i ], material );

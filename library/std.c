@@ -5,8 +5,8 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
-	#ifndef	LIB_STD
-		#include	"./std.h"
+	#ifndef	LIB_INTEGER
+		#include	"./integer.h"
 	#endif
 	#ifndef	LIB_STRING
 		#include	"./string.h"
@@ -127,4 +127,98 @@ float sqrtf( float x ) {
 double maxf( double first, double second ) {
 	if( first > second ) return first;
 	else return second;
+}
+
+void log( const char *string, ... ) {
+	// properties of argument list
+	va_list argv;
+
+	// start of argument list
+	va_start( argv, string );
+
+	// cache for values
+	uint8_t digits[ 64 ];
+
+	// for every character from string
+	uint64_t length = lib_string_length( (uint8_t *) string );
+	for( uint64_t i = 0; i < length; i++ ) {
+		// special character?
+		if( string[ i ] == '%' ) {	
+			// prefix before type?
+			uint64_t prefix = lib_string_length_scope_digit( (uint8_t *) &string[ ++i ] );
+			uint64_t p_value = lib_string_to_integer( (uint8_t *) &string[ i ], 10 );
+
+			// omit prefix value if existed
+			i += prefix;
+
+			// check sequence type
+			switch( string[ i ] ) {
+				case '%': {
+					// just show '%' character
+					break;
+				}
+
+				case 'b': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// show 'value' on terminal
+					std_syscall_log( (uint8_t *) &digits, lib_integer_to_string( value, 2, (uint8_t *) &digits ) );
+
+					// next character from string
+					continue;
+				}
+
+				case 'c': {
+					// retrieve character
+					uint8_t c = va_arg( argv, uint64_t );
+					
+					// show 'character' on terminal
+					std_syscall_log( (uint8_t *) &c, 1 );
+
+					// next character from string
+					continue;
+				}
+
+				case 's': {
+					// retrieve substring
+					uint8_t *substring = va_arg( argv, uint8_t * );
+					
+					// show 'substring' on terminal
+					std_syscall_log( substring, lib_string_length( substring ) );
+
+					// next character from string
+					continue;
+				}
+
+				case 'u': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// show 'value' on terminal
+					std_syscall_log( (uint8_t *) &digits, lib_integer_to_string( value, 10, (uint8_t *) &digits ) );
+
+					// next character from string
+					continue;
+				}
+
+				case 'X': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// show 'value' on terminal
+					std_syscall_log( (uint8_t *) &digits, lib_integer_to_string( value, 16, (uint8_t *) &digits ) );
+
+					// next character from string
+					continue;
+				}
+			}
+		}
+
+		// no, show it
+		std_syscall_log( (uint8_t *) &string[ i ], 1 );
+	}
+
+	// end of arguemnt list
+	va_end( argv );
 }
