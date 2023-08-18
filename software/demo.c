@@ -244,7 +244,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// properties of projection
 	double near = 0.0f;
-	double far = 100.0f;
+	double far = 10.0f;
 	double hfov = 90.0f;
 	double vfov = hfov * ((double) rgl -> height_pixel / (double) rgl -> width_pixel);
 	double aspect = (double) rgl -> width_pixel / (double) rgl -> height_pixel;
@@ -258,7 +258,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_rgl_clean( rgl );
 
 		// next angle
-		angle += 0.10f;
+		angle += 0.01f;
 
 		// calculate rotation matrixes
 		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle / 2.0f );
