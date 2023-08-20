@@ -10,16 +10,139 @@
 	#include	"../library/string.h"
 	#include	"../library/terminal.h"
 
-struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
+	#include	"demo/data.c"
+	#include	"demo/object.c"
 
-struct LIB_TERMINAL_STRUCTURE terminal;
+uint64_t lib_rgl_partition( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high ) {
+	double pivot = triangles[ high ] -> z_depth;
 
-MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/test.obj" );
-MACRO_IMPORT_FILE_AS_ARRAY( material, "./root/system/var/test.mtl" );
+	uint64_t i = (low - 1);
 
-uint8_t string_material[ 6 ] = "newmtl";
-uint8_t string_material_change[ 6 ] = "usemtl";
-uint8_t	string_kd[ 2 ] = "Kd";
+	for( uint64_t j = low; j < high; j++ ) {
+		if( triangles[ j ] -> z_depth < pivot ) {
+			i++;
+
+			struct LIB_RGL_STRUCTURE_TRIANGLE *tmp = triangles[ i ];
+			triangles[ i ] = triangles[ j ];
+			triangles[ j ] = tmp;
+		}
+	}
+
+	struct LIB_RGL_STRUCTURE_TRIANGLE *tmp = triangles[ i + 1 ];
+	triangles[ i + 1 ] = triangles[ high ];
+	triangles[ high ] = tmp;
+
+	return (i + 1);
+}
+
+void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high ) {
+	if (low < high) {
+		uint64_t pi = 0;
+		pi = lib_rgl_partition( triangles, low, high );
+
+		lib_rgl_sort_quick( triangles, low, pi - 1 );
+		lib_rgl_sort_quick( triangles, pi + 1, high );
+	}
+}
+
+inline uint8_t lib_rgl_edge( vector2d *a, vector2d *b, vector2d *c ) {
+	if( (b -> x - a -> x) * (c -> y - a -> y) - (b -> y - a -> y) * (c -> x - a -> x) < 0 ) return TRUE;
+	return FALSE;
+}
+
+void lib_rgl_line( struct LIB_RGL_STRUCTURE *rgl, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t color ) {
+	// no cliiping
+	if( x0 < 0 ) x0 = 0;
+	if( y0 < 0 ) y0 = 0;
+	if( x1 < 0 ) x1 = 0;
+	if( y1 < 0 ) y1 = 0;
+	if( x0 >= rgl -> width_pixel ) x0 = rgl -> width_pixel - 1;
+	if( y0 >= rgl -> height_pixel ) y0 = rgl -> height_pixel - 1;
+	if( x1 >= rgl -> width_pixel ) x1 = rgl -> width_pixel - 1;
+	if( y1 >= rgl -> height_pixel ) y1 = rgl -> height_pixel - 1;
+
+	int64_t dx = abs( x1 - x0 ), sx = x0 < x1 ? 1 : -1;
+	int64_t dy = -abs( y1 - y0 ), sy = y0 < y1 ? 1 : -1; 
+	int64_t err = dx + dy, e2;
+
+	for( ; ; ) {
+		rgl -> workbench_base_address[ (y0 * rgl -> width_pixel) + x0 ] = color;
+
+		if (x0 == x1 && y0 == y1) break;
+
+		e2 = 2 * err;
+	
+		if (e2 >= dy) { err += dy; x0 += sx; }
+		if (e2 <= dx) { err += dx; y0 += sy; }
+	}
+}
+
+uint32_t lib_rgl_color( uint32_t argb, double light ) {
+	double red = (double) ((argb & 0x00FF0000) >> 16);
+	double green = (double) ((argb & 0x0000FF00) >> 8);
+	double blue = (double) (argb & 0x000000FF);
+
+	if ( light < 0.0f ) {
+		light += 1.0f;
+        
+		red *= light;
+        	green *= light;
+		blue *= light;
+    	} else {
+	        red = (255.0f - red) * light + red;
+	        green = (255.0f - green) * light + green;
+	        blue = (255.0f - blue) * light + blue;
+	}
+
+	return STD_COLOR_mask | (((uint32_t) red) << 16) | (((uint32_t) green) << 8) | ((uint32_t) blue);
+}
+
+void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, struct LIB_RGL_STRUCTURE_MATERIAL *material ) {
+	uint32_t color = lib_rgl_color( material[ t -> material ].Kd, t -> light );
+
+	vector2d p0 = { (int64_t) vp[ t -> v[ 0 ] ].x, (int64_t) vp[ t -> v[ 0 ] ].y };
+	vector2d p1 = { (int64_t) vp[ t -> v[ 1 ] ].x, (int64_t) vp[ t -> v[ 1 ] ].y };
+	vector2d p2 = { (int64_t) vp[ t -> v[ 2 ] ].x, (int64_t) vp[ t -> v[ 2 ] ].y };
+
+	int64_t left = p0.x;
+	if( p1.x < left ) left = p1.x;
+	if( p2.x < left ) left = p2.x;
+
+	int64_t top = p0.y;
+	if( p1.y < top ) top = p1.y;
+	if( p2.y < top ) top = p2.y;
+
+	int64_t right = p0.x;
+	if( p1.x > right ) right = p1.x;
+	if( p2.x > right ) right = p2.x;
+
+	int64_t bottom = p0.y;
+	if( p1.y > bottom ) bottom = p1.y;
+	if( p2.y > bottom ) bottom = p2.y;
+
+	vector2d p;
+
+	for( p.y = top; p.y <= bottom; p.y++ )
+		for( p.x = left; p.x <= right; p.x++ ) {
+			// pixel is inside workbench?
+			int64_t x = p.x + (rgl -> width_pixel / 2);
+			int64_t y = p.y + (rgl -> height_pixel / 2);
+			if( x < 0 || x > rgl -> width_pixel ) continue;	// no
+			if( y < 0 || y > rgl -> height_pixel ) continue;	// no
+
+			// pixel inside triangle?
+			if( ! lib_rgl_edge( (vector2d *) &p1, (vector2d *) &p2, (vector2d *) &p ) ) continue;
+			if( ! lib_rgl_edge( (vector2d *) &p2, (vector2d *) &p0, (vector2d *) &p ) ) continue;
+			if( ! lib_rgl_edge( (vector2d *) &p0, (vector2d *) &p1, (vector2d *) &p ) ) continue;
+
+			// draw it
+			rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ] = color;
+		}
+
+	lib_rgl_line( rgl, p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), color );
+	lib_rgl_line( rgl, p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), color );
+	lib_rgl_line( rgl, p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), color );
+}
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// obtain information about kernels framebuffer
@@ -49,187 +172,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	//----------------------------------------------------------------------
 
-	// amount of materials
-	uint64_t m = 1;
-	uint64_t mc = 1;
-
-	// // count materials
-	uint8_t *line = (uint8_t *) &file_material_start;
-	while( line < (uint8_t *) &file_material_end ) {
-		// material definition?
-		if( lib_string_compare( line, (uint8_t *) &string_material, sizeof( string_material ) ) ) mc++;
-
-		// next line from file
-		line += lib_string_length_line( line ) + 1;	// omit line feed character
-	}
-
-	// alloc area for materials
-	struct LIB_RGL_STRUCTURE_MATERIAL *material = (struct LIB_RGL_STRUCTURE_MATERIAL *) malloc( sizeof( struct LIB_RGL_STRUCTURE_MATERIAL ) * mc );
-
-	// register materials
-	line = (uint8_t *) &file_material_start;
-	while( line < (uint8_t *) &file_material_end ) {
-		// material definition?
-		if( lib_string_compare( line, (uint8_t *) &string_material, sizeof( string_material ) ) ) {
-			// set string pointer to material name
-			line += sizeof( string_material ) + 1;
-
-			// retrieve material name and length
-			material[ m ].length = lib_string_length_line( line );
-			for( uint64_t i = 0; i < material[ m ].length; i++ ) material[ m ].name[ i ] = line[ i ];
-
-			// parse until end of material properties
-			while( lib_string_length_line( line ) ) {
-				// diffusion?
-				if( lib_string_compare( line, (uint8_t *) &string_kd, sizeof( string_kd ) ) ) {
-					// initialize color value
-					material[ m ].Kd = STD_COLOR_mask;
-
-					// set string pointer to first value
-					uint8_t *p = (uint8_t *) line + sizeof( string_kd ) + 1;
-					uint64_t pl = lib_string_word( p, lib_string_length_line( line ) );
-
-					// Red
-					material[ m ].Kd |= ((uint8_t) (255.0 * strtof( p, pl ))) << 16;
-
-					// set pointer at second value
-					p += pl + 1;
-					pl = lib_string_word( p, lib_string_length_line( line ) );
-
-					// Green
-					material[ m ].Kd |= ((uint8_t) (255.0 * strtof( p, pl ))) << 8;
-
-					// set pointer at third value
-					p += pl + 1;
-					pl = lib_string_word( p, lib_string_length_line( line ) );
-
-					// Blue
-					material[ m ].Kd |= (uint8_t) (255.0 * strtof( p, pl ));
-				}
-
-				// next line from file
-				line += lib_string_length_line( line ) + 1;	// omit line feed character
-			}
-
-			// material registered
-			m++;
-		}
-
-		// next line from file
-		line += lib_string_length_line( line ) + 1;	// omit line feed character
-	}
-
-	// amount of vectors and faces inside object file
-	uint64_t v = 1;
-	uint64_t vc = 1;
-	uint64_t f = 1;
-	uint64_t fc = 1;
-
-	// count vectors and faces
-	line = (uint8_t *) &file_object_start;
-	while( line < (uint8_t *) &file_object_end ) {
-		// vector?
-		if( line[ 0 ] == 'v' ) vc++;
-
-		// face?
-		if( line[ 0 ] == 'f' ) fc++;
-
-		// next line from file
-		line += lib_string_length_line( line ) + 1;	// omit line feed character
-	}
-
-	// alloc area for points and faces
-	vector3f *vector = (vector3f *) malloc( sizeof( vector3f ) * vc );
-	struct LIB_RGL_STRUCTURE_TRIANGLE *face = (struct LIB_RGL_STRUCTURE_TRIANGLE *) malloc( sizeof( struct LIB_RGL_STRUCTURE_TRIANGLE ) * fc );
-
-	// register default material properties
-	material[ 0 ].Kd = STD_COLOR_WHITE;
-
-	// by default use initial material
-	uint64_t material_id = 0;
-
-	// register vectors and faces
-	line = (uint8_t *) &file_object_start;
-	while( line < (uint8_t *) &file_object_end ) {
-		// vector?
-		if( *line == 'v' ) {
-			// set point at first value
-			uint8_t *vs = (uint8_t *) &line[ 2 ];
-			uint64_t vl = lib_string_word( vs, lib_string_length_line( line ) );
-
-			// X axis
-			vector[ v ].x = strtof( vs, vl );
-
-			// set pointer at second value
-			vs += vl + 1;
-			vl = lib_string_word( vs, lib_string_length_line( line ) );
-
-			// Y axis
-			vector[ v ].y = strtof( vs, vl );
-
-			// set pointer at third value
-			vs += vl + 1;
-			vl = lib_string_word( vs, lib_string_length_line( line ) );
-
-			// Z axis
-			vector[ v ].z = strtof( vs, vl );
-
-			// W as default
-			vector[ v ].w = 1.0f;
-
-			// vector registered
-			v++;
-		}
-
-		// change material?
-		if( lib_string_compare( line, (uint8_t *) string_material_change, sizeof( string_material_change ) ) ) {
-			// set pointer to material name
-			line += sizeof( string_material_change ) + 1;
-
-			// retrieve material id
-			for( uint64_t i = 0; i < mc; i++ )
-				// material name found?
-				if( lib_string_compare( line, (uint8_t *) &material[ i ].name, lib_string_length_line( line ) ) )
-					// yes
-					material_id = i;
-		}
-
-		// face?
-		if( *line == 'f' ) {
-			// set pointer at first value
-			uint8_t *fs = (uint8_t *) &line[ 2 ];
-			uint64_t fl = lib_string_length_scope_digit( fs );
-
-			// first point of face
-			face[ f ].point[ 0 ] = vector[ (uint64_t) lib_string_to_integer( fs, 10 ) ];
-
-			// set pointer at second value
-			fs += fl + 1;
-			fl = lib_string_length_scope_digit( fs );
-
-			// second point of face
-			face[ f ].point[ 1 ] = vector[ (uint64_t) lib_string_to_integer( fs, 10 ) ];
-
-			// set pointer at third value
-			fs += fl + 1;
-			fl = lib_string_length_scope_digit( fs );
-
-			// third point of face
-			face[ f ].point[ 2 ] = vector[ (uint64_t) lib_string_to_integer( fs, 10 ) ];
-
-			// use definied material
-			face[ f ].material = material_id;
-
-			// face registered
-			f++;
-		}
-
-		// next line from file
-		line += lib_string_length_line( line ) + 1;	// omit line feed character
-	}
-
-	// we don't need a list of vectors anymore
-	free( vector );
+	object_load();
 
 	//----------------------------------------------------------------------
 
@@ -242,15 +185,15 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// angle of rotation
 	double angle = 0.0f;
 
-	// properties of projection
-	double fov = 90.0f;
-
 	// array of projection
-	struct LIB_RGL_STRUCTURE_MATRIX p_matrix = lib_rgl_return_matrix_projection( rgl, fov );
+	struct LIB_RGL_STRUCTURE_MATRIX p_matrix = lib_rgl_return_matrix_projection( rgl, 90.0f );
 
-	struct LIB_RGL_STRUCTURE_MATRIX z_matrix = { 0.0f };
-	struct LIB_RGL_STRUCTURE_MATRIX x_matrix = { 0.0f };
-	struct LIB_RGL_STRUCTURE_MATRIX y_matrix = { 0.0f };
+	// calculate movement matrix
+	double scale = 10.0f;
+	struct LIB_RGL_STRUCTURE_MATRIX s_matrix = lib_rgl_return_matrix_translate( scale, scale, scale );
+
+	// uint64_t last_uptime = 0;
+	// uint64_t fps = 0;
 
 	// main loop
 	while( TRUE ) {
@@ -258,62 +201,80 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_rgl_clean( rgl );
 
 		// next angle
-		angle += 0.01f;
+		angle += 0.10f;
 
 		// calculate rotation matrixes
-		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle / 3.0f );
-		struct LIB_RGL_STRUCTURE_MATRIX x_matrix = lib_rgl_return_matrix_rotate_x( angle / 2.0f );
 		struct LIB_RGL_STRUCTURE_MATRIX y_matrix = lib_rgl_return_matrix_rotate_y( angle );
 
 		// calculate movement matrix
-		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 1.0f );
+		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 4.0f );
 
-		// calculate scale matrix
-		// double scale = 2000.0f;
-		// struct LIB_RGL_STRUCTURE_MATRIX s_matrix = lib_rgl_return_matrix_scale( scale, scale, scale );
-
-		// world transformation matrix
-		struct LIB_RGL_STRUCTURE_MATRIX w_matrix = lib_rgl_return_matrix_identity();
-
-		// connect all matrixes into one
-		w_matrix = lib_rgl_multiply_matrix( &x_matrix, &y_matrix );
-		w_matrix = lib_rgl_multiply_matrix( &w_matrix, &z_matrix );
+		for( uint64_t i = 1; i < vc; i++ ) {
+			vr[ i ] = vector[ i ];
+			lib_rgl_multiply_vector( &vr[ i ], &y_matrix );
+			lib_rgl_multiply_vector( &vr[ i ], &t_matrix );
+		}
 
 		// amount of faces to sort
 		uint64_t sc = 0;
 
-		// convert all face coordinates relative to world matrix
 		for( uint64_t i = 1; i <= fc; i++ ) {
-			// face to parse
-			parse[ i ] = face[ i ];
+			// check face visibility
+			if( lib_rgl_projection( rgl, vr, &face[ i ] ) ) {
+				uint64_t v0 = parse[ i ].v[ 0 ];
+				uint64_t v1 = parse[ i ].v[ 1 ];
+				uint64_t v2 = parse[ i ].v[ 2 ];
+				vp[ v0 ] = vr[ v0 ];
+				vp[ v1 ] = vr[ v1 ];
+				vp[ v2 ] = vr[ v2 ];
+				lib_rgl_multiply_vector( &vp[ v0 ], &p_matrix );
+				lib_rgl_multiply_vector( &vp[ v1 ], &p_matrix );
+				lib_rgl_multiply_vector( &vp[ v2 ], &p_matrix );
 
-			// convert
-			lib_rgl_multiply( &parse[ i ], &w_matrix );
-			lib_rgl_multiply( &parse[ i ], &t_matrix );
-			// lib_rgl_multiply( &parse[ i ], &s_matrix );
-
-			log( "%u\n", (int64_t) parse[ i ].point[ 0 ].x );
-
-			// check if face will be visible
-			if( lib_rgl_projection( rgl, &parse[ i ] ) ) {
-				// convert to our display frustum
-				lib_rgl_multiply( &parse[ i ], &p_matrix );
+				// face to parse
+				parse[ i ] = face[ i ];
 
 				// if yes, add to sorting list
 				sort[ sc ] = &parse[ i ];
 
 				// calculate average value of depth for 3 points of face
-				sort[ sc ] -> z_depth = (parse[ i ].point[ 0 ].z + parse[ i ].point[ 1 ].z + parse[ i ].point[ 2 ].z) / 3.0f;
+				sort[ sc ] -> z_depth = (vp[ parse[ i ].v[ 0 ] ].z + vp[ parse[ i ].v[ 1 ] ].z + vp[ parse[ i ].v[ 2 ] ].z) / 3.0f;
+
+				uint64_t clip = 0;
+				struct LIB_RGL_STRUCTURE_TRIANGLE t[ 2 ];
 
 				sc++;
 			}
 		}
 
 		// sort faces by Z axis
-		// lib_rgl_sort_quick( sort, 1, sc - 1 );
+		if( sc ) lib_rgl_sort_quick( sort, sc - 1, 1 );
 
 		// draw every triangle on workbench
 		for( uint64_t i = 0; i < sc; i++ ) lib_rgl_triangle( rgl, sort[ i ], material );
+
+		// reset terminal cursor
+		terminal.cursor_x = 0;
+		terminal.cursor_y = 0;
+		lib_terminal_cursor_set( &terminal );
+
+		lib_terminal_printf( &terminal, (uint8_t *) "\n" );
+		for( uint64_t i = 1; i < vc; i++ ) {
+			if( vp[ i ].x >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+			lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vp[ i ].x );
+			if( vp[ i ].y >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+			lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vp[ i ].y );
+			if( vp[ i ].z >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+			lib_terminal_printf( &terminal, (uint8_t *) "  %.2f\n", vp[ i ].z );
+		}
+
+		// fps++;
+
+		// uint64_t uptime = std_uptime();
+		// if( uptime > last_uptime ) {
+		// 	last_uptime += 1000;
+		// 	lib_terminal_printf( &terminal, (uint8_t *) "\n  %u FPS (%u)", fps, uptime );
+		// }
 
 		// synchronize workbench with framebuffer
 		lib_rgl_flush( rgl );

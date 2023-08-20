@@ -280,7 +280,7 @@ void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *stri
 					lib_terminal_value( terminal, (uint64_t) ((double) (f - (uint64_t) f) * (double) s_digits), 10, s_value );
 
 					// omit suffix and dot if exist
-					i += suffix;
+					i += suffix + 1;
 
 					// next character from string
 					break;
