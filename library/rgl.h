@@ -85,6 +85,7 @@
 	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_scale( double x, double y, double z );
 	double lib_rgl_vector_length( vector3f *v );
 	void lib_rgl_vector_normalize( vector3f *v );
+	vector3f lib_rgl_return_vector_normalize( vector3f *v );
 	vector3f lib_rgl_vector_substract( vector3f *from, vector3f *substract );
 	uint64_t lib_rgl_partition( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high );
 	void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high );

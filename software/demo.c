@@ -13,52 +13,69 @@
 	#include	"demo/data.c"
 	#include	"demo/object.c"
 
-double distance( vector3f p, vector3f n ) {
-	lib_rgl_vector_normalize( &p );
+double distance( vector3f point, vector3f plane_n, vector3f plane_p ) {
+	lib_rgl_vector_normalize( &point );
 
-	return ((n.x * p.x) + (n.y * p.y) + (n.z * p.z) - lib_rgl_vector_product_dot( &n, &p ));
+	double dot = lib_rgl_vector_product_dot( &plane_n, &plane_p );
+	return (plane_n.x * point.x) + (plane_n.y * point.y) + (plane_n.z * point.z) - dot;
 }
 
-uint64_t clipper( struct LIB_RGL_STRUCTURE_TRIANGLE it ) {
-	lib_terminal_printf( &terminal, (uint8_t *) "\n" );
-	if( vr[ it.v[ 0 ] ].x >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vr[ it.v[ 0 ] ].x );
-	if( vr[ it.v[ 0 ] ].y >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vr[ it.v[ 0 ] ].y );
-	if( vr[ it.v[ 0 ] ].z >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f\n", vr[ it.v[ 0 ] ].z );
-	if( vr[ it.v[ 1 ] ].x >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vr[ it.v[ 1 ] ].x );
-	if( vr[ it.v[ 1 ] ].y >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vr[ it.v[ 1 ] ].y );
-	if( vr[ it.v[ 1 ] ].z >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f\n", vr[ it.v[ 1 ] ].z );
-	if( vr[ it.v[ 2 ] ].x >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vr[ it.v[ 2 ] ].x );
-	if( vr[ it.v[ 2 ] ].y >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vr[ it.v[ 2 ] ].y );
-	if( vr[ it.v[ 2 ] ].z >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f\n", vr[ it.v[ 2 ] ].z );
+uint64_t clipper( struct LIB_RGL_STRUCTURE_TRIANGLE it, vector3f p, vector3f n, uint8_t side ) {
+	// lib_terminal_printf( &terminal, (uint8_t *) "\n" );
+	// if( vp[ it.v[ 0 ] ].x >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+	// lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vp[ it.v[ 0 ] ].x );
+	// if( vp[ it.v[ 0 ] ].y >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+	// lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vp[ it.v[ 0 ] ].y );
+	// if( vp[ it.v[ 0 ] ].z >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+	// lib_terminal_printf( &terminal, (uint8_t *) "  %.2f\n", vp[ it.v[ 0 ] ].z );
+	// if( vp[ it.v[ 1 ] ].x >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+	// lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vp[ it.v[ 1 ] ].x );
+	// if( vp[ it.v[ 1 ] ].y >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+	// lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vp[ it.v[ 1 ] ].y );
+	// if( vp[ it.v[ 1 ] ].z >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+	// lib_terminal_printf( &terminal, (uint8_t *) "  %.2f\n", vp[ it.v[ 1 ] ].z );
+	// if( vp[ it.v[ 2 ] ].x >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+	// lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vp[ it.v[ 2 ] ].x );
+	// if( vp[ it.v[ 2 ] ].y >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+	// lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vp[ it.v[ 2 ] ].y );
+	// if( vp[ it.v[ 2 ] ].z >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
+	// lib_terminal_printf( &terminal, (uint8_t *) "  %.2f\n", vp[ it.v[ 2 ] ].z );
 
 	vector3f pi[ 3 ]; uint8_t pic = 0;
 	vector3f po[ 3 ]; uint8_t poc = 0;
 
-	vector3f n = { 0.0f, 0.0f, 1.0f };
-	double d0 = lib_rgl_vector_product_dot( &vr[ it.v[ 0 ] ], &n ) - 1.0f;
-	double d1 = lib_rgl_vector_product_dot( &vr[ it.v[ 1 ] ], &n ) - 1.0f;
-	double d2 = lib_rgl_vector_product_dot( &vr[ it.v[ 2 ] ], &n ) - 1.0f;
-	lib_terminal_printf( &terminal, (uint8_t *) "  d0 %.2f d1 %.2f d2 %.2f\n", d0, d1, d2 );
+	vector3f point[ 3 ];
+	point[ 0 ] = vp[ it.v[ 0 ] ];
+	point[ 1 ] = vp[ it.v[ 1 ] ];
+	point[ 2 ] = vp[ it.v[ 2 ] ];
 
-	if( d0 >= 0.0f ) pi[ pic++ ] = vr[ it.v[ 0 ] ];
-	else po[ poc++ ] = vr[ it.v[ 0 ] ];
-	if( d1 >= 0.0f ) pi[ pic++ ] = vr[ it.v[ 1 ] ];
-	else po[ poc++ ] = vr[ it.v[ 1 ] ];
-	if( d2 >= 0.0f ) pi[ pic++ ] = vr[ it.v[ 2 ] ];
-	else po[ poc++ ] = vr[ it.v[ 2 ] ];
+	switch( side ) {
+		case 0: { point[ 0 ].x += ((double) framebuffer.width_pixel / 2.0f); point[ 1 ].x += ((double) framebuffer.width_pixel / 2.0f); point[ 2 ].x += ((double) framebuffer.width_pixel / 2.0f); break; }
+		case 1: { point[ 0 ].y += ((double) framebuffer.height_pixel / 2.0f); point[ 1 ].y += ((double) framebuffer.height_pixel / 2.0f); point[ 2 ].y += ((double) framebuffer.height_pixel / 2.0f); break; }
+		case 2: { point[ 0 ].x -= ((double) framebuffer.width_pixel / 2.0f); point[ 1 ].x -= ((double) framebuffer.width_pixel / 2.0f); point[ 2 ].x -= ((double) framebuffer.width_pixel / 2.0f); break; }
+		case 3: { point[ 0 ].y -= ((double) framebuffer.height_pixel / 2.0f); point[ 1 ].y -= ((double) framebuffer.height_pixel / 2.0f); point[ 2 ].y -= ((double) framebuffer.height_pixel / 2.0f); break; }
+		default: {
+			point[ 0 ] = vr[ it.v[ 0 ] ];
+			point[ 1 ] = vr[ it.v[ 1 ] ];
+			point[ 2 ] = vr[ it.v[ 2 ] ];
+		}
+	}
 
-	lib_terminal_printf( &terminal, (uint8_t *) "  pi %.2f po %.2f\n", pic, poc );
+	double d0 = distance( point[ 0 ], n, p );
+	double d1 = distance( point[ 1 ], n, p );
+	double d2 = distance( point[ 2 ], n, p );
+	// lib_terminal_printf( &terminal, (uint8_t *) "  d0 %.2f d1 %.2f d2 %.2f\n", d0, d1, d2 );
 
-	return poc;
+	if( d0 >= 0.0f ) pic++;
+	else poc++;
+	if( d1 >= 0.0f ) pic++;
+	else poc++;
+	if( d2 >= 0.0f ) pic++;
+	else poc++;
+
+	lib_terminal_printf( &terminal, (uint8_t *) "%u(in) %u(out)\n", pic, poc );
+
+	return pic;
 }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
@@ -118,7 +135,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_rgl_clean( rgl );
 
 		// next angle
-		angle += 0.01f;
+		angle += 0.1f;
 
 		// calculate rotation matrixes
 		struct LIB_RGL_STRUCTURE_MATRIX y_matrix = lib_rgl_return_matrix_rotate_y( angle );
@@ -138,15 +155,18 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		for( uint64_t i = 1; i <= fc; i++ ) {
 			// check face visibility
 			if( lib_rgl_projection( rgl, vr, &face[ i ] ) ) {
+				uint8_t s = 0;
+
+				// near
+				s = 4;
+				lib_terminal_printf( &terminal, (uint8_t *) "n      " );
+				vector3f pn = { 0.0f, 0.0f, 0.1f };
+				vector3f nn = { 0.0f, 0.0f, 1.0f };
+				uint8_t c = clipper( parse[ i ], pn, nn, s );
+				if( c != 0 && c != 3 ) continue;
+
 				// face to parse
 				parse[ i ] = face[ i ];
-
-				clipper( parse[ i ] );
-
-				sort[ sc ] = &parse[ i ];
-
-				// calculate average value of depth for 3 points of face
-				sort[ sc ] -> z_depth = (vp[ parse[ i ].v[ 0 ] ].z + vp[ parse[ i ].v[ 1 ] ].z + vp[ parse[ i ].v[ 2 ] ].z) / 3.0f;
 
 				uint64_t v0 = parse[ i ].v[ 0 ];
 				uint64_t v1 = parse[ i ].v[ 1 ];
@@ -160,12 +180,51 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				lib_rgl_multiply_vector( &vp[ v1 ], &p_matrix );
 				lib_rgl_multiply_vector( &vp[ v2 ], &p_matrix );
 
+				// left
+				s = 0;
+				lib_terminal_printf( &terminal, (uint8_t *) "left   " );
+				vector3f pl = { 0.0f, 0.0f, 0.0f };
+				vector3f nl = { 1.0f, 0.0f, 0.0f };
+				clipper( parse[ i ], pl, nl, s );
+				if( c != 0 && c != 3 ) continue;
+
+				// top
+				s = 1;
+				lib_terminal_printf( &terminal, (uint8_t *) "top    " );
+				vector3f pt = { 0.0f, 0.0f, 0.0f };
+				vector3f nt = { 0.0f, 1.0f, 0.0f };
+				clipper( parse[ i ], pt, nt, s );
+				if( c != 0 && c != 3 ) continue;
+
+				// right
+				s = 2;
+				lib_terminal_printf( &terminal, (uint8_t *) "right  " );
+				vector3f pr = { 0.0f, 0.0f, 0.0f };
+				vector3f nr = { -1.0f, 0.0f, 0.0f };
+				clipper( parse[ i ], pr, nr, s );
+				if( c != 0 && c != 3 ) continue;
+
+				// bottom
+				s = 3;
+				lib_terminal_printf( &terminal, (uint8_t *) "bottom " );
+				vector3f pb = { 0.0f, 0.0f, 0.0f };
+				vector3f nb = { 0.0f, -1.0f, 0.0f };
+				clipper( parse[ i ], pb, nb, s );
+				if( c != 0 && c != 3 ) continue;
+
+				sort[ sc ] = &parse[ i ];
+
+				// calculate average value of depth for 3 points of face
+				sort[ sc ] -> z_depth = (vp[ parse[ i ].v[ 0 ] ].z + vp[ parse[ i ].v[ 1 ] ].z + vp[ parse[ i ].v[ 2 ] ].z) / 3.0f;
+
 				sc++;
 			}
 		}
 
+		lib_terminal_printf( &terminal, (uint8_t *) "angle  %.2f", angle );
+
 		// sort faces by Z axis
-		if( sc ) lib_rgl_sort_quick( sort, sc - 1, 1 );
+		if( sc > 1 ) lib_rgl_sort_quick( sort, sc - 1, 1 );
 
 		// draw every triangle on workbench
 		for( uint64_t i = 0; i < sc; i++ ) lib_rgl_triangle( rgl, sort[ i ], vp, material );

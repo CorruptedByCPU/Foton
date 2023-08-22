@@ -329,6 +329,17 @@ void lib_rgl_vector_normalize( vector3f *v ) {
 	v -> z /= length;
 }
 
+vector3f lib_rgl_return_vector_normalize( vector3f *v ) {
+	double length = lib_rgl_vector_length( v );
+
+	vector3f n;
+	n.x = v -> x / length;
+	n.y = v -> y / length;
+	n.z = v -> z / length;
+
+	return n;
+}
+
 vector3f lib_rgl_vector_substract( vector3f *from, vector3f *substract ) {
 	vector3f tmp;
 
@@ -372,8 +383,8 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_projection( struct LIB_RGL_STRUCTURE *rgl ) {
 	struct LIB_RGL_STRUCTURE_MATRIX matrix = lib_rgl_return_matrix_identity();
 
-	double n = 0.1f;
-	double f = 1000.0f;
+	double n = 0.0f;
+	double f = 10.0f;
 	double fov = 90.0f;
 	double r = 1.0f / tan( (fov / 2.0f) / (LIB_MATH_PI * 180.0f) );
 
