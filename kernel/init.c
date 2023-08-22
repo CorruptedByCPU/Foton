@@ -17,6 +17,10 @@
 	#include	"../library/vfs.c"
 	#include	"../library/terminal.h"
 	#include	"../library/terminal.c"
+
+	#include	"driver/port.c"
+	#include	"driver/pci.c"
+
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of limine
 	//----------------------------------------------------------------------
@@ -139,7 +143,7 @@ void kernel_init( void ) {
 	kernel_init_env();
 
 	// execute first process
-	kernel_exec( (uint8_t *) "demo", 4 );
+	kernel_exec( (uint8_t *) "init", 5 );
 
 	// reload BSP configuration
 	kernel_init_reload();
