@@ -10,6 +10,7 @@ extern	kernel_syscall_framebuffer
 extern	kernel_syscall_memory_alloc
 extern	kernel_syscall_memory_release
 extern	kernel_syscall_uptime
+extern	kernel_syscall_log
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -28,6 +29,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_memory_alloc
 	dq	kernel_syscall_memory_release
 	dq	kernel_syscall_uptime
+	dq	kernel_syscall_log
 kernel_syscall_list_end:
 
 ; 64 bit procedure code
