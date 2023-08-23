@@ -17,3 +17,4 @@ qemu-system-x86_64			\
 	-smp ${SMP}			\
 	-m ${MEM}			\
 	-cdrom build/foton.iso		\
+	-usb -device usb-kbd,id=keyboard -usb -device usb-mouse,id=mouse

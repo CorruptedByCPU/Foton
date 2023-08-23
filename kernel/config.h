@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"41"
+#define	KERNEL_revision		"42"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -17,9 +17,6 @@ struct KERNEL {
 	// variable of Kernel management functions
 	volatile uint64_t	cpu_count;
 
-	// variable of GDT management functions
-	struct KERNEL_GDT_STRUCTURE_HEADER	gdt_header;
-
 	// variables of Framebuffer functions
 	uint32_t	*framebuffer_base_address;
 	uint16_t	framebuffer_width_pixel;
@@ -27,13 +24,17 @@ struct KERNEL {
 	uint32_t	framebuffer_pitch_byte;
 	int64_t		framebuffer_owner_pid;
 
-	// variable of IDT management functions
-	struct KERNEL_IDT_STRUCTURE_HEADER	idt_header;
+	// variable of GDT management functions
+	struct KERNEL_GDT_STRUCTURE_HEADER	gdt_header;
 
 	// variables of HPET management functions
 	volatile struct KERNEL_HPET_STRUCTURE_REGISTER	*hpet_base_address;
 	uint64_t	hpet_miliseconds;
 	uint8_t		hpet_timers;
+
+	// variable of IDT management functions
+	struct KERNEL_IDT_STRUCTURE_HEADER	idt_header;
+	uint16_t	idt_irq_lines;	// tracks usage of IRQ lines of devices (0 - taken, 1 - free)
 
 	// variables of I/O APIC management functions
 	volatile struct KERNEL_IO_APIC_STRUCTURE_REGISTER	*io_apic_base_address;

@@ -34,10 +34,13 @@ void kernel_init_hpet( void ) {
 
 		// check capable IRQ lines of this Timer
 		for( uint8_t j = 2; j < 24; j++ ) {
-			// capable IRQ line for I/O APIC found?
-			if( (irq >> j) & 1 ) {
+			// capable IRQ line for I/O APIC found? and is available?
+			if( (irq >> j) & 1 && kernel -> io_apic_irq_lines & (1 << j) ) {
+				 // mark IRQ line as used
+				kernel -> io_apic_irq_lines &= ~(1 << j);
+
 				// show information about uptime Timer
-				lib_terminal_printf( &kernel_terminal, (uint8_t *) "HPET: Timer %u selected for uptime, I/O APIC line 0x%2X.\n", i, j );
+				lib_terminal_printf( &kernel_terminal, (uint8_t *) "HPET: Timer %u selected for uptime, I/O APIC line %u.\n", i, j );
 			
 				// IRQ number of IDT and I/O APIC
 				volatile uint64_t bits = (uint64_t) j << 9;

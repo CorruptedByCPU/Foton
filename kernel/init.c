@@ -17,10 +17,11 @@
 	#include	"../library/vfs.c"
 	#include	"../library/terminal.h"
 	#include	"../library/terminal.c"
-
+	//----------------------------------------------------------------------
+	// drivers
+	//----------------------------------------------------------------------
 	#include	"driver/port.c"
 	#include	"driver/pci.c"
-
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of limine
 	//----------------------------------------------------------------------
@@ -43,6 +44,7 @@
 	#include	"tss.h"
 	#include	"storage.h"
 	#include	"library.h"
+	#include	"module.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -61,6 +63,7 @@
 	#include	"syscall.c"
 	#include	"library.c"
 	#include	"exec.c"
+	#include	"module.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
@@ -84,9 +87,10 @@
 	#include	"init/vfs.c"
 	#include	"init/storage.c"
 	#include	"init/library.c"
+	#include	"init/module.c"
 
 // our mighty init
-void kernel_init( void ) {
+void _entry( void ) {
 	// linear framebuffer is available (with 32 bits per pixel)?
 	if( limine_framebuffer_request.response == NULL || ! limine_framebuffer_request.response -> framebuffer_count || limine_framebuffer_request.response -> framebuffers[ 0 ] -> bpp != STD_VIDEO_DEPTH_bit )
 		// no, hold the door (screen will be black)
@@ -144,6 +148,9 @@ void kernel_init( void ) {
 
 	// execute first process
 	kernel_exec( (uint8_t *) "init", 5 );
+
+	// load basic list of modules
+	kernel_init_module();
 
 	// reload BSP configuration
 	kernel_init_reload();

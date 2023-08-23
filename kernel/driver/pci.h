@@ -23,15 +23,23 @@
         #define	DRIVER_PCI_CLASS_SUBCLASS_ide		0x0101
         #define	DRIVER_PCI_CLASS_SUBCLASS_ahci		0x0106
         #define	DRIVER_PCI_CLASS_SUBCLASS_scsi		0x0107
+	#define	DRIVER_PCI_CLASS_SUBCLASS_nvme		0x0108
         #define	DRIVER_PCI_CLASS_SUBCLASS_network	0x0200
+	#define	DRIVER_PCI_CLASS_SUBCLASS_usb		0x0C03
 
         struct	DRIVER_PCI_STRUCTURE {
                 uint16_t	result;
-                uint32_t	bus;
-                uint32_t	device;
-                uint32_t	function;
+                uint8_t		bus;
+                uint8_t		device;
+                uint8_t		function;
         };
 
-        uint32_t driver_pci_read( uint32_t reg, struct DRIVER_PCI_STRUCTURE pci );
+	// read 32 bit value from PCI register of definied bus:device:function
+        uint32_t driver_pci_read( struct DRIVER_PCI_STRUCTURE pci, uint32_t reg );
+
+	// write 32 bit value to PCI register of definied bus:device:function
+	void driver_pci_write( struct DRIVER_PCI_STRUCTURE pci, uint32_t reg, uint32_t value );
+
+	// find bus:device:function by provided CLASS:SUBCLASS
         struct DRIVER_PCI_STRUCTURE driver_pci_find_class_and_subclass( uint16_t class_and_subclass );
 #endif

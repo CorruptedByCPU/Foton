@@ -53,6 +53,22 @@ cp build/kernel.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd
 
 #===============================================================================
 
+for module in `(cd module && ls *.c)`; do
+	# module name
+	name=${module::$(expr ${#module} - 2)}
+
+	# build
+	${C} -DMODULE -c module/${name}.c -o build/${name}.o ${CFLAGS} || exit 1
+
+	# connect with libraries (if necessery)
+	${LD} build/${name}.o -o build/root/system/lib/modules/${name}.ko -T tools/linker.module ${LDFLAGS}
+
+	# we do not need any additional information
+	strip -s build/root/system/lib/modules/${name}.ko > /dev/null 2>&1
+done
+
+#===============================================================================
+
 lib=""	# include list of libraries
 
 # keep parsing libraries by. dependencies and alphabetically
@@ -89,7 +105,7 @@ done
 #===============================================================================
 
 # prepare virtual file system with content of all available software, libraries, files
-(cd build && clang ../tools/vfs.c -o vfs && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs && cp root.vfs.gz iso/root.gz)
+(cd build && clang ../tools/vfs.c -o vfs && find root -name '.keep' -delete && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs && cp root.vfs.gz iso/root.gz)
 
 # convert iso directory to iso file
 xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label build/iso -o build/foton.iso > /dev/null 2>&1
