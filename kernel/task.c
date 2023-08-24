@@ -10,9 +10,6 @@ void kernel_task( void ) {
 	// keep current top of stack pointer
 	__asm__ volatile( "mov %%rsp, %0" : "=rm" (current -> rsp) );
 
-// debug
-// if( kernel -> cpu_count > 1 ) lib_terminal_printf( &kernel_terminal, (uint8_t *) "-%s, cpu %u, rsp 0x%X\n", current -> name, kernel_lapic_id(), current -> rsp );
-
 	// current task execution stopped
 	current -> flags &= ~KERNEL_TASK_FLAG_exec;
 
@@ -22,9 +19,6 @@ void kernel_task( void ) {
 	struct KERNEL_TASK_STRUCTURE *next = kernel_task_select( (uint64_t) (((uint64_t) current - (uint64_t) kernel -> task_base_address) / sizeof( struct KERNEL_TASK_STRUCTURE )) );
 
 	//----------------------------------------------------------------------
-
-// debug
-// lib_terminal_printf( &kernel_terminal, (uint8_t *) "+%s, cpu %u, rsp 0x%X\n", next -> name, kernel_lapic_id(), next -> rsp );
 
 	// reload paging tables for next task area
 	__asm__ volatile( "mov %0, %%cr3" ::"r" (next -> cr3 & ~KERNEL_PAGE_logical) );
@@ -43,8 +37,8 @@ void kernel_task( void ) {
 		// disable init flag
 		next -> flags &= ~KERNEL_TASK_FLAG_init;
 
-		// if daemon, pass a pointer to the kernel environment specification
-		if( next -> flags & KERNEL_TASK_FLAG_service ) __asm__ volatile( "" :: "D" (kernel), "S" (EMPTY) );
+		// if module, pass a pointer to the kernel environment specification
+		if( next -> flags & KERNEL_TASK_FLAG_module ) __asm__ volatile( "" :: "D" (kernel), "S" (EMPTY) );
 		else {
 			// retrieve from stack
 			uint64_t *arg = (uint64_t *) (next -> rsp + offsetof( struct KERNEL_IDT_STRUCTURE_RETURN, rsp ) );
@@ -129,7 +123,7 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
 	// search until found
 	while( TRUE ) {
 		// search in task queue for a ready-to-do task
-		for( ; i < kernel -> task_limit; i++ ) {
+		for( ++i ; i < kernel -> task_limit; i++ ) {
 			// task available for processing?
 			if( kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_active && ! (kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_exec) ) {	// yes
 				// mark the task as performed by current logical processor

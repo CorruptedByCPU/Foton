@@ -2,13 +2,8 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#ifndef	KERNEL_MODULE
-	#define	KERNEL_MODULE
+#ifndef	DRIVER_USB
+	#define	DRIVER_USB
 
-	#define	KERNEL_MODULE_MEMORY_MAP_page	1
-
-	#define	KERNEL_MODULE_base_address	0xFFFFFFFF90000000
-
-	// loads pointed module
-	void kernel_module_load( uint8_t *path, uint64_t length );
+	#define	DRIVER_USB_BASE_ADDRESS_type	0b0001
 #endif

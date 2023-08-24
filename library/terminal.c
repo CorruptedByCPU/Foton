@@ -211,12 +211,12 @@ void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	lib_terminal_drain_line( terminal );
 }
 
-void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *string, ... ) {
-	// properties of argument list
-	va_list argv;
+void lib_terminal_parse( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *string, va_list arg ) {
+	// properties of own argument list
+	va_list( argv );
 
-	// start of argument list
-	va_start( argv, string );
+	// set own list
+	va_copy( argv, arg );
 
 	// for every character from string
 	uint64_t length = lib_string_length( string );
@@ -324,6 +324,20 @@ void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *stri
 		// no, show it
 		lib_terminal_char( terminal, string[ i ] );
 	}
+
+	// end of own arguemnt list
+	va_end( argv );
+}
+
+void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *string, ... ) {
+	// properties of argument list
+	va_list argv;
+
+	// start of argument list
+	va_start( argv, string );
+
+	// parse string with arguments
+	lib_terminal_parse( terminal, string, argv );
 
 	// end of arguemnt list
 	va_end( argv );

@@ -39,6 +39,9 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	// create a new job in task queue
 	struct KERNEL_TASK_STRUCTURE *module = kernel_task_add( name, length );
 
+	// mark task as module
+	module -> flags |= KERNEL_TASK_FLAG_module;
+
 	//----------------------------------------------------------------------
 
 	// prepare Paging table for new process
@@ -53,7 +56,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) module -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
 
 	// code descriptor
-	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring3 ) | 0x03;
+	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring0 );
 
 	// basic processor state flags
 	context -> eflags = KERNEL_TASK_EFLAGS_default;
@@ -62,26 +65,71 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	context -> rsp = KERNEL_STACK_pointer;
 
 	// stack descriptor
-	context -> ss = offsetof( struct KERNEL_GDT_STRUCTURE, ds_ring3 ) | 0x03;
+	context -> ss = offsetof( struct KERNEL_GDT_STRUCTURE, ds_ring0 );
 
-	// set the process entry address
+	// set process entry address
 	context -> rip = elf -> entry_ptr;
 
 	//----------------------------------------------------------------------
 
-	// the context stack top pointer
+	// context stack top pointer
 	module -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
 
-	// process memory usage
-	module -> page += MACRO_PAGE_ALIGN_UP( args ) >> STD_SHIFT_PAGE;
+	//----------------------------------------------------------------------
 
-	// process stack size
-	module -> stack += MACRO_PAGE_ALIGN_UP( args ) >> STD_SHIFT_PAGE;
+	// calculate unpacked module size in Pages
+	uint64_t size_page = EMPTY;
 
+	// ELF header properties
+	struct LIB_ELF_STRUCTURE_HEADER *elf_h = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> headers_offset);
 
+	// calculate memory space of segments used by module
+	for( uint16_t i = 0; i < elf -> h_entry_count; i++ ) {
+		// ignore blank entry or not loadable
+ 		if( ! elf_h[ i ].type || ! elf_h[ i ].memory_size || elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load ) continue;
 
+		// update executable space size?
+		if( size_page < MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].segment_size ) >> STD_SHIFT_PAGE ) size_page = MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].segment_size ) >> STD_SHIFT_PAGE;
+	}
 
-	MACRO_DEBUF();
+	// allocate module space
+	uintptr_t module_content = kernel_memory_alloc( size_page );
 
-	// to be continued
+	// load module segments in place
+	for( uint16_t i = 0; i < elf -> h_entry_count; i++ ) {
+		// ignore blank entry or not loadable
+ 		if( ! elf_h[ i ].type || ! elf_h[ i ].memory_size || elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load ) continue;
+
+		// segment destination
+		uint8_t *destination = (uint8_t *) (elf_h[ i ].virtual_address + module_content);
+
+		// segment source
+		uint8_t *source = (uint8_t *) ((uintptr_t) elf + elf_h[ i ].segment_offset);
+
+		// copy segment content into place
+		for( uint64_t j = 0; j < elf_h[ i ].segment_size; j++ ) destination[ j ] = source[ j ];
+	}
+
+	// map module space to paging array
+	uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_base_address, size_page ) << STD_SHIFT_PAGE);
+	kernel_page_map( (uintptr_t *) module -> cr3, module_content, module_memory, size_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_external );
+
+	// set module entry address
+	context -> rip = module_memory + elf -> entry_ptr;
+
+	//----------------------------------------------------------------------
+
+	// module uses same memory map as kernel
+	module -> memory_map = kernel -> memory_base_address;
+
+	//----------------------------------------------------------------------
+
+	// release workbench
+	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( file.size_byte ) >> STD_SHIFT_PAGE );
+
+	// map kernel space to process
+	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) module -> cr3 );
+
+	// module ready to run
+	module -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
 }

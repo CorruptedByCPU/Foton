@@ -3,9 +3,6 @@
 ===============================================================================*/
 
 void kernel_init_idt( void ) {
-	// all device IRQ lines are available
-	kernel -> idt_irq_lines = -1;
-
 	// prepare area for Interrupt Descriptor Table
 	kernel -> idt_header.base_address = (struct KERNEL_IDT_STRUCTURE_ENTRY *) kernel_memory_alloc( 1 );
 

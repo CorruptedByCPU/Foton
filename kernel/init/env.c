@@ -9,4 +9,7 @@ void kernel_init_env( void ) {
 	kernel -> framebuffer_height_pixel	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> height;
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;
 	kernel -> framebuffer_owner_pid		= EMPTY;	// by default: kernel
+
+	// share kernel early printf function
+	kernel -> log				= (void *) kernel_log;
 }

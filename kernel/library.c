@@ -247,7 +247,7 @@ void kernel_library_load( uint8_t *name, uint64_t length ) {
 // lib_terminal_printf( &kernel_terminal, (uint8_t *) " Base address: 0x%X\n", library_base_address );
 
 	// map aquired memory space for library
-	kernel_page_alloc( kernel -> page_base_address, library_base_address, library_space_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_library );
+	kernel_page_alloc( kernel -> page_base_address, library_base_address, library_space_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_external );
 
 	// preserve that information inside library entry
 	library -> pointer = library_base_address;
