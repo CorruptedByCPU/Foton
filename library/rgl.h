@@ -62,7 +62,7 @@
 	void lib_rgl_multiply( struct LIB_RGL_STRUCTURE_TRIANGLE *triangle, struct LIB_RGL_STRUCTURE_MATRIX *matrix );
 
 	// multiply matrixes
-	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_multiply_matrix( struct LIB_RGL_STRUCTURE_MATRIX *this, struct LIB_RGL_STRUCTURE_MATRIX *via );
+	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_multiply_matrix( struct LIB_RGL_STRUCTURE_MATRIX this, struct LIB_RGL_STRUCTURE_MATRIX via );
 
 	uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct LIB_RGL_STRUCTURE_TRIANGLE *parse );
 
@@ -80,18 +80,19 @@
 
 	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_projection( struct LIB_RGL_STRUCTURE *rgl );
 
-	double lib_rgl_vector_product_dot( vector3f *v0, vector3f *v1 );
-	vector3f lib_rgl_vector_product_cross( vector3f *v0, vector3f *v1 );
+	double lib_rgl_vector_product_dot( vector3f v0, vector3f v1 );
+	vector3f lib_rgl_vector_product_cross( vector3f v0, vector3f v1 );
 	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_scale( double x, double y, double z );
-	double lib_rgl_vector_length( vector3f *v );
-	void lib_rgl_vector_normalize( vector3f *v );
-	vector3f lib_rgl_return_vector_normalize( vector3f *v );
-	vector3f lib_rgl_vector_substract( vector3f *from, vector3f *substract );
+	double lib_rgl_vector_length( vector3f v );
+	vector3f lib_rgl_return_vector_normalize( vector3f v );
+	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_view( struct LIB_RGL_STRUCTURE *rgl );
+	vector3f lib_rgl_vector_substract( vector3f from, vector3f substract );
 	uint64_t lib_rgl_partition( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high );
 	void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high );
 	void lib_rgl_line( struct LIB_RGL_STRUCTURE *rgl, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t color );
-	void lib_rgl_multiply_vector( vector3f *v, struct LIB_RGL_STRUCTURE_MATRIX *matrix );
+	vector3f lib_rgl_multiply_vector( vector3f v, struct LIB_RGL_STRUCTURE_MATRIX matrix );
 	inline uint8_t lib_rgl_edge( vector2d *a, vector2d *b, vector2d *c );
+	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RGL_STRUCTURE *rgl, double fov, double aspect, double n, double f );
 	uint32_t lib_rgl_color( uint32_t argb, double light );
 	void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material );
 #endif

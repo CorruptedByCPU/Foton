@@ -37,7 +37,7 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 	// camera position
 	rgl -> camera.x = 0.0f;
 	rgl -> camera.y = 0.0f;
-	rgl -> camera.z = -1.0f;
+	rgl -> camera.z = 10.0f;
 
 	// clean up workbench
 	lib_rgl_clean( rgl );
@@ -152,85 +152,20 @@ uint32_t lib_rgl_color( uint32_t argb, double light ) {
 	return STD_COLOR_mask | (((uint32_t) red) << 16) | (((uint32_t) green) << 8) | ((uint32_t) blue);
 }
 
-void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material ) {
-	uint32_t color = lib_rgl_color( material[ t -> material ].Kd, t -> light );
-
-	vector2d p0 = { (int64_t) vp[ t -> v[ 0 ] ].x, (int64_t) vp[ t -> v[ 0 ] ].y };
-	vector2d p1 = { (int64_t) vp[ t -> v[ 1 ] ].x, (int64_t) vp[ t -> v[ 1 ] ].y };
-	vector2d p2 = { (int64_t) vp[ t -> v[ 2 ] ].x, (int64_t) vp[ t -> v[ 2 ] ].y };
-
-	int64_t left = p0.x;
-	if( p1.x < left ) left = p1.x;
-	if( p2.x < left ) left = p2.x;
-
-	int64_t top = p0.y;
-	if( p1.y < top ) top = p1.y;
-	if( p2.y < top ) top = p2.y;
-
-	int64_t right = p0.x;
-	if( p1.x > right ) right = p1.x;
-	if( p2.x > right ) right = p2.x;
-
-	int64_t bottom = p0.y;
-	if( p1.y > bottom ) bottom = p1.y;
-	if( p2.y > bottom ) bottom = p2.y;
-
-	vector2d p;
-
-	for( p.y = top; p.y <= bottom; p.y++ )
-		for( p.x = left; p.x <= right; p.x++ ) {
-			// pixel is inside workbench?
-			int64_t x = p.x + (rgl -> width_pixel / 2);
-			int64_t y = p.y + (rgl -> height_pixel / 2);
-			if( x < 0 || x > rgl -> width_pixel ) continue;	// no
-			if( y < 0 || y > rgl -> height_pixel ) continue;	// no
-
-			// pixel inside triangle?
-			if( ! lib_rgl_edge( (vector2d *) &p1, (vector2d *) &p2, (vector2d *) &p ) ) continue;
-			if( ! lib_rgl_edge( (vector2d *) &p2, (vector2d *) &p0, (vector2d *) &p ) ) continue;
-			if( ! lib_rgl_edge( (vector2d *) &p0, (vector2d *) &p1, (vector2d *) &p ) ) continue;
-
-			// draw it
-			rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ] = color;
-		}
-
-	// lib_rgl_line( rgl, p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), color );
-	// lib_rgl_line( rgl, p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), color );
-	// lib_rgl_line( rgl, p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), color );
-}
-
-// void lib_rgl_multiply( struct LIB_RGL_STRUCTURE_TRIANGLE *triangle, struct LIB_RGL_STRUCTURE_MATRIX *matrix ) {
-// 	// temporary face
-// 	struct LIB_RGL_STRUCTURE_TRIANGLE tmp;
-
-// 	// for each point in face
-// 	for( uint8_t i = 0; i < 3; i++ ) {
-// 		// preserve face properties
-// 		tmp.point[ i ] = triangle -> point[ i ];
-
-// 		// convert by matrix
-// 		triangle -> point[ i ].x = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 0 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 0 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 0 ]) + matrix -> cell[ 3 ][ 0 ];
-// 		triangle -> point[ i ].y = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 1 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 1 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 1 ]) + matrix -> cell[ 3 ][ 1 ];
-// 		triangle -> point[ i ].z = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 2 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 2 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 2 ]) + matrix -> cell[ 3 ][ 2 ];
-	
-// 		double w = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 3 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 3 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 3 ]) + matrix -> cell[ 3 ][ 3 ];
-
-// 		if( w != 0.0f ) {
-// 			triangle -> point[ i ].x /= w;
-// 			triangle -> point[ i ].y /= w;
-// 			triangle -> point[ i ].z /= w;
-// 		}
-// 	}
-// }
-
-struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_multiply_matrix( struct LIB_RGL_STRUCTURE_MATRIX *this, struct LIB_RGL_STRUCTURE_MATRIX *via ) {
+struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_multiply_matrix( struct LIB_RGL_STRUCTURE_MATRIX this, struct LIB_RGL_STRUCTURE_MATRIX via ) {
 	struct LIB_RGL_STRUCTURE_MATRIX tmp;
 
 	for (int y = 0; y < 4; y++)
 		for (int x = 0; x < 4; x++)
-			tmp.cell[ x ][ y ] = this -> cell[ x ][ 0 ] * via -> cell[ 0 ][ y ] + this -> cell[ x ][ 1 ] * via -> cell[ 1 ][ y ] + this -> cell[ x ][ 2 ] * via -> cell[ 2 ][ y ] + this -> cell[ x ][ 3 ] * via -> cell[ 3 ][ y ];
+			tmp.cell[ x ][ y ] = this.cell[ x ][ 0 ] * via.cell[ 0 ][ y ] + this.cell[ x ][ 1 ] * via.cell[ 1 ][ y ] + this.cell[ x ][ 2 ] * via.cell[ 2 ][ y ] + this.cell[ x ][ 3 ] * via.cell[ 3 ][ y ];
 
 	return tmp;
+}
+
+struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_empty() {
+	struct LIB_RGL_STRUCTURE_MATRIX matrix = { 0.0f };
+
+	return matrix;
 }
 
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_identity() {
@@ -303,74 +238,170 @@ struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_scale( double x, double y,
 	return matrix;
 }
 
-double lib_rgl_vector_product_dot( vector3f *v0, vector3f *v1 ) {
-	return (v0 -> x * v1 -> x) + (v0 -> y * v1 -> y) + (v0 -> z * v1 -> z);
+double lib_rgl_vector_product_dot( vector3f v0, vector3f v1 ) {
+	return (v0.x * v1.x) + (v0.y * v1.y) + (v0.z * v1.z);
 }
 
-vector3f lib_rgl_vector_product_cross( vector3f *v0, vector3f *v1 ) {
+vector3f lib_rgl_vector_product_cross( vector3f v0, vector3f v1 ) {
 	vector3f tmp;
 
-	tmp.x = (v0 -> y * v1 -> z) - (v0 -> z * v1 -> y);
-	tmp.y = (v0 -> z * v1 -> x) - (v0 -> x * v1 -> z);
-	tmp.z = (v0 -> x * v1 -> y) - (v0 -> y * v1 -> x);
+	tmp.x = (v0.y * v1.z) - (v0.z * v1.y);
+	tmp.y = (v0.z * v1.x) - (v0.x * v1.z);
+	tmp.z = (v0.x * v1.y) - (v0.y * v1.x);
 
 	return tmp;
 }
 
-double lib_rgl_vector_length( vector3f *v ) {
+double lib_rgl_vector_length( vector3f v ) {
 	return (double) sqrtf( (float) lib_rgl_vector_product_dot( v, v ) );
 }
 
-void lib_rgl_vector_normalize( vector3f *v ) {
+vector3f lib_rgl_return_vector_normalize( vector3f v ) {
 	double length = lib_rgl_vector_length( v );
 
-	v -> x /= length;
-	v -> y /= length;
-	v -> z /= length;
-}
-
-vector3f lib_rgl_return_vector_normalize( vector3f *v ) {
-	double length = lib_rgl_vector_length( v );
-
-	vector3f n;
-	n.x = v -> x / length;
-	n.y = v -> y / length;
-	n.z = v -> z / length;
-
-	return n;
-}
-
-vector3f lib_rgl_vector_substract( vector3f *from, vector3f *substract ) {
 	vector3f tmp;
 
-	tmp.x = from -> x - substract -> x;
-	tmp.y = from -> y - substract -> y;
-	tmp.z = from -> z - substract -> z;
+	tmp.x = v.x / length;
+	tmp.y = v.y / length;
+	tmp.z = v.z / length;
 
 	return tmp;
 }
+
+vector3f lib_rgl_vector_substract( vector3f from, vector3f substract ) {
+	vector3f tmp;
+
+	tmp.x = from.x - substract.x;
+	tmp.y = from.y - substract.y;
+	tmp.z = from.z - substract.z;
+
+	return tmp;
+}
+
+// void lib_rgl_multiply( struct LIB_RGL_STRUCTURE_TRIANGLE *triangle, struct LIB_RGL_STRUCTURE_MATRIX *matrix ) {
+// 	// temporary face
+// 	struct LIB_RGL_STRUCTURE_TRIANGLE tmp;
+
+// 	// for each point in face
+// 	for( uint8_t i = 0; i < 3; i++ ) {
+// 		// preserve face properties
+// 		tmp.point[ i ] = triangle -> point[ i ];
+
+// 		// convert by matrix
+// 		triangle -> point[ i ].x = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 0 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 0 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 0 ]) + matrix -> cell[ 3 ][ 0 ];
+// 		triangle -> point[ i ].y = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 1 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 1 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 1 ]) + matrix -> cell[ 3 ][ 1 ];
+// 		triangle -> point[ i ].z = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 2 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 2 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 2 ]) + matrix -> cell[ 3 ][ 2 ];
+	
+// 		double w = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 3 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 3 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 3 ]) + matrix -> cell[ 3 ][ 3 ];
+
+// 		if( w != 0.0f ) {
+// 			triangle -> point[ i ].x /= w;
+// 			triangle -> point[ i ].y /= w;
+// 			triangle -> point[ i ].z /= w;
+// 		}
+// 	}
+// }
+
+void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material ) {
+	uint32_t color = lib_rgl_color( material[ t -> material ].Kd, t -> light );
+
+	vector2d p0 = { (int64_t) vp[ t -> v[ 0 ] ].x, (int64_t) vp[ t -> v[ 0 ] ].y };
+	vector2d p1 = { (int64_t) vp[ t -> v[ 1 ] ].x, (int64_t) vp[ t -> v[ 1 ] ].y };
+	vector2d p2 = { (int64_t) vp[ t -> v[ 2 ] ].x, (int64_t) vp[ t -> v[ 2 ] ].y };
+
+	int64_t left = p0.x;
+	if( p1.x < left ) left = p1.x;
+	if( p2.x < left ) left = p2.x;
+
+	int64_t top = p0.y;
+	if( p1.y < top ) top = p1.y;
+	if( p2.y < top ) top = p2.y;
+
+	int64_t right = p0.x;
+	if( p1.x > right ) right = p1.x;
+	if( p2.x > right ) right = p2.x;
+
+	int64_t bottom = p0.y;
+	if( p1.y > bottom ) bottom = p1.y;
+	if( p2.y > bottom ) bottom = p2.y;
+
+	vector2d p;
+
+	for( p.y = top; p.y <= bottom; p.y++ )
+		for( p.x = left; p.x <= right; p.x++ ) {
+			// pixel is inside workbench?
+			int64_t x = p.x + (rgl -> width_pixel / 2);
+			int64_t y = p.y + (rgl -> height_pixel / 2);
+			if( x < 0 || x > rgl -> width_pixel ) continue;	// no
+			if( y < 0 || y > rgl -> height_pixel ) continue;	// no
+
+			// pixel inside triangle?
+			if( ! lib_rgl_edge( (vector2d *) &p1, (vector2d *) &p2, (vector2d *) &p ) ) continue;
+			if( ! lib_rgl_edge( (vector2d *) &p2, (vector2d *) &p0, (vector2d *) &p ) ) continue;
+			if( ! lib_rgl_edge( (vector2d *) &p0, (vector2d *) &p1, (vector2d *) &p ) ) continue;
+
+			// draw it
+			rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ] = color;
+		}
+
+	// lib_rgl_line( rgl, p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), color );
+	// lib_rgl_line( rgl, p1.x + (rgl -> width_pixel / 2), p1.y + (rgl -> height_pixel / 2), p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), color );
+	// lib_rgl_line( rgl, p2.x + (rgl -> width_pixel / 2), p2.y + (rgl -> height_pixel / 2), p0.x + (rgl -> width_pixel / 2), p0.y + (rgl -> height_pixel / 2), color );
+}
+
+struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_view( struct LIB_RGL_STRUCTURE *rgl ) {
+	vector3f z = lib_rgl_vector_substract( rgl -> camera, (vector3f) { 0.0f, 0.0f, 0.0f } );
+	z = lib_rgl_return_vector_normalize( z );
+
+	vector3f x = lib_rgl_vector_product_cross( (vector3f) { 0.0f, 1.0f, 0.0f }, z );
+	x = lib_rgl_return_vector_normalize( x );
+
+	vector3f y = lib_rgl_vector_product_cross( z, x );
+	y = lib_rgl_return_vector_normalize( y );
+
+	double dx = -lib_rgl_vector_product_dot( x, rgl -> camera );
+	double dy = -lib_rgl_vector_product_dot( y, rgl -> camera );
+	double dz = -lib_rgl_vector_product_dot( z, rgl -> camera );
+
+	struct LIB_RGL_STRUCTURE_MATRIX matrix = lib_rgl_return_matrix_identity();
+
+	matrix.cell[ 0 ][ 0 ] = x.x;
+	matrix.cell[ 0 ][ 1 ] = y.x;
+	matrix.cell[ 0 ][ 2 ] = z.x;
+	matrix.cell[ 1 ][ 0 ] = x.x;
+	matrix.cell[ 1 ][ 1 ] = y.x;
+	matrix.cell[ 1 ][ 2 ] = z.x;
+	matrix.cell[ 2 ][ 0 ] = x.x;
+	matrix.cell[ 2 ][ 1 ] = y.x;
+	matrix.cell[ 2 ][ 2 ] = z.x;
+	matrix.cell[ 3 ][ 0 ] = dx;
+	matrix.cell[ 3 ][ 1 ] = dy;
+	matrix.cell[ 3 ][ 2 ] = dz;
+
+	return matrix;
+};
 
 uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct LIB_RGL_STRUCTURE_TRIANGLE *parse ) {
 	// if( vr[ parse -> v[ 0 ] ].z < 0.0f || vr[ parse -> v[ 1 ] ].z < 0.0f || vr[ parse -> v[ 2 ] ].z < 0.0f ) return FALSE;
 
-	vector3f line1 = lib_rgl_vector_substract( (vector3f *) &vr[ parse -> v[ 1 ] ], (vector3f *) &vr[ parse -> v[ 0 ] ] );
-	vector3f line2 = lib_rgl_vector_substract( (vector3f *) &vr[ parse -> v[ 2 ] ], (vector3f *) &vr[ parse -> v[ 0 ] ] );
+	vector3f line1 = lib_rgl_vector_substract( vr[ parse -> v[ 1 ] ], vr[ parse -> v[ 0 ] ] );
+	vector3f line2 = lib_rgl_vector_substract( vr[ parse -> v[ 2 ] ], vr[ parse -> v[ 0 ] ] );
 
-	vector3f normal = lib_rgl_vector_product_cross( (vector3f *) &line1, (vector3f *) &line2 );
+	vector3f normal = lib_rgl_vector_product_cross( line1, line2 );
 
-	lib_rgl_vector_normalize( (vector3f *) &normal );
+	normal = lib_rgl_return_vector_normalize( normal );
 
-	vector3f camera_ray = lib_rgl_vector_substract( (vector3f *) &vr[ parse -> v[ 0 ] ], (vector3f *) &rgl -> camera );
+	vector3f camera_ray = lib_rgl_vector_substract( vr[ parse -> v[ 0 ] ], rgl -> camera );
 
 	// show only visible triangles
-	if( lib_rgl_vector_product_dot( (vector3f *) &normal, (vector3f *) &camera_ray ) < 0.0f ) {
-	// if( normal.z < 0.0f ) {
+	// if( lib_rgl_vector_product_dot( normal, camera_ray ) < 0.0f ) {
+	if( normal.z < 0.0f ) {
 		// light source position
 		vector3f light = { 0.0f, 0.0f, -1.0f };
-		lib_rgl_vector_normalize( (vector3f *) &light );
+		light = lib_rgl_return_vector_normalize( light );
 
 		// dot product
-		parse -> light = maxf( 0.1f, lib_rgl_vector_product_dot( (vector3f *) &normal, (vector3f *) &light ) ) / 4.0f;
+		parse -> light = maxf( 0.1f, lib_rgl_vector_product_dot( normal, light ) ) / 4.0f;
 
 		// triangle visible
 		return TRUE;
@@ -380,50 +411,71 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 	return FALSE;
 }
 
+struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RGL_STRUCTURE *rgl, double fov, double aspect, double n, double f ) {
+	struct LIB_RGL_STRUCTURE_MATRIX matrix = lib_rgl_return_matrix_empty();
+
+	// double t = 1.0f / tan( fov * 0.5f );
+	double t = 2.4327649740660564f;
+
+	matrix.cell[ 0 ][ 0 ] = t / aspect;
+	matrix.cell[ 1 ][ 1 ] = t;
+	matrix.cell[ 2 ][ 2 ] = -f / (n - f);
+	matrix.cell[ 2 ][ 3 ] = 1.0f;
+	matrix.cell[ 3 ][ 2 ] = (n * f) / (n - f);
+	matrix.cell[ 3 ][ 3 ] = 0.0f;
+
+	return matrix;
+};
+
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_projection( struct LIB_RGL_STRUCTURE *rgl ) {
 	struct LIB_RGL_STRUCTURE_MATRIX matrix = lib_rgl_return_matrix_identity();
 
-	double n = 0.0f;
-	double f = 10.0f;
-	double fov = 90.0f;
-	double r = 1.0f / tan( (fov / 2.0f) / (LIB_MATH_PI * 180.0f) );
+	// double n = 0.0f;
+	// double f = 10.0f;
 
-	matrix.cell[ 0 ][ 0 ] = r;
-	matrix.cell[ 1 ][ 1 ] = r;
-	matrix.cell[ 2 ][ 2 ] = -(f / (f - n));
-	matrix.cell[ 2 ][ 3 ] = 1.0f;
-	matrix.cell[ 3 ][ 2 ] = -(f * n) / (f - n);
-	matrix.cell[ 3 ][ 3 ] = 0.0f;
+	// matrix.cell[ 0 ][ 0 ] = (2.0f * n) / rgl -> width_pixel;
+	// matrix.cell[ 1 ][ 1 ] = (2.0f * n) / rgl -> height_pixel;
+	// matrix.cell[ 2 ][ 2 ] = -f / (n - f);
+	// matrix.cell[ 2 ][ 3 ] = 1.0f;
+	// matrix.cell[ 3 ][ 2 ] = (n * f) / (n - f);
+	// matrix.cell[ 3 ][ 3 ] = 0.0f;
 
-	// double n = 0.1f;
-	// double f = 1000.0f;
+	// double n = 0.0f;
+	// double f = 10.0f;
 	// double fov = 90.0f;
-	// double r = 1.0f / tan( (fov * 0.5f) / (LIB_MATH_PI * 180.0f) );
+	// double r = 1.0f / tan( (fov / 2.0f) / (LIB_MATH_PI * 180.0f) );
 
 	// matrix.cell[ 0 ][ 0 ] = r;
 	// matrix.cell[ 1 ][ 1 ] = r;
-	// matrix.cell[ 2 ][ 2 ] = f / (f - n);
+	// matrix.cell[ 2 ][ 2 ] = -(f / (f - n));
 	// matrix.cell[ 2 ][ 3 ] = 1.0f;
-	// matrix.cell[ 3 ][ 2 ] = (-f * n) / (f - n);
+	// matrix.cell[ 3 ][ 2 ] = -(f * n) / (f - n);
 	// matrix.cell[ 3 ][ 3 ] = 0.0f;
+
+	double n = 0.1f;
+	double f = 1000.0f;
+	double fov = 90.0f;
+	double r = 1.0f / tan( (fov * 0.5f) / (LIB_MATH_PI * 180.0f) );
+
+	matrix.cell[ 0 ][ 0 ] = r;
+	matrix.cell[ 1 ][ 1 ] = r;
+	matrix.cell[ 2 ][ 2 ] = f / (f - n);
+	matrix.cell[ 2 ][ 3 ] = 1.0f;
+	matrix.cell[ 3 ][ 2 ] = (-f * n) / (f - n);
+	matrix.cell[ 3 ][ 3 ] = 0.0f;
 
 	return matrix;
 }
 
-void lib_rgl_multiply_vector( vector3f *v, struct LIB_RGL_STRUCTURE_MATRIX *matrix ) {
+vector3f lib_rgl_multiply_vector( vector3f v, struct LIB_RGL_STRUCTURE_MATRIX matrix ) {
 	// temporary vector
-	vector3f t = *v;
+	vector3f t;
 
 	// convert by matrix
-	v -> x = (t.x * matrix -> cell[ 0 ][ 0 ]) + (t.y * matrix -> cell[ 1 ][ 0 ]) + (t.z * matrix -> cell[ 2 ][ 0 ]) + matrix -> cell[ 3 ][ 0 ];
-	v -> y = (t.x * matrix -> cell[ 0 ][ 1 ]) + (t.y * matrix -> cell[ 1 ][ 1 ]) + (t.z * matrix -> cell[ 2 ][ 1 ]) + matrix -> cell[ 3 ][ 1 ];
-	v -> z = (t.x * matrix -> cell[ 0 ][ 2 ]) + (t.y * matrix -> cell[ 1 ][ 2 ]) + (t.z * matrix -> cell[ 2 ][ 2 ]) + matrix -> cell[ 3 ][ 2 ];
+	t.x = (v.x * matrix.cell[ 0 ][ 0 ]) + (v.y * matrix.cell[ 1 ][ 0 ]) + (v.z * matrix.cell[ 2 ][ 0 ]) + matrix.cell[ 3 ][ 0 ];
+	t.y = (v.x * matrix.cell[ 0 ][ 1 ]) + (v.y * matrix.cell[ 1 ][ 1 ]) + (v.z * matrix.cell[ 2 ][ 1 ]) + matrix.cell[ 3 ][ 1 ];
+	t.z = (v.x * matrix.cell[ 0 ][ 2 ]) + (v.y * matrix.cell[ 1 ][ 2 ]) + (v.z * matrix.cell[ 2 ][ 2 ]) + matrix.cell[ 3 ][ 2 ];
+	double w = (v.x * matrix.cell[ 0 ][ 3 ]) + (v.y * matrix.cell[ 1 ][ 3 ]) + (v.z * matrix.cell[ 2 ][ 3 ]) + matrix.cell[ 3 ][ 3 ];
 
-	double w = (t.x * matrix -> cell[ 0 ][ 3 ]) + (t.y * matrix -> cell[ 1 ][ 3 ]) + (t.z * matrix -> cell[ 2 ][ 3 ]) + matrix -> cell[ 3 ][ 3 ];
-
-	if( w != 0.0f ) {
-		v -> x /= w;
-		v -> y /= w;
-		v -> z /= w;
-	}
+	return (vector3f) { t.x / w, t.y / w, t.z / w };
 }
