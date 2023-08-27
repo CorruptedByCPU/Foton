@@ -48,7 +48,7 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	}
 
 // debug
-lib_terminal_printf( &kernel_terminal, (uint8_t *) "KERNEL: low memory.\n" );
+kernel -> log( (uint8_t *) "KERNEL: low memory.\n" );
 
 	// no free space
 	return EMPTY;
@@ -87,5 +87,5 @@ void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 	if( (uint64_t) string > KERNEL_PAGE_logical ) return;	// do not allow it
 
 	// show content of string
-	for( uint64_t i = 0; i < length; i++ ) lib_terminal_printf( &kernel_terminal, (uint8_t *) "%c", (uint64_t) string[ i ] );
+	for( uint64_t i = 0; i < length; i++ ) kernel -> log( (uint8_t *) "%c", (uint64_t) string[ i ] );
 }

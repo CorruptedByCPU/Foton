@@ -110,11 +110,11 @@ void _entry( void ) {
 	// initialize terminal
 	lib_terminal( &kernel_terminal );
 
-	// show welcome message
-	lib_terminal_printf( &kernel_terminal, (uint8_t *) "\n  _|_|_|_|            _|\n  _|        _|_|    _|_|_|_|    _|_|    _|_|_|\n  _|_|_|  _|    _|    _|      _|    _|  _|    _|\n  _|      _|    _|    _|      _|    _|  _|    _|\n  _|        _|_|        _|_|    _|_|    _|    _|\n\n" );
-
 	// create binary memory map
 	kernel_init_memory();
+
+	// fill in remaining necessary variables / functions
+	kernel_init_env();
 
 	// parse ACPI tables
 	kernel_init_acpi();
@@ -145,9 +145,6 @@ void _entry( void ) {
 
 	// create library management space
 	kernel_init_library();
-
-	// fill in remaining necessary variables / functions
-	kernel_init_env();
 
 	// execute first process
 	kernel_exec( (uint8_t *) "init", 5 );

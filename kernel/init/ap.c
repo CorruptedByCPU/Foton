@@ -31,5 +31,5 @@ void kernel_init_ap( void ) {
 	}
 
 	// show information about initialized CPUs
-	if( kernel -> cpu_count++ ) lib_terminal_printf( &kernel_terminal, (uint8_t *) "+%u AP(s) initialized.\n", kernel -> cpu_count - 1 );
+	if( kernel -> cpu_count++ ) kernel -> log( (uint8_t *) "+%u AP(s) initialized.\n", kernel -> cpu_count - 1 );
 }

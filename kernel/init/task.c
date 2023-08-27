@@ -32,5 +32,5 @@ void kernel_init_task( void ) {
 	kernel -> task_cpu_address[ kernel_lapic_id() ] = &kernel -> task_base_address[ 0 ];
 
 	// show information about Task queue
-	lib_terminal_printf( &kernel_terminal, (uint8_t *) "Task queue base address 0x%X\n Entry[0] -> kernel enviromnemt initialization procedures.\n", (uintptr_t) kernel -> task_base_address );
+	kernel -> log( (uint8_t *) "Task queue base address 0x%X\n Entry[0] -> kernel enviromnemt initialization procedures.\n", (uintptr_t) kernel -> task_base_address );
 }

@@ -45,7 +45,7 @@ void kernel_init_storage() {
 			kernel -> task_base_address -> storage = i;
 
 			// show information about storage
-			lib_terminal_printf( &kernel_terminal, (uint8_t *) "Storage: %u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].device_size_byte ) >> STD_SHIFT_1024 );
+			kernel -> log( (uint8_t *) "Storage: %u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].device_size_byte ) >> STD_SHIFT_1024 );
 		}
 	}
 
@@ -55,7 +55,7 @@ void kernel_init_storage() {
 		kernel_terminal.color_foreground = STD_COLOR_RED_light;
 
 		// show proper message
-		lib_terminal_printf( &kernel_terminal, (uint8_t *) "Where are my testicles, Summer?\n" );
+		kernel -> log( (uint8_t *) "Where are my testicles, Summer?\n" );
 
 		// hold the door
 		while( TRUE );
