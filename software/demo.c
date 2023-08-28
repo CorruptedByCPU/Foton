@@ -76,21 +76,21 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_rgl_clean( rgl );
 
 		// next angle
-		angle += 0.05f;
+		angle += 0.15f;
 
 		// calculate rotation matrixes
 		struct LIB_RGL_STRUCTURE_MATRIX x_matrix = lib_rgl_return_matrix_rotate_x( angle );
-		struct LIB_RGL_STRUCTURE_MATRIX y_matrix = lib_rgl_return_matrix_rotate_y( angle );
-		// struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle );
+		struct LIB_RGL_STRUCTURE_MATRIX y_matrix = lib_rgl_return_matrix_rotate_y( angle / 2.0f );
+		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle / 3.0f );
 
 		// calculate movement matrix
-		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 8.0f );
+		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 0.0f );
 
 		for( uint64_t i = 1; i < vc; i++ ) {
 			vr[ i ] = vector[ i ];
 			vr[ i ] = lib_rgl_multiply_vector( vr[ i ], x_matrix );
 			vr[ i ] = lib_rgl_multiply_vector( vr[ i ], y_matrix );
-			// vr[ i ] = lib_rgl_multiply_vector( vr[ i ], z_matrix );
+			vr[ i ] = lib_rgl_multiply_vector( vr[ i ], z_matrix );
 			vr[ i ] = lib_rgl_multiply_vector( vr[ i ], t_matrix );
 		}
 

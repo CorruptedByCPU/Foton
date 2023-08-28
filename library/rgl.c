@@ -37,7 +37,7 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 	// camera position
 	rgl -> camera.x = 0.0f;
 	rgl -> camera.y = 0.0f;
-	rgl -> camera.z = -1.0f;
+	rgl -> camera.z = -5.0f;
 
 	// and its target
 	rgl -> target.x = 0.0f;
@@ -96,7 +96,7 @@ uint64_t lib_rgl_partition( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint6
 }
 
 void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high ) {
-	if (low < high) {
+	if( low < high ) {
 		uint64_t pi = 0;
 		pi = lib_rgl_partition( triangles, low, high );
 
@@ -121,19 +121,19 @@ void lib_rgl_line( struct LIB_RGL_STRUCTURE *rgl, int64_t x0, int64_t y0, int64_
 	if( x1 >= rgl -> width_pixel ) x1 = rgl -> width_pixel - 1;
 	if( y1 >= rgl -> height_pixel ) y1 = rgl -> height_pixel - 1;
 
-	int64_t dx = abs( x1 - x0 ), sx = x0 < x1 ? 1 : -1;
-	int64_t dy = -abs( y1 - y0 ), sy = y0 < y1 ? 1 : -1; 
-	int64_t err = dx + dy, e2;
+	int64_t dx = abs( x1 - x0 ), sx = (x0 < x1) ? 1 : -1;
+	int64_t dy = abs( y1 - y0 ), sy = (y0 < y1) ? 1 : -1; 
+	int64_t err = dx - dy;
 
-	for( ; ; ) {
+	while( TRUE ) {
 		rgl -> workbench_base_address[ (y0 * rgl -> width_pixel) + x0 ] = color;
 
-		if (x0 == x1 && y0 == y1) break;
+		if( (x0 == x1) && (y0 == y1) ) break;
 
-		e2 = 2 * err;
+		int64_t e2 = err << 1;
 	
-		if (e2 >= dy) { err += dy; x0 += sx; }
-		if (e2 <= dx) { err += dx; y0 += sy; }
+		if( e2 > -dy ) { err -= dy; x0 += sx; }
+		if( e2 < dx ) { err += dx; y0 += sy; }
 	}
 }
 
@@ -142,7 +142,7 @@ uint32_t lib_rgl_color( uint32_t argb, double light ) {
 	double green = (double) ((argb & 0x0000FF00) >> 8);
 	double blue = (double) (argb & 0x000000FF);
 
-	if ( light < 0.0f ) {
+	if( light < 0.0f ) {
 		light += 1.0f;
         
 		red *= light;
@@ -347,9 +347,9 @@ void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_T
 			rgl -> workbench_base_address[ (p.y * rgl -> width_pixel) + p.x ] = color;
 		}
 
-	// lib_rgl_line( rgl, p0.x, p0.y, p1.x, p1.y, color );
-	// lib_rgl_line( rgl, p1.x, p1.y, p2.x, p2.y, color );
-	// lib_rgl_line( rgl, p2.x, p2.y, p0.x, p0.y, color );
+	lib_rgl_line( rgl, p0.x, p0.y, p1.x, p1.y, color );
+	lib_rgl_line( rgl, p1.x, p1.y, p2.x, p2.y, color );
+	lib_rgl_line( rgl, p2.x, p2.y, p0.x, p0.y, color );
 }
 
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_view( struct LIB_RGL_STRUCTURE *rgl ) {
@@ -395,7 +395,7 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 	vector3f camera_ray = lib_rgl_vector_substract( vr[ parse -> v[ 0 ] ], rgl -> camera );
 
 	// show only visible triangles
-	// if( lib_rgl_vector_product_dot( normal, camera_ray ) < 0.0f ) {
+	if( lib_rgl_vector_product_dot( normal, camera_ray ) < 0.0f ) {
 	// if( normal.z < 0.0f ) {
 		// light source position
 		vector3f light = { -1.0f, -1.0f, -1.0f };
@@ -406,7 +406,7 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 
 		// triangle visible
 		return TRUE;
-	// }
+	}
 
 	// triangle invisible
 	return FALSE;
