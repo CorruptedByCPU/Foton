@@ -89,3 +89,66 @@ void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 	// show content of string
 	for( uint64_t i = 0; i < length; i++ ) kernel -> log( (uint8_t *) "%c", (uint64_t) string[ i ] );
 }
+
+int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
+	// create a new thread in task queue
+	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );
+
+	//----------------------------------------------------------------------
+
+	// prepare Paging table for new process
+	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_logical;
+
+	//----------------------------------------------------------------------
+
+	// describe space under thread context stack
+	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, 2, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
+
+	// set initial startup configuration for new process
+	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+
+	// code descriptor
+	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring3 ) | 0x03;
+
+	// basic processor state flags
+	context -> eflags = KERNEL_TASK_EFLAGS_default;
+
+	// stack descriptor
+	context -> ss = offsetof( struct KERNEL_GDT_STRUCTURE, ds_ring3 ) | 0x03;
+
+	// stack pointer of process
+	thread -> rsp = KERNEL_TASK_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
+
+	// set thread entry address
+	context -> rip = function;
+
+	//----------------------------------------------------------------------
+
+	// prepare space for stack of thread
+	uint8_t *process_stack = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( 0x10 ) >> STD_SHIFT_PAGE );
+
+	// context stack top pointer
+	context -> rsp = KERNEL_STACK_pointer - 0x10;	// no args
+
+	// map stack space to thread paging array
+	kernel_page_map( (uintptr_t *) thread -> cr3, (uintptr_t) process_stack, context -> rsp & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( 0x10 ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
+
+	//----------------------------------------------------------------------
+
+	// aquire parent task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+
+	// threads use same memory map as parent
+	thread -> memory_map = task -> memory_map;
+
+	//----------------------------------------------------------------------
+
+	// map parent space to thread
+	kernel_page_merge( (uint64_t *) task -> cr3, (uint64_t *) thread -> cr3 );
+
+	// thread ready to run
+	thread -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_thread | KERNEL_TASK_FLAG_init;
+
+	// return process ID of new thread
+	return thread -> pid;
+}

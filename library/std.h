@@ -78,6 +78,7 @@
 	#define	STD_SYSCALL_MEMORY_RELEASE			0x03
 	#define	STD_SYSCALL_UPTIME				0x04
 	#define	STD_SYSCALL_LOG					0x05
+	#define	STD_SYSCALL_THREAD				0x06
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -96,6 +97,9 @@
 
 	// returns current miliseconds from system initialization
 	uint64_t std_uptime( void );
+
+	// returns process ID of executed function as thread
+	int64_t std_syscall_thread( uintptr_t function, uint8_t *string, uint64_t length );
 
 	#ifdef	SOFTWARE
 		// function definitions

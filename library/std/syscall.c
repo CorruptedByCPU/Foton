@@ -92,3 +92,11 @@ void std_syscall_log( uint8_t *string, uint64_t length ) {
 	// return nothing
 	return std_syscall_empty();
 }
+
+int64_t std_syscall_thread( uintptr_t function, uint8_t *string, uint64_t length ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_THREAD), "D" (function), "S" (string), "d" (length) );
+
+	// return nothing
+	return std_syscall_signed();
+}

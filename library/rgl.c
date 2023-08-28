@@ -12,6 +12,21 @@
 		#include	"./math.h"
 	#endif
 
+void lib_rgl_clean( struct LIB_RGL_STRUCTURE *rgl ) {
+	// clean up workbench area
+	for( uint64_t y = 0; y < rgl -> height_pixel; y++ )
+		for( uint64_t x = 0; x < rgl -> width_pixel; x++ )
+			rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ] = rgl -> color_background;
+
+	double d;
+	(*((uint64_t *) &d))= ~(1LL << 52);
+
+	// clean up depth area
+	for( uint64_t y = 0; y < rgl -> height_pixel; y++ )
+		for( uint64_t x = 0; x < rgl -> width_pixel; x++ )
+			rgl -> depth_base_address[ (y * rgl -> width_pixel) + x ] = d;
+}
+
 struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, uint32_t *base_address ) {
 	// prepare space for RGL structure
 	struct LIB_RGL_STRUCTURE *rgl = (struct LIB_RGL_STRUCTURE *) malloc( sizeof( struct LIB_RGL_STRUCTURE ) );
@@ -49,21 +64,6 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 
 	// return RGL specification for future use
 	return rgl;
-}
-
-void lib_rgl_clean( struct LIB_RGL_STRUCTURE *rgl ) {
-	// clean up workbench area
-	for( uint64_t y = 0; y < rgl -> height_pixel; y++ )
-		for( uint64_t x = 0; x < rgl -> width_pixel; x++ )
-			rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ] = rgl -> color_background;
-
-	double d;
-	(*((uint64_t *) &d))= ~(1LL << 52);
-
-	// clean up depth area
-	for( uint64_t y = 0; y < rgl -> height_pixel; y++ )
-		for( uint64_t x = 0; x < rgl -> width_pixel; x++ )
-			rgl -> depth_base_address[ (y * rgl -> width_pixel) + x ] = d;
 }
 
 void lib_rgl_flush( struct LIB_RGL_STRUCTURE *rgl ) {
@@ -283,30 +283,6 @@ vector3f lib_rgl_vector_substract( vector3f from, vector3f substract ) {
 	return tmp;
 }
 
-// void lib_rgl_multiply( struct LIB_RGL_STRUCTURE_TRIANGLE *triangle, struct LIB_RGL_STRUCTURE_MATRIX *matrix ) {
-// 	// temporary face
-// 	struct LIB_RGL_STRUCTURE_TRIANGLE tmp;
-
-// 	// for each point in face
-// 	for( uint8_t i = 0; i < 3; i++ ) {
-// 		// preserve face properties
-// 		tmp.point[ i ] = triangle -> point[ i ];
-
-// 		// convert by matrix
-// 		triangle -> point[ i ].x = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 0 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 0 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 0 ]) + matrix -> cell[ 3 ][ 0 ];
-// 		triangle -> point[ i ].y = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 1 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 1 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 1 ]) + matrix -> cell[ 3 ][ 1 ];
-// 		triangle -> point[ i ].z = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 2 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 2 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 2 ]) + matrix -> cell[ 3 ][ 2 ];
-	
-// 		double w = (tmp.point[ i ].x * matrix -> cell[ 0 ][ 3 ]) + (tmp.point[ i ].y * matrix -> cell[ 1 ][ 3 ]) + (tmp.point[ i ].z * matrix -> cell[ 2 ][ 3 ]) + matrix -> cell[ 3 ][ 3 ];
-
-// 		if( w != 0.0f ) {
-// 			triangle -> point[ i ].x /= w;
-// 			triangle -> point[ i ].y /= w;
-// 			triangle -> point[ i ].z /= w;
-// 		}
-// 	}
-// }
-
 void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material ) {
 	uint32_t color = lib_rgl_color( material[ t -> material ].Kd, t -> light );
 
@@ -428,40 +404,20 @@ struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RG
 	return matrix;
 };
 
-struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_projection( struct LIB_RGL_STRUCTURE *rgl ) {
-	struct LIB_RGL_STRUCTURE_MATRIX matrix = lib_rgl_return_matrix_identity();
-
-	double n = 0.1f;
-	double f = 1000.0f;
-	double fov = 90.0f;
-	double r = 1.0f / tan( (fov * 0.5f) / (LIB_MATH_PI * 180.0f) );
-
-	matrix.cell[ 0 ][ 0 ] = r;
-	matrix.cell[ 1 ][ 1 ] = r;
-	matrix.cell[ 2 ][ 2 ] = f / (f - n);
-	matrix.cell[ 2 ][ 3 ] = 1.0f;
-	matrix.cell[ 3 ][ 2 ] = (-f * n) / (f - n);
-	matrix.cell[ 3 ][ 3 ] = 0.0f;
-
-	return matrix;
-}
-
-vector3f lib_rgl_multiply_vector( vector3f v, struct LIB_RGL_STRUCTURE_MATRIX matrix ) {
+void lib_rgl_multiply_vector( vector3f *v, struct LIB_RGL_STRUCTURE_MATRIX *matrix ) {
 	// temporary vector
-	vector3f t;
+	vector3f t = *v;
 
 	// convert by matrix
-	t.x = (v.x * matrix.cell[ 0 ][ 0 ]) + (v.y * matrix.cell[ 1 ][ 0 ]) + (v.z * matrix.cell[ 2 ][ 0 ]) + matrix.cell[ 3 ][ 0 ];
-	t.y = (v.x * matrix.cell[ 0 ][ 1 ]) + (v.y * matrix.cell[ 1 ][ 1 ]) + (v.z * matrix.cell[ 2 ][ 1 ]) + matrix.cell[ 3 ][ 1 ];
-	t.z = (v.x * matrix.cell[ 0 ][ 2 ]) + (v.y * matrix.cell[ 1 ][ 2 ]) + (v.z * matrix.cell[ 2 ][ 2 ]) + matrix.cell[ 3 ][ 2 ];
+	v -> x = (t.x * matrix -> cell[ 0 ][ 0 ]) + (t.y * matrix -> cell[ 1 ][ 0 ]) + (t.z * matrix -> cell[ 2 ][ 0 ]) + matrix -> cell[ 3 ][ 0 ];
+	v -> y = (t.x * matrix -> cell[ 0 ][ 1 ]) + (t.y * matrix -> cell[ 1 ][ 1 ]) + (t.z * matrix -> cell[ 2 ][ 1 ]) + matrix -> cell[ 3 ][ 1 ];
+	v -> z = (t.x * matrix -> cell[ 0 ][ 2 ]) + (t.y * matrix -> cell[ 1 ][ 2 ]) + (t.z * matrix -> cell[ 2 ][ 2 ]) + matrix -> cell[ 3 ][ 2 ];
 
-	double w = (v.x * matrix.cell[ 0 ][ 3 ]) + (v.y * matrix.cell[ 1 ][ 3 ]) + (v.z * matrix.cell[ 2 ][ 3 ]) + matrix.cell[ 3 ][ 3 ];
+	double w = (t.x * matrix -> cell[ 0 ][ 3 ]) + (t.y * matrix -> cell[ 1 ][ 3 ]) + (t.z * matrix -> cell[ 2 ][ 3 ]) + matrix -> cell[ 3 ][ 3 ];
 
 	if( w != 0.0f ) {
-		t.x /= w;
-		t.y /= w;
-		t.z /= w;
+		v -> x /= w;
+		v -> y /= w;
+		v -> z /= w;
 	}
-
-	return t;
 }

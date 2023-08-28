@@ -34,6 +34,8 @@ void kernel_task( void ) {
 
 	// first run of the task?
 	if( next -> flags & KERNEL_TASK_FLAG_init ) {
+		MACRO_DEBUF();
+
 		// disable init flag
 		next -> flags &= ~KERNEL_TASK_FLAG_init;
 

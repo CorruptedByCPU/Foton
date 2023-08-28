@@ -91,7 +91,7 @@
 	uint64_t lib_rgl_partition( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high );
 	void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high );
 	void lib_rgl_line( struct LIB_RGL_STRUCTURE *rgl, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t color );
-	vector3f lib_rgl_multiply_vector( vector3f v, struct LIB_RGL_STRUCTURE_MATRIX matrix );
+	void lib_rgl_multiply_vector( vector3f *v, struct LIB_RGL_STRUCTURE_MATRIX *matrix );
 	inline uint8_t lib_rgl_edge( vector2d *a, vector2d *b, vector2d *c );
 	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RGL_STRUCTURE *rgl, double fov, double aspect, double n, double f );
 	uint32_t lib_rgl_color( uint32_t argb, double light );

@@ -49,7 +49,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 
 	//----------------------------------------------------------------------
 
-	// insert into paging, context stack of new process
+	// describe space under exec context stack
 	kernel_page_alloc( (uintptr_t *) exec -> cr3, KERNEL_STACK_address, 2, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
 
 	// set initial startup configuration for new process
