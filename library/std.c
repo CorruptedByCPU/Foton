@@ -180,6 +180,26 @@ void log( const char *string, ... ) {
 					continue;
 				}
 
+				case 'd': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// value signed?
+					if( value & 0x8000000000000000 ) {
+						// show 'character' on terminal
+						std_syscall_log( (uint8_t *) "-", 1 );
+
+						// remove sign
+						value = ~value + 1;
+					}
+
+					// show 'value' on terminal
+					std_syscall_log( (uint8_t *) &digits, lib_integer_to_string( value, 10, (uint8_t *) &digits ) );
+
+					// next character from string
+					continue;
+				}
+
 				case 's': {
 					// retrieve substring
 					uint8_t *substring = va_arg( argv, uint8_t * );

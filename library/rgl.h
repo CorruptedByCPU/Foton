@@ -27,6 +27,7 @@
 		double		*depth_base_address;
 		uint32_t	color_background;
 		vector3f	camera;
+		vector3f	target;
 	};
 
 	struct	LIB_RGL_STRUCTURE_MATERIAL {

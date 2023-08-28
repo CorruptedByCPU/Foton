@@ -55,14 +55,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	double angle = 0.0f;
 
 	// array of perspective
-	// struct LIB_RGL_STRUCTURE_MATRIX p_matrix = lib_rgl_return_matrix_perspective( rgl, 0.78f, (double) rgl -> width_pixel / (double) rgl -> height_pixel, 0.01f, 1.0f );
+	struct LIB_RGL_STRUCTURE_MATRIX p_matrix = lib_rgl_return_matrix_perspective( rgl, 0.78f, (double) rgl -> width_pixel / (double) rgl -> height_pixel, 0.01f, 1.0f );
 
 	// array of view
-	// struct LIB_RGL_STRUCTURE_MATRIX v_matrix = lib_rgl_return_matrix_view( rgl );
+	struct LIB_RGL_STRUCTURE_MATRIX v_matrix = lib_rgl_return_matrix_view( rgl );
 
 	// array of world
-	// struct LIB_RGL_STRUCTURE_MATRIX w_matrix = lib_rgl_multiply_matrix( v_matrix, p_matrix );
-		struct LIB_RGL_STRUCTURE_MATRIX w_matrix = lib_rgl_return_matrix_projection( rgl );
+	struct LIB_RGL_STRUCTURE_MATRIX w_matrix = lib_rgl_multiply_matrix( v_matrix, p_matrix );
 
 	// calculate movement matrix
 	double scale = 10.0f;
@@ -82,16 +81,16 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// calculate rotation matrixes
 		struct LIB_RGL_STRUCTURE_MATRIX x_matrix = lib_rgl_return_matrix_rotate_x( angle );
 		struct LIB_RGL_STRUCTURE_MATRIX y_matrix = lib_rgl_return_matrix_rotate_y( angle );
-		// struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle / 3.0f );
+		// struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( angle );
 
 		// calculate movement matrix
-		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 4.0f );
+		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 8.0f );
 
 		for( uint64_t i = 1; i < vc; i++ ) {
 			vr[ i ] = vector[ i ];
 			vr[ i ] = lib_rgl_multiply_vector( vr[ i ], x_matrix );
 			vr[ i ] = lib_rgl_multiply_vector( vr[ i ], y_matrix );
-			// lib_rgl_multiply_vector( &vr[ i ], &z_matrix );
+			// vr[ i ] = lib_rgl_multiply_vector( vr[ i ], z_matrix );
 			vr[ i ] = lib_rgl_multiply_vector( vr[ i ], t_matrix );
 		}
 
@@ -110,6 +109,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					vp[ v ] = vr[ v ];
 
 					vp[ v ] = lib_rgl_multiply_vector( vp[ v ], w_matrix );
+
 				}
 
 				sort[ sc ] = &parse[ i ];
@@ -121,8 +121,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			}
 		}
 
-		// lib_terminal_printf( &terminal, (uint8_t *) "angle  %.2f", angle );
-
 		// sort faces by Z axis
 		if( sc > 1 ) lib_rgl_sort_quick( sort, sc - 1, 1 );
 
@@ -133,16 +131,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		terminal.cursor_x = 0;
 		terminal.cursor_y = 0;
 		lib_terminal_cursor_set( &terminal );
-
-		// lib_terminal_printf( &terminal, (uint8_t *) "\n" );
-		// for( uint64_t i = 1; i < vc; i++ ) {
-		// 	if( vr[ i ].x >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-		// 	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vr[ i ].x );
-		// 	if( vr[ i ].y >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-		// 	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f", vr[ i ].y );
-		// 	if( vr[ i ].z >= 0.0f ) lib_terminal_printf( &terminal, (uint8_t *) " " );
-		// 	lib_terminal_printf( &terminal, (uint8_t *) "  %.2f\n", vr[ i ].z );
-		// }
 
 		// fps++;
 
