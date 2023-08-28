@@ -117,7 +117,7 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	context -> ss = offsetof( struct KERNEL_GDT_STRUCTURE, ds_ring3 ) | 0x03;
 
 	// stack pointer of process
-	thread -> rsp = KERNEL_TASK_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
+	context -> rsp = KERNEL_TASK_STACK_pointer - 0x18;	// no args
 
 	// set thread entry address
 	context -> rip = function;
@@ -125,13 +125,13 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	//----------------------------------------------------------------------
 
 	// prepare space for stack of thread
-	uint8_t *process_stack = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( 0x10 ) >> STD_SHIFT_PAGE );
+	uint8_t *process_stack = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE );
 
 	// context stack top pointer
-	context -> rsp = KERNEL_STACK_pointer - 0x10;	// no args
+	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
 
 	// map stack space to thread paging array
-	kernel_page_map( (uintptr_t *) thread -> cr3, (uintptr_t) process_stack, context -> rsp & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( 0x10 ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
+	kernel_page_map( (uintptr_t *) thread -> cr3, (uintptr_t) process_stack, context -> rsp & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
 
 	//----------------------------------------------------------------------
 

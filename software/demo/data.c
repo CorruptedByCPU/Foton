@@ -4,9 +4,10 @@
 
 struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
 
-struct LIB_TERMINAL_STRUCTURE terminal;
-
 uint64_t fpu = 0;
+uint64_t fpu_average = 0;
+uint64_t fpu_count = 1;
+uint64_t fpu_last = 0;
 
 struct LIB_RGL_STRUCTURE *rgl;
 
