@@ -16,6 +16,9 @@ uint8_t init( void ) {
 
 	object_load();
 
+	// execute interface as separate thread
+	std_syscall_thread( (uintptr_t) &interface, (uint8_t *) "demo-interface", 14 );
+
 	// it's ok
 	return FALSE;
 }

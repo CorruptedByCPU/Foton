@@ -154,6 +154,7 @@
 	uint64_t abs( int64_t i );
 	double fmod( double x, double y );
 	float sqrtf( float x );
+	double minf( double first, double second );
 	double maxf( double first, double second );
 	void log( const char *string, ... );
 #endif

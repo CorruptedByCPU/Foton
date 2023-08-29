@@ -96,4 +96,8 @@
 	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RGL_STRUCTURE *rgl, double fov, double aspect, double n, double f );
 	uint32_t lib_rgl_color( uint32_t argb, double light );
 	void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material );
+	void lib_rgl_point( struct LIB_RGL_STRUCTURE *rgl, vector3f v, uint32_t color );
+	double lib_rgl_interpolate( double min, double max, double t );
+	void lib_rgl_scanline( struct LIB_RGL_STRUCTURE *rgl, double y, vector3f p0, vector3f p1, vector3f p2, vector3f p3, uint32_t color );
+	void lib_rgl_fill( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material );
 #endif

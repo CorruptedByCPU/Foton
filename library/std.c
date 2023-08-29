@@ -124,6 +124,11 @@ float sqrtf( float x ) {
 	return u.x;
 }
 
+double minf( double first, double second ) {
+	if( first < second ) return first;
+	else return second;
+}
+
 double maxf( double first, double second ) {
 	if( first > second ) return first;
 	else return second;
