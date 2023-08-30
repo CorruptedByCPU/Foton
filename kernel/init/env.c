@@ -10,6 +10,12 @@ void kernel_init_env( void ) {
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;
 	kernel -> framebuffer_owner_pid		= EMPTY;	// by default: kernel
 
+	// share I/O APIC management functions
+	kernel -> io_apic_line_acquire		= (void *) kernel_io_apic_line_acquire;
+
 	// share kernel early printf function
 	kernel -> log				= (void *) kernel_log;
+
+	// share memory management functions
+	kernel -> memory_alloc			= (void *) kernel_memory_alloc;
 }

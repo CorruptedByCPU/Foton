@@ -50,6 +50,9 @@ struct KERNEL {
 	// variables of I/O APIC management functions
 	volatile struct KERNEL_IO_APIC_STRUCTURE_REGISTER	*io_apic_base_address;
 	uint32_t	io_apic_irq_lines;
+	uint8_t		io_apic_semaphore;
+	// functions of I/O APIC management
+	uint8_t							(*io_apic_line_acquire)( void );
 
 	// variable of Log management functions
 	void							(*log)( uint8_t *string, ... );
@@ -65,6 +68,8 @@ struct KERNEL {
 	// variables of Memory management functions
 	uint32_t	*memory_base_address;
 	uint8_t		memory_semaphore;
+	// functions of Memory management
+	uintptr_t						(*memory_alloc)( uint64_t N );
 
 	// variables of Modules functions
 	uint32_t	*module_base_address;

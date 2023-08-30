@@ -94,6 +94,9 @@ void kernel_init_acpi( void ) {
 						// register available IRQ lines
 						kernel -> io_apic_irq_lines = -1;	// all available
 
+						// unlock access to lines
+						kernel -> io_apic_semaphore = UNLOCK;
+
 						// show message regarding I/O APIC
 						kernel -> log( (uint8_t *) " I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
 					}

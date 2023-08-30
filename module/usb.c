@@ -23,6 +23,12 @@
 	#include	"./usb/data.c"
 
 void _entry( struct KERNEL *kernel ) {
+	// assign space for discovered USB controllers
+	driver_usb_controller = (struct DRUVER_USB_CONTROLLER_STRUCTURE *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct DRUVER_USB_CONTROLLER_STRUCTURE ) * DRIVER_USB_CONTROLLER_limit ) );
+
+	// amount of available USB controllers
+	uint64_t driver_usb_controller_count = 0;
+
 	// check every bus;device;function of PCI controller
 	for( uint16_t b = 0; b < 256; b++ )
 		for( uint8_t d = 0; d < 32; d++ )
@@ -32,6 +38,14 @@ void _entry( struct KERNEL *kernel ) {
 
 				// if found
 				if( (driver_pci_read( pci, DRIVER_PCI_REGISTER_class_and_subclass ) >> 16) == DRIVER_PCI_CLASS_SUBCLASS_usb ) {
+					// choose IRQ line for controller
+					uint8_t line = kernel -> io_apic_line_acquire();
+					if( line ) {
+						// update PCI line
+						uint8_t config = (driver_pci_read( pci, DRIVER_PCI_REGISTER_irq ) & 0xFFFFFFF0) | line;
+						driver_pci_write( pci, DRIVER_PCI_REGISTER_irq, config );
+					} else continue;	// no available lines
+
 					// show information about controller
 					kernel -> log( (uint8_t *) "[usb module] PCI %2X:%2X.%u - Universal Serial Bus controller found.\n", pci.bus, pci.device, pci.function );
 
@@ -62,7 +76,15 @@ void _entry( struct KERNEL *kernel ) {
 					if( base_address_config & 0b0100 ) base_address_space |= (uint64_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_bar5 ) << 32;
 
 					// show properties of device
-					kernel -> log( (uint8_t *) "[usb module]  Type: UHCI (Universal Host Controller Interface)\n[usb module]  I/O %s at 0x%X [0x%X Bytes], I/O APIC line %u.\n", base_address_type, base_address_space, base_address_size, driver_pci_read( pci, DRIVER_PCI_REGISTER_irq ) & 0x0F );
+					kernel -> log( (uint8_t *) "[usb module]  I/O %s at 0x%X [0x%X Bytes], I/O APIC line %u.\n", base_address_type, base_address_space, base_address_size, line );
+
+					// register USB controller
+					driver_usb_controller[ driver_usb_controller_count ].type = base_address_space & DRIVER_USB_BASE_ADDRESS_type;
+					driver_usb_controller[ driver_usb_controller_count ].base_address = base_address_space;
+					driver_usb_controller[ driver_usb_controller_count ].irq = line;
+
+					// controller registered
+					driver_usb_controller_count++;
 				}
 			}
 
