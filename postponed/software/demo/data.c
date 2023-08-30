@@ -4,7 +4,12 @@
 
 struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
 
-struct LIB_TERMINAL_STRUCTURE terminal;
+uint64_t fpu = 0;
+uint64_t fpu_average = 0;
+uint64_t fpu_count = 1;
+uint64_t fpu_last = 0;
+
+struct LIB_RGL_STRUCTURE *rgl;
 
 uint8_t string_material[ 6 ] = "newmtl";
 uint8_t string_material_change[ 6 ] = "usemtl";

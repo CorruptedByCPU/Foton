@@ -18,8 +18,7 @@ void lib_rgl_clean( struct LIB_RGL_STRUCTURE *rgl ) {
 		for( uint64_t x = 0; x < rgl -> width_pixel; x++ )
 			rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ] = rgl -> color_background;
 
-	double d;
-	(*((uint64_t *) &d))= ~(1LL << 52);
+	double d = -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0000000000000000;
 
 	// clean up depth area
 	for( uint64_t y = 0; y < rgl -> height_pixel; y++ )
@@ -51,8 +50,8 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 
 	// camera position
 	rgl -> camera.x = 0.0f;
-	rgl -> camera.y = 0.0f;
-	rgl -> camera.z = -5.0f;
+	rgl -> camera.y = 1.0f;
+	rgl -> camera.z = 5.0f;
 
 	// and its target
 	rgl -> target.x = 0.0f;
@@ -102,38 +101,6 @@ void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t
 
 		lib_rgl_sort_quick( triangles, low, pi - 1 );
 		lib_rgl_sort_quick( triangles, pi + 1, high );
-	}
-}
-
-inline uint8_t lib_rgl_edge( vector2d *a, vector2d *b, vector2d *c ) {
-	if( (b -> x - a -> x) * (c -> y - a -> y) - (b -> y - a -> y) * (c -> x - a -> x) < 0 ) return TRUE;
-	return FALSE;
-}
-
-void lib_rgl_line( struct LIB_RGL_STRUCTURE *rgl, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t color ) {
-	// no cliiping
-	if( x0 < 0 ) x0 = 0;
-	if( y0 < 0 ) y0 = 0;
-	if( x1 < 0 ) x1 = 0;
-	if( y1 < 0 ) y1 = 0;
-	if( x0 >= rgl -> width_pixel ) x0 = rgl -> width_pixel - 1;
-	if( y0 >= rgl -> height_pixel ) y0 = rgl -> height_pixel - 1;
-	if( x1 >= rgl -> width_pixel ) x1 = rgl -> width_pixel - 1;
-	if( y1 >= rgl -> height_pixel ) y1 = rgl -> height_pixel - 1;
-
-	int64_t dx = abs( x1 - x0 ), sx = (x0 < x1) ? 1 : -1;
-	int64_t dy = abs( y1 - y0 ), sy = (y0 < y1) ? 1 : -1; 
-	int64_t err = dx - dy;
-
-	while( TRUE ) {
-		rgl -> workbench_base_address[ (y0 * rgl -> width_pixel) + x0 ] = color;
-
-		if( (x0 == x1) && (y0 == y1) ) break;
-
-		int64_t e2 = err << 1;
-	
-		if( e2 > -dy ) { err -= dy; x0 += sx; }
-		if( e2 < dx ) { err += dx; y0 += sy; }
 	}
 }
 
@@ -283,51 +250,6 @@ vector3f lib_rgl_vector_substract( vector3f from, vector3f substract ) {
 	return tmp;
 }
 
-void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material ) {
-	uint32_t color = lib_rgl_color( material[ t -> material ].Kd, t -> light );
-
-	vector2d p0 = { (int64_t) (vp[ t -> v[ 0 ] ].x * (double) rgl -> width_pixel) + (rgl -> width_pixel >> 1), (int64_t) (vp[ t -> v[ 0 ] ].y * (double) rgl -> height_pixel) + (rgl -> height_pixel >> 1) };
-	vector2d p1 = { (int64_t) (vp[ t -> v[ 1 ] ].x * (double) rgl -> width_pixel) + (rgl -> width_pixel >> 1), (int64_t) (vp[ t -> v[ 1 ] ].y * (double) rgl -> height_pixel) + (rgl -> height_pixel >> 1) };
-	vector2d p2 = { (int64_t) (vp[ t -> v[ 2 ] ].x * (double) rgl -> width_pixel) + (rgl -> width_pixel >> 1), (int64_t) (vp[ t -> v[ 2 ] ].y * (double) rgl -> height_pixel) + (rgl -> height_pixel >> 1) };
-
-	int64_t left = p0.x;
-	if( p1.x < left ) left = p1.x;
-	if( p2.x < left ) left = p2.x;
-
-	int64_t top = p0.y;
-	if( p1.y < top ) top = p1.y;
-	if( p2.y < top ) top = p2.y;
-
-	int64_t right = p0.x;
-	if( p1.x > right ) right = p1.x;
-	if( p2.x > right ) right = p2.x;
-
-	int64_t bottom = p0.y;
-	if( p1.y > bottom ) bottom = p1.y;
-	if( p2.y > bottom ) bottom = p2.y;
-
-	vector2d p;
-
-	for( p.y = top; p.y <= bottom; p.y++ )
-		for( p.x = left; p.x <= right; p.x++ ) {
-			// pixel is inside workbench?
-			if( p.x < 0 || p.x > rgl -> width_pixel ) continue;	// no
-			if( p.y < 0 || p.y > rgl -> height_pixel ) continue;	// no
-
-			// pixel inside triangle?
-			if( ! lib_rgl_edge( (vector2d *) &p1, (vector2d *) &p2, (vector2d *) &p ) ) continue;
-			if( ! lib_rgl_edge( (vector2d *) &p2, (vector2d *) &p0, (vector2d *) &p ) ) continue;
-			if( ! lib_rgl_edge( (vector2d *) &p0, (vector2d *) &p1, (vector2d *) &p ) ) continue;
-
-			// draw it
-			rgl -> workbench_base_address[ (p.y * rgl -> width_pixel) + p.x ] = color;
-		}
-
-	lib_rgl_line( rgl, p0.x, p0.y, p1.x, p1.y, color );
-	lib_rgl_line( rgl, p1.x, p1.y, p2.x, p2.y, color );
-	lib_rgl_line( rgl, p2.x, p2.y, p0.x, p0.y, color );
-}
-
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_view( struct LIB_RGL_STRUCTURE *rgl ) {
 	vector3f z = lib_rgl_vector_substract( rgl -> target, rgl -> camera );
 	z = lib_rgl_return_vector_normalize( z );
@@ -372,9 +294,8 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 
 	// show only visible triangles
 	if( lib_rgl_vector_product_dot( normal, camera_ray ) < 0.0f ) {
-	// if( normal.z < 0.0f ) {
 		// light source position
-		vector3f light = { -1.0f, -1.0f, -1.0f };
+		vector3f light = { 1.0f, 1.0f, 1.0f };
 		light = lib_rgl_return_vector_normalize( light );
 
 		// dot product
@@ -399,7 +320,7 @@ struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RG
 	matrix.cell[ 2 ][ 2 ] = -f / (n - f);
 	matrix.cell[ 2 ][ 3 ] = 1.0f;
 	matrix.cell[ 3 ][ 2 ] = (n * f) / (n - f);
-	matrix.cell[ 3 ][ 3 ] = 0.0f;
+	matrix.cell[ 3 ][ 3 ] = -1.0f;
 
 	return matrix;
 };
@@ -422,20 +343,19 @@ void lib_rgl_multiply_vector( vector3f *v, struct LIB_RGL_STRUCTURE_MATRIX *matr
 	}
 }
 
-
-void lib_rgl_point( struct LIB_RGL_STRUCTURE *rgl, vector3f v, uint32_t color ) {
+void lib_rgl_point( struct LIB_RGL_STRUCTURE *rgl, vector2d1f v, uint32_t color ) {
 	// pixel is inside workbench?
-	if( (int64_t) v.x < 0 || (int64_t) v.x > rgl -> width_pixel ) return;	// no
-	if( (int64_t) v.y < 0 || (int64_t) v.y > rgl -> height_pixel ) return;	// no
+	if( v.x < 0 || v.x > rgl -> width_pixel ) return;	// no
+	if( v.y < 0 || v.y > rgl -> height_pixel ) return;	// no
 
 	// this pixel is behind?
-	if( rgl -> depth_base_address[ ((int64_t) v.y * rgl -> width_pixel) + (int64_t) v.x ] >= v.z ) return;	// yes
+	if( rgl -> depth_base_address[ (v.y * rgl -> width_pixel) + v.x ] > v.z ) return;	// yes
 
 	// no, remember that
-	rgl -> depth_base_address[ ((int64_t) v.y * rgl -> width_pixel) + (int64_t) v.x ] = v.z;
+	rgl -> depth_base_address[ (v.y * rgl -> width_pixel) + v.x ] = v.z;
 
 	// update
-	rgl -> workbench_base_address[ ((int64_t) v.y * rgl -> width_pixel) + (int64_t) v.x ] = color;
+	rgl -> workbench_base_address[ (v.y * rgl -> width_pixel) + v.x ] = color;
 }
 
 double lib_rgl_interpolate( double min, double max, double t ) {
@@ -446,72 +366,44 @@ void lib_rgl_scanline( struct LIB_RGL_STRUCTURE *rgl, double y, vector3f pa, vec
 	double t1 = pa.y != pb.y ? (y - pa.y) / (pb.y - pa.y) : 1.0f;
 	double t2 = pc.y != pd.y ? (y - pc.y) / (pd.y - pc.y) : 1.0f;
 
-	double sx = lib_rgl_interpolate( pa.x, pb.x, t1 );
-	double ex = lib_rgl_interpolate( pc.x, pd.x, t2 );
+	int64_t sx = (int64_t) lib_rgl_interpolate( pa.x, pb.x, t1 );
+	int64_t ex = (int64_t) lib_rgl_interpolate( pc.x, pd.x, t2 );
 	double z1 = lib_rgl_interpolate( pa.z, pb.z, t1 );
 	double z2 = lib_rgl_interpolate( pc.z, pd.z, t2 );
 
-	for( double x = sx; x < ex; x += 1.0f ) {
-		double t = (x - sx) / (ex - sx);
+	for( int64_t x = sx; x <= ex; x++ ) {
+		double t = (double) (x - sx) / (double) (ex - sx);
 		double z = lib_rgl_interpolate( z1, z2, t );
-		lib_rgl_point( rgl, (vector3f) { x, y, z }, color );
+		lib_rgl_point( rgl, (vector2d1f) { (int64_t) x, (int64_t) y, z }, color );
 	}
 }
 
 void lib_rgl_fill( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material ) {
 	uint32_t color = lib_rgl_color( material[ t -> material ].Kd, t -> light );
 
-	vector3f p1 = { (vp[ t -> v[ 0 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> 1), (vp[ t -> v[ 0 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> 1), vp[ t -> v[ 0 ] ].z };
-	vector3f p2 = { (vp[ t -> v[ 1 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> 1), (vp[ t -> v[ 1 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> 1), vp[ t -> v[ 1 ] ].z };
-	vector3f p3 = { (vp[ t -> v[ 2 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> 1), (vp[ t -> v[ 2 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> 1), vp[ t -> v[ 2 ] ].z };
+	vector3f p1 = { (vp[ t -> v[ 0 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> 1), -(vp[ t -> v[ 0 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> 1), vp[ t -> v[ 0 ] ].z };
+	vector3f p2 = { (vp[ t -> v[ 1 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> 1), -(vp[ t -> v[ 1 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> 1), vp[ t -> v[ 1 ] ].z };
+	vector3f p3 = { (vp[ t -> v[ 2 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> 1), -(vp[ t -> v[ 2 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> 1), vp[ t -> v[ 2 ] ].z };
 
-	if( p1.y > p2.y ) {
-		vector3f t = p2;
-		p2 = p1;
-		p1 = t;
-	}
+	// sort triangles in order P1 > P2 > P3 at Y axis
+	if( p1.y > p2.y ) { vector3f t = p2; p2 = p1; p1 = t; }
+	if( p2.y > p3.y ) { vector3f t = p2; p2 = p3; p3 = t; }
+	if( p1.y > p2.y ) { vector3f t = p2; p2 = p1; p1 = t; }
 
-	if( p2.y > p3.y ) {
-		vector3f t = p2;
-		p2 = p3;
-		p3 = t;
-	}
-
-	if( p1.y > p2.y ) {
-		vector3f t = p2;
-		p2 = p1;
-		p1 = t;
-	}
-
-	double d12 = 0.0f;
-	double d13 = 0.0f;
-
+	// triangle is left or right sided?
+	double d12, d13 = 0.0f;
 	if( (p2.y - p1.y) > 0.0f ) d12 = (p2.x - p1.x) / (p2.y - p1.y);
 	if( (p3.y - p1.y) > 0.0f ) d13 = (p3.x - p1.x) / (p3.y - p1.y);
   
-	// if( d12 > d13 )
-	// 	for( double y = p1.y; y <= p3.y; y += 1.0f ) {
-	// 		if( y < p2.y ) lib_rgl_scanline( rgl, y, p1, p3, p1, p2, color );
-	// 		else lib_rgl_scanline( rgl, y, p1, p3, p2, p3, color );
-	// 	}
-	// else
-	// 	for( double y = p1.y; y <= p3.y; y += 1.0f ) {
-	// 		if( y < p2.y ) lib_rgl_scanline( rgl, y, p1, p2, p1, p3, color );
-	// 		else lib_rgl_scanline( rgl, y, p2, p3, p1, p3, color );
-	// 	}
-
-	if( d12 > d13 )
+	if( d12 > d13 ) {
 		for( int64_t y = (int64_t) p1.y; y <= (int64_t) p3.y; y++ ) {
-			if( y < (int64_t) p2.y ) lib_rgl_scanline( rgl, (double) y, p1, p3, p1, p2, color );
+			if( y <= (int64_t) p2.y ) lib_rgl_scanline( rgl, (double) y, p1, p3, p1, p2, color );
 			else lib_rgl_scanline( rgl, (double) y, p1, p3, p2, p3, color );
 		}
-	else
+	} else {
 		for( int64_t y = (int64_t) p1.y; y <= (int64_t) p3.y; y++ ) {
-			if( y < (int64_t) p2.y ) lib_rgl_scanline( rgl, (double) y, p1, p2, p1, p3, color );
+			if( y <= (int64_t) p2.y ) lib_rgl_scanline( rgl, (double) y, p1, p2, p1, p3, color );
 			else lib_rgl_scanline( rgl, (double) y, p2, p3, p1, p3, color );
 		}
-
-	// lib_rgl_line( rgl, p1.x, p1.y, p2.x, p2.y, color );
-	// lib_rgl_line( rgl, p2.x, p2.y, p3.x, p3.y, color );
-	// lib_rgl_line( rgl, p3.x, p3.y, p1.x, p1.y, color );
+	}
 }
