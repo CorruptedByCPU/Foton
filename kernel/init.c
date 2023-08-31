@@ -31,11 +31,13 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
+	#include	"time.h"
+	#include	"rtc.h"
 	#include	"idt.h"
 	#include	"gdt.h"
 	#include	"tss.h"
 	#include	"lapic.h"
-	#include	"hpet.h"
+	// #include	"hpet.h"
 	#include	"io_apic.h"
 	#include	"config.h"
 	#include	"lapic.h"
@@ -56,7 +58,7 @@
 	//----------------------------------------------------------------------
 	#include	"log.c"
 	#include	"lapic.c"
-	#include	"hpet.c"
+	// #include	"hpet.c"
 	#include	"idt.c"
 	#include	"io_apic.c"
 	#include	"memory.c"
@@ -67,6 +69,8 @@
 	#include	"library.c"
 	#include	"exec.c"
 	#include	"module.c"
+	#include	"time.c"
+	#include	"rtc.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
@@ -79,7 +83,7 @@
 	#include	"init/acpi.c"
 	#include	"init/env.c"
 	#include	"init/gdt.c"
-	#include	"init/hpet.c"
+	// #include	"init/hpet.c"
 	#include	"init/idt.c"
 	#include	"init/lapic.c"
 	#include	"init/memory.c"
@@ -91,6 +95,7 @@
 	#include	"init/storage.c"
 	#include	"init/library.c"
 	#include	"init/module.c"
+	#include	"init/rtc.c"
 
 // our mighty init
 void _entry( void ) {
@@ -134,8 +139,11 @@ void _entry( void ) {
 	// create Task queue and insert kernel into it
 	kernel_init_task();
 
+	// configure RTC
+	kernel_init_rtc();
+
 	// configure HPET
-	kernel_init_hpet();
+	// kernel_init_hpet();
 
 	// initialize other CPUs
 	kernel_init_ap();

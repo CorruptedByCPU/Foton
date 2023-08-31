@@ -2,9 +2,10 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct KERNEL *kernel = EMPTY;
+void kernel_time_sleep( uint64_t t ) {
+	// set release pointer
+	uint64_t stop = kernel -> time_miliseconds + t;
 
-uint8_t driver_usb_string_port[] = "port";
-uint8_t driver_usb_string_memory[] = "memory";
-
-struct DRIVER_USB_CONTROLLER_STRUCTURE *driver_usb_controller = EMPTY;
+	// wait until we achieve
+	while( stop > kernel -> time_miliseconds );
+}

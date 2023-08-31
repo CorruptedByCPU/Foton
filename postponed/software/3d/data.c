@@ -32,5 +32,5 @@ vector3f *vr;
 vector3f *vp;
 struct LIB_RGL_STRUCTURE_TRIANGLE *face;
 
-MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/test.obj" );
-MACRO_IMPORT_FILE_AS_ARRAY( material, "./root/system/var/test.mtl" );
+MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/3d.obj" );
+MACRO_IMPORT_FILE_AS_ARRAY( material, "./root/system/var/3d.mtl" );

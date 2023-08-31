@@ -10,6 +10,9 @@ void kernel_init_env( void ) {
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;
 	kernel -> framebuffer_owner_pid		= EMPTY;	// by default: kernel
 
+	// share HPET management functions
+	kernel -> time_sleep			= (void *) kernel_time_sleep;
+
 	// share I/O APIC management functions
 	kernel -> io_apic_line_acquire		= (void *) kernel_io_apic_line_acquire;
 

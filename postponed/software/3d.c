@@ -12,11 +12,11 @@
 	#include	"../library/string.h"
 	#include	"../library/terminal.h"
 
-	#include	"demo/config.h"
-	#include	"demo/data.c"
-	#include	"demo/object.c"
-	#include	"demo/init.c"
-	#include	"demo/interface.c"
+	#include	"3d/config.h"
+	#include	"3d/data.c"
+	#include	"3d/object.c"
+	#include	"3d/init.c"
+	#include	"3d/interface.c"
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize environment

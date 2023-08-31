@@ -23,7 +23,7 @@ void kernel_init_page( void ) {
 	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> io_apic_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> io_apic_base_address, STD_PAGE_byte, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// map HPET controller area
-	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> hpet_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> hpet_base_address, STD_PAGE_byte, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	// kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> hpet_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> hpet_base_address, STD_PAGE_byte, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// now something harder ------------------------------------------------
 

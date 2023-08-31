@@ -10,3 +10,11 @@ void kernel_hpet_uptime( void ) {
 	// accept current interrupt call
 	kernel_lapic_accept();
 }
+
+void kernel_hpet_sleep( uint64_t t ) {
+	// set release pointer
+	uint64_t stop = kernel -> hpet_miliseconds + t;
+
+	// wait until we achieve
+	while( stop > kernel -> hpet_miliseconds );
+}

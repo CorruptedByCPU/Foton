@@ -79,7 +79,7 @@ void kernel_syscall_memory_release( uintptr_t source, uint64_t page) {
 
 uint64_t kernel_syscall_uptime() {
 	// return uptime
-	return kernel -> hpet_miliseconds;
+	return kernel -> time_miliseconds;
 }
 
 void kernel_syscall_log( uint8_t *string, uint64_t length ) {
