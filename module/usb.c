@@ -6,6 +6,7 @@
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
 	#include	"../kernel/config.h"
+	#include	"../kernel/page.h"
 	//----------------------------------------------------------------------
 	// drivers
 	//----------------------------------------------------------------------
@@ -128,6 +129,28 @@ void _entry( uintptr_t kernel_ptr ) {
 			if( driver_usb_detect_uhci( i ) ) {
 				// show controller type
 				kernel -> log( (uint8_t *) "[usb module].%u recognized as UHCI (Universal Host Controller Interface).\n", i );
+
+				// configure UHCI controller
+
+				// enable all type of interrupts
+				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, interrupt ), 0x000F );
+
+				// reset frame number
+				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, frame_number ), EMPTY );
+
+				// alloc area for frame list
+				driver_usb_controller[ i ].frame_base_address = kernel -> memory_alloc( 1 );
+				driver_port_out_dword( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, frame_base_address ), driver_usb_controller[ i ].frame_base_address & ~KERNEL_PAGE_logical );
+
+				// clear controller status
+				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, status ), 0xFFFF );
+
+				
+				MACRO_DEBUF();
+
+				// reset port0
+				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, port0 ), driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, port0 ) ) | (1 << 9) ); kernel -> time_sleep( 50 );
+				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, port0 ), driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, port0 ) ) & ~(1 << 9) ); kernel -> time_sleep( 10 );
 			}
 		}
 	}

@@ -41,9 +41,9 @@ debug: action=ignore
 info: action=report
 error: action=report
 panic: action=ask
-keyboard: type=mf, serial_delay=250, paste_delay=100000, user_shortcut=none
-mouse: type=ps2, enabled=false, toggle=ctrl+mbutton
-usb_uhci: enabled=true, port1=keyboard, port2=mouse
+#keyboard: type=mf, serial_delay=250, paste_delay=100000, user_shortcut=none
+#mouse: type=ps2, enabled=false, toggle=ctrl+mbutton
+usb_uhci: port1=keyboard, port2=mouse, options1="debug"
 sound: waveoutdrv=alsa, waveout=none, waveindrv=alsa, wavein=none, midioutdrv=alsa, midiout=none
 speaker: enabled=true, mode=system
 parport1: enabled=true, file=none

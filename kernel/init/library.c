@@ -11,5 +11,5 @@ void kernel_init_library() {
 
 	// initialize memory map
 	for( uint64_t i = 0; i < kernel -> page_limit; i++ )
-		kernel -> library_map_address[ i / 32 ] |= 1 << i % 32;
+		kernel -> library_map_address[ i >> STD_SHIFT_32 ] |= 1 << (i & 0b0011111);
 }

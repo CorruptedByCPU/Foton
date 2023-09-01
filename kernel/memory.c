@@ -39,7 +39,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {
 		// check N (c)onsecutive pages
 		for( uint64_t c = p; c < p + N; c++ ) {
 			// broken continous?
-			if( ! (memory[ c / 32 ] & 1 << c % 32) ) {
+			if( ! (memory[ c >> STD_SHIFT_32 ] & 1 << (c & 0b0011111)) ) {
 				// one of the bits is disabled
 				found = FALSE;
 
@@ -55,7 +55,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {
 		if( found ) {
 			// mark pages as (r)eserved
 			for( uint64_t r = p; r < p + N; r++ )
-				memory[ r / 32 ] &= ~(1 << r % 32 );
+				memory[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b0011111) );
 
 			// unlock access to binary memory map
 			kernel -> memory_semaphore = UNLOCK;
@@ -75,7 +75,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {
 void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
 	// mark pages as available
 	for( uint64_t i = p; i < p + N; i++ )
-		memory_map[ i / 32 ] |= 1 << i % 32;
+		memory_map[ i >> STD_SHIFT_32 ] |= 1 << (i & 0b0011111);
 }
 
 void kernel_memory_release( uintptr_t address, uint64_t N ) {

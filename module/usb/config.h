@@ -12,6 +12,7 @@
 	struct DRIVER_USB_CONTROLLER_STRUCTURE {
 		uint8_t		type;
 		uintptr_t	base_address;
+		uint64_t	frame_base_address;
 		uint8_t		irq_line;
 	};
 

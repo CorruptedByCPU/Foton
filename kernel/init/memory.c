@@ -70,7 +70,7 @@ void kernel_init_memory( void ) {
 
 				// register pages that are part of USABLE memory area
 				for( uint64_t j = limine_memmap_request.response -> entries[ i ] -> base >> STD_SHIFT_PAGE; j < (limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length) >> STD_SHIFT_PAGE; j++ )
-					kernel -> memory_base_address[ j / 32 ] |= 1 << j % 32;
+					kernel -> memory_base_address[ j >> STD_SHIFT_32 ] |= 1 << (j & 0b0011111);
 			}
 		}
 	}
@@ -78,7 +78,7 @@ void kernel_init_memory( void ) {
 	// mark pages used by kernel environment variables/functions and binary memory map itself as unavailable
 	for( uint64_t i = ((uint64_t) kernel & ~KERNEL_PAGE_logical) >> STD_SHIFT_PAGE; i < MACRO_PAGE_ALIGN_UP( (((uint64_t) kernel -> memory_base_address & ~KERNEL_PAGE_logical) + (kernel -> page_limit >> STD_SHIFT_8)) ) >> STD_SHIFT_PAGE; i++ ) {
 		// mark page as unavailable
-		kernel -> memory_base_address[ i / 32 ] &= ~(1 << i % 32);
+		kernel -> memory_base_address[ i >> STD_SHIFT_32 ] &= ~(1 << (i & 0b0011111));
 
 		// available pages
 		kernel -> page_available--;
