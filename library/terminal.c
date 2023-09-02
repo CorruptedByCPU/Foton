@@ -5,12 +5,6 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
-	#ifndef	LIB_FONT
-		#include	"./font.h"
-	#endif
-	#ifndef	LIB_STRING
-		#include	"./string.h"
-	#endif
 	#ifndef	LIB_TERMINAL
 		#include	"./terminal.h"
 	#endif

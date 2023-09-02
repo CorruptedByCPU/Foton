@@ -145,9 +145,6 @@ void _entry( uintptr_t kernel_ptr ) {
 				// clear controller status
 				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, status ), 0xFFFF );
 
-				
-				MACRO_DEBUF();
-
 				// reset port0
 				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, port0 ), driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, port0 ) ) | (1 << 9) ); kernel -> time_sleep( 50 );
 				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, port0 ), driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_STRUCTURE_REGISTER, port0 ) ) & ~(1 << 9) ); kernel -> time_sleep( 10 );

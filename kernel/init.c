@@ -155,7 +155,7 @@ void _entry( void ) {
 	kernel_init_library();
 
 	// execute first process
-	kernel_exec( (uint8_t *) "init", 5 );
+	kernel_exec( (uint8_t *) "wm", 2 );
 
 	// load basic list of modules
 	kernel_init_module();

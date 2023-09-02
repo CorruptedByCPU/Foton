@@ -79,6 +79,7 @@
 	#define	STD_SYSCALL_UPTIME				0x04
 	#define	STD_SYSCALL_LOG					0x05
 	#define	STD_SYSCALL_THREAD				0x06
+	#define	STD_SYSCALL_PID					0x07
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -100,6 +101,9 @@
 
 	// returns process ID of executed function as thread
 	int64_t std_syscall_thread( uintptr_t function, uint8_t *string, uint64_t length );
+
+	// returns pid number of calling process
+	int64_t std_syscall_pid( void );
 
 	#ifdef	SOFTWARE
 		// function definitions

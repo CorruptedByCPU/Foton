@@ -45,7 +45,7 @@ struct KERNEL {
 	// uint8_t		hpet_timers;
 
 	// variables of Time management functions
-	volatile uint64_t	time_miliseconds;
+	volatile uint64_t	time_unit;
 	// functions of Time management
 	void							(*time_sleep)( uint64_t t );	// miliseconds
 
@@ -98,6 +98,8 @@ struct KERNEL {
 	uint64_t	task_limit;
 	uint64_t	task_count;
 	int64_t		task_id;
+	// functions of Task management
+	int64_t							(*task_active)( void );
 
 	// variables of TSS management functions
 	struct KERNEL_TSS_STRUCTURE				tss_table;

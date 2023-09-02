@@ -12,6 +12,7 @@ extern	kernel_syscall_memory_release
 extern	kernel_syscall_uptime
 extern	kernel_syscall_log
 extern	kernel_syscall_thread
+extern	kernel_syscall_pid
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -32,6 +33,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_uptime
 	dq	kernel_syscall_log
 	dq	kernel_syscall_thread
+	dq	kernel_syscall_pid
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

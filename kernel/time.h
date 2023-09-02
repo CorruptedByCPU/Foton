@@ -5,6 +5,6 @@
 #ifndef	KERNEL_TIME
 	#define	KERNEL_TIME
 
-	// releases CPU after t miliseconds
+	// releases CPU after ~t miliseconds
 	void kernel_time_sleep( uint64_t t );
 #endif

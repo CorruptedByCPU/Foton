@@ -62,7 +62,7 @@ void kernel_task( void ) {
 	}
 }
 
-struct KERNEL_TASK_STRUCTURE *kernel_task_active() {
+struct KERNEL_TASK_STRUCTURE *kernel_task_active( void ) {
 	// from list of active tasks on individual logical processors
 	// select currently processed position relative to current logical processor
 	return (struct KERNEL_TASK_STRUCTURE *) kernel -> task_cpu_address[ kernel_lapic_id() ];

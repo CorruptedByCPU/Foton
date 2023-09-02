@@ -100,3 +100,11 @@ int64_t std_syscall_thread( uintptr_t function, uint8_t *string, uint64_t length
 	// return nothing
 	return std_syscall_signed();
 }
+
+int64_t std_syscall_pid( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_PID) );
+
+	// return nothing
+	return std_syscall_signed();
+}

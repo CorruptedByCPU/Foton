@@ -16,7 +16,7 @@ void kernel_rtc() {
 	driver_port_in_byte( KERNEL_RTC_PORT_data );
 
 	// increase the real-time controller invocation count
-	kernel -> time_miliseconds++;
+	kernel -> time_unit++;
 
 	// accept current interrupt call
 	kernel_lapic_accept();

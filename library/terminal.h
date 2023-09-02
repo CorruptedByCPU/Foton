@@ -5,6 +5,13 @@
 #ifndef	LIB_TERMINAL
 	#define	LIB_TERMINAL
 
+	#ifndef	LIB_FONT
+		#include	"./font.h"
+	#endif
+	#ifndef	LIB_STRING
+		#include	"./string.h"
+	#endif
+
 	#define LIB_TERMINAL_TAB_length		8	// chars
 
 	#define	LIB_TERMINAL_FLAG_clean		0b00000001	// clean space for character under cursor
