@@ -53,7 +53,7 @@ uintptr_t std_syscall_pointer() {
 
 //------------------------------------------------------------------------------
 
-void std_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
+void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_FRAMEBUFFER), "D" (framebuffer) );
 
@@ -85,7 +85,7 @@ uint64_t std_uptime( void ) {
 	return std_syscall_unsigned();
 }
 
-void std_syscall_log( uint8_t *string, uint64_t length ) {
+void std_log( uint8_t *string, uint64_t length ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_LOG), "D" (string), "S" (length) );
 
@@ -93,7 +93,7 @@ void std_syscall_log( uint8_t *string, uint64_t length ) {
 	return std_syscall_empty();
 }
 
-int64_t std_syscall_thread( uintptr_t function, uint8_t *string, uint64_t length ) {
+int64_t std_thread( uintptr_t function, uint8_t *string, uint64_t length ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_THREAD), "D" (function), "S" (string), "d" (length) );
 
@@ -101,7 +101,7 @@ int64_t std_syscall_thread( uintptr_t function, uint8_t *string, uint64_t length
 	return std_syscall_signed();
 }
 
-int64_t std_syscall_pid( void ) {
+int64_t std_pid( void ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_PID) );
 

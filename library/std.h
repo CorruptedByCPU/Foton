@@ -94,16 +94,19 @@
 	#define	STD_VIDEO_DEPTH_bit				32
 
 	// returns properties of available framebuffer ()
-	void std_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
+	void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
 
 	// returns current miliseconds from system initialization
 	uint64_t std_uptime( void );
 
 	// returns process ID of executed function as thread
-	int64_t std_syscall_thread( uintptr_t function, uint8_t *string, uint64_t length );
+	int64_t std_thread( uintptr_t function, uint8_t *string, uint64_t length );
 
 	// returns pid number of calling process
-	int64_t std_syscall_pid( void );
+	int64_t std_pid( void );
+
+	// returns N page sized area regarding of passsed Bytes
+	uintptr_t std_memory_alloc( uint64_t byte );
 
 	#ifdef	SOFTWARE
 		// function definitions

@@ -168,7 +168,7 @@ void log( const char *string, ... ) {
 					uint64_t value = va_arg( argv, uint64_t );
 
 					// show 'value' on terminal
-					std_syscall_log( (uint8_t *) &digits, lib_integer_to_string( value, 2, (uint8_t *) &digits ) );
+					std_log( (uint8_t *) &digits, lib_integer_to_string( value, 2, (uint8_t *) &digits ) );
 
 					// next character from string
 					continue;
@@ -179,7 +179,7 @@ void log( const char *string, ... ) {
 					uint8_t c = va_arg( argv, uint64_t );
 					
 					// show 'character' on terminal
-					std_syscall_log( (uint8_t *) &c, 1 );
+					std_log( (uint8_t *) &c, 1 );
 
 					// next character from string
 					continue;
@@ -192,14 +192,14 @@ void log( const char *string, ... ) {
 					// value signed?
 					if( value & 0x8000000000000000 ) {
 						// show 'character' on terminal
-						std_syscall_log( (uint8_t *) "-", 1 );
+						std_log( (uint8_t *) "-", 1 );
 
 						// remove sign
 						value = ~value + 1;
 					}
 
 					// show 'value' on terminal
-					std_syscall_log( (uint8_t *) &digits, lib_integer_to_string( value, 10, (uint8_t *) &digits ) );
+					std_log( (uint8_t *) &digits, lib_integer_to_string( value, 10, (uint8_t *) &digits ) );
 
 					// next character from string
 					continue;
@@ -210,7 +210,7 @@ void log( const char *string, ... ) {
 					uint8_t *substring = va_arg( argv, uint8_t * );
 					
 					// show 'substring' on terminal
-					std_syscall_log( substring, lib_string_length( substring ) );
+					std_log( substring, lib_string_length( substring ) );
 
 					// next character from string
 					continue;
@@ -221,7 +221,7 @@ void log( const char *string, ... ) {
 					uint64_t value = va_arg( argv, uint64_t );
 
 					// show 'value' on terminal
-					std_syscall_log( (uint8_t *) &digits, lib_integer_to_string( value, 10, (uint8_t *) &digits ) );
+					std_log( (uint8_t *) &digits, lib_integer_to_string( value, 10, (uint8_t *) &digits ) );
 
 					// next character from string
 					continue;
@@ -232,7 +232,7 @@ void log( const char *string, ... ) {
 					uint64_t value = va_arg( argv, uint64_t );
 
 					// show 'value' on terminal
-					std_syscall_log( (uint8_t *) &digits, lib_integer_to_string( value, 16, (uint8_t *) &digits ) );
+					std_log( (uint8_t *) &digits, lib_integer_to_string( value, 16, (uint8_t *) &digits ) );
 
 					// next character from string
 					continue;
@@ -241,7 +241,7 @@ void log( const char *string, ... ) {
 		}
 
 		// no, show it
-		std_syscall_log( (uint8_t *) &string[ i ], 1 );
+		std_log( (uint8_t *) &string[ i ], 1 );
 	}
 
 	// end of arguemnt list

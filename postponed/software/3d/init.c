@@ -4,7 +4,7 @@
 
 uint8_t init( void ) {
 	// obtain information about kernels framebuffer
-	std_syscall_framebuffer( &framebuffer );
+	std_framebuffer( &framebuffer );
 
 	// unsupported pitch size?
 	if( framebuffer.pitch_byte >> STD_VIDEO_DEPTH_shift > framebuffer.width_pixel ) return TRUE;	// yes
@@ -17,7 +17,7 @@ uint8_t init( void ) {
 	object_load();
 
 	// execute interface as separate thread
-	std_syscall_thread( (uintptr_t) &interface, (uint8_t *) "demo-interface", 14 );
+	std_thread( (uintptr_t) &interface, (uint8_t *) "demo-interface", 14 );
 
 	// it's ok
 	return FALSE;
