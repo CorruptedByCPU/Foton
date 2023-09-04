@@ -5,8 +5,10 @@
 void kernel_init_memory( void ) {
 	// limine shared with us a memory map?
 	if( limine_memmap_request.response == NULL || ! limine_memmap_request.response -> entry_count ) {	// no
-		// show an error
-		lib_terminal_string( &kernel_terminal, (uint8_t *) "Houston, we have a problem.\n", 28 );
+		#ifdef	DEBUG
+			// show an error
+			lib_terminal_string( &kernel_terminal, (uint8_t *) "Houston, we have a problem.\n", 28 );
+		#endif
 
 		// hold the door
 		while( TRUE );
@@ -16,21 +18,25 @@ void kernel_init_memory( void ) {
 	uint64_t local_largest_byte = EMPTY;
 
 	// all available memory areas should be clean at kernel initialization
-	// lib_terminal_string( &kernel_terminal, (uint8_t *) "Memory map:\n", 12 );
+	#ifdef	DEBUG
+		lib_terminal_string( &kernel_terminal, (uint8_t *) "Memory map:\n", 12 );
+	#endif
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
-		// // show memory range and type
-		// lib_terminal_printf( &kernel_terminal, (uint8_t *) " %16X - %16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );
-		// switch( limine_memmap_request.response -> entries[ i ] -> type ) {
-		// 	case LIMINE_MEMMAP_USABLE:			{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Usable\n" ); break; }
-		// 	case LIMINE_MEMMAP_RESERVED:			{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Reserved\n" ); break; }
-		// 	case LIMINE_MEMMAP_ACPI_RECLAIMABLE:		{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "ACPI Reclaimable\n" ); break; }
-		// 	case LIMINE_MEMMAP_ACPI_NVS:			{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "ACPI NVS\n" ); break; }
-		// 	case LIMINE_MEMMAP_BAD_MEMORY:			{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Corrupted Memory\n" ); break; }
-		// 	case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:	{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Bootloader Reclaimable\n" ); break; }
-		// 	case LIMINE_MEMMAP_KERNEL_AND_MODULES:		{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Kernel or Modules\n" ); break; }
-		// 	case LIMINE_MEMMAP_FRAMEBUFFER:			{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Framebuffer\n" ); break; }
-		// 	default:					{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "{unknown}\n" ); }
-		// }
+		#ifdef	DEBUG
+			// show memory range and type
+			lib_terminal_printf( &kernel_terminal, (uint8_t *) " %16X - %16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );
+			switch( limine_memmap_request.response -> entries[ i ] -> type ) {
+				case LIMINE_MEMMAP_USABLE:			{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Usable\n" ); break; }
+				case LIMINE_MEMMAP_RESERVED:			{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Reserved\n" ); break; }
+				case LIMINE_MEMMAP_ACPI_RECLAIMABLE:		{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "ACPI Reclaimable\n" ); break; }
+				case LIMINE_MEMMAP_ACPI_NVS:			{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "ACPI NVS\n" ); break; }
+				case LIMINE_MEMMAP_BAD_MEMORY:			{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Corrupted Memory\n" ); break; }
+				case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:	{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Bootloader Reclaimable\n" ); break; }
+				case LIMINE_MEMMAP_KERNEL_AND_MODULES:		{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Kernel or Modules\n" ); break; }
+				case LIMINE_MEMMAP_FRAMEBUFFER:			{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "Framebuffer\n" ); break; }
+				default:					{ lib_terminal_printf( &kernel_terminal, (uint8_t *) "{unknown}\n" ); }
+			}
+		#endif
 
 		// USABLE memory area?
 		if( limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_USABLE ) {
@@ -84,6 +90,8 @@ void kernel_init_memory( void ) {
 		kernel -> page_available--;
 	}
 
-	// inform about total memory area in KiB
-	lib_terminal_printf( &kernel_terminal, (uint8_t *) "Memory size: %u KiB (%u KiB free)\n", kernel -> page_total << STD_SHIFT_4, kernel -> page_available << STD_SHIFT_4 );
+	#ifdef	DEBUG
+		// inform about total memory area in KiB
+		lib_terminal_printf( &kernel_terminal, (uint8_t *) "Memory size: %u KiB (%u KiB free)\n", kernel -> page_total << STD_SHIFT_4, kernel -> page_available << STD_SHIFT_4 );
+	#endif
 }

@@ -5,8 +5,10 @@
 // kernel environment variables/functions
 struct KERNEL *kernel = EMPTY;
 
-// terminal properties
-struct LIB_TERMINAL_STRUCTURE kernel_terminal;
+#ifdef	DEBUG
+	// terminal properties
+	struct LIB_TERMINAL_STRUCTURE kernel_terminal;
+#endif
 
 // our limine requests
 

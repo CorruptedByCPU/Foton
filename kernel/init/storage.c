@@ -34,7 +34,7 @@ void kernel_init_storage() {
 		if( ! kernel -> storage_base_address[ i ].device_type ) continue;	// leave it
 
 		// properties of file
-		struct STD_FILE_STRUCTURE file = kernel_storage_file( i, (uint8_t *) "/system/bin/wm", 14 );
+		struct STD_FILE_STRUCTURE file = kernel_storage_file( i, (uint8_t *) "/system/bin/init", 16 );
 
 		// storage contains requested file?
 		if( file.id ) {	// yes
@@ -44,18 +44,22 @@ void kernel_init_storage() {
 			// kernels storage device
 			kernel -> task_base_address -> storage = i;
 
-			// show information about storage
-			kernel -> log( (uint8_t *) "Storage: %u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].device_size_byte ) >> STD_SHIFT_1024 );
+			#ifdef	DEBUG
+				// show information about storage
+				kernel -> log( (uint8_t *) "Storage: %u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].device_size_byte ) >> STD_SHIFT_1024 );
+			#endif
 		}
 	}
 
 	// kernel storage not found?
 	if( kernel -> storage_root_id == -1 ) {
-		// change font color
-		kernel_terminal.color_foreground = STD_COLOR_RED_light;
+		#ifdef	DEBUG
+			// change font color
+			kernel_terminal.color_foreground = STD_COLOR_RED_light;
 
-		// show proper message
-		kernel -> log( (uint8_t *) "Where are my testicles, Summer?\n" );
+			// show proper message
+			kernel -> log( (uint8_t *) "Where are my testicles, Summer?\n" );
+		#endif
 
 		// hold the door
 		while( TRUE );

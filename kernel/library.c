@@ -39,9 +39,6 @@ uint8_t kernel_library_find( uint8_t *name, uint8_t length ) {
 }
 
 uintptr_t kernel_library_function( uint8_t *string, uint64_t length ) {
-// debug
-// kernel -> log( (uint8_t *) "  {looking for '%s'}\n", string );
-
 	// search in every loaded library
 	for( uint64_t i = 0; i < KERNEL_LIBRARY_limit; i++ ) {
 		// entry active?
@@ -161,25 +158,15 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 	// external libraries are not required?
 	if( ! rela ) return;	// yes
 
-// debug
-// kernel -> log( (uint8_t *) " GOT at offset 0x%X\n", got );
-
 	// for each entry in dynamic symbols
 	for( uint64_t i = 0; i < rela_entry_count; i++ ) {
 		// it's a local function?
-		if( dynsym[ rela[ i ].index ].address ) {
+		if( dynsym[ rela[ i ].index ].address )
 			// update address of local function
 			got[ i ] = dynsym[ rela[ i ].index ].address + code_base_address;
-
-// debug
-// kernel -> log( (uint8_t *) "  [changed address of local function '%s' to %X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
-		} else {
+		else
 			// retrieve library function address
 			got[ i ] = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
-
-// debug
-// kernel -> log( (uint8_t *) "  [acquired function address of '%s' as 0x%X]\n", &strtab[ dynsym[ rela[ i ].index ].name_offset ], got[ i ] );
-		}
 	}
 }
 
@@ -220,9 +207,6 @@ void kernel_library_load( uint8_t *name, uint64_t length ) {
 	// load libraries required by file
 	kernel_library( elf );
 
-// debug
-// kernel -> log( (uint8_t *) "Library: parsing '%s'\n", name );
-
 	// ELF header properties
 	struct LIB_ELF_STRUCTURE_HEADER *elf_h = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> headers_offset);
 
@@ -237,14 +221,8 @@ void kernel_library_load( uint8_t *name, uint64_t length ) {
 			library_space_page = MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].segment_size ) >> STD_SHIFT_PAGE;
 	}
 
-// debug
-// kernel -> log( (uint8_t *) " Space length: 0x%X Bytes\n", library_space_page << STD_SHIFT_PAGE );
-
 	// acquire memory space inside library environment
 	uintptr_t library_base_address = (kernel_memory_acquire( kernel -> library_map_address, library_space_page ) << STD_SHIFT_PAGE) + KERNEL_LIBRARY_base_address;
-
-// debug
-// kernel -> log( (uint8_t *) " Base address: 0x%X\n", library_base_address );
 
 	// map aquired memory space for library
 	kernel_page_alloc( kernel -> page_base_address, library_base_address, library_space_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_external );
@@ -262,9 +240,6 @@ void kernel_library_load( uint8_t *name, uint64_t length ) {
 		uint8_t *source = (uint8_t *) workbench + elf_h[ i ].segment_offset;
 		uint8_t *target = (uint8_t *) library_base_address + elf_h[ i ].virtual_address;
 
-// debug
-// kernel -> log( (uint8_t *) " Segment offset 0x%X moved to 0x%X\n", source - workbench, target );
-
 		// copy segment content in place
 		for( uint64_t j = 0; j < elf_h[ i ].segment_size; j++ ) target[ j ] = source[ j ];
 	}
@@ -281,9 +256,6 @@ void kernel_library_load( uint8_t *name, uint64_t length ) {
 		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_dynsym ) { library -> dynamic_linking = (struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL *) (library_base_address + elf_s[ i ].virtual_address); library -> d_entry_count = elf_s[ i ].size_byte / sizeof( struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL ); }
 	}
 
-// debug
-// kernel -> log( (uint8_t *) "  String table at 0x%X\n  Dynamic linking information at 0x%X\n", library -> strtab, (uint64_t) library -> dynamic_linking );
-
 	// connect required functions new locations / from another library
 	kernel_library_link( elf, library_base_address, TRUE );
 
@@ -293,9 +265,6 @@ void kernel_library_load( uint8_t *name, uint64_t length ) {
 
 	// library parsed
 	library -> flags |= KERNEL_LIBRARY_FLAG_active;
-
-// debug
-// kernel -> log( (uint8_t *) " +%s installed.\n", name );
 
 	// release workbench space
 	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( file.size_byte ) >> STD_SHIFT_PAGE );

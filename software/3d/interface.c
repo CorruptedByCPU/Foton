@@ -3,9 +3,6 @@
 ===============================================================================*/
 
 void interface( void ) {
-	// sad hack :|
-	__asm__ volatile( "testw $0x08, %sp\nje .+4\npushq $0x00" );
-
 	// terminal properties
 	struct LIB_TERMINAL_STRUCTURE terminal;
 
@@ -27,7 +24,7 @@ void interface( void ) {
 		// unit of time, passed?
 		if( std_uptime() > fpu_last ) {
 			// select new time unit
-			fpu_last += 10;
+			fpu_last += 1;
 
 			// sum all FPU parsed
 			fpu_average += fpu;

@@ -5,18 +5,24 @@
 	//----------------------------------------------------------------------
 	// library
 	//----------------------------------------------------------------------
-	#include	"../library/color.h"
-	#include	"../library/color.c"
+	#ifdef	DEBUG
+		#include	"../library/color.h"
+		#include	"../library/color.c"
+	#endif
 	#include	"../library/elf.h"
 	#include	"../library/elf.c"
-	#include	"../library/font.h"
-	#include	"../library/font.c"
+	#ifdef	DEBUG
+		#include	"../library/font.h"
+		#include	"../library/font.c"
+	#endif
 	#include	"../library/string.h"
 	#include	"../library/string.c"
 	#include	"../library/vfs.h"
 	#include	"../library/vfs.c"
-	#include	"../library/terminal.h"
-	#include	"../library/terminal.c"
+	#ifdef	DEBUG
+		#include	"../library/terminal.h"
+		#include	"../library/terminal.c"
+	#endif
 	//----------------------------------------------------------------------
 	// drivers
 	//----------------------------------------------------------------------
@@ -76,7 +82,7 @@
 	//----------------------------------------------------------------------
 	#include	"init/acpi.h"
 	#include	"init/lapic.h"
-	#include	"init/reload.h"
+	#include	"init/ap.h"
 	//----------------------------------------------------------------------
 	// kernel environment initialization routines, procedures
 	//----------------------------------------------------------------------
@@ -89,8 +95,8 @@
 	#include	"init/memory.c"
 	#include	"init/page.c"
 	#include	"init/task.c"
-	#include	"init/reload.c"
 	#include	"init/ap.c"
+	#include	"init/smp.c"
 	#include	"init/vfs.c"
 	#include	"init/storage.c"
 	#include	"init/library.c"
@@ -104,16 +110,18 @@ void _entry( void ) {
 		// no, hold the door (screen will be black)
 		while( TRUE );
 
+#ifdef	DEBUG
 	// update terminal properties
 	kernel_terminal.width			= limine_framebuffer_request.response -> framebuffers[ 0 ] -> width;
 	kernel_terminal.height			= limine_framebuffer_request.response -> framebuffers[ 0 ] -> height;
 	kernel_terminal.base_address		= (uint32_t *) ((uintptr_t) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address | KERNEL_PAGE_logical);
 	kernel_terminal.scanline_pixel		= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch >> STD_VIDEO_DEPTH_shift;
 	kernel_terminal.color_foreground	= STD_COLOR_WHITE;
-	kernel_terminal.color_background	= STD_COLOR_BLUE;
+	kernel_terminal.color_background	= STD_COLOR_BLACK;
 
 	// initialize terminal
 	lib_terminal( &kernel_terminal );
+#endif
 
 	// create binary memory map
 	kernel_init_memory();
@@ -146,7 +154,7 @@ void _entry( void ) {
 	// kernel_init_hpet();
 
 	// initialize other CPUs
-	kernel_init_ap();
+	kernel_init_smp();
 
 	// register all available storage devices
 	kernel_init_storage();
@@ -155,11 +163,11 @@ void _entry( void ) {
 	kernel_init_library();
 
 	// execute first process
-	kernel_exec( (uint8_t *) "wm", 2 );
+	kernel_exec( (uint8_t *) "3d", 2 );
 
 	// load basic list of modules
 	kernel_init_module();
 
 	// reload BSP configuration
-	kernel_init_reload();
+	kernel_init_ap();
 }

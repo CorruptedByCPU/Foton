@@ -5,11 +5,11 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
-	#ifndef	LIB_RGL
-		#include	"./rgl.h"
-	#endif
 	#ifndef	LIB_MATH
 		#include	"./math.h"
+	#endif
+	#ifndef	LIB_RGL
+		#include	"./rgl.h"
 	#endif
 
 void lib_rgl_clean( struct LIB_RGL_STRUCTURE *rgl ) {

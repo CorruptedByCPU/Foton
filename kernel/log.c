@@ -9,8 +9,10 @@ void kernel_log( uint8_t *string, ... ) {
 	// start of argument list
 	va_start( argv, string );
 
-	// parse string with arguments
-	lib_terminal_parse( &kernel_terminal, string, argv );
+	#ifdef	DEBUG
+		// parse string with arguments
+		lib_terminal_parse( &kernel_terminal, string, argv );
+	#endif
 
 	// end of arguemnt list
 	va_end( argv );

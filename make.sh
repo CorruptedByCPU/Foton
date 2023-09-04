@@ -39,7 +39,7 @@ ${ASM} -f elf64 kernel/rtc.asm		-o build/rtc.o & EXT="${EXT} build/rtc.o"
 ${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o & EXT="${EXT} build/syscall.o"
 
 # default configuration of clang for kernel making
-# DEBUG="-mgeneral-regs-only"
+if [ ! -z "${2}" ]; then DEBUG="-DDEBUG"; fi
 CFLAGS="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -mno-3dnow ${DEBUG}"
 CFLAGS_SOFTWARE="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone ${DEBUG}"
 LDFLAGS="-nostdlib -static -no-dynamic-linker"
@@ -47,6 +47,7 @@ LDFLAGS="-nostdlib -static -no-dynamic-linker"
 # build kernel file
 ${C} -c kernel/init.c -o build/kernel.o ${CFLAGS} || exit 1;
 ${LD} ${EXT} build/kernel.o -o build/kernel -T tools/linker.kernel ${LDFLAGS} || exit 1;
+strip -R .comment -s build/kernel
 
 # copy kernel file and limine files onto destined iso folder
 gzip -k build/kernel
@@ -65,7 +66,7 @@ for module in `(cd module && ls *.c)`; do
 	${LD} build/${name}.o -o build/root/system/lib/modules/${name}.ko -T tools/linker.module ${LDFLAGS}
 
 	# we do not need any additional information
-	strip -s build/root/system/lib/modules/${name}.ko > /dev/null 2>&1
+	strip -R .comment -s build/root/system/lib/modules/${name}.ko > /dev/null 2>&1
 done
 
 #===============================================================================
@@ -81,7 +82,7 @@ for library in color elf integer math string font std rgl terminal vfs; do
 	${C} -shared build/${library}.o -o build/root/system/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/linker.library -L./build/root/system/lib/ ${lib} || exit 1
 
 	# we do not need any additional information
-	strip -s build/root/system/lib/lib${library}.so > /dev/null 2>&1
+	strip -R .comment -s build/root/system/lib/lib${library}.so > /dev/null 2>&1
 
 	# update libraries list
 	lib="${lib} -l${library}"
@@ -100,7 +101,7 @@ for software in `(cd software && ls *.c)`; do
 	${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/linker.software ${LDFLAGS}
 
 	# we do not need any additional information
-	strip -s build/root/system/bin/${name} > /dev/null 2>&1
+	strip -R .comment -s build/root/system/bin/${name} > /dev/null 2>&1
 done
 
 #===============================================================================
