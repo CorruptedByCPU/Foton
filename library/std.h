@@ -59,6 +59,15 @@
 		uint16_t	guid;
 	};
 
+	#define	STD_IPC_SIZE_byte				40
+
+	struct	STD_IPC_STRUCTURE {
+		uint64_t	ttl;
+		int64_t		source;
+		int64_t		target;
+		uint8_t		data[ STD_IPC_SIZE_byte ];
+	} __attribute__( (packed) );
+
 	#define	STD_PAGE_byte					0x1000
 	#define	STD_PAGE_mask					0xFFFFFFFFFFFFF000
 
@@ -80,6 +89,9 @@
 	#define	STD_SYSCALL_LOG					0x05
 	#define	STD_SYSCALL_THREAD				0x06
 	#define	STD_SYSCALL_PID					0x07
+	#define	STD_SYSCALL_EXEC				0x08
+	#define	STD_SYSCALL_PID_CHECK				0x09
+	#define	STD_SYSCALL_IPC_SEND				0x0A
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -107,6 +119,15 @@
 
 	// returns N page sized area regarding of passsed Bytes
 	uintptr_t std_memory_alloc( uint64_t byte );
+
+	// returns ID of newly executed process
+	int64_t std_exec( uint8_t *string, uint64_t length );
+
+	// returns TRUE/FALSE, task exist?
+	uint8_t std_pid_check( int64_t pid );
+
+	// send data string to process with ID
+	void std_ipc_send( int64_t pid, uint8_t *data );
 
 	#ifdef	SOFTWARE
 		// function definitions

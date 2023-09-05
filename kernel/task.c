@@ -73,7 +73,7 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 	while( __sync_val_compare_and_swap( &kernel -> task_add_semaphore, UNLOCK, LOCK ) );
 
 	// find an free entry
-	for( uint64_t i = 0; i < KERNEL_TASK_limit; i++ ) {
+	for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
 		// free entry?
 		if( kernel -> task_base_address[ i ].flags ) continue;	// no
 

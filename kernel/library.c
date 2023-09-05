@@ -46,8 +46,8 @@ uintptr_t kernel_library_function( uint8_t *string, uint64_t length ) {
 
 		// search thru available dynamic symbols inside library
 		for( uint64_t j = 0; j < kernel -> library_base_address[ i ].d_entry_count; j++ )
-			// function we are looking for?
-			if( lib_string_length( (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ] ) == length && lib_string_compare( string, (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ], length ) )
+			// local function we are looking for?
+			if( kernel -> library_base_address[ i ].dynamic_linking[ j ].address && lib_string_length( (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ] ) == length && lib_string_compare( string, (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ], length ) )
 				// yes
 				return (uintptr_t) (kernel -> library_base_address[ i ].pointer + kernel -> library_base_address[ i ].dynamic_linking[ j ].address);
 	}

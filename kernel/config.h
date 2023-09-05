@@ -59,6 +59,10 @@ struct KERNEL {
 	// functions of I/O APIC management
 	uint8_t							(*io_apic_line_acquire)( void );
 
+	// variables of IPC management functions
+	struct STD_IPC_STRUCTURE				*ipc_base_address;
+	uint8_t		ipc_semaphore;
+
 	// variable of Log management functions
 	void							(*log)( uint8_t *string, ... );
 
@@ -99,7 +103,8 @@ struct KERNEL {
 	uint64_t	task_count;
 	int64_t		task_id;
 	// functions of Task management
-	int64_t							(*task_active)( void );
+	struct KERNEL_TASK_STRUCTURE 				*(*task_active)( void );
+	int64_t							(*task_pid)( void );
 
 	// variables of TSS management functions
 	struct KERNEL_TSS_STRUCTURE				tss_table;

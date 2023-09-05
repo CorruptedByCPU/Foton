@@ -160,3 +160,52 @@ int64_t kernel_syscall_pid() {
 	// return task ID
 	return task -> pid;
 }
+
+int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length ) {
+	// return new process ID
+	return kernel_exec( name, length );
+}
+
+uint8_t kernel_syscall_pid_check( int64_t pid ) {
+	// find an entry with selected ID
+	for( uint64_t i = 0; i < kernel -> task_limit; i++ )
+		// found?
+		if( kernel -> task_base_address[ i ].pid == pid ) return TRUE;	// yes
+
+	// process not found
+	return FALSE;
+}
+
+void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
+	// deny access, only one logical processor at a time
+	while( __sync_val_compare_and_swap( &kernel -> ipc_semaphore, UNLOCK, LOCK ) );
+
+	// wait for free stack area
+	while( TRUE ) {
+		// scan whole IPC area
+		for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
+			// entry found?
+			if( kernel -> ipc_base_address[ i ].ttl < kernel -> time_unit ) {
+				// set message timeout
+				kernel -> ipc_base_address[ i ].ttl = kernel -> time_unit + KERNEL_IPC_ttl;
+
+				// send to
+				kernel -> ipc_base_address[ i ].target = pid;
+
+				// sent from
+				kernel -> ipc_base_address[ i ].source = kernel -> task_pid();
+
+				// load data into message
+				for( uint8_t d = 0; d < STD_IPC_SIZE_byte; d++ )
+					kernel -> ipc_base_address[ i ].data[ d ] = data[ d ];
+
+
+				// unlock access to IPC area
+				kernel -> ipc_semaphore = UNLOCK;
+
+				// message sent
+				return;
+			}
+		}
+	}
+}

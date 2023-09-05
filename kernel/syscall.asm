@@ -13,6 +13,9 @@ extern	kernel_syscall_uptime
 extern	kernel_syscall_log
 extern	kernel_syscall_thread
 extern	kernel_syscall_pid
+extern	kernel_syscall_exec
+extern	kernel_syscall_pid_check
+extern	kernel_syscall_ipc_send
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -34,6 +37,9 @@ kernel_syscall_list:
 	dq	kernel_syscall_log
 	dq	kernel_syscall_thread
 	dq	kernel_syscall_pid
+	dq	kernel_syscall_exec
+	dq	kernel_syscall_pid_check
+	dq	kernel_syscall_ipc_send
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

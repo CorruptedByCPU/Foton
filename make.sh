@@ -27,7 +27,7 @@ ASM="nasm"
 
 # default optimization -O2, but it's always easier to debug kernel/software with "z" flag
 OPT="${1}"
-if [ -z "${OPT}" ]; then OPT="2"; fi
+if [ -z "${OPT}" ]; then OPT="fast"; fi
 
 # build subroutines required by kernel
 EXT=""

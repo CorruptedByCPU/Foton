@@ -18,7 +18,7 @@ uint8_t std_syscall_bool() {
 	return rax;
 }
 
-int64_t std_syscall_signed() {
+int64_t std_syscall_value() {
 	// initialize local variable
 	int64_t rax = EMPTY;
 
@@ -29,7 +29,7 @@ int64_t std_syscall_signed() {
 	return rax;
 }
 
-uint64_t std_syscall_unsigned() {
+uint64_t std_syscall_value_unsigned() {
 	// initialize local variable
 	uint64_t rax = EMPTY;
 
@@ -81,8 +81,8 @@ uint64_t std_uptime( void ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_UPTIME) );
 
-	// return value
-	return std_syscall_unsigned();
+	// return unsigned value
+	return std_syscall_value_unsigned();
 }
 
 void std_log( uint8_t *string, uint64_t length ) {
@@ -97,14 +97,38 @@ int64_t std_thread( uintptr_t function, uint8_t *string, uint64_t length ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_THREAD), "D" (function), "S" (string), "d" (length) );
 
-	// return nothing
-	return std_syscall_signed();
+	// return value
+	return std_syscall_value();
 }
 
 int64_t std_pid( void ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_PID) );
 
+	// return value
+	return std_syscall_value();
+}
+
+int64_t std_exec( uint8_t *string, uint64_t length ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_EXEC), "D" (string), "S" (length) );
+
+	// return value
+	return std_syscall_value();
+}
+
+uint8_t std_pid_check( int64_t pid ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_PID_CHECK), "D" (pid) );
+
+	// return TRUE/FALSE
+	return std_syscall_bool();
+}
+
+void std_ipc_send( int64_t pid, uint8_t *data ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_IPC_SEND), "D" (pid), "S" (data) );
+
 	// return nothing
-	return std_syscall_signed();
+	return std_syscall_empty();
 }

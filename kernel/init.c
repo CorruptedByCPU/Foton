@@ -55,6 +55,7 @@
 	#include	"storage.h"
 	#include	"library.h"
 	#include	"module.h"
+	#include	"ipc.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -102,6 +103,7 @@
 	#include	"init/library.c"
 	#include	"init/module.c"
 	#include	"init/rtc.c"
+	#include	"init/ipc.c"
 
 // our mighty init
 void _entry( void ) {
@@ -162,8 +164,11 @@ void _entry( void ) {
 	// create library management space
 	kernel_init_library();
 
+	// prepare Inter Process communication
+	kernel_init_ipc();
+
 	// execute first process
-	kernel_exec( (uint8_t *) "3d", 2 );
+	kernel_exec( (uint8_t *) "init", 4 );
 
 	// load basic list of modules
 	kernel_init_module();

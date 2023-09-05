@@ -2,11 +2,9 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#ifndef	KERNEL_EXEC
-	#define KERNEL_EXEC
+#ifndef	KERNEL_IPC
+	#define	KERNEL_IPC
 
-	#define	KERNEL_EXEC_base_address	0x0000000000100000
-
-	// returns new process ID
-	int64_t kernel_exec( uint8_t *name, uint64_t length );
+	#define	KERNEL_IPC_limit	512
+	#define	KERNEL_IPC_ttl		100	// ~ms
 #endif

@@ -2,70 +2,14 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-	// hint
-	// all operations are performed on pixels
-
 	//----------------------------------------------------------------------
-	// required libraries
+	// variables, structures, definitions
 	//----------------------------------------------------------------------
-	#include	"../library/color.h"
-
-	//----------------------------------------------------------------------
-	// constants, structures, definitions
-	//----------------------------------------------------------------------
-	#define	WM_OBJECT_FLAG_flush	0b0000000000000001
-	#define	WM_OBJECT_FLAG_visible	0b0000000000000010
-	#define	WM_OBJECT_FLAG_fixed_xy	0b0000000000000100
-	#define	WM_OBJECT_FLAG_fixed_z	0b0000000000001000
-
-	struct	WM_STRUCTURE_OBJECT {
-		int16_t		x;
-		int16_t		y;
-		uint16_t	width;
-		uint16_t	height;
-		int64_t		pid;
-		uint64_t	size_byte;
-		struct WM_STRUCTURE_DESCRIPTOR	*descriptor;
-	};
-
-	struct	WM_STRUCTURE_ZONE {
-		int16_t		x;
-		int16_t		y;
-		uint16_t	width;
-		uint16_t	height;
-		struct WM_STRUCTURE_OBJECT *object;
-	};
-
-	// structure must be divisible by 0x10
-	struct	WM_STRUCTURE_DESCRIPTOR {
-		uint16_t	flags;
-		uint16_t	width;
-		uint16_t	height;
-		uint16_t	reserved[ 5 ];
-	} __attribute__( (packed) );
-
+	#include	"./wm/config.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
-	int64_t	wm_pid = EMPTY;
-
-	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
-
-	struct WM_STRUCTURE_OBJECT *wm_object_base_address = EMPTY;
-	struct WM_STRUCTURE_OBJECT **wm_list_base_address = EMPTY;
-	struct WM_STRUCTURE_ZONE *wm_zone_base_address = EMPTY;
-
-	uint64_t wm_object_limit = EMPTY;
-	uint64_t wm_list_limit = EMPTY;
-	uint64_t wm_zone_limit = EMPTY;
-
-	uint8_t wm_object_semaphore = FALSE;
-	uint8_t wm_list_semaphore = FALSE;
-	uint8_t	wm_framebuffer_semaphore = FALSE;
-
-	struct WM_STRUCTURE_OBJECT *wm_object_workbench = EMPTY;
-	struct WM_STRUCTURE_OBJECT *wm_object_cursor = EMPTY;
-	struct WM_STRUCTURE_OBJECT *wm_object_active = EMPTY;
+	#include	"./wm/data.c"
 
 void wm_sync( void ) {
 	// requested synchronization?
