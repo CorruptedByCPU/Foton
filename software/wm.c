@@ -11,6 +11,26 @@
 	//----------------------------------------------------------------------
 	#include	"./wm/data.c"
 
+struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t width, uint16_t height );
+
+void wm_event( void ) {
+	// incomming request
+	uint8_t data[ STD_IPC_SIZE_byte ];
+	int64_t source = std_ipc_receive( (uint8_t *) &data );
+
+	// if there is no request, or request is invalid
+	struct WM_STRUCTURE_REQUEST *request = (struct WM_STRUCTURE_REQUEST *) &data;
+	if( ! source || ! request -> width || ! request -> height ) return;	// nothing to do
+
+	// debug
+	struct WM_STRUCTURE_OBJECT *object = wm_object_create( (wm_object_workbench -> width >> 1) - (request -> width >> 1 ), (wm_object_workbench -> height >> 1) - (request -> height >> 1), request -> width, request -> height );
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) object -> descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+	for( uint16_t y = 0; y < object -> height; y++ )
+	for( uint16_t x = 0; x < object -> width; x++ )
+	pixel[ (y * object -> width) + x ] = STD_COLOR_GREEN_light;
+	object -> descriptor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_fixed_z | WM_OBJECT_FLAG_flush;
+}
+
 void wm_sync( void ) {
 	// requested synchronization?
 	if( ! wm_framebuffer_semaphore ) return;	// no
@@ -294,7 +314,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// hold the door
 	while( TRUE ) {
-		// check which objects have been recently updated
+		// check for incomming events
+		wm_event();
+
+		// which objects have been recently updated?
 		wm_object();
 
 		// connect zones with objects

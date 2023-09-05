@@ -92,6 +92,7 @@
 	#define	STD_SYSCALL_EXEC				0x08
 	#define	STD_SYSCALL_PID_CHECK				0x09
 	#define	STD_SYSCALL_IPC_SEND				0x0A
+	#define	STD_SYSCALL_IPC_RECEIVE				0x0B
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -128,6 +129,9 @@
 
 	// send data string to process with ID
 	void std_ipc_send( int64_t pid, uint8_t *data );
+
+	// fills data with message content and returns from which process ID it is
+	int64_t std_ipc_receive( uint8_t *data );
 
 	#ifdef	SOFTWARE
 		// function definitions

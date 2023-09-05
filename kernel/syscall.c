@@ -196,9 +196,8 @@ void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
 				kernel -> ipc_base_address[ i ].source = kernel -> task_pid();
 
 				// load data into message
-				for( uint8_t d = 0; d < STD_IPC_SIZE_byte; d++ )
-					kernel -> ipc_base_address[ i ].data[ d ] = data[ d ];
-
+				for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+					kernel -> ipc_base_address[ i ].data[ j ] = data[ j ];
 
 				// unlock access to IPC area
 				kernel -> ipc_semaphore = UNLOCK;
@@ -208,4 +207,37 @@ void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
 			}
 		}
 	}
+}
+
+int64_t kernel_syscall_ipc_receive( uint8_t *data ) {
+	// deny access, only one logical processor at a time
+	while( __sync_val_compare_and_swap( &kernel -> ipc_semaphore, UNLOCK, LOCK ) );
+
+	// scan whole IPC area
+	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
+		// message for us and alive?
+		if( kernel -> ipc_base_address[ i ].target == kernel -> task_pid() && kernel -> ipc_base_address[ i ].ttl > kernel -> time_unit ) {
+			// load data into message
+			for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+				data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
+
+			// retrieve message source
+			int64_t source = kernel -> ipc_base_address[ i ].source;
+
+			// mark entry as free
+			kernel -> ipc_base_address[ i ].ttl = EMPTY;
+
+			// unlock access to IPC area
+			kernel -> ipc_semaphore = UNLOCK;
+
+			// message from
+			return source;
+		}
+	}
+
+	// unlock access to IPC area
+	kernel -> ipc_semaphore = UNLOCK;
+
+	// no message for process
+	return EMPTY;
 }

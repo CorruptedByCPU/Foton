@@ -132,3 +132,11 @@ void std_ipc_send( int64_t pid, uint8_t *data ) {
 	// return nothing
 	return std_syscall_empty();
 }
+
+int64_t std_ipc_receive( uint8_t *data ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_IPC_RECEIVE), "D" (data) );
+
+	// return value
+	return std_syscall_value();
+}
