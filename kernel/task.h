@@ -34,6 +34,7 @@
 		uint64_t		page;	// amount of pages assigned to process
 		uint64_t		stack;	// size of stack in Pages
 		uint32_t		*memory_map;
+		uint8_t			memory_semaphore;
 		volatile uint16_t	flags;
 		uint8_t			length;
 		uint8_t			name[ KERNEL_TASK_NAME_limit ];

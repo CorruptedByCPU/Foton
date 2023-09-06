@@ -4,10 +4,10 @@
 
 struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
 
-uint64_t fpu = 0;
-uint64_t fpu_average = 0;
-uint64_t fpu_count = 1;
-uint64_t fpu_last = 0;
+uint64_t fps = 0;
+uint64_t fps_average = 0;
+uint64_t fps_count = 1;
+uint64_t fps_last = 0;
 
 struct LIB_RGL_STRUCTURE *rgl;
 
@@ -31,6 +31,8 @@ vector3f *vector;
 vector3f *vr;
 vector3f *vp;
 struct LIB_RGL_STRUCTURE_TRIANGLE *face;
+
+struct WM_STRUCTURE_DESCRIPTOR *descriptor = EMPTY;
 
 MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/3d.obj" );
 MACRO_IMPORT_FILE_AS_ARRAY( material, "./root/system/var/3d.mtl" );

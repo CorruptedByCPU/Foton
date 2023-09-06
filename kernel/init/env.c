@@ -25,4 +25,5 @@ void kernel_init_env( void ) {
 	// share memory management functions
 	kernel -> task_active			= (void *) kernel_task_active;
 	kernel -> task_pid			= (void *) kernel_task_pid;
+	kernel -> task_by_id			= (void *) kernel_task_by_id;
 }

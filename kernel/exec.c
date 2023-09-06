@@ -146,7 +146,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	for( uint64_t i = 0; i < MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) >> STD_SHIFT_32; i++ ) exec -> memory_map[ i ] = -1;
 
 	// mark as occupied pages used by the executable
-	kernel_memory_acquire( exec -> memory_map, exec_page );
+	kernel_memory_acquire_secured( exec, exec_page );
 
 	//----------------------------------------------------------------------
 

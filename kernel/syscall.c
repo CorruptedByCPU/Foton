@@ -36,7 +36,7 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
-	if( (allocated = kernel_memory_acquire( task -> memory_map, page )) ) {
+	if( (allocated = kernel_memory_acquire_secured( task, page )) ) {
 		// allocate space inside process paging area
 		kernel_page_alloc( (uint64_t *) task -> cr3, KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
 
@@ -185,7 +185,7 @@ void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
 		// scan whole IPC area
 		for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
 			// entry found?
-			if( kernel -> ipc_base_address[ i ].ttl < kernel -> time_unit ) {
+			if( ! kernel -> ipc_base_address[ i ].ttl ) {
 				// set message timeout
 				kernel -> ipc_base_address[ i ].ttl = kernel -> time_unit + KERNEL_IPC_ttl;
 
@@ -240,4 +240,18 @@ int64_t kernel_syscall_ipc_receive( uint8_t *data ) {
 
 	// no message for process
 	return EMPTY;
+}
+
+uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t pages ) {
+	// properties of target task
+	struct KERNEL_TASK_STRUCTURE *target = (struct KERNEL_TASK_STRUCTURE *) kernel_task_by_id( pid );
+
+	// acquire space from target task
+	uintptr_t target_pointer = KERNEL_EXEC_base_address + (kernel_memory_acquire_secured( target, pages ) << STD_SHIFT_PAGE);
+
+	// connect memory space of parent process with child
+	kernel_page_clang( (uintptr_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process | KERNEL_PAGE_FLAG_shared );
+
+	// return the address of the first page in the collection
+	return target_pointer;
 }

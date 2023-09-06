@@ -47,11 +47,16 @@ uintptr_t std_syscall_pointer() {
 	// call the kernel function
 	__asm__ volatile( "push %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\n" : "=a" (rax) );
 
-	// return a pointer
+	// return pointer
 	return rax;
 }
 
 //------------------------------------------------------------------------------
+
+void std_exit( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_EXIT) );
+}
 
 void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
 	// request syscall
@@ -139,4 +144,12 @@ int64_t std_ipc_receive( uint8_t *data ) {
 
 	// return value
 	return std_syscall_value();
+}
+
+uintptr_t std_memory_share( int64_t pid, uintptr_t address, uint64_t page ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_SHARE), "D" (pid), "S" (address), "d" (page) );
+
+	// return pointer
+	return std_syscall_pointer();
 }

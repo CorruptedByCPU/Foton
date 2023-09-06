@@ -7,12 +7,12 @@ void interface( void ) {
 	struct LIB_TERMINAL_STRUCTURE terminal;
 
 	// update terminal properties
-	terminal.width			= framebuffer.width_pixel;
-	terminal.height			= framebuffer.height_pixel;
-	terminal.base_address		= framebuffer.base_address;
-	terminal.scanline_pixel		= framebuffer.pitch_byte >> STD_VIDEO_DEPTH_shift;
+	terminal.width			= descriptor -> width;
+	terminal.height			= descriptor -> height;
+	terminal.base_address		= (uint32_t *) ((uintptr_t) descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+	terminal.scanline_pixel		= descriptor -> width;
 	terminal.color_foreground	= STD_COLOR_WHITE;
-	terminal.color_background	= STD_COLOR_BLACK;
+	terminal.color_background	= STD_COLOR_BLACK_light;
 
 	// initialize terminal
 	lib_terminal( &terminal );
@@ -22,13 +22,13 @@ void interface( void ) {
 
 	while( TRUE ) {
 		// unit of time, passed?
-		if( std_uptime() > fpu_last ) {
+		if( std_uptime() > fps_last ) {
 			// select new time unit
-			fpu_last += 1;
+			fps_last += 1;
 
 			// sum all FPU parsed
-			fpu_average += fpu;
-			fpu_count++;
+			fps_average += fps;
+			fps_count++;
 
 			// reset terminal cursor
 			terminal.cursor_x = 0;
@@ -36,10 +36,10 @@ void interface( void ) {
 			lib_terminal_cursor_set( &terminal );
 
 			// show amount of FPU
-			lib_terminal_printf( &terminal, (uint8_t *) "FPu: %u (%u) ", fpu_average / fpu_count, fpu );
+			lib_terminal_printf( &terminal, (uint8_t *) "Window (%ux%u), FPS: %u (%u) ", D3_WIDTH_pixel, D3_HEIGHT_pixel, fps_average / fps_count, fps );
 
 			// restart
-			fpu = EMPTY;
+			fps = EMPTY;
 		}
 	}
 }

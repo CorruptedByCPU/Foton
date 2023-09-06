@@ -105,6 +105,7 @@ struct KERNEL {
 	// functions of Task management
 	struct KERNEL_TASK_STRUCTURE 				*(*task_active)( void );
 	int64_t							(*task_pid)( void );
+	struct KERNEL_TASK_STRUCTURE				*(*task_by_id)( int64_t pid );
 
 	// variables of TSS management functions
 	struct KERNEL_TSS_STRUCTURE				tss_table;

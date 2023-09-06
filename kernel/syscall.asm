@@ -17,6 +17,7 @@ extern	kernel_syscall_exec
 extern	kernel_syscall_pid_check
 extern	kernel_syscall_ipc_send
 extern	kernel_syscall_ipc_receive
+extern	kernel_syscall_memory_share
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -42,6 +43,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_pid_check
 	dq	kernel_syscall_ipc_send
 	dq	kernel_syscall_ipc_receive
+	dq	kernel_syscall_memory_share
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

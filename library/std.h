@@ -24,7 +24,7 @@
 	#define	STD_COLOR_mask					0xFF000000
 	#define	STD_COLOR_WHITE					0xFFFFFFFF
 	#define	STD_COLOR_BLACK					0xFF000000
-	#define	STD_COLOR_BLACK_light				0xFF101010
+	#define	STD_COLOR_BLACK_light				0xFF080808
 	#define	STD_COLOR_GREEN_light				0xFF10FF10
 	#define	STD_COLOR_BLUE					0xFF003366
 	#define	STD_COLOR_RED_light				0xFFFF1010
@@ -62,7 +62,7 @@
 	#define	STD_IPC_SIZE_byte				40
 
 	struct	STD_IPC_STRUCTURE {
-		uint64_t	ttl;
+		volatile uint64_t	ttl;
 		int64_t		source;
 		int64_t		target;
 		uint8_t		data[ STD_IPC_SIZE_byte ];
@@ -93,6 +93,7 @@
 	#define	STD_SYSCALL_PID_CHECK				0x09
 	#define	STD_SYSCALL_IPC_SEND				0x0A
 	#define	STD_SYSCALL_IPC_RECEIVE				0x0B
+	#define	STD_SYSCALL_MEMORY_SHARE			0x0C
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -105,6 +106,9 @@
 	#define	STD_VIDEO_DEPTH_shift				2
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
+
+	// stop process execution
+	void std_exit( void );
 
 	// returns properties of available framebuffer ()
 	void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
@@ -132,6 +136,9 @@
 
 	// fills data with message content and returns from which process ID it is
 	int64_t std_ipc_receive( uint8_t *data );
+
+	// connect source memory area with targets and inform about target pointer address
+	uintptr_t std_memory_share( int64_t pid, uintptr_t address, uint64_t page );
 
 	#ifdef	SOFTWARE
 		// function definitions

@@ -22,13 +22,17 @@ void wm_event( void ) {
 	struct WM_STRUCTURE_REQUEST *request = (struct WM_STRUCTURE_REQUEST *) &data;
 	if( ! source || ! request -> width || ! request -> height ) return;	// nothing to do
 
-	// debug
+	// create new object for process
 	struct WM_STRUCTURE_OBJECT *object = wm_object_create( (wm_object_workbench -> width >> 1) - (request -> width >> 1 ), (wm_object_workbench -> height >> 1) - (request -> height >> 1), request -> width, request -> height );
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) object -> descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t y = 0; y < object -> height; y++ )
-	for( uint16_t x = 0; x < object -> width; x++ )
-	pixel[ (y * object -> width) + x ] = STD_COLOR_GREEN_light;
-	object -> descriptor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_fixed_z | WM_OBJECT_FLAG_flush;
+
+	// share new object descriptor with process
+	uintptr_t descriptor = EMPTY;
+	if( ! (descriptor = std_memory_share( source, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE )) ) return;	// no enough memory?
+
+	// send answer
+	struct WM_STRUCTURE_ANSWER *answer = (struct WM_STRUCTURE_ANSWER *) &data;
+	answer -> descriptor = descriptor;
+	std_ipc_send( source, (uint8_t *) answer );
 }
 
 void wm_sync( void ) {

@@ -72,6 +72,21 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {
 	return EMPTY;
 }
 
+uint64_t kernel_memory_acquire_secured( struct KERNEL_TASK_STRUCTURE *task, uint64_t N ) {
+	// block access to binary memory map (only one at a time)
+	while( __sync_val_compare_and_swap( &task -> memory_semaphore, UNLOCK, LOCK ) );
+
+	// acquire memory area
+	uint64_t acquired = EMPTY;
+	acquired = kernel_memory_acquire( task -> memory_map, N );
+
+	// unlock access to binary memory map
+	task -> memory_semaphore = UNLOCK;
+
+	// no available memory area
+	return acquired;
+}
+
 void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
 	// mark pages as available
 	for( uint64_t i = p; i < p + N; i++ )
@@ -97,7 +112,7 @@ uintptr_t kernel_memory_share( uintptr_t address, uint64_t page ) {
 
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
-	if( (allocated = kernel_memory_acquire( task -> memory_map, page )) ) {
+	if( (allocated = kernel_memory_acquire_secured( task, page )) ) {
 		// map memory area to process
 		kernel_page_map( (uintptr_t *) task -> cr3, address, (uintptr_t) KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_shared );
 

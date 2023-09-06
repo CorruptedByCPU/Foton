@@ -53,7 +53,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// main loop
 	while( TRUE ) {
 		// next angle
-		a += 0.15f;
+		a += 0.015f;
 
 		// clean workbench with default background color
 		lib_rgl_clean( rgl );
@@ -118,11 +118,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// for( uint64_t i = 0; i < sc; i++ ) lib_rgl_triangle( rgl, sort[ i ], vp, material );
 		for( uint64_t i = 0; i < sc; i++ ) lib_rgl_fill( rgl, sort[ i ], vp, material );
 
-		// synchronize workbench with framebuffer
+		// synchronize workbench with window
 		lib_rgl_flush( rgl );
 
+		// tell window manager to flush window
+		descriptor -> flags |= WM_OBJECT_FLAG_flush;
+
 		// next frame ready
-		fpu++;
+		fps++;
 	}
 
 	// should not happen

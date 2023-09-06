@@ -27,6 +27,10 @@ void kernel_init_task( void ) {
 	// mark first entry of task queue as secured (in use)
 	kernel -> task_base_address -> flags = KERNEL_TASK_FLAG_secured;
 
+	// register memory map of kernel and unlock access
+	kernel -> task_base_address -> memory_map = kernel -> memory_base_address;
+	kernel -> task_base_address -> memory_semaphore = UNLOCK;
+
 	// when BSP (Bootstrap Processor) will end with initialization of every system aspect,
 	// he needs to know which is his current task entry point
 	kernel -> task_cpu_address[ kernel_lapic_id() ] = &kernel -> task_base_address[ 0 ];
