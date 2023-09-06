@@ -12,8 +12,9 @@ Foton (eng. Photon [still looking for proper name]) - is a similar project as Cy
 |GDT|Global Descriptor Table|
 |~~HPET~~|**postponed** ~~High precision system uptime~~|
 |I/O APIC|Interrupt Relay|
-|RTC|Real time system uptime|
 |IDT|Interrupt Descriptor Table|
+|IPC|Inter-Process Communication|
+|RTC|Real time system uptime|
 |round robin|task queue type|
 |SMP|Unlocked all vCPU|
 |storage|loading files from VFS|
@@ -28,7 +29,7 @@ Foton (eng. Photon [still looking for proper name]) - is a similar project as Cy
 |-|-|
 |init||
 |wm|Windows Manager - display, movement.|
-|3d| Simple **obj**/**mtl** file viewer and example of use librgl.so library. |
+|3d| Simple **obj**/**mtl** file viewer and example of use **librgl.so** library. |
 
 |Libraries|Description|
 |-|-|
