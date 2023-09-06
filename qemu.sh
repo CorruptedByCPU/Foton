@@ -11,11 +11,12 @@ if [ -z "${SMP}" ]; then SMP="2"; fi
 MEM="${2}"
 if [ -z "${MEM}" ]; then MEM="64"; fi
 
-qemu-system-x86_64			\
-	--enable-kvm			\
-	-cpu host			\
-	-smp ${SMP}			\
-	-m ${MEM}			\
-	-cdrom build/foton.iso		\
-	-rtc base=localtime		\
-	-usb -device usb-kbd,id=keyboard -usb -device usb-mouse,id=mouse
+qemu-system-x86_64				\
+	--enable-kvm				\
+	-cpu host				\
+	-smp ${SMP}				\
+	-m ${MEM}				\
+	-cdrom build/foton.iso			\
+	-rtc base=localtime			\
+	-usb -device usb-kbd,id=keyboard	\
+	-usb -device usb-mouse,id=mouse

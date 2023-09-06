@@ -9,6 +9,11 @@
 
 	#define	DRIVER_USB_CONTROLLER_limit	1
 
+	#define	DRIVER_USB_PORT_current_connection_status	0
+	#define	DRIVER_USB_PORT_connection_status_change	1
+	#define	DRIVER_USB_PORT_port_enabled			2
+	#define	DRIVER_USB_PORT_port_enable_change		3
+
 	struct DRIVER_USB_CONTROLLER_STRUCTURE {
 		uint8_t		type;
 		uintptr_t	base_address;
@@ -24,7 +29,6 @@
 		uint32_t	frame_base_address;
 		uint8_t		modify;
 		uint8_t		reserved[ 3 ];
-		uint16_t	port0;
-		uint16_t	port1;
+		uint16_t	port[ 2 ];
 	} __attribute__( (packed) );
 #endif
