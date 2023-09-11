@@ -79,6 +79,7 @@ struct KERNEL {
 	uint8_t		memory_semaphore;
 	// functions of Memory management
 	uintptr_t						(*memory_alloc)( uint64_t N );
+	uintptr_t						(*memory_alloc_page)( void );
 
 	// variables of Modules functions
 	uint32_t	*module_base_address;

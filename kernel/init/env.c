@@ -21,6 +21,7 @@ void kernel_init_env( void ) {
 
 	// share memory management functions
 	kernel -> memory_alloc			= (void *) kernel_memory_alloc;
+	kernel -> memory_alloc_page		= (void *) kernel_memory_alloc_page;
 
 	// share memory management functions
 	kernel -> task_active			= (void *) kernel_task_active;
