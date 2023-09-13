@@ -4,7 +4,7 @@
 
 #include "../wm/config.h"
 
-#define	D3_WIDTH_pixel	720
-#define	D3_HEIGHT_pixel	405
+#define	D3_WIDTH_pixel	1280
+#define	D3_HEIGHT_pixel	720
 
 void interface( void );
