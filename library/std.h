@@ -77,9 +77,13 @@
 	#define	STD_SHIFT_32					5
 	#define	STD_SHIFT_64					6
 	#define	STD_SHIFT_PTR					STD_SHIFT_64
+	#define	STD_SHIFT_128					7
+	#define	STD_SHIFT_256					8
 	#define	STD_SHIFT_512					9
 	#define	STD_SHIFT_1024					10
-	#define	STD_SHIFT_PAGE					12
+	#define	STD_SHIFT_2048					11
+	#define	STD_SHIFT_4096					12
+	#define	STD_SHIFT_PAGE					STD_SHIFT_4096
 
 	#define	STD_SYSCALL_EXIT				0x00
 	#define	STD_SYSCALL_FRAMEBUFFER				0x01

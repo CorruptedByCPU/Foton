@@ -52,6 +52,33 @@ uint8_t driver_usb_detect_uhci( uint8_t i ) {
 	return TRUE;
 }
 
+uintptr_t driver_usb_queue_empty( void ) {
+	// assign queue area
+	struct DRIVER_USB_QUEUE_STRUCTURE *queue = (struct DRIVER_USB_QUEUE_STRUCTURE *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);
+
+	// fill with empty entries
+	for( uint64_t i = 0; i < STD_PAGE_byte / sizeof( struct DRIVER_USB_QUEUE_STRUCTURE ); i++ ) {
+		// next entry
+		queue[ i ].head_link_pointer_and_flags = DRIVER_USB_DEFAULT_FLAG_terminate;
+
+		// and current
+		queue[ i ].element_link_pointer_and_flags = DRIVER_USB_DEFAULT_FLAG_terminate;
+	}
+
+	// return address of queue
+	return (uintptr_t) queue;
+}
+
+void driver_usb_uhci_queue( uint32_t *frame_list ) {
+	// acquire 1/1024u query
+	uint32_t queue_1u = (uint32_t) driver_usb_queue_empty() | DRIVER_USB_DEFAULT_FLAG_queue;
+
+	// for each entry inside frame list
+	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_32; i++ )
+		// insert ~1ms queue
+		frame_list[ i ] = queue_1u;
+}
+
 void _entry( uintptr_t kernel_ptr ) {
 	// preserve kernel structure pointer
 	kernel = (struct KERNEL *) kernel_ptr;
@@ -143,9 +170,8 @@ void _entry( uintptr_t kernel_ptr ) {
 				driver_usb_controller[ i ].frame_base_address = kernel -> memory_alloc_page();
 				driver_port_out_dword( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, frame_list_base_address ), driver_usb_controller[ i ].frame_base_address );
 
-				// set each entry of frame list as inactive
-				uint32_t *frame_list = (uint32_t *) (driver_usb_controller[ i ].frame_base_address | KERNEL_PAGE_logical);
-				for( uint64_t i = 0; i < STD_PAGE_byte / 32; i++ ) frame_list[ i ] |= DRIVER_USB_FRAME_FLAG_terminate;
+				// fill up frame list with queues
+				driver_usb_uhci_queue( (uint32_t *) (driver_usb_controller[ i ].frame_base_address | KERNEL_PAGE_logical) );
 
 				// clear controller status
 				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, status ), 0xFFFF );

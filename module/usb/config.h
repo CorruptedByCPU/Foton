@@ -5,10 +5,10 @@
 #ifndef	DRIVER_USB
 	#define	DRIVER_USB
 
-	#define	DRIVER_USB_BASE_ADDRESS_type	0b0001
+	#define	DRIVER_USB_BASE_ADDRESS_type					0b0001
 
-	#define	DRIVER_USB_CONTROLLER_limit	1
-	#define	DRIVER_USB_PORT_limit		2
+	#define	DRIVER_USB_CONTROLLER_limit					1
+	#define	DRIVER_USB_PORT_limit						2
 
 	#define	DRIVER_USB_CONTROLLER_COMMAND_run_stop				0b00000001
 	#define	DRIVER_USB_CONTROLLER_COMMAND_host_controller_reset		0b00000010
@@ -43,10 +43,10 @@
 	#define	DRIVER_USB_PORT_STATUS_AND_CONTROL_reserved			0b0000110000000000
 	#define	DRIVER_USB_PORT_STATUS_AND_CONTROL_suspend			0b0001000000000000
 
-	#define	DRIVER_USB_PORT_FLAG_reserved			0b00000001
+	#define	DRIVER_USB_PORT_FLAG_reserved					0b00000001
 
-	#define	DRIVER_USB_FRAME_FLAG_terminate			0b0001
-	#define	DRIVER_USB_FRAME_FLAG_queue			0b0010
+	#define	DRIVER_USB_DEFAULT_FLAG_terminate				0b0001
+	#define	DRIVER_USB_DEFAULT_FLAG_queue					0b0010
 
 	struct DRIVER_USB_CONTROLLER_STRUCTURE {
 		uint8_t		type;
