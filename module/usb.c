@@ -28,25 +28,25 @@ uint8_t driver_usb_detect_uhci( uint8_t i ) {
 	if( driver_usb_controller[ i ].type & DRIVER_USB_BASE_ADDRESS_type ) return FALSE;	// no
 
 	// reset controller
-	for( uint8_t t = 0; t < 5; t++ ) { driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, command ), 0x0004 ); kernel -> time_sleep( 11 ); driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, command ), 0x0000 ); }
+	for( uint8_t t = 0; t < 5; t++ ) { driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, command ), 0x0004 ); kernel -> time_sleep( 11 ); driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, command ), 0x0000 ); }
 
 	// command register contains default value?
-	if( driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, command ) ) ) return FALSE;	// no
+	if( driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, command ) ) ) return FALSE;	// no
 
 	// status register contains default value?
-	if( driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, status ) ) != 0x0020 ) return FALSE;	// no
+	if( driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, status ) ) != 0x0020 ) return FALSE;	// no
 
 	// clear status register
-	driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, status ), 0x00FF );
+	driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, status ), 0x00FF );
 
 	// modify register contains default value?
-	if( driver_port_in_byte( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, start_of_frame_modify ) ) != 0x40 ) return FALSE;	// no
+	if( driver_port_in_byte( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, start_of_frame_modify ) ) != 0x40 ) return FALSE;	// no
 
 	// check command register function
-	driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, command ), 0x0002 ); kernel -> time_sleep( 42 );
+	driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, command ), 0x0002 ); kernel -> time_sleep( 42 );
 
 	// test passed?
-	if( driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, command ) ) & 0x0002 ) return FALSE;	// no
+	if( driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, command ) ) & 0x0002 ) return FALSE;	// no
 
 	// yes
 	return TRUE;
@@ -134,21 +134,21 @@ void _entry( uintptr_t kernel_ptr ) {
 				// configure UHCI controller
 
 				// enable all type of interrupts
-				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, interrupt_enable ), 0x000F );
+				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, interrupt_enable ), 0x000F );
 
 				// reset frame number
-				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, frame_number ), EMPTY );
+				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, frame_number ), EMPTY );
 
 				// alloc area for frame list
 				driver_usb_controller[ i ].frame_base_address = kernel -> memory_alloc_page();
-				driver_port_out_dword( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, frame_list_base_address ), driver_usb_controller[ i ].frame_base_address );
+				driver_port_out_dword( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, frame_list_base_address ), driver_usb_controller[ i ].frame_base_address );
 
 				// set each entry of frame list as inactive
 				uint32_t *frame_list = (uint32_t *) (driver_usb_controller[ i ].frame_base_address | KERNEL_PAGE_logical);
 				for( uint64_t i = 0; i < STD_PAGE_byte / 32; i++ ) frame_list[ i ] |= DRIVER_USB_FRAME_FLAG_terminate;
 
 				// clear controller status
-				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, status ), 0xFFFF );
+				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, status ), 0xFFFF );
 
 				//-------------------
 
@@ -162,13 +162,13 @@ void _entry( uintptr_t kernel_ptr ) {
 					driver_usb_port[ driver_usb_port_count ].port_id = j;
 
 					// port reset
-					driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, port[ j ] ), driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, port[ j ] ) ) | DRIVER_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 50 );
-					driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, port[ j ] ), driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, port[ j ] ) ) & ~DRIVER_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 10 );
+					driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ j ] ), driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ j ] ) ) | DRIVER_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 50 );
+					driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ j ] ), driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ j ] ) ) & ~DRIVER_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 10 );
 
 					// connection status
 					uint8_t connected = FALSE;
 					for( uint8_t k = 0; k < 10; k++ ) {
-						uint16_t port_status = driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, port[ j ] ) );
+						uint16_t port_status = driver_port_in_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ j ] ) );
 
 						// device connected to port0?
 						if( !(port_status & DRIVER_USB_PORT_STATUS_AND_CONTROL_current_connect_status) ) {	// no
@@ -182,7 +182,7 @@ void _entry( uintptr_t kernel_ptr ) {
 						// port status change?
 						if( ((port_status & DRIVER_USB_PORT_STATUS_AND_CONTROL_port_enable_change) || (port_status & DRIVER_USB_PORT_STATUS_AND_CONTROL_connect_status_change)) ) {
 							// clean it
-							driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, port[ j ] ), port_status & ~(DRIVER_USB_PORT_STATUS_AND_CONTROL_port_enable_change | DRIVER_USB_PORT_STATUS_AND_CONTROL_connect_status_change));
+							driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ j ] ), port_status & ~(DRIVER_USB_PORT_STATUS_AND_CONTROL_port_enable_change | DRIVER_USB_PORT_STATUS_AND_CONTROL_connect_status_change));
 
 							// try again
 							continue;
@@ -198,16 +198,13 @@ void _entry( uintptr_t kernel_ptr ) {
 						}
 						
 						// try to enable port
-						driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_UHCI_STRUCTURE_REGISTER, port[ j ] ), port_status | DRIVER_USB_PORT_STATUS_AND_CONTROL_port_enabled );
+						driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ j ] ), port_status | DRIVER_USB_PORT_STATUS_AND_CONTROL_port_enabled );
 					}
 
 					// device connected to port[ j ]?
 					if( connected ) {
 						// yes
 						kernel -> log( (uint8_t *) "[usb module].%u Port%u - connected.\n", i, j );
-
-						uintptr_t 
-
 					}
 				}
 			}

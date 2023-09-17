@@ -63,7 +63,7 @@
 		uint8_t		address_id;
 	};
 
-	struct DRIVER_USB_UHCI_STRUCTURE_REGISTER {
+	struct DRIVER_USB_REGISTER_STRUCTURE {
 		uint16_t	command;
 		uint16_t	status;
 		uint16_t	interrupt_enable;
@@ -72,5 +72,19 @@
 		uint8_t		start_of_frame_modify;
 		uint8_t		reserved[ 3 ];
 		uint16_t	port[ 2 ];	// by default 2, but correct amount is determined by DRIVER_USB_CONTROLLER_STRUCTURE.size_byte
+	} __attribute__( (packed) );
+
+	struct DRIVER_USB_QUEUE_STRUCTURE {
+		uint32_t	head_link_pointer_and_flags;
+		uint32_t	element_link_pointer_and_flags;
+		uint32_t	reserved[ 2 ];
+	} __attribute__( (packed) );
+
+	struct DRIVER_USB_TRANSFER_DESCRIPTOR_STRUCTURE {
+		uint32_t	link_pointer_and_flags;
+		uint32_t	descriptor_controls;
+		uint32_t	transfer_controls;
+		uint32_t	buffer_pointer;
+		uint32_t	reserved[ 4 ];
 	} __attribute__( (packed) );
 #endif
