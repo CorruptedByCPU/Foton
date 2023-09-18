@@ -71,12 +71,12 @@ uintptr_t driver_usb_queue_empty( void ) {
 
 void driver_usb_uhci_queue( uint32_t *frame_list ) {
 	// acquire 1/1024u query
-	uint32_t queue_1u = (uint32_t) driver_usb_queue_empty() | DRIVER_USB_DEFAULT_FLAG_queue;
+	driver_usb_queue_1ms = (struct DRIVER_USB_QUEUE_STRUCTURE *) driver_usb_queue_empty();
 
 	// for each entry inside frame list
 	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_32; i++ )
 		// insert ~1ms queue
-		frame_list[ i ] = queue_1u;
+		frame_list[ i ] = (uintptr_t) driver_usb_queue_1ms | DRIVER_USB_DEFAULT_FLAG_queue;
 }
 
 void _entry( uintptr_t kernel_ptr ) {
@@ -176,10 +176,14 @@ void _entry( uintptr_t kernel_ptr ) {
 				// clear controller status
 				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, status ), 0xFFFF );
 
+				// start UHCI controller
+				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, command ), TRUE | 1 << 6 );
+
 				//-------------------
 
 				// discover every port
-				for( uint16_t j = 0; j < driver_usb_controller[ i ].size_byte >> 4; j++ ) {	// thats a proper way of calculating amount of available ports inside controller, but for UHCI only
+				// for( uint16_t j = 0; j < driver_usb_controller[ i ].size_byte >> 4; j++ ) {	// thats a proper way of calculating amount of available ports inside controller, but for UHCI only
+				for( uint16_t j = 0; j < 1; j++ ) {	// DEBUG
 					// register port / it doesn't matter right now if device is connected to it or not
 					driver_usb_port[ driver_usb_port_count ].flags = DRIVER_USB_PORT_FLAG_reserved;
 
@@ -231,6 +235,47 @@ void _entry( uintptr_t kernel_ptr ) {
 					if( connected ) {
 						// yes
 						kernel -> log( (uint8_t *) "[usb module].%u Port%u - connected.\n", i, j );
+
+						// DEBUG
+
+						struct DRIVER_USB_TD_STRUCTURE *td = (struct DRIVER_USB_TD_STRUCTURE *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);
+
+						td[ 0 ].link_pointer = (uintptr_t) &td[ 1 ] >> 4;
+						td[ 0 ].flags = DRIVER_USB_DEFAULT_FLAG_data;	// continue with next TD
+						td[ 0 ].status = DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active;
+						td[ 0 ].low_speed = TRUE;
+						td[ 0 ].error_counter = 3;
+						td[ 0 ].pid = 0x2D;	// setup
+						// td[ 0 ].data_toggle = TRUE;
+						td[ 0 ].max_length = 0x07;
+						td[ 0 ].buffer_pointer = (uintptr_t) &td[ 3 ];
+						uint8_t *buffer = (uint8_t *) &td[ 3 ];
+						buffer[ 0 ] = 0x80;
+						buffer[ 1 ] = 0x06;
+						buffer[ 3 ] = 0x01;
+						buffer[ 6 ] = 0x08;
+
+						td[ 1 ].link_pointer = (uintptr_t) &td[ 2 ] >> 4;
+						td[ 1 ].flags = DRIVER_USB_DEFAULT_FLAG_data;	// continue with next TD
+						td[ 1 ].status = DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active;
+						td[ 1 ].low_speed = TRUE;
+						td[ 1 ].error_counter = 3;
+						td[ 1 ].pid = 0x69;	// in
+						td[ 1 ].data_toggle = TRUE;
+						td[ 1 ].max_length = 0x07;
+						td[ 1 ].buffer_pointer = (uintptr_t) &td[ 4 ];
+
+						td[ 2 ].link_pointer = EMPTY;
+						td[ 2 ].flags = DRIVER_USB_DEFAULT_FLAG_terminate;
+						td[ 2 ].status = DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active;
+						td[ 2 ].ioc = TRUE;
+						td[ 2 ].low_speed = TRUE;
+						td[ 2 ].error_counter = 3;
+						td[ 2 ].pid = 0xE1;	// out
+						td[ 2 ].data_toggle = TRUE;
+						td[ 2 ].max_length = EMPTY;
+
+						driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
 					}
 				}
 			}

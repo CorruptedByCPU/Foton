@@ -45,8 +45,16 @@
 
 	#define	DRIVER_USB_PORT_FLAG_reserved					0b00000001
 
+	#define	DRIVER_USB_DEFAULT_FLAG_mask					0x0F
 	#define	DRIVER_USB_DEFAULT_FLAG_terminate				0b0001
 	#define	DRIVER_USB_DEFAULT_FLAG_queue					0b0010
+	#define	DRIVER_USB_DEFAULT_FLAG_data					0b0100
+
+	#define	DRIVER_USB_TRANSFER_DESCRIPTOR_DEVICE_CONTROL_PID_setup			0
+	#define	DRIVER_USB_TRANSFER_DESCRIPTOR_DESCRIPTOR_CONTROL_low_speed_device	26
+	#define	DRIVER_USB_TRANSFER_DESCRIPTOR_DESCRIPTOR_CONTROL_error_counter		27
+
+	#define	DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active			1 << 7
 
 	struct DRIVER_USB_CONTROLLER_STRUCTURE {
 		uint8_t		type;
@@ -80,10 +88,24 @@
 		uint32_t	reserved[ 2 ];
 	} __attribute__( (packed) );
 
-	struct DRIVER_USB_TRANSFER_DESCRIPTOR_STRUCTURE {
-		uint32_t	link_pointer_and_flags;
-		uint32_t	descriptor_controls;
-		uint32_t	transfer_controls;
+	struct DRIVER_USB_TD_STRUCTURE {
+		uint8_t		flags 		: 4;
+		uint32_t	link_pointer	: 28;
+		uint16_t	actual_length	: 11;
+		uint8_t		reserved0	: 5;
+		uint8_t		status		: 8;
+		uint8_t		ioc		: 1;
+		uint8_t		iso		: 1;
+		uint8_t		low_speed	: 1;
+		uint8_t		error_counter	: 2;
+		uint8_t		short_packet	: 1;
+		uint8_t		reserved1	: 2;
+		uint8_t		pid		: 8;
+		uint8_t		device_address	: 7;
+		uint8_t		endpoint	: 4;
+		uint8_t		data_toggle	: 1;
+		uint8_t		reserved2	: 1;
+		uint16_t	max_length	: 11;
 		uint32_t	buffer_pointer;
 		uint32_t	reserved[ 4 ];
 	} __attribute__( (packed) );
