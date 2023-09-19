@@ -79,6 +79,115 @@ void driver_usb_uhci_queue( uint32_t *frame_list ) {
 		frame_list[ i ] = (uintptr_t) driver_usb_queue_1ms | DRIVER_USB_DEFAULT_FLAG_queue;
 }
 
+uint64_t driver_usb_request_descriptor_default( uint8_t address ) {
+	// prepare Transfer Descriptors area
+	struct DRIVER_USB_TD_STRUCTURE *td = (struct DRIVER_USB_TD_STRUCTURE *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);
+
+	// set REQUEST information
+	uint8_t *buffer = (uint8_t *) &td[ 3 ];
+	buffer[ 0 ] = 0x80;
+	buffer[ 1 ] = 0x06;
+	buffer[ 3 ] = 0x01;
+	buffer[ 6 ] = 0x08;
+
+	//----------------------------------------------------------------------
+
+	// SETUP descriptor
+	td[ 0 ].pid = 0x2D;
+
+	// assume it is a Low Speed device
+	td[ 0 ].low_speed = TRUE;
+
+	// if there was error while parsing this descriptor, decrease value
+	td[ 0 ].error_counter = 3;
+
+	// send 8 Bytes
+	td[ 0 ].max_length = 0x07;
+
+	// REQUEST information is located there ...
+	td[ 0 ].buffer_pointer = (uintptr_t) &td[ 3 ];
+
+	// even descriptor
+	td[ 0 ].data_toggle = FALSE;
+
+	// TD ready
+	td[ 0 ].status = DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active;
+
+	// next TD
+	td[ 0 ].flags = DRIVER_USB_DEFAULT_FLAG_data;
+	td[ 0 ].link_pointer = (uintptr_t) &td[ 1 ] >> 4;	// which is at
+
+	//----------------------------------------------------------------------
+
+	// IN descriptor - inform device where to save requested data by SETUP descriptor
+	td[ 1 ].pid = 0x69;
+
+	// assume it is a Low Speed device
+	td[ 1 ].low_speed = TRUE;
+
+	// if there was error while parsing this descriptor, decrease value
+	td[ 1 ].error_counter = 3;
+
+	// receive 8 Bytes
+	td[ 1 ].max_length = 0x07;
+
+	// WRITE answer to this location ...
+	td[ 1 ].buffer_pointer = (uintptr_t) &td[ 4 ];
+
+	// odd descriptor
+	td[ 1 ].data_toggle = TRUE;
+
+	// TD ready
+	td[ 1 ].status = DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active;
+
+	// next TD
+	td[ 1 ].flags = DRIVER_USB_DEFAULT_FLAG_data;
+	td[ 1 ].link_pointer = (uintptr_t) &td[ 2 ] >> 4;	// which is at
+
+	//----------------------------------------------------------------------
+
+	// STATUS descriptor - tell device that we are done with requests
+	td[ 2 ].pid = 0xE1;
+
+	// assume it is a Low Speed device
+	td[ 2 ].low_speed = TRUE;
+
+	// if there was error while parsing this descriptor, decrease value
+	td[ 2 ].error_counter = 3;
+
+	// we do not sending enything
+	td[ 2 ].max_length = EMPTY;
+
+	// last descriptor
+	td[ 2 ].data_toggle = TRUE;
+
+	// TD ready
+	td[ 2 ].status = DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active;
+
+	// there will be no more descriptors
+	td[ 2 ].flags = DRIVER_USB_DEFAULT_FLAG_terminate;
+
+	//----------------------------------------------------------------------
+
+	// insert Transfer Descriptors on Queue
+	driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
+
+	MACRO_DEBUF();
+
+	// wait for device
+	uint64_t *data = (uint64_t *) &td[ 4 ];
+	while( ! *data );
+
+	// retrieve answer
+	volatile uint64_t answer = data[ 0 ];
+
+	// relase Transfer Descriptors
+	kernel -> memory_release_page( (uintptr_t) td );
+
+	// return answer
+	return answer;
+}
+
 void _entry( uintptr_t kernel_ptr ) {
 	// preserve kernel structure pointer
 	kernel = (struct KERNEL *) kernel_ptr;
@@ -236,46 +345,8 @@ void _entry( uintptr_t kernel_ptr ) {
 						// yes
 						kernel -> log( (uint8_t *) "[usb module].%u Port%u - connected.\n", i, j );
 
-						// DEBUG
-
-						struct DRIVER_USB_TD_STRUCTURE *td = (struct DRIVER_USB_TD_STRUCTURE *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);
-
-						td[ 0 ].link_pointer = (uintptr_t) &td[ 1 ] >> 4;
-						td[ 0 ].flags = DRIVER_USB_DEFAULT_FLAG_data;	// continue with next TD
-						td[ 0 ].status = DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active;
-						td[ 0 ].low_speed = TRUE;
-						td[ 0 ].error_counter = 3;
-						td[ 0 ].pid = 0x2D;	// setup
-						// td[ 0 ].data_toggle = TRUE;
-						td[ 0 ].max_length = 0x07;
-						td[ 0 ].buffer_pointer = (uintptr_t) &td[ 3 ];
-						uint8_t *buffer = (uint8_t *) &td[ 3 ];
-						buffer[ 0 ] = 0x80;
-						buffer[ 1 ] = 0x06;
-						buffer[ 3 ] = 0x01;
-						buffer[ 6 ] = 0x08;
-
-						td[ 1 ].link_pointer = (uintptr_t) &td[ 2 ] >> 4;
-						td[ 1 ].flags = DRIVER_USB_DEFAULT_FLAG_data;	// continue with next TD
-						td[ 1 ].status = DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active;
-						td[ 1 ].low_speed = TRUE;
-						td[ 1 ].error_counter = 3;
-						td[ 1 ].pid = 0x69;	// in
-						td[ 1 ].data_toggle = TRUE;
-						td[ 1 ].max_length = 0x07;
-						td[ 1 ].buffer_pointer = (uintptr_t) &td[ 4 ];
-
-						td[ 2 ].link_pointer = EMPTY;
-						td[ 2 ].flags = DRIVER_USB_DEFAULT_FLAG_terminate;
-						td[ 2 ].status = DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active;
-						td[ 2 ].ioc = TRUE;
-						td[ 2 ].low_speed = TRUE;
-						td[ 2 ].error_counter = 3;
-						td[ 2 ].pid = 0xE1;	// out
-						td[ 2 ].data_toggle = TRUE;
-						td[ 2 ].max_length = EMPTY;
-
-						driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
+						// retrieve default descriptor from device
+						volatile uint64_t response = driver_usb_request_descriptor_default( EMPTY );
 					}
 				}
 			}

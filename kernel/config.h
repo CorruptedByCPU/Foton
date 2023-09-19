@@ -80,6 +80,7 @@ struct KERNEL {
 	// functions of Memory management
 	uintptr_t						(*memory_alloc)( uint64_t N );
 	uintptr_t						(*memory_alloc_page)( void );
+	void							(*memory_release_page)( uintptr_t address );
 
 	// variables of Modules functions
 	uint32_t	*module_base_address;
