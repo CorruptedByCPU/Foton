@@ -172,14 +172,15 @@ uint64_t driver_usb_request_descriptor_default( uint8_t address ) {
 	// insert Transfer Descriptors on Queue
 	driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
 
-	MACRO_DEBUF();
-
 	// wait for device
-	uint64_t *data = (uint64_t *) &td[ 4 ];
+	volatile uint64_t *data = (uint64_t *) &td[ 4 ];
 	while( ! *data );
 
 	// retrieve answer
-	volatile uint64_t answer = data[ 0 ];
+	uint64_t answer = data[ 0 ];
+
+	// remove Transfer Descriptors from Queue
+	driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = DRIVER_USB_DEFAULT_FLAG_terminate;
 
 	// relase Transfer Descriptors
 	kernel -> memory_release_page( (uintptr_t) td );
