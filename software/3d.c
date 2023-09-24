@@ -53,7 +53,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// main loop
 	while( TRUE ) {
 		// next angle
-		a += 0.015f;
+		a += 0.1f;
 
 		// clean workbench with default background color
 		lib_rgl_clean( rgl );

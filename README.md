@@ -1,6 +1,16 @@
-# Foton <sup>(workname)</sup>
+Welcome to
 
-Foton (eng. Photon [still looking for proper name]) - is a similar project as Cyjon/Fern-Night, but compatibility will no longer be fully supported.
+# Foton! <sup>(workname)</sup>
+
+This is a similar project as Cyjon/Fern-Night, but compatibility will no longer be fully supported.
+
+Simple project of multitasking operating system for 64-bit processors from x86_64 family.
+
+A system that is detached from reality. Fully resident in memory. (Yep, no installation on hard drive needed.)
+
+In near future, a website will be created that will be responsible for configuring system just for you.
+
+You will be able to create your own system profiles, and we will build your own compilation of a set of programs, appearances, etc. as an easy-to-use ISO image.
 
 #### Already reimplemented:
 

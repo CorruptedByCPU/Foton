@@ -8,7 +8,7 @@
 	#define	DRIVER_USB_BASE_ADDRESS_type					0b0001
 
 	#define	DRIVER_USB_CONTROLLER_limit					1
-	#define	DRIVER_USB_PORT_limit						2
+	#define	DRIVER_USB_PORT_limit						2	// less than 128
 
 	#define	DRIVER_USB_CONTROLLER_COMMAND_run_stop				0b00000001
 	#define	DRIVER_USB_CONTROLLER_COMMAND_host_controller_reset		0b00000010
@@ -38,7 +38,7 @@
 	#define	DRIVER_USB_PORT_STATUS_AND_CONTROL_line_status			0b0000000000110000
 	#define	DRIVER_USB_PORT_STATUS_AND_CONTROL_resume_detect		0b0000000001000000
 	#define	DRIVER_USB_PORT_STATUS_AND_CONTROL_reserved_should_be_one	0b0000000010000000
-	#define	DRIVER_USB_PORT_STATUS_AND_CONTROL_low_speed_device_attached	0b0000000100000000
+	#define	DRIVER_USB_PORT_STATUS_AND_CONTROL_high_speed_device_attached	0b0000000100000000
 	#define	DRIVER_USB_PORT_STATUS_AND_CONTROL_port_reset			0b0000001000000000
 	#define	DRIVER_USB_PORT_STATUS_AND_CONTROL_reserved			0b0000110000000000
 	#define	DRIVER_USB_PORT_STATUS_AND_CONTROL_suspend			0b0001000000000000
@@ -51,10 +51,14 @@
 	#define	DRIVER_USB_DEFAULT_FLAG_data					0b0100
 
 	#define	DRIVER_USB_TRANSFER_DESCRIPTOR_DEVICE_CONTROL_PID_setup			0
-	#define	DRIVER_USB_TRANSFER_DESCRIPTOR_DESCRIPTOR_CONTROL_low_speed_device	26
+	#define	DRIVER_USB_TRANSFER_DESCRIPTOR_DESCRIPTOR_CONTROL_high_speed_device	26
 	#define	DRIVER_USB_TRANSFER_DESCRIPTOR_DESCRIPTOR_CONTROL_error_counter		27
 
 	#define	DRIVER_USB_TRANSFER_DESCRIPTOR_STATUS_active			1 << 7
+
+	#define	DRIVER_USB_REQUEST_SETUP					0
+	#define	DRIVER_USB_REQUEST_ADDRESS					1
+	#define	DRIVER_USB_DESCRIPTOR_SETUP					0x0008000001000680
 
 	struct DRIVER_USB_CONTROLLER_STRUCTURE {
 		uint8_t		type;
@@ -96,7 +100,7 @@
 		uint8_t		status		: 8;
 		uint8_t		ioc		: 1;
 		uint8_t		iso		: 1;
-		uint8_t		low_speed	: 1;
+		uint8_t		high_speed	: 1;
 		uint8_t		error_counter	: 2;
 		uint8_t		short_packet	: 1;
 		uint8_t		reserved1	: 2;
@@ -108,5 +112,22 @@
 		uint16_t	max_length	: 11;
 		uint32_t	buffer_pointer;
 		uint32_t	reserved[ 4 ];
+	} __attribute__( (packed) );
+
+	struct DRIVER_USB_DESCRIPTOR_STANDARD {
+		uint8_t		length;
+		uint8_t		type;
+		uint16_t	release_number;
+		uint8_t		class;
+		uint8_t		subclass;
+		uint8_t		protocol;
+		uint8_t		max_packet_size;
+		uint16_t	vendor_id;
+		uint16_t	product_id;
+		uint16_t	device_release_number;
+		uint8_t		offset_manufacturer;
+		uint8_t		offset_product;
+		uint8_t		offset_serial_number;
+		uint8_t		configurations;
 	} __attribute__( (packed) );
 #endif
