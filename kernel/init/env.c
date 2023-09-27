@@ -24,6 +24,9 @@ void kernel_init_env( void ) {
 	kernel -> memory_alloc_page		= (void *) kernel_memory_alloc_page;
 	kernel -> memory_release_page		= (void *) kernel_memory_release_page;
 
+	// share page management functions
+	kernel -> page_clean			= (void *) kernel_page_clean;
+
 	// share memory management functions
 	kernel -> task_active			= (void *) kernel_task_active;
 	kernel -> task_pid			= (void *) kernel_task_pid;

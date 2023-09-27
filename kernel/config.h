@@ -90,6 +90,8 @@ struct KERNEL {
 	uint64_t	page_total;
 	uint64_t	page_available;
 	uint64_t	page_limit;
+	// functions of Page management
+	void							(*page_clean)( uintptr_t address, uint64_t n );
 
 	// variables of Storage management functions
 	struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;

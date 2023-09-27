@@ -73,6 +73,9 @@
 		uint8_t		controller_id;
 		uint8_t		port_id;
 		uint8_t		address_id;
+		uint8_t		low_speed;
+		uint64_t	max_packet_size;
+		uint64_t	default_descriptor_length;
 	};
 
 	struct DRIVER_USB_REGISTER_STRUCTURE {
@@ -100,7 +103,7 @@
 		uint8_t		status		: 8;
 		uint8_t		ioc		: 1;
 		uint8_t		iso		: 1;
-		uint8_t		high_speed	: 1;
+		uint8_t		low_speed	: 1;
 		uint8_t		error_counter	: 2;
 		uint8_t		short_packet	: 1;
 		uint8_t		reserved1	: 2;
