@@ -390,13 +390,11 @@ void driver_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_
 
 	//----------------------------------------------------------------------
 
-MACRO_DEBUF();
-
 	// insert Transfer Descriptors on Queue
 	driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
 
 	// wait for device
-	while( td[ 2 ].status & 0b10000000 ) {
+	while( (td[ 0 ].status & 0b10000000) || (td[ 1 ].status & 0b10000000) ) {
 		__asm__ volatile( "nop" );
 	}
 
@@ -576,40 +574,16 @@ void _entry( uintptr_t kernel_ptr ) {
 
 					// register device speed
 					driver_usb_port[ driver_usb_port_count ].low_speed = status >> 8;
-					if( ! driver_usb_port[ driver_usb_port_count ].low_speed ) kernel -> log( (uint8_t *) "Full-Speed device!\n" );
 
 					// device connected
 					kernel -> log( (uint8_t *) "[usb module].%u Port%u - device connected.\n", i, j );
-
-					// // retrieve default descriptor from device
-					// struct DRIVER_USB_DESCRIPTOR_STANDARD *device_descriptor = (struct DRIVER_USB_DESCRIPTOR_STANDARD *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);
-					// driver_usb_descriptor( driver_usb_port_count, 1, 0x08, (uintptr_t) device_descriptor & ~KERNEL_PAGE_logical );
-
-					// // port reset
-					// if( ! (status = driver_usb_port_reset( driver_usb_port_count )) ) continue;	// device doesn't exist anymore
-
-					// // remember max packet size
-					// driver_usb_port[ driver_usb_port_count ].max_packet_size = device_descriptor -> max_packet_size;
-
-					// // acuire default descriptor length
-					// driver_usb_port[ driver_usb_port_count ].default_descriptor_length = device_descriptor -> length;
-
-					// // set device address
-					// driver_usb_descriptor( driver_usb_port_count, 2, EMPTY, EMPTY );
-
-					// // assign device address
-					// driver_usb_port[ driver_usb_port_count ].address_id = (uint64_t) ((uintptr_t) &driver_usb_port[ driver_usb_port_count ] - (uintptr_t) driver_usb_port) / sizeof( struct DRIVER_USB_PORT_STRUCTURE );
-
-					// // // retrieve full device descriptor
-					// kernel -> page_clean( (uintptr_t) device_descriptor, 1 );
-					// driver_usb_descriptor( driver_usb_port_count, 1, driver_usb_port[ driver_usb_port_count ].default_descriptor_length, (uintptr_t) device_descriptor & ~KERNEL_PAGE_logical );
 
 					// retrieve default descriptor from device
 					struct DRIVER_USB_DESCRIPTOR_STANDARD *device_descriptor = (struct DRIVER_USB_DESCRIPTOR_STANDARD *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);
 					driver_usb_descriptor( driver_usb_port_count, 0, 0x08, (uintptr_t) device_descriptor & ~KERNEL_PAGE_logical );
 
 					// port reset
-					// if( ! (status = driver_usb_port_reset( driver_usb_port_count )) ) continue;	// device doesn't exist anymore
+					if( ! (status = driver_usb_port_reset( driver_usb_port_count )) ) continue;	// device doesn't exist anymore
 
 					// remember max packet size
 					driver_usb_port[ driver_usb_port_count ].max_packet_size = device_descriptor -> max_packet_size;
