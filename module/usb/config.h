@@ -60,6 +60,34 @@
 	#define	DRIVER_USB_REQUEST_ADDRESS					1
 	#define	DRIVER_USB_DESCRIPTOR_SETUP					0x0008000001000680
 
+	#define	DRIVER_USB_DEVICE_REQUEST_PACKET_TYPE_direction_device_to_host	0b10000000
+	#define	DRIVER_USB_DEVICE_REQUEST_PACKET_TYPE_direction_host_to_device	0b00000000
+	#define	DRIVER_USB_DEVICE_REQUEST_PACKET_TYPE_subtype_standard		0b00000000
+	#define	DRIVER_USB_DEVICE_REQUEST_PACKET_TYPE_subtype_vendor		0b01000000
+	#define	DRIVER_USB_DEVICE_REQUEST_PACKET_TYPE_subtype_class		0b00100000
+	#define	DRIVER_USB_DEVICE_REQUEST_PACKET_TYPE_recipient_device		0b00000000
+	#define	DRIVER_USB_DEVICE_REQUEST_PACKET_TYPE_recipient_interface	0b00000001
+	#define	DRIVER_USB_DEVICE_REQUEST_PACKET_TYPE_recipient_endpoint	0b00000010
+	#define	DRIVER_USB_DEVICE_REQUEST_PACKET_TYPE_recipient_other		0b00000011
+
+	#define	DRIVER_USB_STANDARD_REQUEST_status_get				0x00
+	#define	DRIVER_USB_STANDARD_REQUEST_feature_clear			0x01
+	#define	DRIVER_USB_STANDARD_REQUEST_feature_set				0x03
+	#define	DRIVER_USB_STANDARD_REQUEST_address_set				0x05
+	#define	DRIVER_USB_STANDARD_REQUEST_descriptor_get			0x06
+	#define	DRIVER_USB_STANDARD_REQUEST_descriptor_set			0x07
+	#define	DRIVER_USB_STANDARD_REQUEST_configuration_get			0x08
+	#define	DRIVER_USB_STANDARD_REQUEST_interface_get			0x0A
+	#define	DRIVER_USB_STANDARD_REQUEST_sync_frame				0x0C
+
+	struct	DRIVER_USB_DEVICE_REQUEST_PACKET {
+		uint8_t		type;
+		uint8_t		request;
+		uint16_t	value;
+		uint16_t	index;
+		uint16_t	length;
+	} __attribute__( (packed) );
+
 	struct DRIVER_USB_CONTROLLER_STRUCTURE {
 		uint8_t		type;
 		uintptr_t	base_address;
