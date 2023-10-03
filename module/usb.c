@@ -394,9 +394,7 @@ void driver_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_
 	driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
 
 	// wait for device
-	while( (td[ 0 ].status & 0b10000000) || (td[ 1 ].status & 0b10000000) ) {
-		__asm__ volatile( "nop" );
-	}
+	while( (td[ 0 ].status & 0b10000000) || (td[ 1 ].status & 0b10000000) ) { __asm__ volatile( "nop" ); }	// i don't know why... but clang removed whole line if there is no at least something like "nop"
 
 	// remove Transfer Descriptors from Queue
 	driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = DRIVER_USB_DEFAULT_FLAG_terminate;
@@ -411,7 +409,7 @@ uint16_t driver_usb_port_reset( uint8_t id ) {
 	uint16_t status = EMPTY;
 
 	// send command, reset
-	driver_port_out_word( driver_usb_controller[ driver_usb_port[ id ].controller_id ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ driver_usb_port[ id ].port_id ] ), driver_port_in_word( driver_usb_controller[ driver_usb_port[ id ].controller_id ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ driver_usb_port[ id ].port_id ] ) ) | DRIVER_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 50 );
+	driver_port_out_word( driver_usb_controller[ driver_usb_port[ id ].controller_id ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ driver_usb_port[ id ].port_id ] ), driver_port_in_word( driver_usb_controller[ driver_usb_port[ id ].controller_id ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ driver_usb_port[ id ].port_id ] ) ) & ~DRIVER_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 50 );
 	driver_port_out_word( driver_usb_controller[ driver_usb_port[ id ].controller_id ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ driver_usb_port[ id ].port_id ] ), driver_port_in_word( driver_usb_controller[ driver_usb_port[ id ].controller_id ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, port[ driver_usb_port[ id ].port_id ] ) ) & ~DRIVER_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 10 );
 
 	// connection status
