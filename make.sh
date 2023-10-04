@@ -55,15 +55,25 @@ cp build/kernel.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd
 
 #===============================================================================
 
+for submodule in `(cd module && ls *.asm)`; do
+	# module name
+	name=${submodule%.*}
+
+	# build
+	${ASM} -f elf64 module/${name}.asm -o build/${name}.ao
+done
+
 for module in `(cd module && ls *.c)`; do
 	# module name
-	name=${module::$(expr ${#module} - 2)}
+	name=${module%.*}
 
 	# build
 	${C} -DMODULE -c module/${name}.c -o build/${name}.o ${CFLAGS} || exit 1
 
 	# connect with libraries (if necessery)
-	${LD} build/${name}.o -o build/root/system/lib/modules/${name}.ko -T tools/linker.module ${LDFLAGS}
+	SUB=""
+	if [ -f build/${name}.ao ]; then SUB="build/${name}.ao"; fi
+	${LD} ${SUB} build/${name}.o -o build/root/system/lib/modules/${name}.ko -T tools/linker.module ${LDFLAGS}
 
 	# we do not need any additional information
 	strip -R .comment -s build/root/system/lib/modules/${name}.ko > /dev/null 2>&1
