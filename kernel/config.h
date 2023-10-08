@@ -26,8 +26,12 @@
 #endif
 
 struct KERNEL {
-	// variable of Kernel management functions
+	// variables of Kernel management functions
 	volatile uint64_t	cpu_count;
+
+	// variables of Input devices
+	int64_t		device_mouse_x;
+	int64_t		device_mouse_y;
 
 	// variables of Framebuffer functions
 	uint32_t	*framebuffer_base_address;
@@ -36,7 +40,7 @@ struct KERNEL {
 	uint32_t	framebuffer_pitch_byte;
 	int64_t		framebuffer_owner_pid;
 
-	// variable of GDT management functions
+	// variables of GDT management functions
 	struct KERNEL_GDT_STRUCTURE_HEADER			gdt_header;
 
 	// variables of HPET management functions
@@ -49,8 +53,10 @@ struct KERNEL {
 	// functions of Time management
 	void							(*time_sleep)( uint64_t t );	// miliseconds
 
-	// variable of IDT management functions
+	// variables of IDT management functions
 	struct KERNEL_IDT_STRUCTURE_HEADER			idt_header;
+	// functions of IDT management
+	void							(*idt_mount)( uint8_t id, uint16_t type, uintptr_t address );
 
 	// variables of I/O APIC management functions
 	volatile struct KERNEL_IO_APIC_STRUCTURE_REGISTER	*io_apic_base_address;
@@ -58,17 +64,20 @@ struct KERNEL {
 	uint8_t		io_apic_semaphore;
 	// functions of I/O APIC management
 	uint8_t							(*io_apic_line_acquire)( void );
+	void							(*io_apic_connect)( uint8_t line, uint32_t io_apic_register );
 
 	// variables of IPC management functions
 	struct STD_IPC_STRUCTURE				*ipc_base_address;
 	uint8_t		ipc_semaphore;
 
-	// variable of Log management functions
+	// variables of Log management functions
 	void							(*log)( uint8_t *string, ... );
 
 	// variables of APIC management functions
 	volatile struct KERNEL_LAPIC_STRUCTURE			*lapic_base_address;
 	uint64_t	lapic_id_highest;
+	// functions of APIC management
+	void							(*lapic_accept)( void );
 
 	// variables of Library management functions
 	struct KERNEL_LIBRARY_STRUCTURE				*library_base_address;

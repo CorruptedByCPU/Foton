@@ -420,7 +420,7 @@ uint16_t driver_usb_port_reset( uint8_t id ) {
 		// device connected to port0?
 		if( ! (status & DRIVER_USB_PORT_STATUS_AND_CONTROL_current_connect_status) ) {	// no
 			// port disconnected
-			kernel -> log( (uint8_t *) "[usb module].%u Port%u - disconnected.\n", driver_usb_port[ id ].controller_id, driver_usb_port[ id ].port_id );
+			kernel -> log( (uint8_t *) "[USB module].%u Port%u - disconnected.\n", driver_usb_port[ id ].controller_id, driver_usb_port[ id ].port_id );
 
 			// ignore port
 			break;
@@ -481,7 +481,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					} else continue;	// no available lines
 
 					// show information about controller
-					kernel -> log( (uint8_t *) "[usb module].%u PCI %2X:%2X.%u - USB controller found. (Universal Serial Bus)\n", driver_usb_controller_count, pci.bus, pci.device, pci.function );
+					kernel -> log( (uint8_t *) "[USB module].%u PCI %2X:%2X.%u - USB controller found. (Universal Serial Bus)\n", driver_usb_controller_count, pci.bus, pci.device, pci.function );
 
 					// try UHCI bar
 					uint32_t hci = DRIVER_PCI_REGISTER_bar4;
@@ -510,7 +510,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					if( base_address_config & 0b0100 ) base_address_space |= (uint64_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_bar5 ) << 32;
 
 					// show properties of device
-					kernel -> log( (uint8_t *) "[usb module].%u  I/O %s at 0x%X [0x%X Bytes], I/O APIC line %u.\n", driver_usb_controller_count, base_address_type, base_address_space, base_address_size, line );
+					kernel -> log( (uint8_t *) "[USB module].%u  I/O %s at 0x%X [0x%X Bytes], I/O APIC line %u.\n", driver_usb_controller_count, base_address_type, base_address_space, base_address_size, line );
 
 					// register USB controller
 					driver_usb_controller[ driver_usb_controller_count ].type = base_address_space & DRIVER_USB_BASE_ADDRESS_type;
@@ -530,7 +530,7 @@ void _entry( uintptr_t kernel_ptr ) {
 			// check if UHCI controller
 			if( driver_usb_detect_uhci( i ) ) {
 				// show controller type
-				kernel -> log( (uint8_t *) "[usb module].%u recognized as UHCI (Universal Host Controller Interface).\n", i );
+				kernel -> log( (uint8_t *) "[USB module].%u recognized as UHCI (Universal Host Controller Interface).\n", i );
 
 				// configure UHCI controller
 
@@ -574,7 +574,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					driver_usb_port[ driver_usb_port_count ].low_speed = status >> 8;
 
 					// device connected
-					kernel -> log( (uint8_t *) "[usb module].%u Port%u - device connected.\n", i, j );
+					kernel -> log( (uint8_t *) "[USB module].%u Port%u - device connected.\n", i, j );
 
 					// retrieve default descriptor from device
 					struct DRIVER_USB_DESCRIPTOR_STANDARD *device_descriptor = (struct DRIVER_USB_DESCRIPTOR_STANDARD *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);

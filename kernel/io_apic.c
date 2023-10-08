@@ -32,15 +32,15 @@ uint8_t kernel_io_apic_line_acquire( void ) {
 	return EMPTY;
 }
 
-void kernel_io_apic_connect( uint8_t irq, uint32_t io_apic_register ) {
+void kernel_io_apic_connect( uint8_t line, uint32_t io_apic_register ) {
 	// lower part of register
 	kernel -> io_apic_base_address -> ioregsel = (uint32_t) io_apic_register + KERNEL_IO_APIC_iowin_low;
-	kernel -> io_apic_base_address -> iowin = (uint32_t) irq;
+	kernel -> io_apic_base_address -> iowin = (uint32_t) line;
 
 	// higher part of register
 	kernel -> io_apic_base_address -> ioregsel = (uint32_t) io_apic_register + KERNEL_IO_APIC_iowin_high;
 	kernel -> io_apic_base_address -> iowin = (uint32_t) EMPTY;
 
 	// lock used IRQ line
-	kernel -> io_apic_irq_lines &= ~(1 << irq);
+	kernel -> io_apic_irq_lines &= ~(1 << line);
 }

@@ -114,6 +114,10 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_base_address, size_page ) << STD_SHIFT_PAGE);
 	kernel_page_map( (uintptr_t *) module -> cr3, module_content, module_memory, size_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_external );
 
+	// map module space to kernel space
+	kernel_page_map( (uintptr_t *) kernel -> page_base_address, module_content, module_memory, size_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_external );
+
+
 	// set module entry address
 	context -> rip = module_memory + elf -> entry_ptr;
 

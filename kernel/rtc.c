@@ -9,7 +9,7 @@
 		#include	"./rtc.h"
 	#endif
 
-__attribute__(( preserve_all ))
+__attribute__(( no_caller_saved_registers ))
 void kernel_rtc() {
 	// receive pending interrupt of the real-time controller
 	driver_port_out_byte( KERNEL_RTC_PORT_command, KERNEL_RTC_STATUS_REGISTER_C );

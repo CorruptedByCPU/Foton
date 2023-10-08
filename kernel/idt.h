@@ -8,6 +8,7 @@
 	#define	KERNEL_IDT_IRQ_offset			0x20
 
 	#define	KERNEL_IDT_TYPE_gate_interrupt		0x8E00
+	#define	KERNEL_IDT_TYPE_irq			0x8F00
 
 	struct	KERNEL_IDT_STRUCTURE_ENTRY {
 		uint16_t	base_low;

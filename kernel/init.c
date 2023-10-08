@@ -167,11 +167,11 @@ void _entry( void ) {
 	// prepare Inter Process communication
 	kernel_init_ipc();
 
-	// execute first process
-	kernel_exec( (uint8_t *) "init", 4 );
-
 	// load basic list of modules
 	kernel_init_module();
+
+	// execute first process
+	kernel_exec( (uint8_t *) "init", 4 );
 
 	// reload BSP configuration
 	kernel_init_ap();
