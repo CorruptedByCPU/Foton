@@ -255,3 +255,10 @@ uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t p
 	// return the address of the first page in the collection
 	return target_pointer;
 }
+
+void kernel_syscall_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse ) {
+	// return information about existing framebuffer
+	mouse -> x	= kernel -> device_mouse_x;
+	mouse -> y	= kernel -> device_mouse_y;
+	mouse -> status	= kernel -> device_mouse_status;
+}

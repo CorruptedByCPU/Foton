@@ -6,7 +6,7 @@ struct KERNEL *kernel = EMPTY;
 
 uint8_t driver_ps2_mouse_semaphore		= FALSE;
 uint8_t driver_ps2_mouse_type			= EMPTY;
-uint8_t driver_ps2_mouse_package		= EMPTY;
+uint8_t driver_ps2_mouse_package_id		= EMPTY;
 
 uint8_t driver_ps2_keyboard_matrix = FALSE;
 

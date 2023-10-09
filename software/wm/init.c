@@ -25,6 +25,15 @@ void wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
+	// create framebuffer space
+
+	// as local object
+	wm_object_framebuffer.width		= framebuffer.width_pixel;
+	wm_object_framebuffer.height		= framebuffer.height_pixel;
+	wm_object_framebuffer.descriptor	= (struct WM_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( ((wm_object_framebuffer.width * wm_object_framebuffer.height) << STD_VIDEO_DEPTH_shift) + sizeof( struct WM_STRUCTURE_DESCRIPTOR ) ) >> STD_SHIFT_PAGE );
+
+	//----------------------------------------------------------------------
+
 	// create workbench object
 	wm_object_workbench = wm_object_create( 0, 0, framebuffer.width_pixel, framebuffer.height_pixel );
 

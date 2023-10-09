@@ -78,7 +78,7 @@ void driver_ps2_mouse( void ) {
 		int8_t package = driver_ps2_data_read();
 
 		// perform operation depending on number of package
-		switch( driver_ps2_mouse_package ) {
+		switch( driver_ps2_mouse_package_id ) {
 			case 0: {
 				// status package contains ALWAYS ON bit?
 				if( ! (package & DRIVER_PS2_MOUSE_PACKET_ALWAYS_ONE ) ) break;	// no
@@ -93,61 +93,47 @@ void driver_ps2_mouse( void ) {
 				kernel -> device_mouse_status = package;
 
 				// package handled from given interrupt
-				driver_ps2_mouse_package++;
+				driver_ps2_mouse_package_id++;
 
 				// package parsed
 				break;
 			}
 
 			case 1: {
-				// value on X axis negative?
-				if( kernel -> device_mouse_status & DRIVER_PS2_MOUSE_PACKET_X_SIGNED ) {
-					package = ~package + 1;
+				// calculate relative movement at X axis
+				int8_t rx = package - ((kernel -> device_mouse_status << 4) & 0x100);
 
-					// keep offset
-					if( kernel -> device_mouse_x - package < 0 ) kernel -> device_mouse_x = EMPTY;
-					else kernel -> device_mouse_x -= package;
+				// overflow from left?
+				if( kernel -> device_mouse_x + rx < 0 ) kernel -> device_mouse_x = EMPTY;
 
-					// calculate relative position
-					kernel -> device_mouse_x_absolute -= package;
-				} else {
-					// keep offset
-					if( kernel -> device_mouse_x + package < kernel -> framebuffer_width_pixel ) kernel -> device_mouse_x += package;
-					else kernel -> device_mouse_x = kernel -> framebuffer_width_pixel - 1;
-
-					// calculate relative position
-					kernel -> device_mouse_x_absolute += package;
-				}
+				// overflow from right?
+				else if( kernel -> device_mouse_x + rx > kernel -> framebuffer_width_pixel - 1 ) kernel -> device_mouse_x = kernel -> framebuffer_width_pixel - 1;
+				
+				// compound new position
+				else kernel -> device_mouse_x += rx;
 
 				// package handled from given interrupt
-				driver_ps2_mouse_package++;
+				driver_ps2_mouse_package_id++;
 
 				// package parsed
 				break;
 			}
 
 			case 2: {
-				// value on Y axis negative?
-				if( kernel -> device_mouse_status & DRIVER_PS2_MOUSE_PACKET_Y_SIGNED ) {
-					package = ~package + 1;
+				// calculate relative movement at Y axis
+				int8_t ry = ~(package - ((kernel -> device_mouse_status << 3) & 0x100)) + 1;
 
-					// keep offset
-					if( kernel -> device_mouse_y + package < kernel -> framebuffer_height_pixel ) kernel -> device_mouse_y += package;
-					else kernel -> device_mouse_y = kernel -> framebuffer_height_pixel - 1;
+				// overflow from top?
+				if( kernel -> device_mouse_y + ry < 0 ) kernel -> device_mouse_y = EMPTY;
 
-					// calculate relative position
-					kernel -> device_mouse_y_absolute += package;
-				} else {
-					// keep offset
-					if( kernel -> device_mouse_y - package < 0 ) kernel -> device_mouse_y = EMPTY;
-					else kernel -> device_mouse_y -= package;
+				// overflow from bottom?
+				else if( kernel -> device_mouse_y + ry > kernel -> framebuffer_height_pixel - 1 ) kernel -> device_mouse_y = kernel -> framebuffer_height_pixel - 1;
 
-					// calculate relative position
-					kernel -> device_mouse_y_absolute -= package;
-				}
+				// compound new position
+				else kernel -> device_mouse_y += ry;
 
 				// package handled from given interrupt
-				driver_ps2_mouse_package = EMPTY;
+				driver_ps2_mouse_package_id = EMPTY;
 
 				// package parsed
 				break;

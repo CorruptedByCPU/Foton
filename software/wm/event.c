@@ -23,5 +23,25 @@ void wm_event( void ) {
 		std_ipc_send( source, (uint8_t *) answer );
 	}
 
-	
+	// retrieve current mouse status and position
+	struct STD_SYSCALL_STRUCTURE_MOUSE mouse;
+	std_mouse( (struct STD_SYSCALL_STRUCTURE_MOUSE *) &mouse );
+
+	// calculate delta of cursor new position
+	int16_t delta_x = mouse.x - wm_object_cursor -> x;
+	int16_t delta_y = mouse.y - wm_object_cursor -> y;
+
+	//--------------------------------------------------------------------------
+	// if cursor pointer movement occurs
+	if( delta_x || delta_y ) {
+		// remove current cursor position from workbench
+		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_cursor, FALSE );
+
+		// update cursor position
+		wm_object_cursor -> x += delta_x;
+		wm_object_cursor -> y += delta_y;
+
+		// redisplay the cursor at the new location
+		wm_object_cursor -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+	}
 }

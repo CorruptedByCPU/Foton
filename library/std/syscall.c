@@ -153,3 +153,11 @@ uintptr_t std_memory_share( int64_t pid, uintptr_t address, uint64_t page ) {
 	// return pointer
 	return std_syscall_pointer();
 }
+
+void std_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_MOUSE), "D" (mouse) );
+
+	// return nothing
+	return std_syscall_empty();
+}
