@@ -3,6 +3,10 @@
 ===============================================================================*/
 
 	//----------------------------------------------------------------------
+	// variables, structures, definitions of standard library
+	//----------------------------------------------------------------------
+	#include	"../library/std.h"
+	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
 	#include	"../kernel/config.h"
@@ -68,6 +72,91 @@ void driver_ps2_drain( void ) {
 
 __attribute__(( no_caller_saved_registers ))
 void driver_ps2_mouse( void ) {
+	// data from second controller port?
+	if( driver_port_in_byte( DRIVER_PS2_PORT_COMMAND_OR_STATUS ) & DRIVER_PS2_STATUS_output_second ) {
+		// retrieve package from PS2 controller
+		int8_t package = driver_ps2_data_read();
+
+		// perform operation depending on number of package
+		switch( driver_ps2_mouse_package ) {
+			case 0: {
+				// status package contains ALWAYS ON bit?
+				if( ! (package & DRIVER_PS2_MOUSE_PACKET_ALWAYS_ONE ) ) break;	// no
+
+				// overflow on X axis?
+				if( package & DRIVER_PS2_MOUSE_PACKET_OVERFLOW_x ) break;	// yes
+
+				// overflow on Y axis?
+				if( package & DRIVER_PS2_MOUSE_PACKET_OVERFLOW_y ) break;	// yes
+
+				// save device status: mouse
+				kernel -> device_mouse_status = package;
+
+				// package handled from given interrupt
+				driver_ps2_mouse_package++;
+
+				// package parsed
+				break;
+			}
+
+			case 1: {
+				// value on X axis negative?
+				if( kernel -> device_mouse_status & DRIVER_PS2_MOUSE_PACKET_X_SIGNED ) {
+					package = ~package + 1;
+
+					// keep offset
+					if( kernel -> device_mouse_x - package < 0 ) kernel -> device_mouse_x = EMPTY;
+					else kernel -> device_mouse_x -= package;
+
+					// calculate relative position
+					kernel -> device_mouse_x_absolute -= package;
+				} else {
+					// keep offset
+					if( kernel -> device_mouse_x + package < kernel -> framebuffer_width_pixel ) kernel -> device_mouse_x += package;
+					else kernel -> device_mouse_x = kernel -> framebuffer_width_pixel - 1;
+
+					// calculate relative position
+					kernel -> device_mouse_x_absolute += package;
+				}
+
+				// package handled from given interrupt
+				driver_ps2_mouse_package++;
+
+				// package parsed
+				break;
+			}
+
+			case 2: {
+				// value on Y axis negative?
+				if( kernel -> device_mouse_status & DRIVER_PS2_MOUSE_PACKET_Y_SIGNED ) {
+					package = ~package + 1;
+
+					// keep offset
+					if( kernel -> device_mouse_y + package < kernel -> framebuffer_height_pixel ) kernel -> device_mouse_y += package;
+					else kernel -> device_mouse_y = kernel -> framebuffer_height_pixel - 1;
+
+					// calculate relative position
+					kernel -> device_mouse_y_absolute += package;
+				} else {
+					// keep offset
+					if( kernel -> device_mouse_y - package < 0 ) kernel -> device_mouse_y = EMPTY;
+					else kernel -> device_mouse_y -= package;
+
+					// calculate relative position
+					kernel -> device_mouse_y_absolute -= package;
+				}
+
+				// package handled from given interrupt
+				driver_ps2_mouse_package = EMPTY;
+
+				// package parsed
+				break;
+			}
+		}
+	}
+
+	// tell APIC of current logical processor that hardware interrupt was handled, propely
+	kernel -> lapic_base_address -> eoi = EMPTY;
 }
 
 __attribute__(( no_caller_saved_registers ))
@@ -78,19 +167,25 @@ void driver_ps2_keyboard( void ) {
 	// perform operation depending on opcode
 	switch( key ) {
 		// controller started sequence?
-		case DRIVER_PS2_KEYBOARD_sequence:
+		case DRIVER_PS2_KEYBOARD_sequence: {
 			// save sequence type
 			driver_ps2_scancode = key << STD_SHIFT_8;
+
+			// event parsed
 			break;
+		}
 
 		// controller started alternate sequence?
-		case DRIVER_PS2_KEYBOARD_sequence_alternative:
+		case DRIVER_PS2_KEYBOARD_sequence_alternative: {
 			// zachowaj typ sekwencji
 			driver_ps2_scancode = key << STD_SHIFT_8;
-			break;
 
-		// controller doesn't start sequence?
-		default:
+			// event parsed
+			break;
+		}
+
+		// controller didn't start a sequence?
+		default: {
 			// complete sequence?
 			if( driver_ps2_scancode ) {
 				// compose key code
@@ -98,10 +193,38 @@ void driver_ps2_keyboard( void ) {
 
 				// sequence processed
 				driver_ps2_scancode = EMPTY;
+			} else {
+				// key code not in matrix?
+				if( key >= 0x80 ) {
+					// get ASCII code for key from matrix
+					if( ! driver_ps2_keyboard_matrix ) key = driver_ps2_keyboard_matrix_low[ key - 0x80 ];
+					else key = driver_ps2_keyboard_matrix_high[ key - 0x80 ];
+
+					// correct key code
+					key += 0x80;
+				} else
+					// get ASCII code for key from matrix
+					if( ! driver_ps2_keyboard_matrix ) key = driver_ps2_keyboard_matrix_low[ key ];
+					else key = driver_ps2_keyboard_matrix_high[ key ];
 			}
+
+			// SHIFT or CAPSLOCK key?
+			if( key == STD_KEY_CAPSLOCK || key == STD_KEY_SHIFT_LEFT || key == STD_KEY_SHIFT_RIGHT ) {
+				if( driver_ps2_keyboard_matrix ) driver_ps2_keyboard_matrix = FALSE;
+				else driver_ps2_keyboard_matrix = TRUE;
+			} else if( key == STD_KEY_SHIFT_LEFT + 0x80 || key == STD_KEY_SHIFT_RIGHT + 0x80 ) {
+				if( driver_ps2_keyboard_matrix ) driver_ps2_keyboard_matrix = FALSE;
+				else driver_ps2_keyboard_matrix = TRUE;
+			}
+
+			// in first free space in keyboard buffer
+			for( uint8_t i = 0; i < DRIVER_PS2_CACHE_limit; i++ )
+				// save key code
+				if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = key; break; }
+		}
 	}
 
-	// tell APIC of current logical processor that hardware interrupt is being handled, propely
+	// tell APIC of current logical processor that hardware interrupt was handled, propely
 	kernel -> lapic_base_address -> eoi = EMPTY;
 }
 
@@ -140,9 +263,6 @@ void driver_ps2_init( void ) {
 
 				// command accepted?
 				if( driver_ps2_data_read() == DRIVER_PS2_ANSWER_ACKNOWLEDGED ) {
-					// show information about mouse device
-					kernel -> log( (uint8_t *) "[PS2 module] Mouse connected.\n" );
-
 					// connect PS2 controller interrupt handler for device: mouse
 					kernel -> idt_mount( KERNEL_IDT_IRQ_offset + DRIVER_PS2_MOUSE_IRQ_number, KERNEL_IDT_TYPE_irq, (uintptr_t) driver_ps2_mouse_entry );
 
@@ -158,9 +278,6 @@ void driver_ps2_init( void ) {
 
 	// connect interrupt vector from IDT table in IOAPIC controller
 	kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + DRIVER_PS2_KEYBOARD_IRQ_number, DRIVER_PS2_KEYBOARD_IO_APIC_register );
-
-	// show information about mouse device
-	kernel -> log( (uint8_t *) "[PS2 module] Keyboard connected.\n" );
 }
 
 void _entry( uintptr_t kernel_ptr ) {

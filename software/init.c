@@ -8,7 +8,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		int64_t wm_pid = std_exec( (uint8_t *) "wm", 2 );
 
 		// debug
-		int64_t d3_pid = std_exec( (uint8_t *) "3d", 2 );
+		// int64_t d3_pid = std_exec( (uint8_t *) "3d", 2 );
 	#endif
 
 	// hold the door

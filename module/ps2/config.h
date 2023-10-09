@@ -35,6 +35,17 @@
 	#define	DRIVER_PS2_KEYBOARD_sequence			0xE0
 	#define	DRIVER_PS2_KEYBOARD_sequence_alternative	0xE1
 
+	#define	DRIVER_PS2_MOUSE_PACKET_LMB			0b00000001
+	#define	DRIVER_PS2_MOUSE_PACKET_RMB			0b00000010
+	#define	DRIVER_PS2_MOUSE_PACKET_MMB			0b00000100
+	#define	DRIVER_PS2_MOUSE_PACKET_ALWAYS_ONE		0b00001000
+	#define	DRIVER_PS2_MOUSE_PACKET_X_SIGNED		0b00010000
+	#define	DRIVER_PS2_MOUSE_PACKET_Y_SIGNED		0b00100000
+	#define	DRIVER_PS2_MOUSE_PACKET_OVERFLOW_x		0b01000000
+	#define	DRIVER_PS2_MOUSE_PACKET_OVERFLOW_y		0b10000000
+
+	#define	DRIVER_PS2_CACHE_limit				7
+
 	// external routines (assembly language)
 	extern void driver_ps2_mouse_entry( void );
 	extern void driver_ps2_keyboard_entry( void );

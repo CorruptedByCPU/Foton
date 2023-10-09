@@ -52,3 +52,10 @@
 	struct	WM_STRUCTURE_ANSWER {
 		uintptr_t	descriptor;
 	} __attribute__( (packed) );
+
+	void wm_event( void );
+	void wm_sync( void );
+	void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object );
+	void wm_zone( void );
+	void wm_fill( void );
+	struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t width, uint16_t height );

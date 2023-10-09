@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"43"
+#define	KERNEL_revision		"110"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -30,8 +30,12 @@ struct KERNEL {
 	volatile uint64_t	cpu_count;
 
 	// variables of Input devices
+	uint8_t		device_mouse_status;
 	int64_t		device_mouse_x;
 	int64_t		device_mouse_y;
+	int64_t		device_mouse_x_absolute;
+	int64_t		device_mouse_y_absolute;
+	uint16_t	device_keyboard[ 8 ];	// cache size of 8 keys
 
 	// variables of Framebuffer functions
 	uint32_t	*framebuffer_base_address;
