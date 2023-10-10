@@ -7,5 +7,5 @@
 
 	#define	KERNEL_IPC_limit	512
 	// #define	KERNEL_IPC_ttl		100	// ~ms
-	#define	KERNEL_IPC_ttl		1000	// for Bochs debugger (so slow :)
+	#define	KERNEL_IPC_ttl		10000	// for Bochs debugger (so slow :)
 #endif

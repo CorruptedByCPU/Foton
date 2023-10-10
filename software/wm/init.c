@@ -25,39 +25,26 @@ void wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
-	// create framebuffer space
+	// create cache space
 
 	// as local object
-	wm_object_framebuffer.width		= framebuffer.width_pixel;
-	wm_object_framebuffer.height		= framebuffer.height_pixel;
-	wm_object_framebuffer.descriptor	= (struct WM_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( ((wm_object_framebuffer.width * wm_object_framebuffer.height) << STD_VIDEO_DEPTH_shift) + sizeof( struct WM_STRUCTURE_DESCRIPTOR ) ) >> STD_SHIFT_PAGE );
+	wm_object_cache.width		= framebuffer.width_pixel;
+	wm_object_cache.height		= framebuffer.height_pixel;
+	wm_object_cache.descriptor	= (struct WM_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm_object_cache.width * wm_object_cache.height * STD_VIDEO_DEPTH_byte) + sizeof( struct WM_STRUCTURE_DESCRIPTOR ) ) >> STD_SHIFT_PAGE );
+
+	// leave cache untouched, first objects synchronization will fill it up
 
 	//----------------------------------------------------------------------
 
 	// create workbench object
-	wm_object_workbench = wm_object_create( 0, 0, framebuffer.width_pixel, framebuffer.height_pixel );
+	wm_object_workbench = wm_object_create( 0, 0, wm_object_cache.width, wm_object_cache.height );
 
 	// fill workbench with default gradient
 	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
 	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
 		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
-			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = STD_COLOR_BLACK;
+			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = STD_COLOR_RED_light;
 
 	// object created
 	wm_object_workbench -> descriptor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_fixed_z | WM_OBJECT_FLAG_flush;
-
-	//----------------------------------------------------------------------
-
-	// create cursor object
-	wm_object_cursor = wm_object_create( 0, 0, 32, 32 );
-
-	// fill cursor with default template
-	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
-	uint32_t *cursor_template = (uint32_t *) &wm_cursor_default;
-	for( uint16_t y = 0; y < 19; y++ )
-		for( uint16_t x = 0; x < 12; x++ )
-			cursor_pixel[ (y * wm_object_cursor -> width) + x ] = cursor_template[ (y * 12) + x ] | STD_COLOR_mask;
-
-	// object created
-	wm_object_cursor -> descriptor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
 }

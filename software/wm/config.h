@@ -18,6 +18,9 @@
 	#define	WM_OBJECT_FLAG_fixed_xy	0b0000000000000100
 	#define	WM_OBJECT_FLAG_fixed_z	0b0000000000001000
 
+	#define	WM_OBJECT_CURSOR_width	32
+	#define	WM_OBJECT_CURSOR_height	32
+
 	struct	WM_STRUCTURE_OBJECT {
 		int16_t		x;
 		int16_t		y;
