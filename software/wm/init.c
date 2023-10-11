@@ -39,11 +39,24 @@ void wm_init( void ) {
 	// create workbench object
 	wm_object_workbench = wm_object_create( 0, 0, wm_object_cache.width, wm_object_cache.height );
 
-	// fill workbench with default gradient
+	// fill workbench with default gradient like Xorg :)
 	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
-		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
-			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = STD_COLOR_RED_light;
+	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ ) {
+		// define colors
+		uint32_t colors[ 2 ];
+
+		// regarded of line
+		if( y % 2 ) { colors[ 0 ] = STD_COLOR_BLACK_light; colors[ 1 ] = STD_COLOR_WHITE; }
+		else { colors[ 0 ] = STD_COLOR_WHITE; colors[ 1 ] = STD_COLOR_BLACK_light; }
+
+		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ ) {
+			// select color
+			uint32_t color; if( x % 2 ) color = colors[ 0 ]; else color = colors[ 1 ];
+
+			// draw pixel
+			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = color;
+		}
+	}
 
 	// object created
 	wm_object_workbench -> descriptor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_fixed_z | WM_OBJECT_FLAG_flush;

@@ -143,7 +143,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	exec -> memory_map = (uint32_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) >> STD_SHIFT_PAGE );
 
 	// fill in binary memory map
-	for( uint64_t i = 0; i < MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) >> STD_SHIFT_32; i++ ) exec -> memory_map[ i ] = -1;
+	for( uint64_t i = 0; i < kernel -> page_limit >> STD_SHIFT_32; i++ ) exec -> memory_map[ i ] = -1;
 
 	// mark as occupied pages used by the executable
 	kernel_memory_acquire_secured( exec, exec_page );

@@ -5,6 +5,28 @@
 void wm_object( void ) {
 	// search whole list for object flush
 	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
+		// cursor object found?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_cursor ) { wm_object_cursor = wm_list_base_address[ i ]; continue; }	// yes
+
+		// request of object movement?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_move ) {
+			// clean up old position?
+			if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_visible ) {	// yes
+				// parse whole object area
+				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
+
+				// request redraw
+				wm_list_base_address[ i ] -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+			}
+
+			// set new position
+			wm_list_base_address[ i ] -> x = wm_list_base_address[ i ] -> descriptor -> x;
+			wm_list_base_address[ i ] -> y = wm_list_base_address[ i ] -> descriptor -> y;
+
+			// request accepted
+			wm_list_base_address[ i ] -> descriptor -> flags ^= WM_OBJECT_FLAG_move;
+		}
+
 		// object visible and requested flush?
 		if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_flush ) {
 			// parse whole object area
@@ -13,6 +35,15 @@ void wm_object( void ) {
 			// request accepted
 			wm_list_base_address[ i ] -> descriptor -> flags ^= WM_OBJECT_FLAG_flush;
 		}
+	}
+
+	// if cursor object selected
+	if( wm_object_cursor && wm_object_cursor -> descriptor -> flags & WM_OBJECT_FLAG_visible && wm_object_cursor -> descriptor -> flags & WM_OBJECT_FLAG_flush ) {
+		// parse whole object area
+		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_cursor, FALSE );
+
+		// request accepted
+		wm_object_cursor -> descriptor -> flags ^= WM_OBJECT_FLAG_flush;
 	}
 }
 

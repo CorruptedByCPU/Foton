@@ -131,6 +131,7 @@
 	#define	STD_PAGE_byte					0x1000
 	#define	STD_PAGE_mask					0xFFFFFFFFFFFFF000
 
+	#define	STD_SHIFT_2					1
 	#define	STD_SHIFT_4					2
 	#define	STD_SHIFT_8					3
 	#define	STD_SHIFT_16					4

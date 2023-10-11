@@ -84,7 +84,7 @@ done
 lib=""	# include list of libraries
 
 # keep parsing libraries by. dependencies and alphabetically
-for library in color elf integer math string font std rgl terminal vfs; do
+for library in color elf image integer math string font std rgl terminal vfs; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 

@@ -254,6 +254,10 @@ void driver_ps2_init( void ) {
 
 					// connect interrupt vector from IDT table in IOAPIC controller
 					kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + DRIVER_PS2_MOUSE_IRQ_number, DRIVER_PS2_MOUSE_IO_APIC_register );
+
+					// set default position of pointer
+					kernel -> device_mouse_x = kernel -> framebuffer_width_pixel >> STD_SHIFT_2;
+					kernel -> device_mouse_y = kernel -> framebuffer_height_pixel >> STD_SHIFT_2;
 				}
 			}
 		}
