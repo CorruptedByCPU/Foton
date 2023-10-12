@@ -11,7 +11,7 @@ void wm_event( void ) {
 		if( ! source || ! request -> width || ! request -> height ) continue;	// nothing to do
 
 		// create new object for process
-		struct WM_STRUCTURE_OBJECT *object = wm_object_create( (wm_object_workbench -> width >> 1) - (request -> width >> 1 ), (wm_object_workbench -> height >> 1) - (request -> height >> 1), request -> width, request -> height );
+		struct WM_STRUCTURE_OBJECT *object = wm_object_create( request -> x, request -> y, request -> width, request -> height );
 
 		// share new object descriptor with process
 		uintptr_t descriptor = EMPTY;

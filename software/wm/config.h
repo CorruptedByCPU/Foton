@@ -17,7 +17,6 @@
 	#define	WM_OBJECT_FLAG_visible	0b0000000000000010
 	#define	WM_OBJECT_FLAG_fixed_xy	0b0000000000000100
 	#define	WM_OBJECT_FLAG_fixed_z	0b0000000000001000
-	#define	WM_OBJECT_FLAG_move	0b0010000000000000
 	#define	WM_OBJECT_FLAG_arbiter	0b0100000000000000
 	#define	WM_OBJECT_FLAG_cursor	0b1000000000000000
 
@@ -53,6 +52,8 @@
 	} __attribute__( (packed) );
 
 	struct	WM_STRUCTURE_REQUEST {
+		int16_t		x;
+		int16_t		y;
 		uint16_t	width;
 		uint16_t	height;
 	} __attribute__( (packed) );

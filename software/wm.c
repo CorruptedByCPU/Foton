@@ -16,6 +16,7 @@
 	#include	"./wm/zone.c"
 	#include	"./wm/object.c"
 	#include	"./wm/init.c"
+	#include	"./wm/cursor.c"
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize environment
@@ -34,6 +35,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// fill zones with fragments of objects
 		wm_fill();
+
+		// show cursor
+		wm_cursor();
 
 		// synchronize workbench with framebuffer
 		wm_sync();

@@ -62,6 +62,9 @@ void wm_zone( void ) {
 
 		// analyze zone against each object
 		for( uint64_t j = 0; j < wm_list_limit; j++ ) {
+			// ignore cursor object if exist
+			if( wm_list_base_address[ j ] -> descriptor -> flags & WM_OBJECT_FLAG_cursor ) continue;
+
 			// invisible object?
 			if( ! (wm_list_base_address[ j ] -> descriptor -> flags & WM_OBJECT_FLAG_visible) ) continue;	// yes
 
