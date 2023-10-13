@@ -166,7 +166,7 @@
 		uint16_t	width_pixel;
 		uint16_t	height_pixel;
 		uint64_t	pitch_byte;
-		int64_t		owner_pid;
+		int64_t		pid;
 	};
 
 	#define	STD_VIDEO_DEPTH_shift				2

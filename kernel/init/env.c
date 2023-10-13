@@ -8,7 +8,7 @@ void kernel_init_env( void ) {
 	kernel -> framebuffer_width_pixel	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> width;
 	kernel -> framebuffer_height_pixel	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> height;
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;
-	kernel -> framebuffer_owner_pid		= EMPTY;	// by default: kernel
+	kernel -> framebuffer_pid		= EMPTY;	// by default: kernel
 
 	// share HPET management functions
 	kernel -> time_sleep			= (void *) kernel_time_sleep;

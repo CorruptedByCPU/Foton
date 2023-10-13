@@ -40,7 +40,7 @@ struct KERNEL {
 	uint16_t	framebuffer_width_pixel;
 	uint16_t	framebuffer_height_pixel;
 	uint32_t	framebuffer_pitch_byte;
-	int64_t		framebuffer_owner_pid;
+	int64_t		framebuffer_pid;
 
 	// variables of GDT management functions
 	struct KERNEL_GDT_STRUCTURE_HEADER			gdt_header;

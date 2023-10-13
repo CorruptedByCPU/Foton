@@ -22,12 +22,12 @@ void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *frame
 	framebuffer -> pitch_byte	= kernel -> framebuffer_pitch_byte;
 
 	// change framebuffer owner if possible
-	if( ! __sync_val_compare_and_swap( &kernel -> framebuffer_owner_pid, EMPTY, kernel_task_pid() ) )
+	if( ! __sync_val_compare_and_swap( &kernel -> framebuffer_pid, EMPTY, kernel_task_pid() ) )
 		// approved
 		framebuffer -> base_address = (uint32_t *) kernel_memory_share( (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_PAGE_PML5_mask, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel) >> STD_SHIFT_PAGE );
 
 	// return information about framebuffer owner
-	framebuffer -> owner_pid = kernel -> framebuffer_owner_pid;
+	framebuffer -> pid = kernel -> framebuffer_pid;
 }
 
 uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {

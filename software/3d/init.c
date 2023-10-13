@@ -15,7 +15,7 @@ uint8_t init( void ) {
 	request -> height = D3_HEIGHT_pixel;
 
 	// send request
-	std_ipc_send( framebuffer.owner_pid, (uint8_t *) request );
+	std_ipc_send( framebuffer.pid, (uint8_t *) request );
 
 	// wait for answer
 	while( ! std_ipc_receive( (uint8_t *) &data ) );
