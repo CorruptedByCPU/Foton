@@ -2,10 +2,8 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#ifndef	KERNEL_IPC
-	#define	KERNEL_IPC
+#define	CONSOLE_WINDOW_WIDTH_char	40
+#define	CONSOLE_WINDOW_HEIGHT_char	12
 
-	#define	KERNEL_IPC_limit	512
-	// #define	KERNEL_IPC_ttl		100	// ~ms
-	#define	KERNEL_IPC_ttl		100000	// for Bochs debugger (so slow :)
-#endif
+#define	CONSOLE_WINDOW_WIDTH_pixel	CONSOLE_WINDOW_WIDTH_char * LIB_FONT_WIDTH_pixel
+#define	CONSOLE_WINDOW_HEIGHT_pixel	CONSOLE_WINDOW_HEIGHT_char * LIB_FONT_HEIGHT_pixel

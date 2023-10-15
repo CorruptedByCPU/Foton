@@ -160,6 +160,8 @@
 	#define	STD_SYSCALL_IPC_RECEIVE				0x0B
 	#define	STD_SYSCALL_MEMORY_SHARE			0x0C
 	#define	STD_SYSCALL_MOUSE				0x0D
+	#define	STD_SYSCALL_FRAMEBUFFER_CHANGE			0x0E
+	#define	STD_SYSCALL_IPC_RECEIVE_BY_PID			0x0F
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -172,6 +174,18 @@
 	#define	STD_VIDEO_DEPTH_shift				2
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
+
+	struct STD_WINDOW_STRUCTURE_REQUEST {
+		int16_t		x;
+		int16_t		y;
+		uint16_t	width;
+		uint16_t	height;
+	} __attribute__( (packed) );
+
+	struct STD_WINDOW_STRUCTURE_ANSWER {
+		uintptr_t	descriptor;
+		uint64_t	size_byte;
+	} __attribute__( (packed) );
 
 	// stop process execution
 	void std_exit( void );
@@ -208,6 +222,12 @@
 
 	// returns properties of mouse pointing device
 	void std_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse );
+
+	// modify properties of kernels framebuffer
+	void std_framebuffer_change( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
+
+	// check for message from process of ID
+	uint8_t std_ipc_receive_by_pid( uint8_t *data, int64_t pid );
 
 	#ifdef	SOFTWARE
 		// function definitions

@@ -161,3 +161,19 @@ void std_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse ) {
 	// return nothing
 	return std_syscall_empty();
 }
+
+void std_framebuffer_change( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FRAMEBUFFER_CHANGE), "D" (framebuffer) );
+
+	// return nothing
+	return std_syscall_empty();
+}
+
+uint8_t std_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_IPC_RECEIVE_BY_PID), "D" (data), "S" (pid) );
+
+	// return value
+	return std_syscall_bool();
+}

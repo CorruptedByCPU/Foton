@@ -10,7 +10,7 @@ void wm_init( void ) {
 	std_framebuffer( &framebuffer );
 
 	// framebuffer locked?
-	if( framebuffer.pid != wm_pid ) { log( "WM: Framebuffer is already in use by process with ID %u\nExit.", wm_pid ); while( TRUE ); }
+	if( framebuffer.pid != wm_pid ) { log( "WM: Framebuffer is already in use by process with ID %u.", wm_pid ); while( TRUE ); }
 
 	//----------------------------------------------------------------------
 

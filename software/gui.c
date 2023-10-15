@@ -19,11 +19,18 @@
 	//----------------------------------------------------------------------
 	#include	"./gui/data.c"
 	#include	"./gui/init.c"
+	#include	"./gui/event.c"
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize desktop
-	gui_init();
+	if( ! gui_init() ) return FALSE;
+
+	// debug
+	int64_t console_pid = std_exec( (uint8_t *) "console", 7 );
 
 	// hold the door
-	while( TRUE );
+	while( TRUE ) {
+		// check for incomming events
+		gui_event();
+	}
 }

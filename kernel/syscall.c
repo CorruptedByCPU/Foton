@@ -262,3 +262,41 @@ void kernel_syscall_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse ) {
 	mouse -> y	= kernel -> device_mouse_y;
 	mouse -> status	= kernel -> device_mouse_status;
 }
+
+void kernel_syscall_framebuffer_change( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
+	// process is allowed for modifications?
+	if( kernel_task_pid() != kernel -> framebuffer_pid ) return;	// no
+
+	// change new framebuffer owner
+	kernel -> framebuffer_pid = framebuffer -> pid;
+}
+
+uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
+	// deny access, only one logical processor at a time
+	while( __sync_val_compare_and_swap( &kernel -> ipc_semaphore, UNLOCK, LOCK ) );
+
+	// scan whole IPC area
+	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
+		// message for us, from specific process and alive?
+		if( kernel -> ipc_base_address[ i ].target == kernel -> task_pid() && kernel -> ipc_base_address[ i ].source == pid && kernel -> ipc_base_address[ i ].ttl > kernel -> time_unit ) {
+			// load data into message
+			for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+				data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
+
+			// mark entry as free
+			kernel -> ipc_base_address[ i ].ttl = EMPTY;
+
+			// unlock access to IPC area
+			kernel -> ipc_semaphore = UNLOCK;
+
+			// message acquired
+			return TRUE;
+		}
+	}
+
+	// unlock access to IPC area
+	kernel -> ipc_semaphore = UNLOCK;
+
+	// no message for process
+	return FALSE;
+}

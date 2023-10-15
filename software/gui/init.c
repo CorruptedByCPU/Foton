@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void gui_init( void ) {
+uint8_t gui_init( void ) {
 	// obtain information about kernel framebuffer
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
 	std_framebuffer( &kernel_framebuffer );
@@ -18,8 +18,8 @@ void gui_init( void ) {
 	uint8_t wm_data[ STD_IPC_SIZE_byte ];
 
 	// prepeare new window request
-	struct WM_STRUCTURE_REQUEST *wm_request = (struct WM_STRUCTURE_REQUEST *) &wm_data;
-	struct WM_STRUCTURE_ANSWER *wm_answer = EMPTY;	// answer will be in here
+	struct STD_WINDOW_STRUCTURE_REQUEST *wm_request = (struct STD_WINDOW_STRUCTURE_REQUEST *) &wm_data;
+	struct STD_WINDOW_STRUCTURE_ANSWER *wm_answer = EMPTY;	// answer will be in here
 
 	//----------------------------------------------------------------------
 
@@ -36,32 +36,32 @@ void gui_init( void ) {
 	while( ! std_ipc_receive( (uint8_t *) wm_data ) );
 
 	// window assigned?
-	wm_answer = (struct WM_STRUCTURE_ANSWER *) &wm_data;
-	if( wm_answer -> descriptor ) {	// yes
-		// properties of wallpaper window
-		gui_window_wallpaper = (struct WM_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
+	wm_answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &wm_data;
+	if( ! wm_answer -> descriptor ) return FALSE;	// no
 
-		// properties of assigned image to wallpaper window
-		struct LIB_IMAGE_TGA_STRUCTURE *image_wallpaper = (struct LIB_IMAGE_TGA_STRUCTURE *) &file_wallpaper_start;
+	// properties of wallpaper window
+	gui_window_wallpaper = (struct WM_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
 
-		// convert image to RGBA
-		uint32_t *tmp_wallpaper = (uint32_t *) malloc( gui_wallpaper_width * gui_wallpaper_height * STD_VIDEO_DEPTH_byte );
-		lib_image_tga_parse( (uint8_t *) image_wallpaper, tmp_wallpaper, (uint64_t) file_wallpaper_end - (uint64_t) file_wallpaper_start );
+	// properties of assigned image to wallpaper window
+	struct LIB_IMAGE_TGA_STRUCTURE *image_wallpaper = (struct LIB_IMAGE_TGA_STRUCTURE *) &file_wallpaper_start;
 
-		// copy scaled image content to wallpaper window
-		uint32_t *pixel_wallpaper = (uint32_t *) ((uintptr_t) gui_window_wallpaper + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
-		float x_scale_factor = (float) ((float) image_wallpaper -> width / (float) gui_wallpaper_width);
-		float y_scale_factor = (float) ((float) image_wallpaper -> height / (float) gui_wallpaper_height);
-		for( uint16_t y = 0; y < gui_wallpaper_height; y++ )
-			for( uint16_t x = 0; x < gui_wallpaper_width; x++ )
-				pixel_wallpaper[ (y * gui_wallpaper_width) + x ] = tmp_wallpaper[ (uint64_t) (((uint64_t) (y_scale_factor * y) * image_wallpaper -> width) + (uint64_t) (x * x_scale_factor)) ];
+	// convert image to RGBA
+	uint32_t *tmp_wallpaper = (uint32_t *) malloc( gui_wallpaper_width * gui_wallpaper_height * STD_VIDEO_DEPTH_byte );
+	lib_image_tga_parse( (uint8_t *) image_wallpaper, tmp_wallpaper, (uint64_t) file_wallpaper_end - (uint64_t) file_wallpaper_start );
 
-		// release temporary image
-		free( tmp_wallpaper );
+	// copy scaled image content to wallpaper window
+	uint32_t *pixel_wallpaper = (uint32_t *) ((uintptr_t) gui_window_wallpaper + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+	float x_scale_factor = (float) ((float) image_wallpaper -> width / (float) gui_wallpaper_width);
+	float y_scale_factor = (float) ((float) image_wallpaper -> height / (float) gui_wallpaper_height);
+	for( uint16_t y = 0; y < gui_wallpaper_height; y++ )
+		for( uint16_t x = 0; x < gui_wallpaper_width; x++ )
+			pixel_wallpaper[ (y * gui_wallpaper_width) + x ] = tmp_wallpaper[ (uint64_t) (((uint64_t) (y_scale_factor * y) * image_wallpaper -> width) + (uint64_t) (x * x_scale_factor)) ];
 
-		// window content ready for display
-		gui_window_wallpaper -> flags |= WM_OBJECT_FLAG_fixed_z | WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
-	}
+	// release temporary image
+	free( tmp_wallpaper );
+
+	// window content ready for display
+	gui_window_wallpaper -> flags |= WM_OBJECT_FLAG_fixed_z | WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
 
 	//----------------------------------------------------------------------
 
@@ -78,21 +78,21 @@ void gui_init( void ) {
 	while( ! std_ipc_receive( (uint8_t *) wm_data ) );
 
 	// window assigned?
-	wm_answer = (struct WM_STRUCTURE_ANSWER *) &wm_data;
-	if( wm_answer -> descriptor ) {	// yes
-		// properties of taskbar window
-		gui_window_taskbar = (struct WM_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
+	wm_answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &wm_data;
+	if( ! wm_answer -> descriptor ) return FALSE;	// no
 
-		// by default Window Manager creates fully transparent windows and we leave it in that state
+	// properties of taskbar window
+	gui_window_taskbar = (struct WM_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
 
-		// mark window as taskbar, so Window Manager will treat it as boundary for other windows
-		gui_window_taskbar -> flags |= WM_OBJECT_FLAG_taskbar;
+	// by default Window Manager creates fully transparent windows and we leave it in that state
 
-		// any window created from this point on will not be able to cover taskbar window, except cursor or course :D
+	// mark window as taskbar, so Window Manager will treat it as boundary for other windows
+	gui_window_taskbar -> flags |= WM_OBJECT_FLAG_taskbar;
 
-		// window content ready for display
-		gui_window_taskbar -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
-	}
+	// any window created from this point on will not be able to cover taskbar window, except cursor or course :D
+
+	// window content ready for display
+	gui_window_taskbar -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
 
 	//----------------------------------------------------------------------
 
@@ -112,22 +112,25 @@ void gui_init( void ) {
 	while( ! std_ipc_receive( (uint8_t *) wm_data ) );
 
 	// window assigned?
-	wm_answer = (struct WM_STRUCTURE_ANSWER *) &wm_data;
-	if( wm_answer -> descriptor ) {	// yes
-		// properties of cursor window
-		gui_window_cursor = (struct WM_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
+	wm_answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &wm_data;
+	if( ! wm_answer -> descriptor ) return FALSE;	// no
 
-		// copy image content to cursor window
-		uint32_t *pixel_cursor = (uint32_t *) ((uintptr_t) gui_window_cursor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
-		lib_image_tga_parse( (uint8_t *) image_cursor, pixel_cursor, (uint64_t) file_cursor_end - (uint64_t) file_cursor_start );
+	// properties of cursor window
+	gui_window_cursor = (struct WM_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
 
-		// mark window as cursor, so Window Manager will treat it different than others
-		gui_window_cursor -> flags |= WM_OBJECT_FLAG_cursor;
+	// copy image content to cursor window
+	uint32_t *pixel_cursor = (uint32_t *) ((uintptr_t) gui_window_cursor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+	lib_image_tga_parse( (uint8_t *) image_cursor, pixel_cursor, (uint64_t) file_cursor_end - (uint64_t) file_cursor_start );
 
-		// yep, any window can be a cursor :) but only 1 with highest internal ID will be treated as it
-		// so before you assign a flag to another window, make sure no other window have it
+	// mark window as cursor, so Window Manager will treat it different than others
+	gui_window_cursor -> flags |= WM_OBJECT_FLAG_cursor;
 
-		// window content ready for display
-		gui_window_cursor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
-	}
+	// yep, any window can be a cursor :) but only 1 with highest internal ID will be treated as it
+	// so before you assign a flag to another window, make sure no other window have it
+
+	// window content ready for display
+	gui_window_cursor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
+
+	// everything prepared
+	return TRUE;
 }

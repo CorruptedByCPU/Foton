@@ -48,19 +48,7 @@
 		int16_t		y;
 		uint16_t	width;
 		uint16_t	height;
-		uint16_t	reserved[ 3 ];
-	} __attribute__( (packed) );
-
-	struct	WM_STRUCTURE_REQUEST {
-		int16_t		x;
-		int16_t		y;
-		uint16_t	width;
-		uint16_t	height;
-	} __attribute__( (packed) );
-
-	struct	WM_STRUCTURE_ANSWER {
-		uintptr_t	descriptor;
-	} __attribute__( (packed) );
+	} __attribute__( ( aligned( STD_PAGE_byte ) ) );
 
 	void wm_event( void );
 	void wm_sync( void );

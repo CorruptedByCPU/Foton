@@ -10,7 +10,7 @@ uint8_t init( void ) {
 	uint8_t data[ STD_IPC_SIZE_byte ];
 
 	// prepeare new window request
-	struct WM_STRUCTURE_REQUEST *request = (struct WM_STRUCTURE_REQUEST *) &data;
+	struct STD_WINDOW_STRUCTURE_REQUEST *request = (struct STD_WINDOW_STRUCTURE_REQUEST *) &data;
 	request -> width = D3_WIDTH_pixel;
 	request -> height = D3_HEIGHT_pixel;
 
@@ -21,7 +21,7 @@ uint8_t init( void ) {
 	while( ! std_ipc_receive( (uint8_t *) &data ) );
 
 	// we are not allowed to create new windows?
-	struct WM_STRUCTURE_ANSWER *answer = (struct WM_STRUCTURE_ANSWER *) &data;
+	struct STD_WINDOW_STRUCTURE_ANSWER *answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &data;
 	if( ! answer -> descriptor ) std_exit();	// nothing to do
 
 	// descriptor properties

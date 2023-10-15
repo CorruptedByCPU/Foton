@@ -19,6 +19,8 @@ extern	kernel_syscall_ipc_send
 extern	kernel_syscall_ipc_receive
 extern	kernel_syscall_memory_share
 extern	kernel_syscall_mouse
+extern	kernel_syscall_framebuffer_change
+extern	kernel_syscall_ipc_receive_by_pid
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -46,6 +48,8 @@ kernel_syscall_list:
 	dq	kernel_syscall_ipc_receive
 	dq	kernel_syscall_memory_share
 	dq	kernel_syscall_mouse
+	dq	kernel_syscall_framebuffer_change
+	dq	kernel_syscall_ipc_receive_by_pid
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

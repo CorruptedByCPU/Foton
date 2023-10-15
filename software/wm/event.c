@@ -6,9 +6,24 @@ void wm_event( void ) {
 	// incomming request
 	uint8_t data[ STD_IPC_SIZE_byte ]; int64_t source = EMPTY;
 	while( (source = std_ipc_receive( (uint8_t *) &data )) ) {
-		// if there is no request, or request is invalid
-		struct WM_STRUCTURE_REQUEST *request = (struct WM_STRUCTURE_REQUEST *) &data;
-		if( ! source || ! request -> width || ! request -> height ) continue;	// nothing to do
+		// if request is invalid
+		struct STD_WINDOW_STRUCTURE_REQUEST *request = (struct STD_WINDOW_STRUCTURE_REQUEST *) &data;
+		if( ! request -> width || ! request -> height ) continue;	// nothing to do
+
+		// prepare answer structure
+		struct STD_WINDOW_STRUCTURE_ANSWER *answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &data;
+
+		// if source or we are NOT framebuffer owner
+		if( framebuffer.pid != wm_pid && framebuffer.pid != source ) {
+			// reject window creation
+			answer -> descriptor = EMPTY;
+
+			// send answer
+			std_ipc_send( source, (uint8_t *) answer );
+
+			// next request
+			continue;
+		}
 
 		// create new object for process
 		struct WM_STRUCTURE_OBJECT *object = wm_object_create( request -> x, request -> y, request -> width, request -> height );
@@ -18,9 +33,18 @@ void wm_event( void ) {
 		if( ! (descriptor = std_memory_share( source, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE )) ) continue;	// no enough memory?
 
 		// send answer
-		struct WM_STRUCTURE_ANSWER *answer = (struct WM_STRUCTURE_ANSWER *) &data;
 		answer -> descriptor = descriptor;
+		answer -> size_byte = object -> size_byte;
 		std_ipc_send( source, (uint8_t *) answer );
+
+		// it was first window request?
+		if( wm_pid == framebuffer.pid ) {
+			// change framebuffer owner
+			framebuffer.pid = source;
+
+			// change properties of kernels framebuffer
+			std_framebuffer_change( &framebuffer );
+		}
 	}
 
 	// retrieve current mouse status and position
