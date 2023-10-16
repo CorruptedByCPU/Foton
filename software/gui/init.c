@@ -74,7 +74,7 @@ uint8_t gui_init( void ) {
 	// send request to Window Manager
 	std_ipc_send( wm_pid, (uint8_t *) wm_request );
 
-	// wait for answer
+	// wait for answer0x403010
 	while( ! std_ipc_receive( (uint8_t *) wm_data ) );
 
 	// window assigned?
@@ -86,13 +86,19 @@ uint8_t gui_init( void ) {
 
 	// by default Window Manager creates fully transparent windows and we leave it in that state
 
+//debug
+uint32_t *pixel_taskbar = (uint32_t *) ((uintptr_t) gui_window_taskbar + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+for( uint16_t y = 0; y < GUI_WINDOW_TASKBAR_HEIGHT_pixel; y++ )
+	for( uint16_t x = 0; x < gui_wallpaper_width; x++ )
+		pixel_taskbar[ (y * gui_wallpaper_width) + x ] = STD_COLOR_GREEN_light;
+
 	// mark window as taskbar, so Window Manager will treat it as boundary for other windows
 	gui_window_taskbar -> flags |= WM_OBJECT_FLAG_taskbar;
 
 	// any window created from this point on will not be able to cover taskbar window, except cursor or course :D
 
 	// window content ready for display
-	gui_window_taskbar -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
+	gui_window_taskbar -> flags |= WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
 
 	//----------------------------------------------------------------------
 

@@ -47,6 +47,9 @@ void wm_event( void ) {
 		}
 	}
 
+	// if cursor object doesn't exist
+	if( ! wm_object_cursor ) return;	// nothing to do
+
 	// retrieve current mouse status and position
 	struct STD_SYSCALL_STRUCTURE_MOUSE mouse;
 	std_mouse( (struct STD_SYSCALL_STRUCTURE_MOUSE *) &mouse );
@@ -55,19 +58,49 @@ void wm_event( void ) {
 	int16_t delta_x = mouse.x - wm_object_cursor -> x;
 	int16_t delta_y = mouse.y - wm_object_cursor -> y;
 
-	__asm__ volatile( "nop" );
+	//--------------------------------------------------------------------------
+	// left mouse button pressed?
+	if( mouse.status & STD_MOUSE_BUTTON_left ) {
+		// isn't holded down?
+		if( ! wm_mouse_button_left_semaphore ) {
+			// remember mouse button state
+			wm_mouse_button_left_semaphore = TRUE;
+
+			// select object under cursor position
+			wm_object_selected = wm_object_find( mouse.x, mouse.y, FALSE );
+
+			// check if object can be moved along Z axis
+			if( ! (wm_object_selected -> descriptor -> flags & WM_OBJECT_FLAG_fixed_z) ) {
+				// move object up inside list
+				if( wm_object_move_up() ) {
+					// redraw object
+					wm_object_selected -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+
+					// cursor pointer may be obscured, redraw
+					wm_object_cursor -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+				}
+			}
+		}
+	} else
+		// release mouse button state
+		wm_mouse_button_left_semaphore = FALSE;
 
 	//--------------------------------------------------------------------------
 	// if cursor pointer movement occurs
-	if( wm_object_cursor && (delta_x || delta_y) ) {
+	if( delta_x || delta_y ) {
 		// remove current cursor position from workbench
 		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_cursor, FALSE );
 
 		// // update cursor position
-		wm_object_cursor -> x += delta_x;
-		wm_object_cursor -> y += delta_y;
+		wm_object_cursor -> x = mouse.x;
+		wm_object_cursor -> y = mouse.y;
 
 		// // redisplay the cursor at the new location
 		wm_object_cursor -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+
+		// if object selected and left mouse button is held
+		if( wm_object_selected && wm_mouse_button_left_semaphore )
+			// move the object along with the cursor pointer
+			wm_object_move( delta_x, delta_y );
 	}
 }

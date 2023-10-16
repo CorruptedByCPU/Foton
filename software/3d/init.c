@@ -11,6 +11,8 @@ uint8_t init( void ) {
 
 	// prepeare new window request
 	struct STD_WINDOW_STRUCTURE_REQUEST *request = (struct STD_WINDOW_STRUCTURE_REQUEST *) &data;
+	request -> x = 0;
+	request -> y = 0;
 	request -> width = D3_WIDTH_pixel;
 	request -> height = D3_HEIGHT_pixel;
 
@@ -31,7 +33,7 @@ uint8_t init( void ) {
 	rgl = lib_rgl( descriptor -> width, descriptor -> height - LIB_FONT_HEIGHT_pixel, (uint32_t *) ((uintptr_t) descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR )) + (descriptor -> width * LIB_FONT_HEIGHT_pixel) );
 
 	// window content ready for display
-	descriptor -> flags |= WM_OBJECT_FLAG_visible;
+	descriptor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
 
 	//----------------------------------------------------------------------
 

@@ -31,19 +31,25 @@ void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 		// search for empty list entry
 		for( uint64_t i = 0; i < wm_list_limit; i++ ) {
 			// entry in use?
-			if( ! wm_list_base_address[ i ] ) {
-				// insert object on list
-				wm_list_base_address[ i ] = object;
-
-				// release list for modification
-				wm_list_semaphore = UNLOCK;
-
-				// done
-				return;
+			if( wm_list_base_address[ i ] ) {
+				// by taskbar?
+				if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_taskbar ) {
+					// move all objects from this point on list including taskbar one place forward
+					for( uint64_t j = wm_list_limit; j > i; j-- ) wm_list_base_address[ j ] = wm_list_base_address[ j - 1 ];
+				} else
+					// no, next one
+					continue;
 			}
-		}
 
-		// no available entry
+			// insert object on list
+			wm_list_base_address[ i ] = object;
+
+			// release list for modification
+			wm_list_semaphore = UNLOCK;
+
+			// done
+			return;
+		}
 
 		// extend object list
 		wm_list_base_address = (struct WM_STRUCTURE_OBJECT **) realloc( wm_list_base_address, sizeof( struct WM_STRUCTURE_OBJECT * ) * ++wm_list_limit );
@@ -91,4 +97,113 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t wid
 		// extend object table
 		wm_object_base_address = (struct WM_STRUCTURE_OBJECT *) realloc( wm_object_base_address, sizeof( struct WM_STRUCTURE_OBJECT ) * ++wm_object_limit );
 	}
+}
+
+struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t parse_hidden ) {
+	// find object at current cursor coordinates
+	for( uint16_t i = wm_list_limit - 1; i >= 0; i-- ) {
+		// object marked as cursor?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_cursor ) continue;	// leave it
+
+		// object is visible? (or include hidden ones too)
+		if( parse_hidden || wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_visible ) {
+			// coordinates at object area?
+			if( wm_list_base_address[ i ] -> x > x ) continue;	// no
+			if( wm_list_base_address[ i ] -> y > y ) continue;	// no
+			if( (wm_list_base_address[ i ] -> x + wm_list_base_address[ i ] -> width) <= x ) continue;	// no
+			if( (wm_list_base_address[ i ] -> y + wm_list_base_address[ i ] -> height) <= y ) continue;	// no
+
+			// return a pointer to an object
+			return wm_list_base_address[ i ];
+		}
+	}
+
+	// nothing under specified coordinates
+	return EMPTY;
+}
+
+void wm_object_move( int16_t x, int16_t y ) {
+	// object attached to XY axis?
+	if( wm_object_selected -> descriptor -> flags & WM_OBJECT_FLAG_fixed_xy ) return;	// yep
+
+	// prepare zone for truncate
+	struct WM_STRUCTURE_ZONE zone;
+	zone.x = wm_object_selected -> x;
+	zone.y = wm_object_selected -> y;
+	zone.width = wm_object_selected -> width;
+	zone.height = wm_object_selected -> height;
+
+	// a movement on X axis occurred?
+	if( x ) {
+		// new position of selected object
+		wm_object_selected -> x += x;
+
+		// X axis shift is positive?
+		if( x > 0 )	// yes
+			// width of exposed zone
+			zone.width = x;
+		else {
+			// position and width of exposed zone
+			zone.x = wm_object_selected -> x + wm_object_selected -> width;
+			zone.width = ~x + 1;
+		}
+
+		// register zone
+		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone, FALSE );
+
+		// update zone properties
+		zone.x = wm_object_selected -> x;
+		zone.width = wm_object_selected -> width;
+	}
+
+	// a movement on Y axis occured?
+	if( y ) {
+		// new position of selected object
+		wm_object_selected -> y += y;
+
+		// Y axis shift is positive?
+		if( y > 0 )	// yes
+			// height of exposed fragment
+			zone.height = y;
+		else {
+			// position and height of exposed fragment
+			zone.y = wm_object_selected -> y + wm_object_selected -> height;
+			zone.height = ~y + 1;
+		}
+
+		// register zone
+		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone, FALSE );
+	}
+
+	// object has been moved
+	wm_object_selected -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+}
+
+uint8_t wm_object_move_up( void ) {
+	// replace occured
+	uint8_t replaced = FALSE;
+
+	// find object at list
+	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
+		// object located?
+		if( wm_list_base_address[ i ] != wm_object_selected ) continue;	// no
+
+		// move all objects in place of selected
+		for( uint16_t j = i + 1; j < wm_list_limit; j++ ) {
+			// next object will be a taskbar?
+			if( wm_list_base_address[ j ] -> descriptor -> flags & WM_OBJECT_FLAG_taskbar ) break;
+
+			// no, move the next object to the current position
+			wm_list_base_address[ j - 1 ] = wm_list_base_address[ j ];
+
+			// put the object back in its new position
+			wm_list_base_address[ j ] = wm_object_selected;
+
+			// object changed position
+			replaced = TRUE;
+		}
+	}
+
+	// object not found
+	return replaced;
 }

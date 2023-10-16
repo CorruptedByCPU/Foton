@@ -68,8 +68,11 @@ terminal.scanline_pixel		= CONSOLE_WINDOW_WIDTH_pixel;
 terminal.color_foreground	= STD_COLOR_BLACK_light;
 terminal.color_background	= STD_COLOR_WHITE;
 lib_terminal( &terminal );
-lib_terminal_printf( &terminal, (uint8_t *) "\n  Window created by console." );
+lib_terminal_printf( &terminal, (uint8_t *) "\n  Window created by Console." );
 console_window -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
+
+	// debug
+	int64_t test_pid = std_exec( (uint8_t *) "test", 4 );
 
 	// hold the door
 	while( TRUE );

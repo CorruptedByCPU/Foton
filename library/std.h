@@ -122,6 +122,10 @@
 	#define	STD_KEY_WIN_LEFT				0xE058
 	#define	STD_KEY_MOUSE_RIGHT				0xE05D
 
+	#define	STD_MOUSE_BUTTON_left				0b00000001
+	#define	STD_MOUSE_BUTTON_right				0b00000010
+	#define	STD_MOUSE_BUTTON_middle				0b00000100
+
 	struct STD_SYSCALL_STRUCTURE_MOUSE {
 		uint16_t	x;
 		uint16_t	y;
