@@ -26,33 +26,30 @@ void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 	// block modification of object list
 	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) );
 
-	// find available entry or extend object list
-	while( TRUE ) {
-		// search for empty list entry
-		for( uint64_t i = 0; i < wm_list_limit; i++ ) {
-			// entry in use?
-			if( wm_list_base_address[ i ] ) {
-				// by taskbar?
-				if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_taskbar ) {
-					// move all objects from this point on list including taskbar one place forward
-					for( uint64_t j = wm_list_limit; j > i; j-- ) wm_list_base_address[ j ] = wm_list_base_address[ j - 1 ];
-				} else
-					// no, next one
-					continue;
-			}
+	// extend object list
+	wm_list_base_address = (struct WM_STRUCTURE_OBJECT **) realloc( wm_list_base_address, sizeof( struct WM_STRUCTURE_OBJECT * ) * ++wm_list_limit );
 
-			// insert object on list
-			wm_list_base_address[ i ] = object;
+	// find available entry
+	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
+		// entry in use by taskbar?
+		if( wm_list_base_address[ i ] ) {
+			// by taskbar?
+			if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_taskbar ) {
+				// move all objects from this point on list including taskbar one place forward
+				for( uint64_t j = wm_list_limit; j > i; j-- ) wm_list_base_address[ j ] = wm_list_base_address[ j - 1 ];
+		} else
+			// no, next one
+			continue;
+}
 
-			// release list for modification
-			wm_list_semaphore = UNLOCK;
+		// insert object on list
+		wm_list_base_address[ i ] = object;
 
-			// done
-			return;
-		}
+		// release list for modification
+		wm_list_semaphore = UNLOCK;
 
-		// extend object list
-		wm_list_base_address = (struct WM_STRUCTURE_OBJECT **) realloc( wm_list_base_address, sizeof( struct WM_STRUCTURE_OBJECT * ) * ++wm_list_limit );
+		// done
+		return;
 	}
 }
 
@@ -67,16 +64,22 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t wid
 			// entry in use?
 			if( ! wm_object_base_address[ i ].descriptor ) {	// no
 				// fill object properties
-				wm_object_base_address[ i ].x = x;
-				wm_object_base_address[ i ].y = y;
-				wm_object_base_address[ i ].width = width;
-				wm_object_base_address[ i ].height = height;
+				wm_object_base_address[ i ].x		= x;
+				wm_object_base_address[ i ].y		= y;
+				wm_object_base_address[ i ].width	= width;
+				wm_object_base_address[ i ].height	= height;
 
 				// calculate object area size in Bytes
 				wm_object_base_address[ i ].size_byte = (width * height * STD_VIDEO_DEPTH_byte) + sizeof( struct WM_STRUCTURE_DESCRIPTOR );
 
 				// assign area for object
 				wm_object_base_address[ i ].descriptor = (struct WM_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_base_address[ i ].size_byte ) >> STD_SHIFT_PAGE );
+
+				// update descriptor properties
+				wm_object_base_address[ i ].descriptor -> x		= x;
+				wm_object_base_address[ i ].descriptor -> y		= y;
+				wm_object_base_address[ i ].descriptor -> width		= width;
+				wm_object_base_address[ i ].descriptor -> height	= height;
 
 				// register object on list
 				wm_object_insert( (struct WM_STRUCTURE_OBJECT *) &wm_object_base_address[ i ] );

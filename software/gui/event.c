@@ -10,6 +10,10 @@ void gui_event( void ) {
 		struct STD_WINDOW_STRUCTURE_REQUEST *request = (struct STD_WINDOW_STRUCTURE_REQUEST *) &data;
 		if( ! request -> width || ! request -> height ) continue;	// nothing to do
 
+		// change window position
+		request -> x = (gui_window_wallpaper -> width >> STD_SHIFT_2) - (request -> width >> STD_SHIFT_2);
+		request -> y = (gui_window_wallpaper -> height >> STD_SHIFT_2) - (request -> height >> STD_SHIFT_2);
+
 		// transfer it to Window Manager
 		std_ipc_send( wm_pid, (uint8_t *) &data );
 

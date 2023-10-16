@@ -86,11 +86,11 @@ uint8_t gui_init( void ) {
 
 	// by default Window Manager creates fully transparent windows and we leave it in that state
 
-//debug
-uint32_t *pixel_taskbar = (uint32_t *) ((uintptr_t) gui_window_taskbar + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
-for( uint16_t y = 0; y < GUI_WINDOW_TASKBAR_HEIGHT_pixel; y++ )
-	for( uint16_t x = 0; x < gui_wallpaper_width; x++ )
-		pixel_taskbar[ (y * gui_wallpaper_width) + x ] = STD_COLOR_GREEN_light;
+// //debug
+// uint32_t *pixel_taskbar = (uint32_t *) ((uintptr_t) gui_window_taskbar + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+// for( uint16_t y = 0; y < GUI_WINDOW_TASKBAR_HEIGHT_pixel; y++ )
+// 	for( uint16_t x = 0; x < gui_wallpaper_width; x++ )
+// 		pixel_taskbar[ (y * gui_wallpaper_width) + x ] = STD_COLOR_GREEN_light;
 
 	// mark window as taskbar, so Window Manager will treat it as boundary for other windows
 	gui_window_taskbar -> flags |= WM_OBJECT_FLAG_taskbar;
