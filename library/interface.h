@@ -12,10 +12,13 @@
 		#include	"./string.h"
 	#endif
 
+	#define	LIB_INTERFACE_HEADER_HEIGHT_pixel	(LIB_FONT_HEIGHT_pixel + 6)	// 3 pixels from above and under
+
 	struct LIB_INTERFACE_STRUCTURE {
 		uint8_t		*properties;
 		uint16_t	width;
 		uint16_t	height;
+		struct WM_STRUCTURE_DESCRIPTOR	*descriptor;
 	};
 
 	// properties of Interface assigned to Window
@@ -23,4 +26,7 @@
 
 	// changes JSON format to internal Interface format
 	void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface );
+
+	// create window space accoring to JSON specification
+	void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );
 #endif

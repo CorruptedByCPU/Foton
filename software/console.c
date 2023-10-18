@@ -27,49 +27,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize console window
 	console_init();
 
-	// // obtain information about kernel framebuffer
-	// struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
-	// std_framebuffer( &kernel_framebuffer );
-
-	// // remember Graphical User Interface PID
-	// int64_t gui_pid = kernel_framebuffer.pid;
-
-	// // allocate gui data container
-	// uint8_t gui_data[ STD_IPC_SIZE_byte ];
-
-	// // prepeare new window request
-	// struct STD_WINDOW_STRUCTURE_REQUEST *gui_request = (struct STD_WINDOW_STRUCTURE_REQUEST *) &gui_data;
-	// struct STD_WINDOW_STRUCTURE_ANSWER *gui_answer = EMPTY;	// answer will be in here
-
-	// //----------------------------------------------------------------------
-
-	// // wallpaper window properties
-	// gui_request -> width = CONSOLE_WINDOW_WIDTH_pixel;
-	// gui_request -> height = CONSOLE_WINDOW_HEIGHT_pixel;
-
-	// // send request to Graphical User Interface
-	// std_ipc_send( gui_pid, (uint8_t *) gui_request );
-
-	// // wait for answer
-	// while( ! std_ipc_receive( (uint8_t *) gui_data ) );
-
-	// // window assigned?
-	// gui_answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &gui_data;
-	// if( ! gui_answer -> descriptor ) return FALSE;	// no
-
-	// // properties of console window
-	// struct WM_STRUCTURE_DESCRIPTOR *console_window = (struct WM_STRUCTURE_DESCRIPTOR *) gui_answer -> descriptor;
-
-// terminal.width			= CONSOLE_WINDOW_WIDTH_pixel;
-// terminal.height			= CONSOLE_WINDOW_HEIGHT_pixel;
-// terminal.base_address		= (uint32_t *) ((uintptr_t) console_window + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
-// terminal.scanline_pixel		= CONSOLE_WINDOW_WIDTH_pixel;
-// terminal.color_foreground	= STD_COLOR_WHITE;
-// terminal.color_background	= 0xFF101010;
-// lib_terminal( &terminal );
-// lib_terminal_printf( &terminal, (uint8_t *) "\n  Window created by Console.\n  " );
-// console_window -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
-
 	// hold the door
 	while( TRUE );
 }

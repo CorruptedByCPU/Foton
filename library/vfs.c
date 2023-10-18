@@ -5,9 +5,6 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
-	#ifndef	LIB_STRING
-		#include	"./string.h"
-	#endif
 	#ifndef	LIB_VFS
 		#include	"./vfs.h"
 	#endif

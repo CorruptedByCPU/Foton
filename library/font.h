@@ -5,6 +5,10 @@
 #ifndef	LIB_FONT
 	#define	LIB_FONT
 
+	#ifndef	LIB_COLOR
+		#include	"./color.h"
+	#endif
+
         // display management
 	#define LIB_FONT_ALIGN_left             	0b00000001
 	#define LIB_FONT_ALIGN_center           	0b00000010

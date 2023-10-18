@@ -5,6 +5,10 @@
 #ifndef	LIB_VFS
 	#define	LIB_VFS
 
+	#ifndef	LIB_STRING
+		#include	"./string.h"
+	#endif
+
 	#define	LIB_VFS_align			16
 	#define	LIB_VFS_base			64
 	#define	LIB_VFS_length			4
