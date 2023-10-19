@@ -44,7 +44,7 @@ void wm_init( void ) {
 	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
 		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
 			// draw pixel
-			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = STD_COLOR_BLUE;
+			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = STD_COLOR_BLACK;
 
 	// object created
 	wm_object_workbench -> descriptor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_fixed_z | WM_OBJECT_FLAG_flush;

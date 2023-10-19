@@ -5,11 +5,6 @@
 // kernel environment variables/functions
 struct KERNEL *kernel = EMPTY;
 
-#ifdef	DEBUG
-	// terminal properties
-	struct LIB_TERMINAL_STRUCTURE kernel_terminal;
-#endif
-
 // our limine requests
 
 static volatile struct limine_framebuffer_request limine_framebuffer_request = {

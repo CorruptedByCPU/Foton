@@ -8,9 +8,9 @@
 	#ifndef	LIB_INTERFACE
 		#include	"./interface.h"
 	#endif
-	#ifndef	LIB_JSON
+	// #ifndef	LIB_JSON
 		#include	"./json.c"
-	#endif
+	// #endif
 
 uint8_t lib_interface_string_window[] = "window";
 uint8_t lib_interface_string_width[] = "width";
@@ -18,6 +18,8 @@ uint8_t lib_interface_string_height[] = "height";
 uint8_t lib_interface_string_value[] = "value";
 
 void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	MACRO_DEBUF();
+
 	// prepare JSON structure for parsing
 	lib_json_squeeze( interface -> properties );
 

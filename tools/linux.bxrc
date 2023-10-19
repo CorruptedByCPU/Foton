@@ -48,7 +48,7 @@ sound: waveoutdrv=alsa, waveout=none, waveindrv=alsa, wavein=none, midioutdrv=al
 speaker: enabled=true, mode=system
 parport1: enabled=true, file=none
 parport2: enabled=false
-#com1: enabled=true, mode=file, dev="serial.log"
+com1: enabled=true, mode=file, dev="serial.log"
 com2: enabled=false
 com3: enabled=false
 com4: enabled=false

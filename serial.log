@@ -1,0 +1,47 @@
+RSDT (Root System Description Pointer) found.
+ LAPIC base address 0xFFFF8000FEE00000
+ I/O APIC base address 0xFFFF8000FEC00000
+GDT base address 0xFFFF800000087000
+IDT base address 0xFFFF800000088000
+Task queue base address 0xFFFF800000089000
+ Entry[0] -> kernel environment initialization procedures.
+[Linker] lib_string_to_integer	> 700000001450
+[Linker] lib_string_length	> 7000000013B0
+[Linker] lib_string_length_scope_digit	> 700000001410
+[Linker] lib_integer_to_string	> 7000000003C0
+[Linker] std_syscall_empty	> 700000002360
+[Linker] std_exec	> 700000002430
+[Linker] std_syscall_empty	> 700000002360
+[Linker] std_ipc_receive	> 700000002460
+[Linker] std_ipc_send	> 700000002450
+[Linker] std_memory_share	> 700000002470
+[Linker] std_framebuffer_change	> 700000002490
+[Linker] std_mouse	> 700000002480
+[Linker] realloc	> 7000000024E0
+[Linker] std_memory_alloc	> 7000000023D0
+[Linker] lib_color_blend	> 700000004360
+[Linker] std_pid	> 700000002420
+[Linker] std_framebuffer	> 7000000023C0
+[Linker] malloc	> 7000000024B0
+[Linker] log	> 700000002810
+[Linker] std_syscall_empty	> 700000002360
+[Linker] std_framebuffer	> 7000000023C0
+[Linker] std_ipc_send	> 700000002450
+[Linker] std_ipc_receive	> 700000002460
+[Linker] malloc	> 7000000024B0
+[Linker] lib_image_tga_parse	> 700000005360
+[Linker] free	> 700000002660
+[Linker] std_ipc_receive_by_pid	> 7000000024A0
+[Linker] std_memory_share	> 700000002470
+[Linker] std_exec	> 700000002430
+[USB module].0 PCI 0:1.2 - USB controller found. (Universal Serial Bus)
+[USB module].0  I/O port at 0xC020 [0x20 Bytes], I/O APIC line 2.
+[USB module].0 recognized as UHCI (Universal Host Controller Interface).
+[USB module].0 Port0 - disconnected.
+[Linker] std_ipc_send	> 700000002450
+[Linker] lib_string_to_integer	> 700000001450
+[Linker] lib_string_length	> 7000000013B0
+[Linker] std_ipc_receive	> 700000002460
+[Linker] std_framebuffer	> 7000000023C0
+[Linker] std_syscall_empty	> 700000002360
+[Linker] lib_interface	> 700000006620

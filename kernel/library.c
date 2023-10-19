@@ -39,6 +39,8 @@ uint8_t kernel_library_find( uint8_t *name, uint8_t length ) {
 }
 
 uintptr_t kernel_library_function( uint8_t *string, uint64_t length ) {
+	kernel -> log( (uint8_t *) "[Linker] %s\t> ", string );
+
 	// search in every loaded library
 	for( uint64_t i = 0; i < KERNEL_LIBRARY_limit; i++ ) {
 		// entry active?
@@ -47,9 +49,11 @@ uintptr_t kernel_library_function( uint8_t *string, uint64_t length ) {
 		// search thru available dynamic symbols inside library
 		for( uint64_t j = 0; j < kernel -> library_base_address[ i ].d_entry_count; j++ )
 			// local function we are looking for?
-			if( kernel -> library_base_address[ i ].dynamic_linking[ j ].address && lib_string_length( (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ] ) == length && lib_string_compare( string, (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ], length ) )
+			if( kernel -> library_base_address[ i ].dynamic_linking[ j ].address && lib_string_length( (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ] ) == length && lib_string_compare( string, (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ], length ) ) {
+				kernel -> log( (uint8_t *) "%X\n", (kernel -> library_base_address[ i ].pointer + kernel -> library_base_address[ i ].dynamic_linking[ j ].address) );
 				// yes
 				return (uintptr_t) (kernel -> library_base_address[ i ].pointer + kernel -> library_base_address[ i ].dynamic_linking[ j ].address);
+			}
 	}
 
 	// not found
