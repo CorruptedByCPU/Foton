@@ -5,12 +5,12 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
+	#ifndef	LIB_JSON
+		#include	"./json.h"
+	#endif
 	#ifndef	LIB_INTERFACE
 		#include	"./interface.h"
 	#endif
-	// #ifndef	LIB_JSON
-		#include	"./json.c"
-	// #endif
 
 uint8_t lib_interface_string_window[] = "window";
 uint8_t lib_interface_string_width[] = "width";
@@ -18,19 +18,17 @@ uint8_t lib_interface_string_height[] = "height";
 uint8_t lib_interface_string_value[] = "value";
 
 void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
-	MACRO_DEBUF();
-
 	// prepare JSON structure for parsing
 	lib_json_squeeze( interface -> properties );
 
-	// convert interface properties to a more accessible format
-	lib_interface_convert( interface );
+	// // convert interface properties to a more accessible format
+	// lib_interface_convert( interface );
 
-	// if dimensions aquired from JSON structure
-	if( interface -> width && interface -> height ) {
-		// create window
-		lib_interface_window( interface );
-	}
+	// // if dimensions aquired from JSON structure
+	// if( interface -> width && interface -> height ) {
+	// 	// create window
+	// 	lib_interface_window( interface );
+	// }
 }
 
 void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -39,7 +37,7 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// uint64_t i = EMPTY;	// properties index
 
 	// properties of JSON structure
-	volatile struct LIB_JSON_STRUCTURE json = lib_json( interface -> properties );
+	struct LIB_JSON_STRUCTURE json = lib_json( interface -> properties );
 
 	// parse elements inside JSON structure
 	do {

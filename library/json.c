@@ -107,8 +107,6 @@ void lib_json_parse( struct LIB_JSON_STRUCTURE *json, uint8_t *string ) {
 }
 
 uint64_t lib_json_squeeze( uint8_t *json ) {
-	MACRO_DEBUF();
-
 	// pointer to formatted json
 	uint8_t *formatted = json;
 	uint64_t i = EMPTY;	// formatted index

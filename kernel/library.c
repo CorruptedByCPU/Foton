@@ -39,7 +39,7 @@ uint8_t kernel_library_find( uint8_t *name, uint8_t length ) {
 }
 
 uintptr_t kernel_library_function( uint8_t *string, uint64_t length ) {
-	kernel -> log( (uint8_t *) "[Linker] %s\t> ", string );
+	kernel -> log( (uint8_t *) "[Linker {remote}] %s\t> ", string );
 
 	// search in every loaded library
 	for( uint64_t i = 0; i < KERNEL_LIBRARY_limit; i++ ) {
@@ -165,10 +165,12 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 	// for each entry in dynamic symbols
 	for( uint64_t i = 0; i < rela_entry_count; i++ ) {
 		// it's a local function?
-		if( dynsym[ rela[ i ].index ].address )
+		if( dynsym[ rela[ i ].index ].address ) {
+			// kernel -> log( (uint8_t *) "[Linker {local}] %s\t> 0x%x\n", (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], dynsym[ rela[ i ].index ].address + code_base_address );
+
 			// update address of local function
 			got[ i ] = dynsym[ rela[ i ].index ].address + code_base_address;
-		else
+		} else
 			// retrieve library function address
 			got[ i ] = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
 	}
