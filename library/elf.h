@@ -19,9 +19,10 @@
 
 	#define	LIB_ELF_SECTION_TYPE_null	0x00
 	#define	LIB_ELF_SECTION_TYPE_progbits	0x01
-	#define	LIB_ELF_SECTION_TYPE_rela	0x04
 	#define	LIB_ELF_SECTION_TYPE_strtab	0x03
+	#define	LIB_ELF_SECTION_TYPE_rela	0x04
 	#define	LIB_ELF_SECTION_TYPE_dynamic	0x06
+	#define	LIB_ELF_SECTION_TYPE_rel	0x09
 	#define	LIB_ELF_SECTION_TYPE_dynsym	0x0B
 
 	#define	LIB_ELF_SECTION_DYNAMIC_TYPE_needed	1

@@ -16,26 +16,22 @@ void kernel_init_memory( void ) {
 	// find largest available area
 	uint64_t local_largest_byte = EMPTY;
 
-	#ifdef	DEBUG
-		kernel -> log( (uint8_t *) "Memory map:\n" );
-	#endif
+	// kernel -> log( (uint8_t *) "Memory map:\n" );
 
 	// all available memory areas should be clean at kernel initialization
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
-		#ifdef	DEBUG
-			kernel -> log( (uint8_t *) " %16X - %16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );
-			switch( limine_memmap_request.response -> entries[ i ] -> type ) {
-				case LIMINE_MEMMAP_USABLE:			{ kernel -> log( (uint8_t *) "Usable\n" ); break; }
-				case LIMINE_MEMMAP_RESERVED:			{ kernel -> log( (uint8_t *) "Reserved\n" ); break; }
-				case LIMINE_MEMMAP_ACPI_RECLAIMABLE:		{ kernel -> log( (uint8_t *) "ACPI Reclaimable\n" ); break; }
-				case LIMINE_MEMMAP_ACPI_NVS:			{ kernel -> log( (uint8_t *) "ACPI NVS\n" ); break; }
-				case LIMINE_MEMMAP_BAD_MEMORY:			{ kernel -> log( (uint8_t *) "Corrupted Memory\n" ); break; }
-				case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:	{ kernel -> log( (uint8_t *) "Bootloader Reclaimable\n" ); break; }
-				case LIMINE_MEMMAP_KERNEL_AND_MODULES:		{ kernel -> log( (uint8_t *) "Kernel or Modules\n" ); break; }
-				case LIMINE_MEMMAP_FRAMEBUFFER:			{ kernel -> log( (uint8_t *) "Framebuffer\n" ); break; }
-				default:					{ kernel -> log( (uint8_t *) "{unknown}\n" ); }
-			}
-		#endif
+			// kernel -> log( (uint8_t *) " %16X - %16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );
+			// switch( limine_memmap_request.response -> entries[ i ] -> type ) {
+			// 	case LIMINE_MEMMAP_USABLE:			{ kernel -> log( (uint8_t *) "Usable\n" ); break; }
+			// 	case LIMINE_MEMMAP_RESERVED:			{ kernel -> log( (uint8_t *) "Reserved\n" ); break; }
+			// 	case LIMINE_MEMMAP_ACPI_RECLAIMABLE:		{ kernel -> log( (uint8_t *) "ACPI Reclaimable\n" ); break; }
+			// 	case LIMINE_MEMMAP_ACPI_NVS:			{ kernel -> log( (uint8_t *) "ACPI NVS\n" ); break; }
+			// 	case LIMINE_MEMMAP_BAD_MEMORY:			{ kernel -> log( (uint8_t *) "Corrupted Memory\n" ); break; }
+			// 	case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:	{ kernel -> log( (uint8_t *) "Bootloader Reclaimable\n" ); break; }
+			// 	case LIMINE_MEMMAP_KERNEL_AND_MODULES:		{ kernel -> log( (uint8_t *) "Kernel or Modules\n" ); break; }
+			// 	case LIMINE_MEMMAP_FRAMEBUFFER:			{ kernel -> log( (uint8_t *) "Framebuffer\n" ); break; }
+			// 	default:					{ kernel -> log( (uint8_t *) "{unknown}\n" ); }
+			// }
 
 		// USABLE memory area?
 		if( limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_USABLE ) {
@@ -89,7 +85,5 @@ void kernel_init_memory( void ) {
 		kernel -> page_available--;
 	}
 
-	#ifdef	DEBUG
-		kernel -> log( (uint8_t *) "Memory size: %u KiB (%u KiB free)\n", kernel -> page_total << STD_SHIFT_4, kernel -> page_available << STD_SHIFT_4 );
-	#endif
+	// kernel -> log( (uint8_t *) "Memory size: %u KiB (%u KiB free)\n", kernel -> page_total << STD_SHIFT_4, kernel -> page_available << STD_SHIFT_4 );
 }

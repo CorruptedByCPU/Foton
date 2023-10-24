@@ -39,8 +39,6 @@ uint8_t kernel_library_find( uint8_t *name, uint8_t length ) {
 }
 
 uintptr_t kernel_library_function( uint8_t *string, uint64_t length ) {
-	kernel -> log( (uint8_t *) "[Linker {remote}] %s\t> ", string );
-
 	// search in every loaded library
 	for( uint64_t i = 0; i < KERNEL_LIBRARY_limit; i++ ) {
 		// entry active?
@@ -49,15 +47,13 @@ uintptr_t kernel_library_function( uint8_t *string, uint64_t length ) {
 		// search thru available dynamic symbols inside library
 		for( uint64_t j = 0; j < kernel -> library_base_address[ i ].d_entry_count; j++ )
 			// local function we are looking for?
-			if( kernel -> library_base_address[ i ].dynamic_linking[ j ].address && lib_string_length( (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ] ) == length && lib_string_compare( string, (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ], length ) ) {
-				kernel -> log( (uint8_t *) "%X\n", (kernel -> library_base_address[ i ].pointer + kernel -> library_base_address[ i ].dynamic_linking[ j ].address) );
+			if( kernel -> library_base_address[ i ].dynamic_linking[ j ].address && lib_string_length( (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ] ) == length && lib_string_compare( string, (uint8_t *) &kernel -> library_base_address[ i ].strtab[ kernel -> library_base_address[ i ].dynamic_linking[ j ].name_offset ], length ) )
 				// yes
 				return (uintptr_t) (kernel -> library_base_address[ i ].pointer + kernel -> library_base_address[ i ].dynamic_linking[ j ].address);
-			}
 	}
 
 	// not found
-	return EMPTY;
+	return EMPTY; 
 }
 
 void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_address, uint8_t library ) {
@@ -67,8 +63,9 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 	struct LIB_ELF_STRUCTURE_DYNAMIC_RELOCATION *rela = EMPTY;
 	uint64_t rela_entry_count = EMPTY;
 
-	// global offset table
-	uint64_t *got = EMPTY;
+	// global offset tables
+	uint64_t *got		= EMPTY;
+	uint64_t *got_plt	= EMPTY;
 
 	// function strtab
 	uint8_t *strtab = EMPTY;
@@ -100,7 +97,10 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 	// retrieve information about others
 	for( uint64_t i = 0; i < elf -> s_entry_count; i++ ) {
 		// function names?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_strtab ) if( ! strtab ) {
+		if( ! strtab && elf_s[ i ].type == LIB_ELF_SECTION_TYPE_strtab ) {
+			// it's the correct one?
+			if( ! lib_string_compare( &shstrtab[ elf_s[ i ].name ], (uint8_t *) ".dynstr", 7 ) ) continue;	// no
+
 			// for library
 			if( library )
 				// try this strtab section
@@ -108,18 +108,14 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 			else
 				// try relocation of strtab section
 				strtab = (uint8_t *) (code_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
-
-			// it's the correct one?
-			if( lib_string_compare( &shstrtab[ elf_s[ i ].name ], (uint8_t *) ".dynstr", 7 ) ) continue;	// yes
-
-			// nope, look for another one
-			strtab = EMPTY;
 		}
 
-		// global offset table?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_progbits ) if( ! got ) {
+		// first global offset table?
+		if( ! got && elf_s[ i ].type == LIB_ELF_SECTION_TYPE_progbits ) {
+			MACRO_DEBUF();
+
 			// it's the correct one?
-			if( ! lib_string_compare( &shstrtab[ elf_s[ i ].name ], (uint8_t *) ".got.plt", 8 ) ) continue;	// no
+			if( ! lib_string_compare( &shstrtab[ elf_s[ i ].name ], (uint8_t *) ".got", 4 ) ) continue;	// no
 
 			// for library
 			if( library )
@@ -127,10 +123,24 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 				got = (uint64_t *) (code_base_address + elf_s[ i ].file_offset);
 			else
 				// try relocation
-				got = (uint64_t *) (code_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
+				got = (uint64_t *) (code_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);	
+		}
+
+		// second global offset table?
+		if( ! got_plt && elf_s[ i ].type == LIB_ELF_SECTION_TYPE_progbits ) {
+			// it's the correct one?
+			if( ! lib_string_compare( &shstrtab[ elf_s[ i ].name ], (uint8_t *) ".got.plt", 8 ) ) continue;	// no
+
+			// for library
+			if( library )
+				// retrieve addres
+				got_plt = (uint64_t *) (code_base_address + elf_s[ i ].file_offset);
+			else
+				// try relocation
+				got_plt = (uint64_t *) (code_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
 
 			// first 3 entries are reserved
-			got += 0x03;
+			got_plt += 0x03;
 		}
 		
 		// dynamic relocations?
@@ -165,14 +175,15 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 	// for each entry in dynamic symbols
 	for( uint64_t i = 0; i < rela_entry_count; i++ ) {
 		// it's a local function?
-		if( dynsym[ rela[ i ].index ].address ) {
-			// kernel -> log( (uint8_t *) "[Linker {local}] %s\t> 0x%x\n", (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], dynsym[ rela[ i ].index ].address + code_base_address );
-
+		if( dynsym[ rela[ i ].index ].address )
 			// update address of local function
-			got[ i ] = dynsym[ rela[ i ].index ].address + code_base_address;
-		} else
+			got_plt[ i ] = dynsym[ rela[ i ].index ].address + code_base_address;
+
+		else
 			// retrieve library function address
-			got[ i ] = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
+			got_plt[ i ] = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
+
+		kernel -> log( (uint8_t *) "Link %s\t> 0x%X\n", (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], got_plt[ i ] );
 	}
 }
 
@@ -229,6 +240,8 @@ void kernel_library_load( uint8_t *name, uint64_t length ) {
 
 	// acquire memory space inside library environment
 	uintptr_t library_base_address = (kernel_memory_acquire( kernel -> library_map_address, library_space_page ) << STD_SHIFT_PAGE) + KERNEL_LIBRARY_base_address;
+
+	kernel -> log( (uint8_t *) "= Library %s at 0x%X\n", name, library_base_address );
 
 	// map aquired memory space for library
 	kernel_page_alloc( kernel -> page_base_address, library_base_address, library_space_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_external );

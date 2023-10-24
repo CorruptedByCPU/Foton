@@ -46,7 +46,7 @@ LDFLAGS="-nostdlib -static -no-dynamic-linker"
 
 # build kernel file
 ${C} -c kernel/init.c -o build/kernel.o ${CFLAGS} || exit 1;
-${LD} ${EXT} build/kernel.o -o build/kernel -T tools/linker.kernel ${LDFLAGS} || exit 1;
+${LD} ${EXT} build/kernel.o -o build/kernel -T tools/kernel.ld ${LDFLAGS} || exit 1;
 strip -R .comment -s build/kernel
 
 # copy kernel file and limine files onto destined iso folder
@@ -73,7 +73,7 @@ for module in `(cd module && ls *.c)`; do
 	# connect with libraries (if necessery)
 	SUB=""
 	if [ -f build/${name}.ao ]; then SUB="build/${name}.ao"; fi
-	${LD} ${SUB} build/${name}.o -o build/root/system/lib/modules/${name}.ko -T tools/linker.module ${LDFLAGS}
+	${LD} ${SUB} build/${name}.o -o build/root/system/lib/modules/${name}.ko -T tools/module.ld ${LDFLAGS}
 
 	# we do not need any additional information
 	strip -R .comment -s build/root/system/lib/modules/${name}.ko > /dev/null 2>&1
@@ -89,7 +89,7 @@ for library in color elf image integer string math json interface font std rgl t
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 
 	# convert to shared
-	${C} -shared build/${library}.o -o build/root/system/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/linker.library -L./build/root/system/lib/ ${lib} || exit 1
+	${C} -shared build/${library}.o -o build/root/system/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/system/lib/ ${lib} || exit 1
 
 	# we do not need any additional information
 	strip -R .comment -s build/root/system/lib/lib${library}.so > /dev/null 2>&1
@@ -108,7 +108,7 @@ for software in `(cd software && ls *.c)`; do
 	${C} -DSOFTWARE -c software/${name}.c -o build/${name}.o ${CFLAGS_SOFTWARE} || exit 1
 
 	# connect with libraries (if necessery)
-	${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/linker.software ${LDFLAGS}
+	${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
 
 	# we do not need any additional information
 	strip -R .comment -s build/root/system/bin/${name} > /dev/null 2>&1
