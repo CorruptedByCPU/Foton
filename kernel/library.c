@@ -188,7 +188,7 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 			// retrieve library function address
 			*got_plt = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
 
-		kernel -> log( (uint8_t *) "Link %s\t> 0x%X\n", (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], got_plt[ i ] );
+		kernel -> log( (uint8_t *) "Link %s\t> 0x%X\n", (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], *got_plt );
 	}
 }
 
