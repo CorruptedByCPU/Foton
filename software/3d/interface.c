@@ -9,7 +9,7 @@ void interface( void ) {
 	// update terminal properties
 	terminal.width			= descriptor -> width;
 	terminal.height			= descriptor -> height;
-	terminal.base_address		= (uint32_t *) ((uintptr_t) descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+	terminal.base_address		= (uint32_t *) ((uintptr_t) descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	terminal.scanline_pixel		= descriptor -> width;
 	terminal.color_foreground	= STD_COLOR_WHITE;
 	terminal.color_background	= STD_COLOR_BLACK_light;

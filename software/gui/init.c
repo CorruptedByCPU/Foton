@@ -40,7 +40,7 @@ uint8_t gui_init( void ) {
 	if( ! wm_answer -> descriptor ) return FALSE;	// no
 
 	// properties of wallpaper window
-	gui_window_wallpaper = (struct WM_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
+	gui_window_wallpaper = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
 
 	// properties of assigned image to wallpaper window
 	struct LIB_IMAGE_TGA_STRUCTURE *image_wallpaper = (struct LIB_IMAGE_TGA_STRUCTURE *) &file_wallpaper_start;
@@ -50,7 +50,7 @@ uint8_t gui_init( void ) {
 	lib_image_tga_parse( (uint8_t *) image_wallpaper, tmp_wallpaper, (uint64_t) file_wallpaper_end - (uint64_t) file_wallpaper_start );
 
 	// copy scaled image content to wallpaper window
-	uint32_t *pixel_wallpaper = (uint32_t *) ((uintptr_t) gui_window_wallpaper + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+	uint32_t *pixel_wallpaper = (uint32_t *) ((uintptr_t) gui_window_wallpaper + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	float x_scale_factor = (float) ((float) image_wallpaper -> width / (float) gui_wallpaper_width);
 	float y_scale_factor = (float) ((float) image_wallpaper -> height / (float) gui_wallpaper_height);
 	for( uint16_t y = 0; y < gui_wallpaper_height; y++ )
@@ -61,7 +61,7 @@ uint8_t gui_init( void ) {
 	free( tmp_wallpaper );
 
 	// window content ready for display
-	gui_window_wallpaper -> flags |= WM_OBJECT_FLAG_fixed_z | WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
+	gui_window_wallpaper -> flags |= STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
 	//----------------------------------------------------------------------
 
@@ -82,23 +82,23 @@ uint8_t gui_init( void ) {
 	if( ! wm_answer -> descriptor ) return FALSE;	// no
 
 	// properties of taskbar window
-	gui_window_taskbar = (struct WM_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
+	gui_window_taskbar = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
 
 	// by default Window Manager creates fully transparent windows and we leave it in that state
 
 // //debug
-// uint32_t *pixel_taskbar = (uint32_t *) ((uintptr_t) gui_window_taskbar + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+// uint32_t *pixel_taskbar = (uint32_t *) ((uintptr_t) gui_window_taskbar + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 // for( uint16_t y = 0; y < GUI_WINDOW_TASKBAR_HEIGHT_pixel; y++ )
 // 	for( uint16_t x = 0; x < gui_wallpaper_width; x++ )
 // 		pixel_taskbar[ (y * gui_wallpaper_width) + x ] = STD_COLOR_GREEN_light;
 
 	// mark window as taskbar, so Window Manager will treat it as boundary for other windows
-	gui_window_taskbar -> flags |= WM_OBJECT_FLAG_taskbar;
+	gui_window_taskbar -> flags |= STD_WINDOW_FLAG_taskbar;
 
 	// any window created from this point on will not be able to cover taskbar window, except cursor or course :D
 
 	// window content ready for display
-	gui_window_taskbar -> flags |= WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
+	gui_window_taskbar -> flags |= STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
 	//----------------------------------------------------------------------
 
@@ -122,20 +122,20 @@ uint8_t gui_init( void ) {
 	if( ! wm_answer -> descriptor ) return FALSE;	// no
 
 	// properties of cursor window
-	gui_window_cursor = (struct WM_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
+	gui_window_cursor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) wm_answer -> descriptor;
 
 	// copy image content to cursor window
-	uint32_t *pixel_cursor = (uint32_t *) ((uintptr_t) gui_window_cursor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+	uint32_t *pixel_cursor = (uint32_t *) ((uintptr_t) gui_window_cursor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	lib_image_tga_parse( (uint8_t *) image_cursor, pixel_cursor, (uint64_t) file_cursor_end - (uint64_t) file_cursor_start );
 
 	// mark window as cursor, so Window Manager will treat it different than others
-	gui_window_cursor -> flags |= WM_OBJECT_FLAG_cursor;
+	gui_window_cursor -> flags |= STD_WINDOW_FLAG_cursor;
 
 	// yep, any window can be a cursor :) but only 1 with highest internal ID will be treated as it
 	// so before you assign a flag to another window, make sure no other window have it
 
 	// window content ready for display
-	gui_window_cursor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
+	gui_window_cursor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
 	// everything prepared
 	return TRUE;

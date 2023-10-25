@@ -27,13 +27,13 @@ uint8_t init( void ) {
 	if( ! answer -> descriptor ) std_exit();	// nothing to do
 
 	// descriptor properties
-	descriptor = (struct WM_STRUCTURE_DESCRIPTOR *) answer -> descriptor;
+	descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) answer -> descriptor;
 
 	// initialize RGL library
-	rgl = lib_rgl( descriptor -> width, descriptor -> height - LIB_FONT_HEIGHT_pixel, (uint32_t *) ((uintptr_t) descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR )) + (descriptor -> width * LIB_FONT_HEIGHT_pixel) );
+	rgl = lib_rgl( descriptor -> width, descriptor -> height - LIB_FONT_HEIGHT_pixel, (uint32_t *) ((uintptr_t) descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (descriptor -> width * LIB_FONT_HEIGHT_pixel) );
 
 	// window content ready for display
-	descriptor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_flush;
+	descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
 	//----------------------------------------------------------------------
 

@@ -122,7 +122,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_rgl_flush( rgl );
 
 		// tell window manager to flush window
-		descriptor -> flags |= WM_OBJECT_FLAG_flush;
+		descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 		// next frame ready
 		fps++;

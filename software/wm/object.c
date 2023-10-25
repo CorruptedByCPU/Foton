@@ -6,18 +6,18 @@ void wm_object( void ) {
 	// search whole list for object flush
 	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
 		// cursor object located?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_cursor ) { wm_object_cursor = wm_list_base_address[ i ]; continue; }	// remember
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) { wm_object_cursor = wm_list_base_address[ i ]; continue; }	// remember
 
 		// object visible and requested flush?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_flush ) {
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse whole object area
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
 
 			// request parsed
-			wm_list_base_address[ i ] -> descriptor -> flags ^= WM_OBJECT_FLAG_flush;
+			wm_list_base_address[ i ] -> descriptor -> flags ^= STD_WINDOW_FLAG_flush;
 
 			// redraw cursor too, if exist
-			if( wm_object_cursor ) wm_object_cursor -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+			if( wm_object_cursor ) wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
 	}
 }
@@ -34,7 +34,7 @@ void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 		// entry in use by taskbar?
 		if( wm_list_base_address[ i ] ) {
 			// by taskbar?
-			if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_taskbar ) {
+			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) {
 				// move all objects from this point on list including taskbar one place forward
 				for( uint64_t j = wm_list_limit; j > i; j-- ) wm_list_base_address[ j ] = wm_list_base_address[ j - 1 ];
 		} else
@@ -70,10 +70,10 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t wid
 				wm_object_base_address[ i ].height	= height;
 
 				// calculate object area size in Bytes
-				wm_object_base_address[ i ].size_byte = (width * height * STD_VIDEO_DEPTH_byte) + sizeof( struct WM_STRUCTURE_DESCRIPTOR );
+				wm_object_base_address[ i ].size_byte = (width * height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR );
 
 				// assign area for object
-				wm_object_base_address[ i ].descriptor = (struct WM_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_base_address[ i ].size_byte ) >> STD_SHIFT_PAGE );
+				wm_object_base_address[ i ].descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_base_address[ i ].size_byte ) >> STD_SHIFT_PAGE );
 
 				// update descriptor properties
 				wm_object_base_address[ i ].descriptor -> x		= x;
@@ -106,10 +106,10 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t pars
 	// find object at current cursor coordinates
 	for( uint16_t i = wm_list_limit - 1; i >= 0; i-- ) {
 		// object marked as cursor?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_cursor ) continue;	// leave it
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// leave it
 
 		// object is visible? (or include hidden ones too)
-		if( parse_hidden || wm_list_base_address[ i ] -> descriptor -> flags & WM_OBJECT_FLAG_visible ) {
+		if( parse_hidden || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) {
 			// coordinates at object area?
 			if( wm_list_base_address[ i ] -> x > x ) continue;	// no
 			if( wm_list_base_address[ i ] -> y > y ) continue;	// no
@@ -127,7 +127,7 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t pars
 
 void wm_object_move( int16_t x, int16_t y ) {
 	// object attached to XY axis?
-	if( wm_object_selected -> descriptor -> flags & WM_OBJECT_FLAG_fixed_xy ) return;	// yep
+	if( wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_xy ) return;	// yep
 
 	// prepare zone for truncate
 	struct WM_STRUCTURE_ZONE zone;
@@ -179,7 +179,7 @@ void wm_object_move( int16_t x, int16_t y ) {
 	}
 
 	// object has been moved
-	wm_object_selected -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+	wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 }
 
 uint8_t wm_object_move_up( void ) {
@@ -194,7 +194,7 @@ uint8_t wm_object_move_up( void ) {
 		// move all objects in place of selected
 		for( uint16_t j = i + 1; j < wm_list_limit; j++ ) {
 			// next object will be a taskbar?
-			if( wm_list_base_address[ j ] -> descriptor -> flags & WM_OBJECT_FLAG_taskbar ) break;
+			if( wm_list_base_address[ j ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) break;
 
 			// no, move the next object to the current position
 			wm_list_base_address[ j - 1 ] = wm_list_base_address[ j ];

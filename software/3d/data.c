@@ -32,7 +32,7 @@ vector3f *vr;
 vector3f *vp;
 struct LIB_RGL_STRUCTURE_TRIANGLE *face;
 
-struct WM_STRUCTURE_DESCRIPTOR *descriptor = EMPTY;
+struct STD_WINDOW_STRUCTURE_DESCRIPTOR *descriptor = EMPTY;
 
 MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/3d.obj" );
 MACRO_IMPORT_FILE_AS_ARRAY( material, "./root/system/var/3d.mtl" );

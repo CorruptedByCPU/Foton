@@ -14,11 +14,13 @@
 
 	#define	LIB_INTERFACE_HEADER_HEIGHT_pixel	(LIB_FONT_HEIGHT_pixel + 6)	// 3 pixels from above and under
 
+	#define	LIB_INTERFACE_BORDER_pixel		1
+
 	struct LIB_INTERFACE_STRUCTURE {
 		uint8_t		*properties;
 		uint16_t	width;
 		uint16_t	height;
-		struct WM_STRUCTURE_DESCRIPTOR	*descriptor;
+		struct STD_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
 	};
 
 	// properties of Interface assigned to Window

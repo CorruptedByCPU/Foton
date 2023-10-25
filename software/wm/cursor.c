@@ -7,11 +7,11 @@ void wm_cursor( void ) {
 	if( ! wm_object_cursor ) return;	// no
 
 	// requested redraw?
-	if( ! (wm_object_cursor -> descriptor -> flags & WM_OBJECT_FLAG_flush) ) return;	// no
+	if( ! (wm_object_cursor -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) return;	// no
 
 	// properties of areas
-	uint32_t *source = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
-	uint32_t *target = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+	uint32_t *source = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *target = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 
 	// calculate overflows
 	uint16_t width = wm_object_cursor -> width;
@@ -40,8 +40,8 @@ void wm_cursor( void ) {
 		}
 
 	// cursor parsed
-	wm_object_cursor -> descriptor -> flags ^= WM_OBJECT_FLAG_flush;
+	wm_object_cursor -> descriptor -> flags ^= STD_WINDOW_FLAG_flush;
 
 	// synchronize workbench with framebuffer
-	wm_object_cache.descriptor -> flags |= WM_OBJECT_FLAG_flush;
+	wm_object_cache.descriptor -> flags |= STD_WINDOW_FLAG_flush;
 }

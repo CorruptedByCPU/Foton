@@ -70,14 +70,14 @@ void wm_event( void ) {
 			wm_object_selected = wm_object_find( mouse.x, mouse.y, FALSE );
 
 			// check if object can be moved along Z axis
-			if( ! (wm_object_selected -> descriptor -> flags & WM_OBJECT_FLAG_fixed_z) ) {
+			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) ) {
 				// move object up inside list
 				if( wm_object_move_up() ) {
 					// redraw object
-					wm_object_selected -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 					// cursor pointer may be obscured, redraw
-					wm_object_cursor -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+					wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 				}
 			}
 		}
@@ -96,7 +96,7 @@ void wm_event( void ) {
 		wm_object_cursor -> y = mouse.y;
 
 		// // redisplay the cursor at the new location
-		wm_object_cursor -> descriptor -> flags |= WM_OBJECT_FLAG_flush;
+		wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 		// if object selected and left mouse button is held
 		if( wm_object_selected && wm_mouse_button_left_semaphore )

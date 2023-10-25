@@ -30,7 +30,7 @@ void wm_init( void ) {
 	// as local object
 	wm_object_cache.width		= framebuffer.width_pixel;
 	wm_object_cache.height		= framebuffer.height_pixel;
-	wm_object_cache.descriptor	= (struct WM_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm_object_cache.width * wm_object_cache.height * STD_VIDEO_DEPTH_byte) + sizeof( struct WM_STRUCTURE_DESCRIPTOR ) ) >> STD_SHIFT_PAGE );
+	wm_object_cache.descriptor	= (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm_object_cache.width * wm_object_cache.height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ) ) >> STD_SHIFT_PAGE );
 
 	// leave cache untouched, first objects synchronization will fill it up
 
@@ -40,12 +40,12 @@ void wm_init( void ) {
 	wm_object_workbench = wm_object_create( 0, 0, wm_object_cache.width, wm_object_cache.height );
 
 	// fill workbench with default gradient
-	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct WM_STRUCTURE_DESCRIPTOR ));
+	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
 		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
 			// draw pixel
 			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = STD_COLOR_BLACK;
 
 	// object created
-	wm_object_workbench -> descriptor -> flags |= WM_OBJECT_FLAG_visible | WM_OBJECT_FLAG_fixed_xy | WM_OBJECT_FLAG_fixed_z | WM_OBJECT_FLAG_flush;
+	wm_object_workbench -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_flush;
 }

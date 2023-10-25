@@ -87,7 +87,7 @@
 	#define	STD_COLOR_mask					0xFF000000
 	#define	STD_COLOR_WHITE					0xFFFFFFFF
 	#define	STD_COLOR_BLACK					0xFF000000
-	#define	STD_COLOR_BLACK_light				0xFF080808
+	#define	STD_COLOR_BLACK_light				0xFF101010
 	#define	STD_COLOR_GREEN_light				0xFF10FF10
 	#define	STD_COLOR_BLUE					0xFF003366
 	#define	STD_COLOR_RED_light				0xFFFF1010
@@ -241,6 +241,21 @@
 	#define	STD_VIDEO_DEPTH_shift				2
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
+
+	#define	STD_WINDOW_FLAG_flush		0b0000000000000001
+	#define	STD_WINDOW_FLAG_visible		0b0000000000000010
+	#define	STD_WINDOW_FLAG_fixed_xy	0b0000000000000100
+	#define	STD_WINDOW_FLAG_fixed_z		0b0000000000001000
+	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
+	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
+
+	struct	STD_WINDOW_STRUCTURE_DESCRIPTOR {
+		uint16_t	flags;
+		int16_t		x;
+		int16_t		y;
+		uint16_t	width;
+		uint16_t	height;
+	} __attribute__( ( aligned( STD_PAGE_byte ) ) );
 
 	struct STD_WINDOW_STRUCTURE_REQUEST {
 		int16_t		x;

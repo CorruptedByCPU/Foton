@@ -96,5 +96,12 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( ! gui_answer -> descriptor ) return;	// no
 
 	// properties of console window
-	interface -> descriptor = (struct WM_STRUCTURE_DESCRIPTOR *) gui_answer -> descriptor;
+	interface -> descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) gui_answer -> descriptor;
+
+	// fill window with default background
+	uint32_t *window_pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	for( uint16_t y = 0; y < interface -> height; y++ )
+		for( uint16_t x = 0; x < interface -> width; x++ )
+			// draw pixel
+			window_pixel[ (y * interface -> width) + x ] = STD_COLOR_BLACK;
 }
