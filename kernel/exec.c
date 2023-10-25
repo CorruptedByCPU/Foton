@@ -42,6 +42,8 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 	// create a new job in task queue
 	struct KERNEL_TASK_STRUCTURE *exec = kernel_task_add( name, length );
 
+	kernel -> log( (uint8_t *) "[Exec: %s]\n", name );
+
 	//----------------------------------------------------------------------
 
 	// prepare Paging table for new process

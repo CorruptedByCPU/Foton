@@ -110,38 +110,36 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 				strtab = (uint8_t *) (code_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
 		}
 
-		// first global offset table?
-		if( ! got && elf_s[ i ].type == LIB_ELF_SECTION_TYPE_progbits ) {
-			MACRO_DEBUF();
+		// // first global offset table?
+		// if( ! got && elf_s[ i ].type == LIB_ELF_SECTION_TYPE_progbits ) {
+		// 	// it's the correct one?
+		// 	if( ! lib_string_compare( &shstrtab[ elf_s[ i ].name ], (uint8_t *) ".got", 4 ) ) continue;	// no
 
-			// it's the correct one?
-			if( ! lib_string_compare( &shstrtab[ elf_s[ i ].name ], (uint8_t *) ".got", 4 ) ) continue;	// no
+		// 	// for library
+		// 	if( library )
+		// 		// retrieve addres
+		// 		got = (uint64_t *) (code_base_address + elf_s[ i ].file_offset);
+		// 	else
+		// 		// try relocation
+		// 		got = (uint64_t *) (code_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);	
+		// }
 
-			// for library
-			if( library )
-				// retrieve addres
-				got = (uint64_t *) (code_base_address + elf_s[ i ].file_offset);
-			else
-				// try relocation
-				got = (uint64_t *) (code_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);	
-		}
+		// // second global offset table?
+		// if( ! got_plt && elf_s[ i ].type == LIB_ELF_SECTION_TYPE_progbits ) {
+		// 	// it's the correct one?
+		// 	if( ! lib_string_compare( &shstrtab[ elf_s[ i ].name ], (uint8_t *) ".got.plt", 8 ) ) continue;	// no
 
-		// second global offset table?
-		if( ! got_plt && elf_s[ i ].type == LIB_ELF_SECTION_TYPE_progbits ) {
-			// it's the correct one?
-			if( ! lib_string_compare( &shstrtab[ elf_s[ i ].name ], (uint8_t *) ".got.plt", 8 ) ) continue;	// no
+		// 	// for library
+		// 	if( library )
+		// 		// retrieve addres
+		// 		got_plt = (uint64_t *) (code_base_address + elf_s[ i ].file_offset);
+		// 	else
+		// 		// try relocation
+		// 		got_plt = (uint64_t *) (code_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
 
-			// for library
-			if( library )
-				// retrieve addres
-				got_plt = (uint64_t *) (code_base_address + elf_s[ i ].file_offset);
-			else
-				// try relocation
-				got_plt = (uint64_t *) (code_base_address + elf_s[ i ].virtual_address - KERNEL_EXEC_base_address);
-
-			// first 3 entries are reserved
-			got_plt += 0x03;
-		}
+		// 	// first 3 entries are reserved
+		// 	got_plt += 0x03;
+		// }
 		
 		// dynamic relocations?
 		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_rela ) {
@@ -174,14 +172,21 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 
 	// for each entry in dynamic symbols
 	for( uint64_t i = 0; i < rela_entry_count; i++ ) {
+		// prepare .got.plt entry pointer
+		if( library )
+			// in case of library
+			got_plt = (uint64_t *) (rela[ i ].offset + code_base_address);
+		else
+			// or software
+			got_plt = (uint64_t *) (rela[ i ].offset + code_base_address - KERNEL_EXEC_base_address);
+
 		// it's a local function?
 		if( dynsym[ rela[ i ].index ].address )
 			// update address of local function
-			got_plt[ i ] = dynsym[ rela[ i ].index ].address + code_base_address;
-
+			*got_plt = dynsym[ rela[ i ].index ].address + code_base_address;
 		else
 			// retrieve library function address
-			got_plt[ i ] = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
+			*got_plt = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
 
 		kernel -> log( (uint8_t *) "Link %s\t> 0x%X\n", (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], got_plt[ i ] );
 	}
