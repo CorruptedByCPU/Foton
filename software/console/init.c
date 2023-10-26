@@ -13,11 +13,8 @@ void console_init( void ) {
 	terminal.base_address		= (uint32_t *) ((uintptr_t) interface.descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ) + (((LIB_INTERFACE_HEADER_HEIGHT_pixel * interface.width) + LIB_INTERFACE_BORDER_pixel) << STD_VIDEO_DEPTH_shift));
 	terminal.scanline_pixel		= interface.width;
 	terminal.color_foreground	= STD_COLOR_WHITE;
-	terminal.color_background	= STD_COLOR_BLACK_light;
+	terminal.color_background	= STD_COLOR_BLACK;
 	lib_terminal( &terminal );
-
-	// show welcome
-	lib_terminal_printf( &terminal, (uint8_t *) "Window created by Console.\n" );
 
 	// update window content on screen
 	interface.descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;

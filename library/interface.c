@@ -12,10 +12,10 @@
 		#include	"./interface.h"
 	#endif
 
-uint8_t lib_interface_string_window[] = "window";
-uint8_t lib_interface_string_width[] = "width";
-uint8_t lib_interface_string_height[] = "height";
-uint8_t lib_interface_string_value[] = "value";
+const uint8_t lib_interface_string_window[] = "window";
+const uint8_t lib_interface_string_width[] = "width";
+const uint8_t lib_interface_string_height[] = "height";
+const uint8_t lib_interface_string_name[] = "name";
 
 void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// prepare JSON structure for parsing
@@ -29,6 +29,15 @@ void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 		// create window
 		lib_interface_window( interface );
 	}
+}
+
+void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// fill window with default background
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	for( uint16_t y = 0; y < interface -> height; y++ )
+		for( uint16_t x = 0; x < interface -> width; x++ )
+			// draw pixel
+			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 }
 
 void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -53,6 +62,17 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	
 				// retrieve height value
 				if( lib_json_key( json_window, (uint8_t *) &lib_interface_string_height ) ) interface -> height = json_window.value;
+
+				// retrieve name value
+				if( lib_json_key( json_window, (uint8_t *) &lib_interface_string_name ) ) {
+					// set name length
+					interface -> length = json_window.length;
+					if( json_window.length > LIB_INTERFACE_NAME_limit ) interface -> length = LIB_INTERFACE_NAME_limit;
+
+					// copy name
+					uint8_t *name = (uint8_t *) json_window.value;
+					for( uint64_t i = 0; i < interface -> length; i++ ) interface -> name[ i ] = name[ i ];
+				}
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &json_window ) );
 
@@ -63,6 +83,24 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// store new properties pointer
 	// interface -> properties = properties;
 };
+
+void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// window name set?
+	if( ! interface -> length ) return;	// no
+
+	// limit name length to header width
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> length ) > interface -> width - 8 ) if( ! --interface -> length ) return;
+
+	// clear window header with default background
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	for( uint16_t y = 0; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
+		for( uint16_t x = 1; x < interface -> width - 2; x++ )
+			// draw pixel
+			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
+
+	// print new header
+	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> length, STD_COLOR_WHITE, pixel + (4 * interface -> width) + 4, interface -> width, LIB_FONT_ALIGN_left );
+}
 
 void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// obtain information about kernel framebuffer
@@ -98,10 +136,9 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// properties of console window
 	interface -> descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) gui_answer -> descriptor;
 
-	// fill window with default background
-	uint32_t *window_pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t y = 0; y < interface -> height; y++ )
-		for( uint16_t x = 0; x < interface -> width; x++ )
-			// draw pixel
-			window_pixel[ (y * interface -> width) + x ] = STD_COLOR_BLACK;
+	// clear window content
+	lib_interface_clear( interface );
+
+	// show window name in header if set
+	lib_interface_name( interface );
 }
