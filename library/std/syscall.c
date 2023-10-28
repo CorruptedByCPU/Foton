@@ -174,7 +174,7 @@ uint8_t std_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_IPC_RECEIVE_BY_PID), "D" (data), "S" (pid) );
 
-	// return value
+	// return boolean
 	return std_syscall_bool();
 }
 
@@ -182,6 +182,14 @@ uint8_t std_stream_out( uint8_t *string, uint64_t length ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_STREAM_OUT), "D" (string), "S" (length) );
 
-	// return value
+	// return boolean
 	return std_syscall_bool();
+}
+
+uint64_t std_stream_in( uint8_t *target ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_STREAM_IN), "D" (target) );
+
+	// return value
+	return std_syscall_value_unsigned();
 }

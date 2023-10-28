@@ -305,3 +305,8 @@ uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
 	// insert string on output stream
 	return kernel_stream_out( string, length );
 }
+
+uint64_t kernel_syscall_stream_in( uint8_t *target ) {
+	// insert string on output stream
+	return kernel_stream_in( target );
+}

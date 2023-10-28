@@ -22,6 +22,7 @@ extern	kernel_syscall_mouse
 extern	kernel_syscall_framebuffer_change
 extern	kernel_syscall_ipc_receive_by_pid
 extern	kernel_syscall_stream_out
+extern	kernel_syscall_stream_in
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -52,6 +53,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_framebuffer_change
 	dq	kernel_syscall_ipc_receive_by_pid
 	dq	kernel_syscall_stream_out
+	dq	kernel_syscall_stream_in
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

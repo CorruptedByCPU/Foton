@@ -11,14 +11,10 @@ struct KERNEL_STREAM_STRUCTURE *kernel_stream( void ) {
 		// free entry?
 		if( ! kernel -> stream_base_address[ i ].base_address ) {
 			// prepare area for stream content
-			kernel -> stream_base_address[ i ].base_address = (uint8_t *) kernel_memory_alloc( KERNEL_STREAM_SIZE_page );
+			kernel -> stream_base_address[ i ].base_address = (uint8_t *) kernel_memory_alloc( STD_STREAM_SIZE_page );
 
 			// there is currently no data in stream
-			kernel -> stream_base_address[ i ].start = EMPTY;
-			kernel -> stream_base_address[ i ].end = EMPTY;
-
-			// whole stream available
-			kernel -> stream_base_address[ i ].available_byte = STD_PAGE_byte;
+			kernel -> stream_base_address[ i ].length = EMPTY;
 
 			// number of processes assigned to stream
 			kernel -> stream_base_address[ i ].lock = TRUE;
@@ -38,6 +34,30 @@ struct KERNEL_STREAM_STRUCTURE *kernel_stream( void ) {
 	return	EMPTY;
 }
 
+uint64_t kernel_stream_in( uint8_t *target ) {
+	// get the process output stream id
+	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+
+	// stream closed?
+	if( task -> stream_out -> flags & KERNEL_STREAM_FLAG_closed ) return EMPTY;	// yes
+
+	// retrieve stream length
+	uint64_t length = task -> stream_in -> length;
+
+	// stream contains data?
+	if( ! length ) return EMPTY;	// no
+
+	// send data from stream start to end marker
+	for( uint64_t i = 0; i < length; i++ )
+		target[ i ] = task -> stream_in -> base_address[ i ];
+
+	// all flux space free
+	task -> stream_in -> length = EMPTY;
+
+	// return amount of transferred data in Bytes
+	return length;
+}
+
 uint8_t kernel_stream_out( uint8_t *string, uint64_t length ) {
 	// retrieve stream output of current task
 	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
@@ -48,34 +68,23 @@ uint8_t kernel_stream_out( uint8_t *string, uint64_t length ) {
 	// block access to stream modification
 	while( __sync_val_compare_and_swap( &task -> stream_out -> semaphore, UNLOCK, LOCK ) );
 
-	// can we fit content?
-	if( length > task -> stream_out -> available_byte ) {
+	// can we fit it?
+	if( length > (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) ) {	// no
 		// unlock stream access
 		task -> stream_out -> semaphore = UNLOCK;
 
-		// unable to fit content
+		// unable to fit string
 		return FALSE;
 	}
 
-	// string index
-	uint16_t i = 0;
+	// wait for stream to empty
+	while( task -> stream_out -> length );
 
-	// if end marker is behind of start marker
-	if( task -> stream_out -> end >= task -> stream_out -> start ) {
-		// send data from end marker to end of stream
-		while( i < length && task -> stream_out -> end < (KERNEL_STREAM_SIZE_page << STD_SHIFT_PAGE) ) task -> stream_out -> base_address[ task -> stream_out -> end++ ] = string[ i++ ];
+	// upload string to stream
+	for( uint64_t i = 0; i < length; i++ ) task -> stream_out -> base_address[ i ] = string[ i ];
 
-		// if not whole string was uploaded
-		if( i < length ) 
-			// set new end marker
-			task -> stream_out -> end = EMPTY;
-	}
-
-	// send data from stream start to end marker
-	while( i < length ) task -> stream_out -> base_address[ task -> stream_out -> end++ ] = string[ i++ ];
-
-	// available area in stream
-	task -> stream_out -> available_byte -= length;
+	// available area in stream	// send data from stream start to end marker
+	task -> stream_out -> length = length;
 
 	// string content is modified
 	task -> stream_out -> flags |= KERNEL_STREAM_FLAG_modified;

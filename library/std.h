@@ -213,6 +213,8 @@
 	#define	STD_SHIFT_4096					12
 	#define	STD_SHIFT_PAGE					STD_SHIFT_4096
 
+	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STREAM_STRUCTURE
+
 	#define	STD_STREAM_FLOW_out_to_parent_in		0b00000001
 	#define	STD_STREAM_FLOW_out_to_in			0b00000010
 
@@ -318,6 +320,9 @@
 
 	// send string to default output, if not possible FALSE returned
 	uint8_t std_stream_out( uint8_t *string, uint64_t length );
+
+	// retrieve data from stream, if exist
+	uint64_t std_stream_in( uint8_t *target );
 
 	#ifdef	SOFTWARE
 		// function definitions

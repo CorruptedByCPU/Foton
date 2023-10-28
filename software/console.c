@@ -14,7 +14,7 @@
 	#include	"./gui/config.h"
 	#include	"./wm/config.h"
 	//----------------------------------------------------------------------
-	// variables, structures, definitions
+	// variables, structures, console_stream_indefinitions
 	//----------------------------------------------------------------------
 	#include	"./console/config.h"
 	//----------------------------------------------------------------------
@@ -27,8 +27,29 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize console window
 	console_init();
 
-	// run Shell
-	int64_t shell_pid = std_exec( (uint8_t *) "shell", 5, STD_STREAM_FLOW_out_to_parent_in );
+	// main look
+	while( TRUE ) {
+		// end of shell?
+		if( ! std_pid_check( console_pid_of_shell ) ) std_exit();	// quit from console too
+
+		// get data from input stream
+		uint64_t console_stream_length = std_stream_in( console_stream_in );
+
+		// if there is incomming stream
+		if( console_stream_length ) {
+			// disable cursor, no CPU power waste
+			lib_terminal_cursor_disable( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
+
+			// parse all characters from stream
+			for( uint32_t i = 0; i < console_stream_length; ) {
+				// display character
+				lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal, console_stream_in[ i++ ] );
+			}
+
+			// turn on the cursor
+			lib_terminal_cursor_enable( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
+		}
+	}
 
 	// hold the door
 	while( TRUE );
