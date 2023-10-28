@@ -109,6 +109,10 @@ struct KERNEL {
 	uint64_t	storage_root_id;
 	uint8_t		storage_semaphore;
 
+	// variables of Stream management functions
+	struct KERNEL_STREAM_STRUCTURE	*stream_base_address;
+	uint8_t		stream_semaphore;
+
 	// variables of Task management functions
 	struct KERNEL_TASK_STRUCTURE				*task_base_address;
 	struct KERNEL_TASK_STRUCTURE				**task_cpu_address;	// contains pointers to task inside queue by specified CPU id

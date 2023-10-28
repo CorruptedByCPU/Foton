@@ -213,6 +213,9 @@
 	#define	STD_SHIFT_4096					12
 	#define	STD_SHIFT_PAGE					STD_SHIFT_4096
 
+	#define	STD_STREAM_FLOW_out_to_parent_in		0b00000001
+	#define	STD_STREAM_FLOW_out_to_in			0b00000010
+
 	#define	STD_SYSCALL_EXIT				0x00
 	#define	STD_SYSCALL_FRAMEBUFFER				0x01
 	#define	STD_SYSCALL_MEMORY_ALLOC			0x02
@@ -229,6 +232,8 @@
 	#define	STD_SYSCALL_MOUSE				0x0D
 	#define	STD_SYSCALL_FRAMEBUFFER_CHANGE			0x0E
 	#define	STD_SYSCALL_IPC_RECEIVE_BY_PID			0x0F
+	#define	STD_SYSCALL_STREAM_OUT				0x10
+	#define	STD_SYSCALL_STREAM_IN				0x11
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -288,7 +293,7 @@
 	uintptr_t std_memory_alloc( uint64_t byte );
 
 	// returns ID of newly executed process
-	int64_t std_exec( uint8_t *string, uint64_t length );
+	int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow );
 
 	// returns TRUE/FALSE, task exist?
 	uint8_t std_pid_check( int64_t pid );
@@ -310,6 +315,9 @@
 
 	// check for message from process of ID
 	uint8_t std_ipc_receive_by_pid( uint8_t *data, int64_t pid );
+
+	// send string to default output, if not possible FALSE returned
+	uint8_t std_stream_out( uint8_t *string, uint64_t length );
 
 	#ifdef	SOFTWARE
 		// function definitions

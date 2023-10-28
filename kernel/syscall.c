@@ -161,9 +161,9 @@ int64_t kernel_syscall_pid() {
 	return task -> pid;
 }
 
-int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length ) {
+int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// return new process ID
-	return kernel_exec( name, length );
+	return kernel_exec( name, length, stream_flow );
 }
 
 uint8_t kernel_syscall_pid_check( int64_t pid ) {
@@ -299,4 +299,9 @@ uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
 
 	// no message for process
 	return FALSE;
+}
+
+uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
+	// insert string on output stream
+	return kernel_stream_out( string, length );
 }

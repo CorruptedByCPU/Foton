@@ -43,6 +43,7 @@
 	#include	"library.h"
 	#include	"module.h"
 	#include	"ipc.h"
+	#include	"stream.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -65,6 +66,7 @@
 	#include	"module.c"
 	#include	"time.c"
 	#include	"rtc.c"
+	#include	"stream.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
@@ -91,6 +93,7 @@
 	#include	"init/module.c"
 	#include	"init/rtc.c"
 	#include	"init/ipc.c"
+	#include	"init/stream.c"
 
 // our mighty init
 void _entry( void ) {
@@ -126,6 +129,9 @@ void _entry( void ) {
 	// create Task queue and insert kernel into it
 	kernel_init_task();
 
+	// initialize stream set
+	kernel_init_stream();
+
 	// configure RTC
 	kernel_init_rtc();
 
@@ -148,7 +154,7 @@ void _entry( void ) {
 	kernel_init_module();
 
 	// execute first process
-	kernel_exec( (uint8_t *) "init", 4 );
+	kernel_exec( (uint8_t *) "init", 4, EMPTY );
 
 	// reload BSP configuration
 	kernel_init_ap();

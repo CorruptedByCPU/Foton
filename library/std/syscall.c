@@ -114,9 +114,9 @@ int64_t std_pid( void ) {
 	return std_syscall_value();
 }
 
-int64_t std_exec( uint8_t *string, uint64_t length ) {
+int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_EXEC), "D" (string), "S" (length) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_EXEC), "D" (string), "S" (length), "d" (stream_flow) );
 
 	// return value
 	return std_syscall_value();
@@ -173,6 +173,14 @@ void std_framebuffer_change( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuff
 uint8_t std_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_IPC_RECEIVE_BY_PID), "D" (data), "S" (pid) );
+
+	// return value
+	return std_syscall_bool();
+}
+
+uint8_t std_stream_out( uint8_t *string, uint64_t length ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_STREAM_OUT), "D" (string), "S" (length) );
 
 	// return value
 	return std_syscall_bool();

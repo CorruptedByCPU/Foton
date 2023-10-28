@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-int64_t kernel_exec( uint8_t *name, uint64_t length ) {
+int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// length of exec name
 	uint64_t exec_length = lib_string_word( name, length );
 
@@ -154,6 +154,41 @@ int64_t kernel_exec( uint8_t *name, uint64_t length ) {
 
 	// connect required functions new locations / from another library
 	kernel_library_link( elf, exec_base_address, FALSE );
+
+	//----------------------------------------------------------------------
+
+	// make a default input stream
+	exec -> stream_in = kernel_stream();
+
+	// properties of parent task
+	struct KERNEL_TASK_STRUCTURE *parent = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+
+	// set default output stream based on flag
+	switch( stream_flow ) {
+		case STD_STREAM_FLOW_out_to_parent_in: {
+			// childs output to parents input
+			exec -> stream_out = parent -> stream_in;
+
+			// done
+			break;
+		}
+
+		case STD_STREAM_FLOW_out_to_in: {
+			// loopback stream
+			exec -> stream_out = exec -> stream_in;
+		
+			// done
+			break;
+		}
+
+		default: {
+			// inherit parents output
+			exec -> stream_out = parent -> stream_out;
+		}
+	}
+
+	// stream used by new exec
+	exec -> stream_out -> lock++;
 
 	//----------------------------------------------------------------------
 

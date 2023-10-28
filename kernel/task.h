@@ -33,6 +33,8 @@
 		uint64_t		storage;
 		uint64_t		page;	// amount of pages assigned to process
 		uint64_t		stack;	// size of stack in Pages
+		struct KERNEL_STREAM_STRUCTURE *stream_in;
+		struct KERNEL_STREAM_STRUCTURE *stream_out;
 		uint32_t		*memory_map;
 		uint8_t			memory_semaphore;
 		volatile uint16_t	flags;

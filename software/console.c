@@ -27,6 +27,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize console window
 	console_init();
 
+	// run Shell
+	int64_t shell_pid = std_exec( (uint8_t *) "shell", 5, STD_STREAM_FLOW_out_to_parent_in );
+
 	// hold the door
 	while( TRUE );
 }
