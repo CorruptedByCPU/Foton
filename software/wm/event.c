@@ -3,18 +3,20 @@
 ===============================================================================*/
 
 void wm_event( void ) {
-	// incomming request
+	// incomming message
 	uint8_t data[ STD_IPC_SIZE_byte ]; int64_t source = EMPTY;
 	while( (source = std_ipc_receive( (uint8_t *) &data )) ) {
+		// event to parse?
+		if( data[ offsetof( struct STD_IPC_STRUCTURE_DEFAULT, type ) ] != STD_IPC_TYPE_event ) break;	// no
+
+		// properties of request
+		struct STD_IPC_STRUCTURE_WINDOW *request = (struct STD_IPC_STRUCTURE_WINDOW *) &data;
+
+		// properties of answer
+		struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *answer = (struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *) &data;
+
 		// if request is invalid
-		struct STD_WINDOW_STRUCTURE_REQUEST *request = (struct STD_WINDOW_STRUCTURE_REQUEST *) &data;
-		if( ! request -> width || ! request -> height ) continue;	// nothing to do
-
-		// prepare answer structure
-		struct STD_WINDOW_STRUCTURE_ANSWER *answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &data;
-
-		// if source or we are NOT framebuffer owner
-		if( framebuffer.pid != wm_pid && framebuffer.pid != source ) {
+		if( ! request -> width || ! request -> height ) {
 			// reject window creation
 			answer -> descriptor = EMPTY;
 
@@ -28,24 +30,31 @@ void wm_event( void ) {
 		// create new object for process
 		struct WM_STRUCTURE_OBJECT *object = wm_object_create( request -> x, request -> y, request -> width, request -> height );
 
+		// update ID of process owning object
+		object -> pid = source;
+
 		// share new object descriptor with process
 		uintptr_t descriptor = EMPTY;
 		if( ! (descriptor = std_memory_share( source, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE )) ) continue;	// no enough memory?
 
 		// send answer
 		answer -> descriptor = descriptor;
-		answer -> size_byte = object -> size_byte;
 		std_ipc_send( source, (uint8_t *) answer );
-
-		// it was first window request?
-		if( wm_pid == framebuffer.pid ) {
-			// change framebuffer owner
-			framebuffer.pid = source;
-
-			// change properties of kernels framebuffer
-			std_framebuffer_change( &framebuffer );
-		}
 	}
+
+	// // incomming key?
+	// uint16_t key = std_keyboard();
+	// if( key ) {
+	// 	// properties of keyboard message
+	// 	struct STD_IPC_STRUCTURE_KEYBOARD *message = (struct STD_IPC_STRUCTURE_KEYBOARD *) &data;
+
+	// 	// IPC type
+	// 	message -> ipc.type = STD_IPC_TYPE_keyboard;
+	// 	message -> key = key;	// and key code
+
+	// 	// send key to active object process
+	// 	std_ipc_send( wm_object_active -> pid, (uint8_t *) message );
+	// }
 
 	// if cursor object doesn't exist
 	if( ! wm_object_cursor ) return;	// nothing to do

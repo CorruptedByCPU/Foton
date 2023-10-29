@@ -2,6 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+int64_t	gui_pid = EMPTY;
 int64_t wm_pid = EMPTY;
 
 uint16_t gui_wallpaper_width	= EMPTY;

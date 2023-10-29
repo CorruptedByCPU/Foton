@@ -126,7 +126,7 @@ uint8_t std_pid_check( int64_t pid ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_PID_CHECK), "D" (pid) );
 
-	// return TRUE/FALSE
+	// return boolean
 	return std_syscall_bool();
 }
 
@@ -190,6 +190,14 @@ uint64_t std_stream_in( uint8_t *target ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_STREAM_IN), "D" (target) );
 
-	// return value
+	// return unsigned value
+	return std_syscall_value_unsigned();
+}
+
+uint16_t std_keyboard( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_KEYBOARD) );
+
+	// return unsigned value
 	return std_syscall_value_unsigned();
 }

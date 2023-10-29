@@ -124,11 +124,36 @@
 
 	#define	STD_IPC_SIZE_byte				40
 
+	#define	STD_IPC_TYPE_keyboard				0x00
+	#define	STD_IPC_TYPE_event				0xFF
+
 	struct	STD_IPC_STRUCTURE {
 		volatile uint64_t	ttl;
 		int64_t		source;
 		int64_t		target;
-		uint8_t		data[ STD_IPC_SIZE_byte ];
+		uint8_t		data[ STD_IPC_SIZE_byte ];	// first Byte of data defines TYPE
+	} __attribute__( (packed) );
+
+	struct	STD_IPC_STRUCTURE_DEFAULT {
+		uint8_t		type;
+	} __attribute__( (packed) );
+
+	struct	STD_IPC_STRUCTURE_KEYBOARD {
+		struct STD_IPC_STRUCTURE_DEFAULT	ipc;
+		uint16_t	key;
+	} __attribute__( (packed) );
+
+	struct STD_IPC_STRUCTURE_WINDOW {
+		struct STD_IPC_STRUCTURE_DEFAULT	ipc;
+		int16_t		x;
+		int16_t		y;
+		uint16_t	width;
+		uint16_t	height;
+	} __attribute__( (packed) );
+
+	struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR {
+		struct STD_IPC_STRUCTURE_DEFAULT	ipc;
+		uintptr_t	descriptor;
 	} __attribute__( (packed) );
 
 	#define	STD_KEY_BACKSPACE				0x0008
@@ -236,6 +261,7 @@
 	#define	STD_SYSCALL_IPC_RECEIVE_BY_PID			0x0F
 	#define	STD_SYSCALL_STREAM_OUT				0x10
 	#define	STD_SYSCALL_STREAM_IN				0x11
+	#define	STD_SYSCALL_KEYBOARD				0x12
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -256,6 +282,12 @@
 	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
 	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
 
+	#define	STD_WINDOW_REQUEST_create	0b00000001
+	#define	STD_WINDOW_REQUEST_active	0b00000010
+
+	#define	STD_WINDOW_ANSWER_create	0b10000000 | STD_WINDOW_REQUEST_create
+	#define	STD_WINDOW_ANSWER_active	0b10000000 | STD_WINDOW_REQUEST_active
+
 	struct	STD_WINDOW_STRUCTURE_DESCRIPTOR {
 		uint16_t	flags;
 		int16_t		x;
@@ -263,18 +295,6 @@
 		uint16_t	width;
 		uint16_t	height;
 	} __attribute__( ( aligned( STD_PAGE_byte ) ) );
-
-	struct STD_WINDOW_STRUCTURE_REQUEST {
-		int16_t		x;
-		int16_t		y;
-		uint16_t	width;
-		uint16_t	height;
-	} __attribute__( (packed) );
-
-	struct STD_WINDOW_STRUCTURE_ANSWER {
-		uintptr_t	descriptor;
-		uint64_t	size_byte;
-	} __attribute__( (packed) );
 
 	// stop process execution
 	void std_exit( void );
@@ -323,6 +343,9 @@
 
 	// retrieve data from stream, if exist
 	uint64_t std_stream_in( uint8_t *target );
+
+	// get key from kernel buffer
+	uint16_t std_keyboard( void );
 
 	#ifdef	SOFTWARE
 		// function definitions

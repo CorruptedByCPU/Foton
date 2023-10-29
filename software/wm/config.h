@@ -9,6 +9,7 @@
 	// required libraries
 	//----------------------------------------------------------------------
 	#include	"../../library/color.h"
+	#include	"../../library/image.h"
 
 	//----------------------------------------------------------------------
 	// constants, structures, definitions

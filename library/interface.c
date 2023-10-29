@@ -107,34 +107,37 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
 	std_framebuffer( &kernel_framebuffer );
 
-	// remember Graphical User Interface PID
-	int64_t gui_pid = kernel_framebuffer.pid;
+	// remember Window Manager PID
+	int64_t wm_pid = kernel_framebuffer.pid;
 
 	// allocate gui data container
-	uint8_t gui_data[ STD_IPC_SIZE_byte ];
+	uint8_t wm_data[ STD_IPC_SIZE_byte ];
 
 	// prepeare new window request
-	struct STD_WINDOW_STRUCTURE_REQUEST *gui_request = (struct STD_WINDOW_STRUCTURE_REQUEST *) &gui_data;
-	struct STD_WINDOW_STRUCTURE_ANSWER *gui_answer = EMPTY;	// answer will be in here
+	struct STD_IPC_STRUCTURE_WINDOW *request = (struct STD_IPC_STRUCTURE_WINDOW *) &wm_data;
+	struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *answer = EMPTY;	// answer will be in here
 
 	//----------------------------------------------------------------------
 
 	// wallpaper window properties
-	gui_request -> width = interface -> width;
-	gui_request -> height = interface -> height;
+	request -> ipc.type = STD_IPC_TYPE_event;
+	request -> x = (kernel_framebuffer.width_pixel >> STD_SHIFT_2) - (interface -> width >> STD_SHIFT_2);
+	request -> y = (kernel_framebuffer.height_pixel >> STD_SHIFT_2) - (interface -> height >> STD_SHIFT_2);
+	request -> width = interface -> width;
+	request -> height = interface -> height;
 
-	// send request to Graphical User Interface
-	std_ipc_send( gui_pid, (uint8_t *) gui_request );
+	// send request to Window Manager
+	std_ipc_send( wm_pid, (uint8_t *) request );
 
 	// wait for answer
-	while( ! std_ipc_receive( (uint8_t *) gui_data ) );
+	while( ! std_ipc_receive( (uint8_t *) wm_data ) );
 
 	// window assigned?
-	gui_answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &gui_data;
-	if( ! gui_answer -> descriptor ) return;	// no
+	answer = (struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *) &wm_data;
+	if( ! answer -> descriptor ) return;	// no
 
 	// properties of console window
-	interface -> descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) gui_answer -> descriptor;
+	interface -> descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) answer -> descriptor;
 
 	// clear window content
 	lib_interface_clear( interface );

@@ -4,7 +4,7 @@
 
 int64_t	wm_pid = EMPTY;
 
-struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
+struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
 
 struct WM_STRUCTURE_OBJECT *wm_object_base_address = EMPTY;
 struct WM_STRUCTURE_OBJECT **wm_list_base_address = EMPTY;
@@ -28,3 +28,6 @@ int64_t wm_mouse_y = EMPTY;
 uint8_t	wm_mouse_button_left_semaphore		= FALSE;
 uint8_t	wm_mouse_button_right_semaphore		= FALSE;
 uint8_t	wm_mouse_button_middle_semaphore	= FALSE;
+
+MACRO_IMPORT_FILE_AS_ARRAY( wallpaper, "./root/system/var/wallpaper.tga" );
+MACRO_IMPORT_FILE_AS_ARRAY( cursor, "./root/system/var/cursor.tga" );

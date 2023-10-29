@@ -310,3 +310,23 @@ uint64_t kernel_syscall_stream_in( uint8_t *target ) {
 	// insert string on output stream
 	return kernel_stream_in( target );
 }
+
+uint16_t kernel_syscall_keyboard( void ) {
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+
+	// am I framebuffer manager?
+	if( task -> pid != kernel -> framebuffer_pid ) return EMPTY;	// no, return no key
+
+	// get first key code from buffer
+	uint16_t key = kernel -> device_keyboard[ 0 ];
+
+	// move all characters inside buffer, forward one position
+	for( uint8_t i = 0; i < 7; i++ ) kernel -> device_keyboard[ i ] = kernel -> device_keyboard[ i + 1 ];
+
+	// drain last key
+	kernel -> device_keyboard[ 7 ] = EMPTY;
+
+	// return key code
+	return key;
+}

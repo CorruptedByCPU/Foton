@@ -8,8 +8,8 @@ void wm_sync( void ) {
 
 	// copy the contents of the buffer to the memory space of the graphics card
 	uint32_t *source = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	for( uint32_t i = 0; i < (framebuffer.width_pixel * framebuffer.height_pixel); i++ )
-			framebuffer.base_address[ i ] = source[ i ];
+	for( uint32_t i = 0; i < (kernel_framebuffer.width_pixel * kernel_framebuffer.height_pixel); i++ )
+			kernel_framebuffer.base_address[ i ] = source[ i ];
 
 	// request accepted
 	wm_object_cache.descriptor -> flags ^= STD_WINDOW_FLAG_flush;

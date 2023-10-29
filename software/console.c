@@ -11,7 +11,7 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of Graphical User Interface
 	//----------------------------------------------------------------------
-	#include	"./gui/config.h"
+	// #include	"./gui/config.h"
 	#include	"./wm/config.h"
 	//----------------------------------------------------------------------
 	// variables, structures, console_stream_indefinitions

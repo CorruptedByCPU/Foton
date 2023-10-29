@@ -3,6 +3,9 @@
 ===============================================================================*/
 
 uint8_t gui_init( void ) {
+	// get out PID number
+	gui_pid = std_pid();
+
 	// obtain information about kernel framebuffer
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
 	std_framebuffer( &kernel_framebuffer );
@@ -18,12 +21,14 @@ uint8_t gui_init( void ) {
 	uint8_t wm_data[ STD_IPC_SIZE_byte ];
 
 	// prepeare new window request
-	struct STD_WINDOW_STRUCTURE_REQUEST *wm_request = (struct STD_WINDOW_STRUCTURE_REQUEST *) &wm_data;
-	struct STD_WINDOW_STRUCTURE_ANSWER *wm_answer = EMPTY;	// answer will be in here
+	struct STD_IPC_STRUCTURE_WINDOW_REQUEST *wm_request = (struct STD_IPC_STRUCTURE_WINDOW_REQUEST *) &wm_data;
+	struct STD_IPC_STRUCTURE_WINDOW_ANSWER_DESCRIPTOR *wm_answer = EMPTY;	// answer will be in here
 
 	//----------------------------------------------------------------------
 
 	// wallpaper window properties
+	wm_request -> type = STD_IPC_TYPE_internal;
+	wm_request -> request_or_answer = STD_WINDOW_REQUEST_create;
 	wm_request -> x = 0;
 	wm_request -> y = 0;
 	wm_request -> width = gui_wallpaper_width;
@@ -36,7 +41,7 @@ uint8_t gui_init( void ) {
 	while( ! std_ipc_receive( (uint8_t *) wm_data ) );
 
 	// window assigned?
-	wm_answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &wm_data;
+	wm_answer = (struct STD_IPC_STRUCTURE_WINDOW_ANSWER_DESCRIPTOR *) &wm_data;
 	if( ! wm_answer -> descriptor ) return FALSE;	// no
 
 	// properties of wallpaper window
@@ -66,6 +71,8 @@ uint8_t gui_init( void ) {
 	//----------------------------------------------------------------------
 
 	// taskbar window properties
+	wm_request -> type = STD_IPC_TYPE_internal;
+	wm_request -> request_or_answer = STD_WINDOW_REQUEST_create;
 	wm_request -> x = 0;
 	wm_request -> y = gui_wallpaper_height - GUI_WINDOW_TASKBAR_HEIGHT_pixel;
 	wm_request -> width = gui_wallpaper_width;
@@ -78,7 +85,7 @@ uint8_t gui_init( void ) {
 	while( ! std_ipc_receive( (uint8_t *) wm_data ) );
 
 	// window assigned?
-	wm_answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &wm_data;
+	wm_answer = (struct STD_IPC_STRUCTURE_WINDOW_ANSWER_DESCRIPTOR *) &wm_data;
 	if( ! wm_answer -> descriptor ) return FALSE;	// no
 
 	// properties of taskbar window
@@ -106,6 +113,8 @@ uint8_t gui_init( void ) {
 	struct LIB_IMAGE_TGA_STRUCTURE *image_cursor = (struct LIB_IMAGE_TGA_STRUCTURE *) &file_cursor_start;
 
 	// cursor window properties
+	wm_request -> type = STD_IPC_TYPE_internal;
+	wm_request -> request_or_answer = STD_WINDOW_REQUEST_create;
 	wm_request -> x = gui_wallpaper_width >> STD_SHIFT_2;
 	wm_request -> y = gui_wallpaper_height >> STD_SHIFT_2;
 	wm_request -> width = image_cursor -> width;
@@ -118,7 +127,7 @@ uint8_t gui_init( void ) {
 	while( ! std_ipc_receive( (uint8_t *) wm_data ) );
 
 	// window assigned?
-	wm_answer = (struct STD_WINDOW_STRUCTURE_ANSWER *) &wm_data;
+	wm_answer = (struct STD_IPC_STRUCTURE_WINDOW_ANSWER_DESCRIPTOR *) &wm_data;
 	if( ! wm_answer -> descriptor ) return FALSE;	// no
 
 	// properties of cursor window
