@@ -53,6 +53,11 @@ uint8_t driver_ps2_data_read( void ) {
 	return driver_port_in_byte( DRIVER_PS2_PORT_DATA );
 }
 
+uint8_t	driver_ps2_status_read( void ) {
+	// receive status
+	return driver_port_in_byte( DRIVER_PS2_PORT_COMMAND_OR_STATUS );
+}
+
 void driver_ps2_data_write( uint8_t data ) {
 	// wait for controller to be ready to accept command/data
 	driver_ps2_check_write();
@@ -207,6 +212,8 @@ void driver_ps2_keyboard( void ) {
 			for( uint8_t i = 0; i < DRIVER_PS2_CACHE_limit; i++ )
 				// save key code
 				if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = key; break; }
+
+			if( key < 0x80 ) kernel -> log( (uint8_t *) "[Keyboard] Key: %c\n", key );
 		}
 	}
 

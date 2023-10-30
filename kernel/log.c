@@ -43,7 +43,7 @@ void kernel_log( uint8_t *string, ... ) {
 				uint64_t value = va_arg( argv, uint64_t );
 
 				// show 'value' on terminal
-				driver_serial_value( value, 10, prefix, '0' );
+				driver_serial_value( value, 2, p_value, '0' );
 
 				// next character from string
 				continue;
@@ -74,7 +74,7 @@ void kernel_log( uint8_t *string, ... ) {
 				}
 
 				// show 'value' on terminal
-				driver_serial_value( value, 10, prefix, ' ' );
+				driver_serial_value( value, 10, p_value, ' ' );
 
 				// next character from string
 				continue;
@@ -96,7 +96,7 @@ void kernel_log( uint8_t *string, ... ) {
 				uint64_t value = va_arg( argv, uint64_t );
 
 				// show 'value' on terminal
-				driver_serial_value( value, 10, prefix, ' ' );
+				driver_serial_value( value, 10, p_value, ' ' );
 
 				// next character from string
 				continue;
@@ -107,7 +107,7 @@ void kernel_log( uint8_t *string, ... ) {
 				uint64_t value = va_arg( argv, uint64_t );
 
 				// show 'value' on terminal
-				driver_serial_value( value, 16, prefix, '0' );
+				driver_serial_value( value, 16, p_value, '0' );
 
 				// next character from string
 				continue;

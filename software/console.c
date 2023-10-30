@@ -32,6 +32,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// end of shell?
 		if( ! std_pid_check( console_pid_of_shell ) ) std_exit();	// quit from console too
 
+		// incomming message
+		uint8_t data[ STD_IPC_SIZE_byte ];
+		if( std_ipc_receive( (uint8_t *) &data ) )
+			// send this message forward to child
+			std_ipc_send( console_pid_of_shell, (uint8_t *) &data );
+
 		// get data from input stream
 		uint64_t console_stream_length = std_stream_in( console_stream_in );
 
@@ -48,6 +54,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// turn on the cursor
 			lib_terminal_cursor_enable( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
+
+			// update window content on screen
+			console_interface.descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
 	}
 

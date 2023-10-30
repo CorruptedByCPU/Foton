@@ -77,7 +77,7 @@ uint8_t kernel_stream_out( uint8_t *string, uint64_t length ) {
 		return FALSE;
 	}
 
-	// wait for stream to empty
+	// wait for stream to be empty
 	while( task -> stream_out -> length );
 
 	// upload string to stream

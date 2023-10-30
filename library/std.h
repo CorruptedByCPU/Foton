@@ -403,4 +403,5 @@
 	double minf( double first, double second );
 	double maxf( double first, double second );
 	void log( const char *string, ... );
+	void print( const char *string );
 #endif

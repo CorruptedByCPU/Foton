@@ -4,7 +4,7 @@
 
 uint8_t init( void ) {
 	// obtain information about kernel framebuffer
-	std_framebuffer( &framebuffer );
+	std_framebuffer( (struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *) &kernel_framebuffer );
 
 	// allocate data container
 	uint8_t data[ STD_IPC_SIZE_byte ];
@@ -19,7 +19,7 @@ uint8_t init( void ) {
 	request -> height = D3_HEIGHT_pixel;
 
 	// send request
-	std_ipc_send( framebuffer.pid, (uint8_t *) request );
+	std_ipc_send( kernel_framebuffer.pid, (uint8_t *) request );
 
 	// wait for answer
 	while( ! std_ipc_receive( (uint8_t *) &data ) );

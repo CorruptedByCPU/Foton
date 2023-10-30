@@ -247,3 +247,8 @@ void log( const char *string, ... ) {
 	// end of arguemnt list
 	va_end( argv );
 }
+
+void print( const char *string ) {
+	// send to default output
+	std_stream_out( (uint8_t *) string, lib_string_length( (uint8_t *) string ) );
+}

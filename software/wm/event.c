@@ -42,19 +42,21 @@ void wm_event( void ) {
 		std_ipc_send( source, (uint8_t *) answer );
 	}
 
-	// // incomming key?
-	// uint16_t key = std_keyboard();
-	// if( key ) {
-	// 	// properties of keyboard message
-	// 	struct STD_IPC_STRUCTURE_KEYBOARD *message = (struct STD_IPC_STRUCTURE_KEYBOARD *) &data;
+	// check keyboard cache
+	uint16_t key = std_keyboard();
 
-	// 	// IPC type
-	// 	message -> ipc.type = STD_IPC_TYPE_keyboard;
-	// 	message -> key = key;	// and key code
+	// incomming key?
+	if( key ) {
+		// properties of keyboard message
+		struct STD_IPC_STRUCTURE_KEYBOARD *message = (struct STD_IPC_STRUCTURE_KEYBOARD *) &data;
 
-	// 	// send key to active object process
-	// 	std_ipc_send( wm_object_active -> pid, (uint8_t *) message );
-	// }
+		// IPC type
+		message -> ipc.type = STD_IPC_TYPE_keyboard;
+		message -> key = key;	// and key code
+
+		// send key to active object process
+		std_ipc_send( wm_object_active -> pid, (uint8_t *) message );
+	}
 
 	// if cursor object doesn't exist
 	if( ! wm_object_cursor ) return;	// nothing to do

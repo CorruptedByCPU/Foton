@@ -3,6 +3,9 @@
 ===============================================================================*/
 
 void console_init( void ) {
+	// obtain information about kernel framebuffer
+	std_framebuffer( (struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *) &kernel_framebuffer );
+
 	// initialize interface library
 	console_interface.properties = (uint8_t *) &file_interface_start;
 	lib_interface( (struct LIB_INTERFACE_STRUCTURE *) &console_interface );

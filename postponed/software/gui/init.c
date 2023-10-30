@@ -8,7 +8,7 @@ uint8_t gui_init( void ) {
 
 	// obtain information about kernel framebuffer
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
-	std_framebuffer( &kernel_framebuffer );
+	std_framebuffer( (struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *) &kernel_framebuffer );
 
 	// remember Window Manager ID
 	wm_pid = kernel_framebuffer.pid;

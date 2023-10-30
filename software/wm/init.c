@@ -7,7 +7,7 @@ void wm_init( void ) {
 	wm_pid = std_pid();
 
 	// obtain information about kernel framebuffer
-	std_framebuffer( &kernel_framebuffer );
+	std_framebuffer( (struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *) &kernel_framebuffer );
 
 	// framebuffer locked?
 	if( kernel_framebuffer.pid != wm_pid ) { log( "WM: Framebuffer is already in use by process with ID %u.", wm_pid ); while( TRUE ); }

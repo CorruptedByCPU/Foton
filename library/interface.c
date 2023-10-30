@@ -105,7 +105,7 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// obtain information about kernel framebuffer
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
-	std_framebuffer( &kernel_framebuffer );
+	std_framebuffer( (struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *) &kernel_framebuffer );
 
 	// remember Window Manager PID
 	int64_t wm_pid = kernel_framebuffer.pid;

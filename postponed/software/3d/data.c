@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER framebuffer;
+struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
 
 uint64_t fps = 0;
 uint64_t fps_average = 0;
