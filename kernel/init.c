@@ -139,7 +139,7 @@ void _entry( void ) {
 	// kernel_init_hpet();
 
 	// initialize other CPUs
-	kernel_init_smp();
+	// kernel_init_smp();
 
 	// register all available storage devices
 	kernel_init_storage();

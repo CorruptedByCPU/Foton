@@ -46,7 +46,7 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 
 
 	// set default color of RGL area
-	rgl -> color_background = STD_COLOR_BLACK_light;
+	rgl -> color_background = STD_COLOR_BLACK;
 
 	// camera position
 	rgl -> camera.x = 0.0f;

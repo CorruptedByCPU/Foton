@@ -4,7 +4,7 @@
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// show prompt
-	print( "\033[92;40m$\033[39;49m " );
+	print( "\033[38;5;82m$\033[0m " );
 
 	// new prompt loop
 	while( TRUE ) {

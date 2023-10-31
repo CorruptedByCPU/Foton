@@ -162,7 +162,7 @@ void lib_terminal_drain( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// change all pixels color to DARK
 	for( uint64_t y = 0; y < terminal -> height; y++ ) {
 		for( uint64_t x = 0; x < terminal -> width; x++ )
-			pixel[ x ] = STD_COLOR_BLACK_light;
+			pixel[ x ] = STD_COLOR_BLACK;
 
 		// next line of pixels on framebuffer
 		pixel = (uint32_t *) ((uint64_t) pixel + (terminal -> scanline_pixel << STD_VIDEO_DEPTH_shift));
