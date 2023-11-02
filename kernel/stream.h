@@ -15,9 +15,12 @@
 	struct	KERNEL_STREAM_STRUCTURE {
 		uint8_t		*base_address;
 		uint64_t	lock;
-		volatile uint64_t	length;
+		uint64_t	start;
+		uint64_t	end;
+		uint64_t	length_byte;
 		uint8_t		semaphore;
 		uint8_t		flags;
+		uint8_t		meta[ 8 ];
 	};
 
 	// create new stream and return properties of it

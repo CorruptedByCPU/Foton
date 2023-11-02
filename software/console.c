@@ -23,6 +23,93 @@
 	#include	"./console/data.c"
 	#include	"./console/init.c"
 
+uint8_t console_vt100( uint8_t *string, uint64_t length ) {
+	// parsed sequence length
+	uint8_t sequence_length = 0;
+
+	// control code?
+	if( *(string++) != STD_ASCII_ESC ) return 0;	// no
+
+	// escape sequence?
+	if( *(string++) != STD_ASCII_BRACKET_SQUARE_OPEN ) return 0;	// no
+
+	// start of sequence
+	sequence_length += 2;
+
+	// choose type of action
+	switch( lib_string_to_integer( string, 10 ) ) {
+		// reset to default?
+		case 0: {
+			// set default foreground/background color of terminal
+			console_terminal.color_foreground = lib_color( 255 );
+			console_terminal.color_background = lib_color( 232 );
+
+			// update sequence length
+			sequence_length += 1 + 1;
+
+			// done
+			break;
+		}
+
+		// change foreground color?
+		case 38: {
+			// move string index to next option
+			string += 2 + 1;	// leave separator
+
+			// choose color from predefinied palette?
+			if( lib_string_to_integer( string, 10 ) == 5 ) {
+				// update sequence length
+				sequence_length += 1 + 1;	// leave separator
+
+				// move string index to requested color
+				string += 1 + 1;	// leave separator
+
+				// set selected foreground color
+				console_terminal.color_foreground = lib_color( lib_string_to_integer( string, 10 ) );
+
+				// sequence length
+				sequence_length += lib_string_length_scope_digit( string ) + 1;
+			}
+
+			// update sequence length
+			sequence_length += 2 + 1;
+
+			// done
+			break;
+		}
+
+		// change background color?
+		case 48: {
+			// move string index to next option
+			string += 2 + 1;	// leave separator
+
+			// choose color from predefinied palette?
+			if( lib_string_to_integer( string, 10 ) == 5 ) {
+				// update sequence length
+				sequence_length += 1 + 1;	// leave separator
+
+				// move string index to requested color
+				string += 1 + 1;	// leave separator
+
+				// set selected foreground color
+				console_terminal.color_background = lib_color( lib_string_to_integer( string, 10 ) );
+
+				// sequence length
+				sequence_length += lib_string_length_scope_digit( string ) + 1;
+			}
+
+			// update sequence length
+			sequence_length += 2 + 1;
+
+			// done
+			break;
+		}
+	}
+
+	// return parsed sequence length
+	return sequence_length;
+}
+
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize console window
 	console_init();
@@ -46,49 +133,16 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// disable cursor, no CPU power waste
 			lib_terminal_cursor_disable( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
 
-			uint64_t value;
-			uint64_t value_digits;
-
 			// parse all characters from stream
 			for( uint32_t i = 0; i < console_stream_length; ) {
-				// control code?
-				if( console_stream_in[ i ] == STD_ASCII_ESC ) { i++;
-					// escape sequence?
-					if( console_stream_in[ i ] == STD_ASCII_BRACKET_SQUARE_OPEN ) { i++;
-						// check sequence number
-						value = lib_string_to_integer( (uint8_t *) &console_stream_in[ i ], 10 );
-
-						// change foreground/background color?
-						if( value == 38 || value == 48 ) {
-							// length of prefix in ditigs
-							value_digits = lib_string_length_scope_digit( (uint8_t *) &console_stream_in[ i ] );
-
-							// omit prefix value and separator
-							i += value_digits + 1;
-
-							// check palette type
-							value = lib_string_to_integer( (uint8_t *) &console_stream_in[ i ], 10 );
-
-							// // predefinied color palette?
-							// if( value == 5 ) {
-							// 	value_digits = lib_string_length_scope_digit( (uint8_t *) &console_stream_in[ i ] );
-
-							// } // no
-
-							// no support
-							i -= value_digits + 1;
-						} // no
-
-						// display character
-						lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal, STD_ASCII_BRACKET_SQUARE_OPEN );
-					}
-
-					// display control code
-					lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal, STD_ASCII_CARET );
-				}
+				// sequence length
+				uint8_t sequence_length = console_vt100( (uint8_t *) &console_stream_in[ i ], console_stream_length - i );
 
 				// display character
-				lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal, console_stream_in[ i++ ] );
+				if( ! sequence_length ) lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal, console_stream_in[ i++ ] );
+
+				// move forward of sequence
+				i += sequence_length;
 			}
 
 			// turn on the cursor

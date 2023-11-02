@@ -64,7 +64,7 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 	}
 
 	// show task name
-	kernel -> log( (uint8_t *) "Task: '%s' near 0x%X)\n", task -> name, exception -> cr2 );
+	kernel -> log( (uint8_t *) "Task: '%s' near CR2: 0x%16X or RIP: 0x%16X)\n", task -> name, exception -> cr2, exception -> rip );
 
 	// hold the door
 	while( TRUE ) {}
