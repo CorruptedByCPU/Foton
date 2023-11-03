@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
+struct LIB_INTERFACE_STRUCTURE	d3_interface;
 
 uint64_t fps = 0;
 uint64_t fps_average = 0;
@@ -32,7 +32,6 @@ vector3f *vr;
 vector3f *vp;
 struct LIB_RGL_STRUCTURE_TRIANGLE *face;
 
-struct STD_WINDOW_STRUCTURE_DESCRIPTOR *descriptor = EMPTY;
-
+MACRO_IMPORT_FILE_AS_ARRAY( interface, "./software/3d/interface.json" );
 MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/3d.obj" );
 MACRO_IMPORT_FILE_AS_ARRAY( material, "./root/system/var/3d.mtl" );

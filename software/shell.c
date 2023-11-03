@@ -2,7 +2,21 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+	//----------------------------------------------------------------------
+	// variables, structures, definitions
+	//----------------------------------------------------------------------
+	#ifndef	LIB_STRING
+		#include	"../library/string.h"
+	#endif
+
+#define	SHELL_COMMAND_limit	4080
+
+uint8_t *shell_command;
+
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
+	// assign area for command prompt
+	shell_command = (uint8_t *) malloc( SHELL_COMMAND_limit );
+
 	// new prompt loop
 	while( TRUE ) {
 		// show prompt
@@ -30,6 +44,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					// move cursor to new line
 					print( "\n" );
 
+					// remove orphaned "white" characters from command line
+					shell_command_length = lib_string_trim( shell_command, shell_command_length );
+
+					// try to run program with given name and parameters
+					int64_t shell_exec_pid = std_exec( shell_command, shell_command_length, STD_STREAM_FLOW_out_to_parent_in );
+
 					// new prompt
 					break;
 				}
@@ -52,10 +72,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// if key is not printable
 				if( keyboard -> key < STD_ASCII_SPACE || keyboard -> key > STD_ASCII_TILDE ) continue;	// ignore
 
-				// new key for command
-				shell_command_length++;
+				// comman line if full?
+				if( shell_command_length == SHELL_COMMAND_limit ) continue;	// yes
+				
+				// store character in command line
+				shell_command[ shell_command_length++ ] = (uint8_t) keyboard -> key;
 
-				// debug
+				// send character to stream out
 				print( (const char *) &keyboard -> key );
 			}
 		}

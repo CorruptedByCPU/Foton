@@ -235,12 +235,11 @@ void kernel_library_load( uint8_t *name, uint64_t length ) {
 	// calculate installed library size in pages
 	uint64_t library_space_page = EMPTY;
 	for( uint64_t i = 0; i < elf -> h_entry_count; i++ ) {
-		// ignore blank entry
- 		if( ! elf_h[ i ].type || ! elf_h[ i ].memory_size ) continue;
+		// ignore blank entry or not loadable
+ 		if( elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_h[ i ].memory_size ) continue;
 
-		// farthest point of loadable segment
-		if( elf_h[ i ].type == LIB_ELF_HEADER_TYPE_load )
-			library_space_page = MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].segment_size ) >> STD_SHIFT_PAGE;
+		// update executable space size?
+		if( library_space_page < MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].memory_size ) >> STD_SHIFT_PAGE ) library_space_page = MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].memory_size ) >> STD_SHIFT_PAGE;
 	}
 
 	// acquire memory space inside library environment
@@ -258,7 +257,7 @@ void kernel_library_load( uint8_t *name, uint64_t length ) {
 	// copy library segments in place
 	for( uint64_t i = 0; i < elf -> h_entry_count; i++ ) {
 		// ignore blank entry or not loadable
- 		if( ! elf_h[ i ].type || ! elf_h[ i ].memory_size || elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load ) continue;
+ 		if( elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_h[ i ].memory_size ) continue;
 
 		// properties of loadable segment
 		uint8_t *source = (uint8_t *) workbench + elf_h[ i ].segment_offset;

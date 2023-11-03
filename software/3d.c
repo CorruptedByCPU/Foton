@@ -1,4 +1,3 @@
-
 /*===============================================================================
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
@@ -7,10 +6,9 @@
 	// required libraries
 	//----------------------------------------------------------------------
 	#include	"../library/font.h"
+	#include	"../library/interface.h"
 	#include	"../library/math.h"
 	#include	"../library/rgl.h"
-	#include	"../library/string.h"
-	#include	"../library/terminal.h"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
@@ -24,11 +22,10 @@
 	//----------------------------------------------------------------------
 	#include	"3d/object.c"
 	#include	"3d/init.c"
-	#include	"3d/interface.c"
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize environment
-	if( init() ) return -1;
+	init();
 
 	//----------------------------------------------------------------------
 
@@ -122,7 +119,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_rgl_flush( rgl );
 
 		// tell window manager to flush window
-		descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		d3_interface.descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 		// next frame ready
 		fps++;

@@ -26,13 +26,14 @@ void lib_rgl_clean( struct LIB_RGL_STRUCTURE *rgl ) {
 			rgl -> depth_base_address[ (y * rgl -> width_pixel) + x ] = d;
 }
 
-struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, uint32_t *base_address ) {
+struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, uint32_t scanline_pixel, uint32_t *base_address ) {
 	// prepare space for RGL structure
 	struct LIB_RGL_STRUCTURE *rgl = (struct LIB_RGL_STRUCTURE *) malloc( sizeof( struct LIB_RGL_STRUCTURE ) );
 
 	// set properties of RGL
 	rgl -> width_pixel = width_pixel;
 	rgl -> height_pixel = height_pixel;
+	rgl -> scanline_pixel = scanline_pixel;
 	rgl -> base_address = base_address;
 
 	// calculate display area size in Bytes
@@ -43,7 +44,6 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 
 	// prepare workbench area
 	rgl -> depth_base_address = (double *) malloc( rgl -> width_pixel * rgl -> height_pixel * sizeof( double ) );
-
 
 	// set default color of RGL area
 	rgl -> color_background = STD_COLOR_BLACK;
@@ -69,7 +69,7 @@ void lib_rgl_flush( struct LIB_RGL_STRUCTURE *rgl ) {
 	// synchronize standard output with workbench
 	for( uint64_t y = 0; y < rgl -> height_pixel; y++ )
 		for( uint64_t x = 0; x < rgl -> width_pixel; x++ )
-			rgl -> base_address[ (y * rgl -> width_pixel) + x ] = rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ];
+			rgl -> base_address[ (y * rgl -> scanline_pixel) + x ] = rgl -> workbench_base_address[ (y * rgl -> width_pixel) + x ];
 }
 
 uint64_t lib_rgl_partition( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high ) {

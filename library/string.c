@@ -104,6 +104,33 @@ uint64_t lib_string_to_integer( uint8_t *string, uint8_t base ) {
 	return value;
 }
 
+uint64_t lib_string_trim( uint8_t *string, uint64_t length ) {
+	// start trimming from beginning of string
+	uint64_t i = 0;
+
+	// check beginning
+	for( ; i < length; i++ )
+		// printable character?
+		if( string[ i ] > STD_ASCII_SPACE && string[ i ] < STD_ASCII_DELETE ) break;	// yes
+
+	// check end
+	while( i < length )
+		// printable character?
+		if( string[ length - 1 ] > STD_ASCII_SPACE && string[ length - 1 ] < STD_ASCII_DELETE ) break;	// yes
+		// no, previous character from string
+		else length--;
+
+	// new string size
+	length -= i;
+
+	// move trimmed string at beginning
+	for( uint64_t j = 0; i && j < length; j++ )
+		string[ j ] = string[ j + i ];
+
+	// return new string length
+	return length;
+}
+
 uint64_t lib_string_word( uint8_t *string, uint64_t length ) {
 	// search from the beginning
 	for( uint64_t i = 0; i < length; i++ )

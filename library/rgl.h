@@ -26,7 +26,7 @@
 	struct	LIB_RGL_STRUCTURE {
 		uint16_t	width_pixel;
 		uint16_t	height_pixel;
-		uint64_t	pitch_byte;
+		uint32_t	scanline_pixel;
 		uint32_t	*base_address;
 		uint64_t	size_byte;
 		uint32_t	*workbench_base_address;
@@ -54,7 +54,7 @@
 	};
 
 	// init function of Raw Graphis Library
-	struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, uint32_t *base_address );
+	struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, uint32_t scanline_pixel, uint32_t *base_address );
 
 	// cleans worbench area
 	void lib_rgl_clean( struct LIB_RGL_STRUCTURE *rgl );
