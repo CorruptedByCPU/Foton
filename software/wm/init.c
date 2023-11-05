@@ -42,6 +42,9 @@ void wm_init( void ) {
 	// create workbench object
 	wm_object_workbench = wm_object_create( 0, 0, wm_object_cache.width, wm_object_cache.height );
 
+	// mark it as our
+	wm_object_workbench -> pid = wm_pid;
+
 	// convert image to RGBA
 	uint32_t *tmp_workbench_image = (uint32_t *) malloc( wm_object_workbench -> width * wm_object_workbench -> height * STD_VIDEO_DEPTH_byte );
 	lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, (uint64_t) file_wallpaper_end - (uint64_t) file_wallpaper_start );
@@ -67,6 +70,9 @@ void wm_init( void ) {
 
 	// create cursor object
 	wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
+
+	// mark it as our
+	wm_object_cursor -> pid = wm_pid;
 
 	// copy image content to cursor object
 	lib_image_tga_parse( (uint8_t *) cursor_image, (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )), (uint64_t) file_cursor_end - (uint64_t) file_cursor_start );

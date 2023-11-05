@@ -54,6 +54,52 @@ void wm_event( void ) {
 		message -> ipc.type = STD_IPC_TYPE_keyboard;
 		message -> key = key;	// and key code
 
+		// remember state of special behavior - key, or take action immediately
+		switch( key ) {
+			// left alt pressed
+			case STD_KEY_ALT_LEFT: { wm_keyboard_status_alt_left = TRUE; break; }
+
+			// left alt released
+			case STD_KEY_ALT_LEFT | 0x80: { wm_keyboard_status_alt_left = FALSE; break; }
+
+			// shift left pressed
+			case STD_KEY_SHIFT_LEFT: { wm_keyboard_status_shift_left = TRUE; break; }
+		
+			// shift left released
+			case STD_KEY_SHIFT_LEFT | 0x80: { wm_keyboard_status_shift_left = FALSE; break; }
+
+			// tab pressed
+			case STD_KEY_TAB: {
+				// if left alt key is holded
+				if( ! wm_keyboard_status_alt_left ) break;	// nope
+
+				// unselect any object before shifting
+				wm_object_selected = EMPTY;
+
+				// search forward for object to show
+				for( uint16_t i = 0; i < wm_list_limit; i++ ) if( wm_list_base_address[ i ] -> pid != wm_pid ) { wm_object_selected = wm_list_base_address[ i ]; break; }
+
+				// move it up
+				if( wm_object_move_up() ) {
+					// force object to be visible
+					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_visible;
+
+					// redraw object
+					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+					// cursor pointer may be obscured, redraw
+					wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+				}
+
+				// set as active, if found
+				if( wm_object_selected ) wm_object_active = wm_object_selected;
+
+				// done
+				break;
+			}
+		}
+		
+
 		// send key to active object process
 		std_ipc_send( wm_object_active -> pid, (uint8_t *) message );
 	}
@@ -81,7 +127,7 @@ void wm_event( void ) {
 			wm_object_selected = wm_object_find( mouse.x, mouse.y, FALSE );
 
 			// check if object can be moved along Z axis
-			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) ) {
+			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_status_alt_left ) {
 				// move object up inside list
 				if( wm_object_move_up() ) {
 					// redraw object
@@ -91,6 +137,9 @@ void wm_event( void ) {
 					wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 				}
 			}
+
+			// make object as active if left ALT key is not holded
+			if( ! wm_keyboard_status_alt_left ) wm_object_active = wm_object_selected;
 		}
 	} else
 		// release mouse button state
@@ -109,8 +158,8 @@ void wm_event( void ) {
 		// // redisplay the cursor at the new location
 		wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
-		// if object selected and left mouse button is held
-		if( wm_object_selected && wm_mouse_button_left_semaphore )
+		// if object selected and left mouse button is held with left alt key
+		if( wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_alt_left )
 			// move the object along with the cursor pointer
 			wm_object_move( delta_x, delta_y );
 	}

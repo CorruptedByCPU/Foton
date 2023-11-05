@@ -252,3 +252,75 @@ void print( const char *string ) {
 	// send to default output
 	std_stream_out( (uint8_t *) string, lib_string_length( (uint8_t *) string ) );
 }
+
+void printf( const char *string, ... ) {
+	// properties of argument list
+	va_list argv;
+
+	// start of argument list
+	va_start( argv, string );
+
+	// cache for values
+	uint8_t digits[ 64 ];
+
+	// alloc area for output string and its index
+	uint64_t c = 0;
+	uint8_t *cache = (uint8_t *) malloc( EMPTY );
+
+	// for every character from string
+	uint64_t length = lib_string_length( (uint8_t *) string );
+	for( uint64_t s = 0; s < length; s++ ) {
+		// special character?
+		if( string[ s ] == '%' ) {	
+			// prefix before type?
+			uint64_t prefix = lib_string_length_scope_digit( (uint8_t *) &string[ ++s ] );
+			uint64_t p_value = lib_string_to_integer( (uint8_t *) &string[ s ], 10 );
+
+			// omit prefix value if existed
+			s += prefix;
+
+			// check sequence type
+			switch( string[ s ] ) {
+				// case '%': {
+				// 	// just show '%' character
+				// 	break;
+				// }
+
+				case 'u': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// convert value to string
+					uint8_t v = lib_integer_to_string( value, 10, (uint8_t *) &digits );
+
+					// set prefix before value if higher than value ifself
+					while( p_value-- > v ) {
+						// insert prefix before value
+						cache = (uint8_t *) realloc( cache, c + 1 );
+						cache[ c++ ] = STD_ASCII_SPACE;
+					}
+
+					// insert valuse string into cache
+					cache = (uint8_t *) realloc( cache, c + v );
+					for( uint8_t i = 0; i < v; i++ ) cache[ c++ ] = digits[ i ];
+
+					// next character from string
+					continue;
+				}
+			}
+		}
+
+		// insert character into cache
+		cache = (uint8_t *) realloc( cache, c + 1 );
+		cache[ c++ ] = string[ s ];
+	}
+
+	// send prepared string to default output
+	std_stream_out( cache, c );
+
+	// release cached string
+	free( cache );
+
+	// end of arguemnt list
+	va_end( argv );
+}

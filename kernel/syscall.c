@@ -170,7 +170,11 @@ uint8_t kernel_syscall_pid_check( int64_t pid ) {
 	// find an entry with selected ID
 	for( uint64_t i = 0; i < kernel -> task_limit; i++ )
 		// found?
-		if( kernel -> task_base_address[ i ].pid == pid ) return TRUE;	// yes
+		if( kernel -> task_base_address[ i ].pid == pid ) {
+			// task closed?
+			if( kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_close ) return FALSE;	// yes
+			else return TRUE;	// no, running
+		}
 
 	// process not found
 	return FALSE;

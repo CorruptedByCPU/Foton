@@ -48,7 +48,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					shell_command_length = lib_string_trim( shell_command, shell_command_length );
 
 					// try to run program with given name and parameters
-					int64_t shell_exec_pid = std_exec( shell_command, shell_command_length, STD_STREAM_FLOW_out_to_parent_in );
+					int64_t shell_exec_pid = std_exec( shell_command, shell_command_length, EMPTY );
+
+					// wait for its end
+					while( shell_exec_pid && std_pid_check( shell_exec_pid ) );
 
 					// new prompt
 					break;

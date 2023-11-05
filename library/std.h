@@ -415,4 +415,5 @@
 	double maxf( double first, double second );
 	void log( const char *string, ... );
 	void print( const char *string );
+	void printf( const char *string, ... );
 #endif
