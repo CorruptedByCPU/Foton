@@ -73,12 +73,6 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t wid
 				// assign area for object
 				wm_object_base_address[ i ].descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_base_address[ i ].size_byte ) >> STD_SHIFT_PAGE );
 
-				// update descriptor properties
-				wm_object_base_address[ i ].descriptor -> x		= x;
-				wm_object_base_address[ i ].descriptor -> y		= y;
-				wm_object_base_address[ i ].descriptor -> width		= width;
-				wm_object_base_address[ i ].descriptor -> height	= height;
-
 				// register object on list
 				wm_object_insert( (struct WM_STRUCTURE_OBJECT *) &wm_object_base_address[ i ] );
 

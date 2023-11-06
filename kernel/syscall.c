@@ -328,3 +328,10 @@ uint16_t kernel_syscall_keyboard( void ) {
 	// return key code
 	return key;
 }
+
+void kernel_syscall_stream_set( uint8_t *meta, uint8_t *stream ) {
+}
+
+void kernel_syscall_stream_get( uint8_t *target ) {
+
+}

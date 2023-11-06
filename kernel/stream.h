@@ -20,7 +20,7 @@
 		uint64_t	length_byte;
 		uint8_t		semaphore;
 		uint8_t		flags;
-		uint8_t		meta[ 8 ];
+		uint8_t		meta[ STD_STREAM_META_limit ];
 	};
 
 	// create new stream and return properties of it

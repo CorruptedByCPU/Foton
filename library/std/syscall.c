@@ -201,3 +201,11 @@ uint16_t std_keyboard( void ) {
 	// return unsigned value
 	return std_syscall_value_unsigned();
 }
+
+void std_stream_set( uint8_t *meta, uint8_t stream ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_STREAM_SET), "D" (meta), "S" (stream) );
+
+	// return nothing
+	return std_syscall_empty();
+}

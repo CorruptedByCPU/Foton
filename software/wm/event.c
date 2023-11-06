@@ -113,6 +113,21 @@ void wm_event( void ) {
 	int16_t delta_y = mouse.y - wm_object_cursor -> y;
 
 	//--------------------------------------------------------------------------
+
+	// update cursor position inside objects
+	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
+		// ignore hidden objects
+		if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) ) continue;
+
+		// ignore cursor object
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
+
+		// update pointer position
+		wm_list_base_address[ i ] -> descriptor -> x = wm_list_base_address[ i ] -> x - mouse.x;
+		wm_list_base_address[ i ] -> descriptor -> y = wm_list_base_address[ i ] -> y - mouse.y;
+	}
+
+	//--------------------------------------------------------------------------
 	// left mouse button pressed?
 	if( mouse.status & STD_MOUSE_BUTTON_left ) {
 		// isn't holded down?
@@ -148,7 +163,7 @@ void wm_event( void ) {
 		// remove current cursor position from workbench
 		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_cursor, FALSE );
 
-		// // update cursor position
+		// update cursor position
 		wm_object_cursor -> x = mouse.x;
 		wm_object_cursor -> y = mouse.y;
 

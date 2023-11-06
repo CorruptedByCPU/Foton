@@ -22,6 +22,10 @@ void console_init( void ) {
 	// update window content on screen
 	console_interface.descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
+	// default meta properties of stream
+	console_stream_meta.width = console_terminal.width_char;
+	console_stream_meta.height = console_terminal.height_char;
+
 	// run Shell program
 	console_pid_of_shell = std_exec( (uint8_t *) "shell", 5, STD_STREAM_FLOW_out_to_parent_in );
 

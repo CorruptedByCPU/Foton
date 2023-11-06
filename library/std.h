@@ -254,6 +254,11 @@
 	#define	STD_STREAM_FLOW_out_to_parent_in		0b00000001
 	#define	STD_STREAM_FLOW_out_to_in			0b00000010
 
+	#define	STD_STREAM_OUT					0x00
+	#define	STD_STREAM_IN					0x01
+
+	#define	STD_STREAM_META_limit				8
+
 	#define	STD_SYSCALL_EXIT				0x00
 	#define	STD_SYSCALL_FRAMEBUFFER				0x01
 	#define	STD_SYSCALL_MEMORY_ALLOC			0x02
@@ -273,6 +278,8 @@
 	#define	STD_SYSCALL_STREAM_OUT				0x10
 	#define	STD_SYSCALL_STREAM_IN				0x11
 	#define	STD_SYSCALL_KEYBOARD				0x12
+	#define	STD_SYSCALL_STREAM_SET				0x13
+	#define	STD_SYSCALL_STREAM_GET				0x14
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -301,10 +308,9 @@
 
 	struct	STD_WINDOW_STRUCTURE_DESCRIPTOR {
 		uint16_t	flags;
-		int16_t		x;
-		int16_t		y;
-		uint16_t	width;
-		uint16_t	height;
+		// pointer position inside window
+		uint16_t	x;
+		uint16_t	y;
 	} __attribute__( ( aligned( STD_PAGE_byte ) ) );
 
 	// stop process execution
@@ -357,6 +363,9 @@
 
 	// get key from kernel buffer
 	uint16_t std_keyboard( void );
+
+	// update stream meta data
+	void std_stream_set( uint8_t *meta, uint8_t stream );
 
 	#ifdef	SOFTWARE
 		// function definitions

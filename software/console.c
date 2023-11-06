@@ -150,6 +150,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// update window content on screen
 			console_interface.descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+			// set new meta properties of stream
+			console_stream_meta.x = console_terminal.cursor_x;
+			console_stream_meta.y = console_terminal.cursor_y;
+
+			// update metadata of input stream
+			std_stream_set( (uint8_t *) &console_stream_meta, STD_STREAM_IN );
 		}
 	}
 
