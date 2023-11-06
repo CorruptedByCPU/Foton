@@ -104,9 +104,6 @@ void wm_event( void ) {
 		std_ipc_send( wm_object_active -> pid, (uint8_t *) message );
 	}
 
-	// if cursor object doesn't exist
-	if( ! wm_object_cursor ) return;	// nothing to do
-
 	// retrieve current mouse status and position
 	struct STD_SYSCALL_STRUCTURE_MOUSE mouse;
 	std_mouse( (struct STD_SYSCALL_STRUCTURE_MOUSE *) &mouse );
@@ -155,12 +152,12 @@ void wm_event( void ) {
 		wm_object_cursor -> x = mouse.x;
 		wm_object_cursor -> y = mouse.y;
 
-		// // redisplay the cursor at the new location
+		// redisplay cursor at new location
 		wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 		// if object selected and left mouse button is held with left alt key
 		if( wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_alt_left )
-			// move the object along with the cursor pointer
+			// move object along with cursor pointer
 			wm_object_move( delta_x, delta_y );
 	}
 }

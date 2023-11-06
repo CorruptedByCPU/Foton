@@ -15,6 +15,7 @@
 	#include	"./wm/fill.c"
 	#include	"./wm/zone.c"
 	#include	"./wm/object.c"
+	#include	"./wm/taskbar.c"
 	#include	"./wm/init.c"
 	#include	"./wm/cursor.c"
 

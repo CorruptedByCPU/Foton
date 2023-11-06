@@ -65,6 +65,21 @@ void wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
+	// create taskbar object
+	wm_object_taskbar = wm_object_create( 0, wm_object_cache.height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_cache.width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
+
+	// mark it as our
+	wm_object_taskbar -> pid = wm_pid;
+
+	// mark object as taskbar and unmovable
+	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
+
+	// execute taskbar function as thread
+	uint8_t wm_string_taskbar[] = "{wm: taskbar}";
+	std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
+
+	//----------------------------------------------------------------------
+
 	// properties of assigned image to cursor object
 	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) &file_cursor_start;
 

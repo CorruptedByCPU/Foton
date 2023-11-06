@@ -3,9 +3,6 @@
 ===============================================================================*/
 
 void wm_cursor( void ) {
-	// cursor exist?
-	if( ! wm_object_cursor ) return;	// no
-
 	// requested redraw?
 	if( ! (wm_object_cursor -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) return;	// no
 

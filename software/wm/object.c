@@ -5,9 +5,8 @@
 void wm_object( void ) {
 	// search whole list for object flush
 	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
-		// cursor object located?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) { wm_object_cursor = wm_list_base_address[ i ]; continue; }	// remember
-
+		// ignore cursor object
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
 		// object visible and requested flush?
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse whole object area
@@ -16,8 +15,8 @@ void wm_object( void ) {
 			// request parsed
 			wm_list_base_address[ i ] -> descriptor -> flags ^= STD_WINDOW_FLAG_flush;
 
-			// redraw cursor too, if exist
-			if( wm_object_cursor ) wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			// redraw cursor too
+			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
 	}
 }
@@ -31,16 +30,15 @@ void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 
 	// find available entry
 	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
-		// entry in use by taskbar?
+		// entry in use?
 		if( wm_list_base_address[ i ] ) {
 			// by taskbar?
 			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) {
 				// move all objects from this point on list including taskbar one place forward
-				for( uint64_t j = wm_list_limit; j > i; j-- ) wm_list_base_address[ j ] = wm_list_base_address[ j - 1 ];
-		} else
-			// no, next one
-			continue;
-}
+				for( uint64_t j = wm_list_limit - 1; j > i; j-- ) wm_list_base_address[ j ] = wm_list_base_address[ j - 1 ];
+			// next entry
+			} else continue;
+		}
 
 		// insert object on list
 		wm_list_base_address[ i ] = object;

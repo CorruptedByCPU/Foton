@@ -49,7 +49,6 @@ void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object ) {
 	else	// no
 		wm_zone_base_address[ wm_zone_limit ].object = EMPTY;
 
-
 	// zone inserted
 	wm_zone_limit++;
 }

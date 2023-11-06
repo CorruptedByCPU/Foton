@@ -11,7 +11,7 @@
 
 uint32_t driver_pci_read( struct DRIVER_PCI_STRUCTURE pci, uint32_t reg ) {
 	// enable bit 31
-	reg |= 1UL << 31;
+	reg |= 1 << 31;
 
 	// set bus number in bits 23..16
 	reg |= pci.bus << 16;
@@ -31,7 +31,7 @@ uint32_t driver_pci_read( struct DRIVER_PCI_STRUCTURE pci, uint32_t reg ) {
 
 void driver_pci_write( struct DRIVER_PCI_STRUCTURE pci, uint32_t reg, uint32_t value ) {
 	// enable bit 31
-	reg |= 1UL << 31;
+	reg |= 1 << 31;
 
 	// set bus number in bits 23..16
 	reg |= pci.bus << 16;

@@ -13,6 +13,10 @@
 
 uint8_t *shell_command;
 
+uint8_t shell_keyboard_status_alt_left = FALSE;
+uint8_t	shell_keyboard_status_shift_left = FALSE;
+uint8_t	shell_keyboard_status_ctrl_left = FALSE;
+
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// assign area for command prompt
 	shell_command = (uint8_t *) malloc( SHELL_COMMAND_limit );
@@ -38,6 +42,27 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 				// properties of Keyboard message
 				struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &data;
+
+				// remember state of special behavior - key, or take action immediately
+				switch( keyboard -> key ) {
+					// left alt pressed
+					case STD_KEY_ALT_LEFT: { shell_keyboard_status_alt_left = TRUE; break; }
+
+					// left alt released
+					case STD_KEY_ALT_LEFT | 0x80: { shell_keyboard_status_alt_left = FALSE; break; }
+
+					// shift left pressed
+					case STD_KEY_SHIFT_LEFT: { shell_keyboard_status_shift_left = TRUE; break; }
+				
+					// shift left released
+					case STD_KEY_SHIFT_LEFT | 0x80: { shell_keyboard_status_shift_left = FALSE; break; }
+
+					// shift left pressed
+					case STD_KEY_CTRL_LEFT: { shell_keyboard_status_ctrl_left = TRUE; break; }
+				
+					// shift left released
+					case STD_KEY_CTRL_LEFT | 0x80: { shell_keyboard_status_ctrl_left = FALSE; break; }
+				}
 
 				// if end of line
 				if( keyboard -> key == STD_ASCII_RETURN ) {
@@ -75,9 +100,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// if key is not printable
 				if( keyboard -> key < STD_ASCII_SPACE || keyboard -> key > STD_ASCII_TILDE ) continue;	// ignore
 
-				// comman line if full?
+				// command line if full?
 				if( shell_command_length == SHELL_COMMAND_limit ) continue;	// yes
 				
+				// or special key on hold?
+				if( shell_keyboard_status_alt_left || shell_keyboard_status_ctrl_left ) continue;	// yes
+
 				// store character in command line
 				shell_command[ shell_command_length++ ] = (uint8_t) keyboard -> key;
 
