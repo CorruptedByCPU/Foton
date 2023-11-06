@@ -24,9 +24,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// show gray scale 232..255
 	c = 0;
-	for( uint16_t i = 0; i < 16; i++ ) {
-		printf( "\033[48;5;%um   %u   \033[0m", i + 232, i + 232 );
-		if( c++ == 7 ) { print( "\n" ); c = 0; }
+	for( uint16_t i = 0; i < 24; i++ ) {
+		if( i > 11 ) print( "\033[38;5;0m" );
+		printf( "\033[48;5;%um  %u \033[0m", i + 232, i + 232 );
+		if( c++ == 11 ) { print( "\n" ); c = 0; }
 	}
 
 	// exit

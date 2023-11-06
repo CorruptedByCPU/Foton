@@ -5,7 +5,7 @@
 #ifndef	KERNEL_TASK
 	#define	KERNEL_TASK
 
-	#define	KERNEL_TASK_limit	(STD_PAGE_byte / sizeof( struct KERNEL_TASK_STRUCTURE ))	// hard limit
+	#define	KERNEL_TASK_limit		(STD_PAGE_byte / sizeof( struct KERNEL_TASK_STRUCTURE ))	// hard limit
 
 	#define	KERNEL_TASK_FLAG_active		0b0000000000000001
 	#define	KERNEL_TASK_FLAG_exec		0b0000000000000010
