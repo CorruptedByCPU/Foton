@@ -329,9 +329,57 @@ uint16_t kernel_syscall_keyboard( void ) {
 	return key;
 }
 
-void kernel_syscall_stream_set( uint8_t *meta, uint8_t *stream ) {
+void kernel_syscall_stream_set( uint8_t *meta, uint8_t stream_type ) {
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+
+	// stream properties
+	struct KERNEL_STREAM_STRUCTURE *stream;
+
+	// choose stream type
+	if( stream_type == STD_STREAM_IN ) stream = task -> stream_in;
+	else stream = task -> stream_out;
+
+	// block access to stream modification
+	while( __sync_val_compare_and_swap( &stream -> semaphore, UNLOCK, LOCK ) );
+
+	// update stream meta only if is empty
+	if( ! stream -> length_byte ) {
+		// update meta data
+		for( uint8_t i = 0; i < STD_STREAM_META_limit; i++ ) stream -> meta[ i ] = meta[ i ];
+
+		// meta data is consistent
+		stream -> flags &= ~KERNEL_STREAM_FLAG_modified;
+	}
+
+	// unlock stream modification
+	stream -> semaphore = UNLOCK;
 }
 
-void kernel_syscall_stream_get( uint8_t *target ) {
+uint8_t kernel_syscall_stream_get( uint8_t *target, uint8_t stream_type ) {
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
+	// stream properties
+	struct KERNEL_STREAM_STRUCTURE *stream;
+
+	// choose stream type
+	if( stream_type == STD_STREAM_IN ) stream = task -> stream_in;
+	else stream = task -> stream_out;
+
+	// block access to stream modification
+	while( __sync_val_compare_and_swap( &stream -> semaphore, UNLOCK, LOCK ) );
+
+	// retrieve meta data
+	for( uint8_t i = 0; i < STD_STREAM_META_limit; i++ ) target[ i ] = stream -> meta[ i ];
+
+	// meta data was up to date?
+	uint8_t status = TRUE;
+	if( stream -> flags & KERNEL_STREAM_FLAG_modified ) status = FALSE;	// nope
+
+	// unlock stream modification
+	stream -> semaphore = UNLOCK;
+
+	// return meta data status
+	return status;
 }

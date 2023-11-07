@@ -3,19 +3,17 @@
 ===============================================================================*/
 
 	//----------------------------------------------------------------------
-	// variables, structures, definitions
+	// required libraries
 	//----------------------------------------------------------------------
-	#ifndef	LIB_STRING
-		#include	"../library/string.h"
-	#endif
-
-#define	SHELL_COMMAND_limit	4080
-
-uint8_t *shell_command;
-
-uint8_t shell_keyboard_status_alt_left = FALSE;
-uint8_t	shell_keyboard_status_shift_left = FALSE;
-uint8_t	shell_keyboard_status_ctrl_left = FALSE;
+	#include	"../library/string.h"
+	//----------------------------------------------------------------------
+	// variables, structures, console_stream_indefinitions
+	//----------------------------------------------------------------------
+	#include	"./shell/config.h"
+	//----------------------------------------------------------------------
+	// variables, routines, procedures
+	//----------------------------------------------------------------------
+	#include	"./shell/data.c"
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// assign area for command prompt
@@ -23,6 +21,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// new prompt loop
 	while( TRUE ) {
+		// retrieve stream meta data
+		struct STD_STREAM_STRUCTURE_META stream_meta;
+		while( ! std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT ) );
+
+		// cursor at beginning of line?
+		if( stream_meta.x ) print( "\n" );	// no, move cursor to next line
+
 		// show prompt
 		print( "\033[38;5;82m$\033[0m " );
 
@@ -32,16 +37,16 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// readline
 		while( TRUE ) {
 			// incomming message
-			uint8_t data[ STD_IPC_SIZE_byte ];
-			if( std_ipc_receive( (uint8_t *) &data ) ) {
+			uint8_t ipc_data[ STD_IPC_SIZE_byte ];
+			if( std_ipc_receive( (uint8_t *) &ipc_data ) ) {
 				// properties of incomming message
-				struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &data;
+				struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &ipc_data;
 
 				// message type: key?
 				if( ipc -> type != STD_IPC_TYPE_keyboard ) continue;	// no
 
 				// properties of Keyboard message
-				struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &data;
+				struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &ipc_data;
 
 				// remember state of special behavior - key, or take action immediately
 				switch( keyboard -> key ) {
@@ -66,11 +71,25 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 				// if end of line
 				if( keyboard -> key == STD_ASCII_RETURN ) {
-					// move cursor to new line
+					// empty command line?
+					if( ! shell_command_length ) break;	// show new prompt
+
+					// each process deserves a new line
 					print( "\n" );
 
 					// remove orphaned "white" characters from command line
 					shell_command_length = lib_string_trim( shell_command, shell_command_length );
+
+					// try one of internal commands
+
+					// clear entire screen and move cursor at beginning?
+					if( lib_string_compare( shell_command, (uint8_t *) "clear", 5 ) ) {	// yes
+						// send "clear" sequence
+						print( "\033[2J" );
+
+						// new prompt
+						break;
+					}
 
 					// try to run program with given name and parameters
 					int64_t shell_exec_pid = std_exec( shell_command, shell_command_length, EMPTY );

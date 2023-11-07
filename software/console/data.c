@@ -13,4 +13,4 @@ int64_t console_pid_of_shell = EMPTY;
 
 uint8_t *console_stream_in = EMPTY;
 
-struct CONSOLE_STRUCTURE_META console_stream_meta = { EMPTY };
+struct STD_STREAM_STRUCTURE_META console_stream_meta = { EMPTY };

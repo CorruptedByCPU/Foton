@@ -15,6 +15,7 @@ void console_init( void ) {
 	console_terminal.height			= console_interface.height - (LIB_INTERFACE_HEADER_HEIGHT_pixel + 1);
 	console_terminal.base_address		= (uint32_t *) ((uintptr_t) console_interface.descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ) + (((LIB_INTERFACE_HEADER_HEIGHT_pixel * console_interface.width) + LIB_INTERFACE_BORDER_pixel) << STD_VIDEO_DEPTH_shift));
 	console_terminal.scanline_pixel		= console_interface.width;
+	console_terminal.alpha			= 0x20;	// 32 of 255, background slightly transparent
 	console_terminal.color_foreground	= lib_color( 255 );
 	console_terminal.color_background	= lib_color( 232 );
 	lib_terminal( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
@@ -25,6 +26,9 @@ void console_init( void ) {
 	// default meta properties of stream
 	console_stream_meta.width = console_terminal.width_char;
 	console_stream_meta.height = console_terminal.height_char;
+
+	// set default meta data of input stream
+	std_stream_set( (uint8_t *) &console_stream_meta, STD_STREAM_IN );
 
 	// run Shell program
 	console_pid_of_shell = std_exec( (uint8_t *) "shell", 5, STD_STREAM_FLOW_out_to_parent_in );

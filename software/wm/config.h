@@ -17,7 +17,7 @@
 	#define	WM_OBJECT_CURSOR_width		32
 	#define	WM_OBJECT_CURSOR_height		32
 
-	#define	WM_OBJECT_TASKBAR_HEIGHT_pixel	32
+	#define	WM_OBJECT_TASKBAR_HEIGHT_pixel	22
 
 	struct	WM_STRUCTURE_OBJECT {
 		int16_t		x;

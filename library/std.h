@@ -259,6 +259,13 @@
 
 	#define	STD_STREAM_META_limit				8
 
+	struct	STD_STREAM_STRUCTURE_META {
+		uint16_t	x;
+		uint16_t	y;
+		uint16_t	width;
+		uint16_t	height;
+	} __attribute__( (packed) );
+
 	#define	STD_SYSCALL_EXIT				0x00
 	#define	STD_SYSCALL_FRAMEBUFFER				0x01
 	#define	STD_SYSCALL_MEMORY_ALLOC			0x02
@@ -365,7 +372,10 @@
 	uint16_t std_keyboard( void );
 
 	// update stream meta data
-	void std_stream_set( uint8_t *meta, uint8_t stream );
+	void std_stream_set( uint8_t *meta, uint8_t stream_type );
+
+	// retrieves meta data of stream, or TRUE/FALSE regarding if it was up to date
+	uint8_t std_stream_get( uint8_t *target, uint8_t stream_type );
 
 	#ifdef	SOFTWARE
 		// function definitions
