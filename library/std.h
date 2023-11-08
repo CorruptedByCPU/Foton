@@ -304,6 +304,7 @@
 	#define	STD_WINDOW_FLAG_visible		0b0000000000000010
 	#define	STD_WINDOW_FLAG_fixed_xy	0b0000000000000100
 	#define	STD_WINDOW_FLAG_fixed_z		0b0000000000001000
+	#define	STD_WINDOW_FLAG_release		0b0000000000010000	// window marked as ready to be removed
 	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
 	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
 
@@ -319,9 +320,6 @@
 		uint16_t	x;
 		uint16_t	y;
 	} __attribute__( ( aligned( STD_PAGE_byte ) ) );
-
-	// stop process execution
-	void std_exit( void );
 
 	// returns properties of available framebuffer ()
 	void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );

@@ -23,9 +23,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize environment
 	wm_init();
 
-	// debug
-	int64_t console_pid = std_exec( (uint8_t *) "console", 7, EMPTY );
-
 	// hold the door
 	while( TRUE ) {
 		// check for incomming events

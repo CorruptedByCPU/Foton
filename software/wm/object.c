@@ -7,6 +7,7 @@ void wm_object( void ) {
 	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
 		// ignore cursor object
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
+
 		// object visible and requested flush?
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse whole object area
@@ -17,6 +18,31 @@ void wm_object( void ) {
 
 			// redraw cursor too
 			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		}
+
+		// object still in touch with process?
+		if( ! std_pid_check( wm_list_base_address[ i ] -> pid ) ) {	// no
+			// object visible?
+			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) {
+				// hide it!
+				wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
+				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
+
+				// mark object for delete
+				wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_release;
+			}
+
+			// object invisible and marked for delete?
+			if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_release ) {
+				// release object
+				// wm_object_remove( object );
+
+				// select the new active object
+				// wm_object_activate();
+
+				// one of objects was modified
+				// wm_taskbar_semaphore = TRUE;
+			}
 		}
 	}
 }

@@ -54,6 +54,9 @@ void wm_event( void ) {
 		message -> ipc.type = STD_IPC_TYPE_keyboard;
 		message -> key = key;	// and key code
 
+		// action taken state
+		uint8_t action = FALSE;
+
 		// remember state of special behavior - key, or take action immediately
 		switch( key ) {
 			// left alt pressed
@@ -67,6 +70,12 @@ void wm_event( void ) {
 		
 			// shift left released
 			case STD_KEY_SHIFT_LEFT | 0x80: { wm_keyboard_status_shift_left = FALSE; break; }
+
+			// ctrl left pressed
+			case STD_KEY_CTRL_LEFT: { wm_keyboard_status_ctrl_left = TRUE; break; }
+
+			// ctrl left released
+			case STD_KEY_CTRL_LEFT | 0x80: { wm_keyboard_status_ctrl_left = FALSE; break; }
 
 			// tab pressed
 			case STD_KEY_TAB: {
@@ -97,11 +106,20 @@ void wm_event( void ) {
 				// done
 				break;
 			}
+
+			// backslash pressed
+			case STD_ASCII_BACKSLASH: {
+				// execute console application if left control key is on hold
+				if( wm_keyboard_status_ctrl_left ) std_exec( (uint8_t *) "console", 7, EMPTY );
+
+				// done
+				break;
+			}
 		}
 		
 
 		// send key to active object process
-		std_ipc_send( wm_object_active -> pid, (uint8_t *) message );
+		if( ! action ) std_ipc_send( wm_object_active -> pid, (uint8_t *) message );
 	}
 
 	// retrieve current mouse status and position

@@ -91,6 +91,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 						break;
 					}
 
+					// exit shell?
+					if( lib_string_compare( shell_command, (uint8_t *) "exit", 4 ) )	// yes
+						// nothing left to do
+						return 0;
+
 					// try to run program with given name and parameters
 					int64_t shell_exec_pid = std_exec( shell_command, shell_command_length, EMPTY );
 

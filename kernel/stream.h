@@ -25,10 +25,4 @@
 
 	// create new stream and return properties of it
 	struct KERNEL_STREAM_STRUCTURE *kernel_stream( void );
-
-	// transfer stream content to process, inform about length of received stream
-	uint64_t kernel_stream_in( uint8_t *target );
-
-	// insert provided string to stream, if unable to return FALSE
-	uint8_t kernel_stream_out( uint8_t *string, uint64_t length );
 #endif

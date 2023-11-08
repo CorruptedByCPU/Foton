@@ -53,11 +53,6 @@ uintptr_t std_syscall_pointer() {
 
 //------------------------------------------------------------------------------
 
-void std_exit( void ) {
-	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_EXIT) );
-}
-
 void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_FRAMEBUFFER), "D" (framebuffer) );

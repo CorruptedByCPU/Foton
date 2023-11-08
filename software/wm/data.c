@@ -32,8 +32,9 @@ uint8_t	wm_mouse_button_left_semaphore		= FALSE;
 uint8_t	wm_mouse_button_right_semaphore		= FALSE;
 uint8_t	wm_mouse_button_middle_semaphore	= FALSE;
 
-uint8_t wm_keyboard_status_alt_left = FALSE;
-uint8_t	wm_keyboard_status_shift_left = FALSE;
+uint8_t wm_keyboard_status_alt_left	= FALSE;
+uint8_t	wm_keyboard_status_shift_left	= FALSE;
+uint8_t	wm_keyboard_status_ctrl_left	= FALSE;
 
 MACRO_IMPORT_FILE_AS_ARRAY( wallpaper, "./root/system/var/wallpaper.tga" );
 MACRO_IMPORT_FILE_AS_ARRAY( cursor, "./root/system/var/cursor.tga" );

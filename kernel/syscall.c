@@ -47,8 +47,8 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 		return KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE);
 	}
 
-// debug
-kernel -> log( (uint8_t *) "KERNEL: low memory.\n" );
+	// debug
+	kernel -> log( (uint8_t *) "KERNEL: low memory.\n" );
 
 	// no free space
 	return EMPTY;
@@ -77,7 +77,7 @@ void kernel_syscall_memory_release( uintptr_t source, uint64_t page) {
 	}
 }
 
-uint64_t kernel_syscall_uptime() {
+uint64_t kernel_syscall_uptime( void ) {
 	// return uptime
 	return kernel -> time_unit / KERNEL_RTC_Hz;
 }
@@ -153,7 +153,7 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	return thread -> pid;
 }
 
-int64_t kernel_syscall_pid() {
+int64_t kernel_syscall_pid( void ) {
 	// task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
@@ -300,13 +300,92 @@ uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
 }
 
 uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
-	// insert string on output stream
-	return kernel_stream_out( string, length );
+	// retrieve stream output of current task
+	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+
+	// stream closed or full?
+	if( task -> stream_out -> flags & KERNEL_STREAM_FLAG_closed || task -> stream_out -> length_byte == STD_STREAM_SIZE_page << STD_SHIFT_PAGE ) return FALSE;	// yes
+
+	// block access to stream modification
+	while( __sync_val_compare_and_swap( &task -> stream_out -> semaphore, UNLOCK, LOCK ) );
+
+	// amount of data inside stream after operation
+	task -> stream_out -> length_byte += length;
+
+	// can we fit it?
+	if( length > (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) - task -> stream_out -> length_byte ) {	// no
+		// unlock stream access
+		task -> stream_out -> semaphore = UNLOCK;
+
+		// unable to fit string
+		return FALSE;
+	}
+
+	// insert data from end marker to end of stream
+	if( task -> stream_out -> end >= task -> stream_out -> start ) {
+		while( length && task -> stream_out -> end != (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) ) {
+			task -> stream_out -> base_address[ task -> stream_out -> end++ ] = *(string++);
+
+			// character inserted
+			length--;
+		}
+
+		// move end marker at beginning of stream content
+		if( task -> stream_out -> end == (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) || length ) task -> stream_out -> end = EMPTY;
+	}
+
+	// insert data from end marker to start marker
+	while( length && task -> stream_out -> end != task -> stream_out -> start ) {
+		task -> stream_out -> base_address[ task -> stream_out -> end++ ] = *(string++);
+
+		// character inserted
+		length--;
+	}
+
+	// string content is modified
+	task -> stream_out -> flags |= KERNEL_STREAM_FLAG_modified;
+
+	// unlock stream access
+	task -> stream_out -> semaphore = UNLOCK;
+
+	// string sended
+	return TRUE;
 }
 
 uint64_t kernel_syscall_stream_in( uint8_t *target ) {
-	// insert string on output stream
-	return kernel_stream_in( target );
+	// get the process output stream id
+	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+
+	// stream closed or empty?
+	if( task -> stream_in -> flags & KERNEL_STREAM_FLAG_closed || ! task -> stream_in -> length_byte ) return EMPTY;	// yes
+
+	// block access to stream modification
+	while( __sync_val_compare_and_swap( &task -> stream_in -> semaphore, UNLOCK, LOCK ) );
+
+	// passed data from stream
+	uint64_t length = EMPTY;
+
+	// send data from start marker to end of stream
+	if( task -> stream_in -> start >= task -> stream_in -> end ) {
+		while( task -> stream_in -> start < (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) )
+			target[ length++ ] = task -> stream_in -> base_address[ task -> stream_in -> start++ ];
+
+		// move start marker at beginning of stream content
+		if( task -> stream_in -> start == (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) || length ) task -> stream_in -> start = EMPTY;
+	}
+
+	// send data from start marker to end marker
+	while( task -> stream_in -> start != task -> stream_in -> end )
+		target[ length++ ] = task -> stream_in -> base_address[ task -> stream_in -> start++ ];
+
+	// stream empty
+	task -> stream_in -> length_byte = EMPTY;
+
+	// unlock stream modification
+	task -> stream_in -> semaphore = UNLOCK;
+
+	// return amount of transferred data in Bytes
+	return length;
 }
 
 uint16_t kernel_syscall_keyboard( void ) {
