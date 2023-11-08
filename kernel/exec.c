@@ -130,7 +130,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 		uint8_t *source = (uint8_t *) ((uintptr_t) elf + elf_h[ i ].segment_offset);
 
 		// copy segment content into place
-		for( uint64_t j = 0; j < elf_h[ i ].segment_size; j++ ) destination[ j ] = source[ j ];
+		for( uint64_t j = 0; j < elf_h[ i ].memory_size; j++ ) destination[ j ] = source[ j ];
 	}
 
 	// map executable space to paging array

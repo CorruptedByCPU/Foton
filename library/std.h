@@ -334,7 +334,10 @@
 	int64_t std_pid( void );
 
 	// returns N page sized area regarding of passsed Bytes
-	uintptr_t std_memory_alloc( uint64_t byte );
+	uintptr_t std_memory_alloc( uint64_t page );
+
+	// releases memory area of N Bytes
+	void std_memory_release( uintptr_t source, uint64_t page );
 
 	// returns ID of newly executed process
 	int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow );

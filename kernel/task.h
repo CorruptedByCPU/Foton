@@ -29,6 +29,7 @@
 		uintptr_t		cr3;
 		uintptr_t		rsp;
 		int64_t			pid;
+		int64_t			pid_parent;
 		uint64_t		sleep;
 		uint64_t		storage;
 		uint64_t		page;	// amount of pages assigned to process

@@ -32,12 +32,12 @@ void kernel_task( void ) {
 	// accept current interrupt call
 	kernel_lapic_accept();
 
-	// first run of the task?
+	// first run of task?
 	if( next -> flags & KERNEL_TASK_FLAG_init ) {
 		// disable init flag
 		next -> flags &= ~KERNEL_TASK_FLAG_init;
 
-		// if module, pass a pointer to the kernel environment specification
+		// if module, pass a pointer to kernel environment specification
 		if( next -> flags & KERNEL_TASK_FLAG_module ) __asm__ volatile( "" :: "D" (kernel), "S" (EMPTY) );
 		else {
 			// retrieve from stack
@@ -57,7 +57,7 @@ void kernel_task( void ) {
 		// kernel guarantee clean registers at first run
 		__asm__ volatile( "xor %r15, %r15\nxor %r14, %r14\nxor %r13, %r13\nxor %r12, %r12\nxor %r11, %r11\nxor %r10, %r10\nxor %r9, %r9\nxor %r8, %r8\nxor %ebp, %ebp\nxor %edx, %edx\nxor %ecx, %ecx\nxor %ebx, %ebx\nxor %eax, %eax\n" );
 
-		// run the task in exception mode
+		// run task in exception mode
 		__asm__ volatile( "iretq" );
 	}
 }
@@ -117,7 +117,7 @@ int64_t kernel_task_pid() {
 }
 
 struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
-	// block possibility of modifying the tasks, only 1 CPU at a time
+	// block possibility of modifying tasks, only 1 CPU at a time
 	while( __sync_val_compare_and_swap( &kernel -> task_cpu_semaphore, UNLOCK, LOCK ) );
 
 	// search until found
@@ -126,21 +126,21 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
 		for( ++i ; i < kernel -> task_limit; i++ ) {
 			// task available for processing?
 			if( kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_active && ! (kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_exec) ) {	// yes
-				// mark the task as performed by current logical processor
+				// mark task as performed by current logical processor
 				kernel -> task_base_address[ i ].flags |= KERNEL_TASK_FLAG_exec;
 
 				// inform BS/A about task to execute as next
 				kernel -> task_cpu_address[ kernel_lapic_id() ] = &kernel -> task_base_address[ i ];
 
-				// unlock access to modification of the tasks
+				// unlock access to modification of tasks
 				kernel -> task_cpu_semaphore = UNLOCK;
 
-				// return address of selected task from the queue
+				// return address of selected task from queue
 				return &kernel -> task_base_address[ i ];
 			}
 		}
 
-		// start from the begining
+		// start from begining
 		i = 0;
 	}
 }

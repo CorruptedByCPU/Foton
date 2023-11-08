@@ -109,8 +109,14 @@ void wm_event( void ) {
 
 			// backslash pressed
 			case STD_ASCII_BACKSLASH: {
-				// execute console application if left control key is on hold
-				if( wm_keyboard_status_ctrl_left ) std_exec( (uint8_t *) "console", 7, EMPTY );
+				// left control key is on hold
+				if( wm_keyboard_status_ctrl_left ) {
+					// execute console application
+					std_exec( (uint8_t *) "console", 7, EMPTY );
+
+					// do not send this key to current process
+					action = TRUE;
+				}
 
 				// done
 				break;

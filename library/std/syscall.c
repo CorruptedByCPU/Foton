@@ -61,17 +61,17 @@ void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
 	return std_syscall_empty();
 }
 
-uintptr_t std_memory_alloc( uint64_t byte ) {
+uintptr_t std_memory_alloc( uint64_t page ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_ALLOC), "D" (byte) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_ALLOC), "D" (page) );
 
 	// return pointer
 	return std_syscall_pointer();
 }
 
-void std_memory_release( uintptr_t source, uint64_t byte ) {
+void std_memory_release( uintptr_t source, uint64_t page ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_RELEASE), "D" (source), "S" (byte) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_RELEASE), "D" (source), "S" (page) );
 
 	// return nothing
 	return std_syscall_empty();

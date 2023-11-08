@@ -33,16 +33,9 @@ void wm_object( void ) {
 			}
 
 			// object invisible and marked for delete?
-			if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_release ) {
+			if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_release )
 				// release object
-				// wm_object_remove( object );
-
-				// select the new active object
-				// wm_object_activate();
-
-				// one of objects was modified
-				// wm_taskbar_semaphore = TRUE;
-			}
+				wm_object_remove( wm_list_base_address[ i ] );
 		}
 	}
 }
@@ -227,4 +220,45 @@ uint8_t wm_object_move_up( void ) {
 
 	// object not found
 	return replaced;
+}
+
+void wm_object_remove( struct WM_STRUCTURE_OBJECT *object ) {
+	// block modification of object list
+	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) );
+
+	// remove the object from the list of objects
+	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
+		// requested object?
+		if( wm_list_base_address[ i ] == object ) {
+			// move all next objects on list one place backward
+			for( uint64_t j = i; j < wm_list_limit - 1; j++ ) wm_list_base_address[ j ] = wm_list_base_address[ j + 1 ];
+
+			// done
+			break;
+		}
+	}
+
+	// clear last entry
+	wm_list_base_address[ --wm_list_limit ] = EMPTY;
+
+	// release list for modification
+	wm_list_semaphore = UNLOCK;
+
+	// release object area
+	std_memory_release( (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE );
+
+	// parse object list as far as to taskbar type
+	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
+		// object type: taskbar?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) break;	// yes
+
+		// object type: cursor?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// yes
+
+		// object is visible?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) wm_object_active = wm_list_base_address[ i ];	// set as active
+	}
+
+	// release old entry in object table
+	object -> descriptor = (void *) EMPTY;
 }
