@@ -168,13 +168,17 @@ int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length, uint8_t stream_flow
 
 uint8_t kernel_syscall_pid_check( int64_t pid ) {
 	// find an entry with selected ID
-	for( uint64_t i = 0; i < kernel -> task_limit; i++ )
+	for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
+		// entry occupied?
+		if( ! kernel -> task_base_address[ i ].flags ) continue;	// no
+
 		// found?
 		if( kernel -> task_base_address[ i ].pid == pid ) {
 			// task closed?
 			if( kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_close ) return FALSE;	// yes
 			else return TRUE;	// no, running
 		}
+	}
 
 	// process not found
 	return FALSE;

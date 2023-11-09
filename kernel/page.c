@@ -219,6 +219,56 @@ void kernel_page_clean( uintptr_t address, uint64_t n ) {
 	for( uint64_t i = 0; i < n << STD_SHIFT_512; i++ ) page[ i ] = EMPTY;
 }
 
+void kernel_page_deconstruct( uintptr_t *pml4 ) {
+	// for each entry of PML4 array
+	for( uint16_t p4 = 0; p4 < 512; p4++ ) {
+		// empty?
+		if( ! pml4[ p4 ] ) continue;	// skip
+
+		// properties of PML3 array
+		uintptr_t *pml3 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical);
+
+		// for each entry of PML3 array
+		for( uint16_t p3 = 0; p3 < 512; p3++ ) {
+			// empty?
+			if( ! pml3[ p3 ] ) continue;	// skip
+
+			// properties of PML2 array
+			uintptr_t *pml2 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical);
+
+			// for each entry of PML2 array
+			for( uint16_t p2 = 0; p2 < 512; p2++ ) {
+				// empty?
+				if( ! pml2[ p2 ] ) continue;	// skip
+
+				// properties of PML1 array
+				uintptr_t *pml1 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical);
+		
+				// for each entry of PML1 array
+				for( uint16_t p1 = 0; p1 < 512; p1++ ) {
+					// entry belongs to task and is not shared between other processes?
+					if( ! (pml1[ p1 ] & KERNEL_PAGE_FLAG_process) || pml1[ p1 ] & KERNEL_PAGE_FLAG_shared ) continue;	// nope
+				
+					// release page from array
+					kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) );
+				}
+
+				// if PML1 array belongs to task, release it
+				if( pml2[ p2 ] & KERNEL_PAGE_FLAG_process ) kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) );
+			}
+
+			// if PML2 array belongs to task, release it
+			if( pml3[ p3 ] & KERNEL_PAGE_FLAG_process ) kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) );
+		}
+
+		// if PML3 array belongs to task, release it
+		if( pml4[ p4 ] & KERNEL_PAGE_FLAG_process ) kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) );
+	}
+
+	// release
+	kernel_memory_release_page( (uintptr_t) pml4 );
+}
+
 uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags ) {
 	// convert source address to canonical
 	source &= ~KERNEL_PAGE_logical;

@@ -25,4 +25,7 @@
 
 	// create new stream and return properties of it
 	struct KERNEL_STREAM_STRUCTURE *kernel_stream( void );
+
+	// release stream if no more used
+	void kernel_stream_release( struct KERNEL_STREAM_STRUCTURE *stream );
 #endif

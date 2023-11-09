@@ -91,6 +91,7 @@ struct KERNEL {
 	// functions of Memory management
 	uintptr_t						(*memory_alloc)( uint64_t N );
 	uintptr_t						(*memory_alloc_page)( void );
+	void							(*memory_release)( uintptr_t address, uint64_t N );
 	void							(*memory_release_page)( uintptr_t address );
 
 	// variables of Modules functions
@@ -103,6 +104,7 @@ struct KERNEL {
 	uint64_t	page_limit;
 	// functions of Page management
 	void							(*page_clean)( uintptr_t address, uint64_t n );
+	void							(*page_deconstruct)( uintptr_t *pml4 );
 
 	// variables of Storage management functions
 	struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;
@@ -112,6 +114,8 @@ struct KERNEL {
 	// variables of Stream management functions
 	struct KERNEL_STREAM_STRUCTURE	*stream_base_address;
 	uint8_t		stream_semaphore;
+	// functions of Stream management
+	void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
 
 	// variables of Task management functions
 	struct KERNEL_TASK_STRUCTURE				*task_base_address;
