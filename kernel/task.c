@@ -83,6 +83,9 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 		// ID of new job
 		kernel -> task_base_address[ i ].pid = ++kernel -> task_id;
 
+		// ID of its parent
+		kernel -> task_base_address[ i ].pid_parent = kernel_task_pid();
+
 		// number of characters representing process name
 		kernel -> task_base_address[ i ].length = length;
 

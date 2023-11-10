@@ -56,5 +56,5 @@ void kernel_init_page( void ) {
 	}
 
 	// and last thing, create kernel stack area
-	kernel_page_alloc( (uint64_t *) kernel -> page_base_address, KERNEL_STACK_address, 2, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	kernel_page_alloc( (uint64_t *) kernel -> page_base_address, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 }

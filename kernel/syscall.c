@@ -102,7 +102,7 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	//----------------------------------------------------------------------
 
 	// describe space under thread context stack
-	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, 2, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
+	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
 
 	// set initial startup configuration for new process
 	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
@@ -465,4 +465,12 @@ uint8_t kernel_syscall_stream_get( uint8_t *target, uint8_t stream_type ) {
 
 	// return meta data status
 	return status;
+}
+
+void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
+	// all available Bytes
+	memory -> total = kernel -> page_total << STD_SHIFT_PAGE;
+
+	// and currently free
+	memory -> available = kernel -> page_available << STD_SHIFT_PAGE;
 }

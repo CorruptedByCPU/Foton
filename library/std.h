@@ -221,6 +221,11 @@
 	#define	STD_KEY_WIN_LEFT				0xE058
 	#define	STD_KEY_MOUSE_RIGHT				0xE05D
 
+	struct	STD_SYSCALL_STRUCTURE_MEMORY {
+		uint64_t	total;
+		uint64_t	available;
+	};
+
 	#define	STD_MOUSE_BUTTON_left				0b00000001
 	#define	STD_MOUSE_BUTTON_right				0b00000010
 	#define	STD_MOUSE_BUTTON_middle				0b00000100
@@ -287,6 +292,7 @@
 	#define	STD_SYSCALL_KEYBOARD				0x12
 	#define	STD_SYSCALL_STREAM_SET				0x13
 	#define	STD_SYSCALL_STREAM_GET				0x14
+	#define	STD_SYSCALL_MEMORY				0x15
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -377,6 +383,9 @@
 
 	// retrieves meta data of stream, or TRUE/FALSE regarding if it was up to date
 	uint8_t std_stream_get( uint8_t *target, uint8_t stream_type );
+
+	// returns properties of system memory
+	void std_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory );
 
 	#ifdef	SOFTWARE
 		// function definitions

@@ -212,3 +212,11 @@ uint8_t std_stream_get( uint8_t *target, uint8_t stream_type ) {
 	// return TRUE/FALSE
 	return std_syscall_bool();
 }
+
+void std_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY), "D" (memory) );
+
+	// return nothing
+	return std_syscall_empty();
+}
