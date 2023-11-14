@@ -23,13 +23,13 @@
 		uint8_t		name[ 255 ];
 	};
 
-	struct KERNEL_LIBRARY_STRUCTURE_TMP {	// to be formatted later... variable naming... order... etc.
+	struct KERNEL_LIBRARY_STRUCTURE_INIT {
 		uint8_t				level;
 		struct STD_FILE_STRUCTURE	file;
-		uintptr_t			workbench;
-		struct KERNEL_LIBRARY_STRUCTURE	*library;
-		uintptr_t			library_base_address;
-		uint64_t			library_page;
+		struct KERNEL_LIBRARY_STRUCTURE	*entry;
+		uintptr_t			workbench_address;
+		uintptr_t			base_address;
+		uint64_t			page;
 	};
 
 	// loads libraries required by executable

@@ -7,13 +7,13 @@
 
 	#define	KERNEL_EXEC_base_address	0x0000000000100000
 
-	struct KERNEL_EXEC_STRUCTURE_TMP {	// to be formatted later... variable naming... order... etc.
+	struct KERNEL_EXEC_STRUCTURE_INIT {
 		uint8_t				level;
 		struct STD_FILE_STRUCTURE	file;
-		uintptr_t			workbench;
-		struct KERNEL_TASK_STRUCTURE	*exec;
-		uintptr_t			exec_base_address;
-		uint64_t			exec_page;
+		struct KERNEL_TASK_STRUCTURE	*task;
+		uintptr_t			workbench_address;
+		uintptr_t			base_address;
+		uint64_t			page;
 		uint8_t				*stack;
 		uint64_t			stack_byte;
 	};

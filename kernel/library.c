@@ -29,21 +29,27 @@ uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf ) {
 	return TRUE;
 }
 
-static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_TMP *tmp ) {
+static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *tmp ) {
 	// undo performed operations depending on cavity
 	switch( tmp -> level ) {
-		/* ... */
+		case 5: {
+			// cannot foresee an error at this level and above
+		}
+		case 4: {
+			// detach library area from global paging array
+			kernel_page_detach( (uintptr_t *) kernel -> page_base_address, tmp -> base_address, tmp -> page );
+		}
 		case 3: {
 			// release library area
-			kernel_memory_dispose( kernel -> library_map_address, (tmp -> library_base_address - KERNEL_LIBRARY_base_address) >> STD_SHIFT_PAGE, tmp -> library_page );
+			kernel_memory_dispose( kernel -> library_map_address, (tmp -> base_address - KERNEL_LIBRARY_base_address) >> STD_SHIFT_PAGE, tmp -> page );
 		}
 		case 2: {
 			// release workbench area
-			kernel_memory_release( tmp -> workbench, MACRO_PAGE_ALIGN_UP( tmp -> file.size_byte ) >> STD_SHIFT_PAGE );
+			kernel_memory_release( tmp -> workbench_address, MACRO_PAGE_ALIGN_UP( tmp -> file.size_byte ) >> STD_SHIFT_PAGE );
 		}
 		case 1: {
 			// release library entry
-			tmp -> library -> flags = EMPTY;
+			tmp -> entry -> flags = EMPTY;
 		}
 	}
 }
@@ -217,49 +223,49 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 
 uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	// prepare temporary library area
-	struct KERNEL_LIBRARY_STRUCTURE_TMP tmp = { EMPTY };
+	struct KERNEL_LIBRARY_STRUCTURE_INIT library = { EMPTY };
 
 	// if library already registered
 	if( kernel_library_find( name, length ) ) return TRUE;	// end of routine
 
 	// register new library
-	if( ! (tmp.library = kernel_library_register()) ) return FALSE;	// no enough memory
+	if( ! (library.entry = kernel_library_register()) ) return FALSE;	// no enough memory
 
 	// checkpoint reached: assigned library entry
-	tmp.level++;
+	library.level++;
 
 	// retrieve file properties
 	uint8_t path[ 12 + LIB_VFS_name_limit + 1 ] = "/system/lib/";
 	for( uint64_t i = 0; i < length; i++ ) path[ i + 12 ] = name[ i ];
 
 	// retrieve information about file to execute
-	tmp.file = kernel_storage_file( kernel -> storage_root_id, (uint8_t *) &path, 12 + length );
+	library.file = kernel_storage_file( kernel -> storage_root_id, (uint8_t *) &path, 12 + length );
 
 	// if file doesn't exist
-	if( ! tmp.file.id ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_TMP *) &tmp ); return FALSE; };
+	if( ! library.file.id ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
 
 	// prepare area for workbench 
-	if( ! (tmp.workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( tmp.file.size_byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_TMP *) &tmp ); return FALSE; };
+	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.file.size_byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
 
 	// checkpoint reached: assigned area for temporary file
-	tmp.level++;
+	library.level++;
 
 	// load file into workbench space
-	kernel_storage_read( kernel -> storage_root_id, tmp.file.id, tmp.workbench );
+	kernel_storage_read( kernel -> storage_root_id, library.file.id, library.workbench_address );
 
 	//----------------------------------------------------------------------
 
 	// file contains proper ELF header?
-	if( ! lib_elf_identify( tmp.workbench ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_TMP *) &tmp ); return FALSE; }	// no
+	if( ! lib_elf_identify( library.workbench_address ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; }	// no
 
 	// ELF structure properties
-	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) tmp.workbench;
+	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) library.workbench_address;
 
 	// it's an executable file?
-	if( elf -> type != LIB_ELF_TYPE_shared_object ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_TMP *) &tmp ); return FALSE; }	// no
+	if( elf -> type != LIB_ELF_TYPE_shared_object ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; }	// no
 
 	// load libraries required by file or low memory occured
-	if( ! kernel_library( elf ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_TMP *) &tmp ); return FALSE; }
+	if( ! kernel_library( elf ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; }
 
 	//----------------------------------------------------------------------
 
@@ -272,26 +278,26 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
  		if( elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_h[ i ].memory_size ) continue;
 
 		// update executable space size?
-		if( tmp.library_page < MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].memory_size ) >> STD_SHIFT_PAGE ) tmp.library_page = MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].memory_size ) >> STD_SHIFT_PAGE;
+		if( library.page < MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].memory_size ) >> STD_SHIFT_PAGE ) library.page = MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].memory_size ) >> STD_SHIFT_PAGE;
 	}
 
 	// acquire memory space inside library environment
-	if( ! (tmp.library_base_address = (kernel_memory_acquire( kernel -> library_map_address, tmp.library_page ) << STD_SHIFT_PAGE) + KERNEL_LIBRARY_base_address) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_TMP *) &tmp ); return FALSE; }
+	if( ! (library.base_address = (kernel_memory_acquire( kernel -> library_map_address, library.page ) << STD_SHIFT_PAGE) + KERNEL_LIBRARY_base_address) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; }
 
 	// checkpoint reached: assigned area for library
-	tmp.level++;
+	library.level++;
 
-	kernel -> log( (uint8_t *) "= Library %s at 0x%X\n", name, tmp.library_base_address );
+	kernel -> log( (uint8_t *) "= Library %s at 0x%X\n", name, library.base_address );
 
 	// map aquired memory space for library
-	if( ! kernel_page_alloc( kernel -> page_base_address, tmp.library_base_address, tmp.library_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_external ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_TMP *) &tmp ); return FALSE; }
+	if( ! kernel_page_alloc( kernel -> page_base_address, library.base_address, library.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_external ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; }
 
-	// checkpoint reached: assigned area for library
-	tmp.level++;
+	// checkpoint reached: library area registered in global paging array
+	library.level++;
 
 	// preserve that information inside library entry
-	tmp.library -> pointer = tmp.library_base_address;
-	tmp.library -> size_page = tmp.library_page;
+	library.entry -> pointer = library.base_address;
+	library.entry -> size_page = library.page;
 
 	// copy library segments in place
 	for( uint64_t i = 0; i < elf -> h_entry_count; i++ ) {
@@ -299,8 +305,8 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
  		if( elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_h[ i ].memory_size ) continue;
 
 		// properties of loadable segment
-		uint8_t *source = (uint8_t *) tmp.workbench + elf_h[ i ].segment_offset;
-		uint8_t *target = (uint8_t *) tmp.library_base_address + elf_h[ i ].virtual_address;
+		uint8_t *source = (uint8_t *) library.workbench_address + elf_h[ i ].segment_offset;
+		uint8_t *target = (uint8_t *) library.base_address + elf_h[ i ].virtual_address;
 
 		// copy segment content in place
 		for( uint64_t j = 0; j < elf_h[ i ].segment_size; j++ ) target[ j ] = source[ j ];
@@ -312,24 +318,24 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	// retrieve information about symbol and string tables
 	for( uint16_t i = 0; i < elf -> s_entry_count; i++ ) {
 		// first string table contains functions names which this library provide
-		if( ! tmp.library -> strtab ) if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_strtab ) tmp.library -> strtab = (uint8_t *) (tmp.library_base_address + elf_s[ i ].virtual_address);
+		if( ! library.entry -> strtab ) if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_strtab ) library.entry -> strtab = (uint8_t *) (library.base_address + elf_s[ i ].virtual_address);
 
 		// dynamic linking section?
-		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_dynsym ) { tmp.library -> dynamic_linking = (struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL *) (tmp.library_base_address + elf_s[ i ].virtual_address); tmp.library -> d_entry_count = elf_s[ i ].size_byte / sizeof( struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL ); }
+		if( elf_s[ i ].type == LIB_ELF_SECTION_TYPE_dynsym ) { library.entry -> dynamic_linking = (struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL *) (library.base_address + elf_s[ i ].virtual_address); library.entry -> d_entry_count = elf_s[ i ].size_byte / sizeof( struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL ); }
 	}
 
 	// connect required functions new locations / from another library
-	kernel_library_link( elf, tmp.library_base_address, TRUE );
+	kernel_library_link( elf, library.base_address, TRUE );
 
 	// set parsed library name
-	tmp.library -> length = length;
-	for( uint8_t i = 0; i < length; i++ ) tmp.library -> name[ i ] = name[ i ];
+	library.entry -> length = length;
+	for( uint8_t i = 0; i < length; i++ ) library.entry -> name[ i ] = name[ i ];
 
 	// library parsed
-	tmp.library -> flags |= KERNEL_LIBRARY_FLAG_active;
+	library.entry -> flags |= KERNEL_LIBRARY_FLAG_active;
 
 	// release workbench space
-	kernel_memory_release( tmp.workbench, MACRO_PAGE_ALIGN_UP( tmp.file.size_byte ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( library.workbench_address, MACRO_PAGE_ALIGN_UP( library.file.size_byte ) >> STD_SHIFT_PAGE );
 
 	// library loaded
 	return TRUE;
