@@ -23,11 +23,20 @@
 		uint8_t		name[ 255 ];
 	};
 
+	struct KERNEL_LIBRARY_STRUCTURE_TMP {	// to be formatted later... variable naming... order... etc.
+		uint8_t				level;
+		struct STD_FILE_STRUCTURE	file;
+		uintptr_t			workbench;
+		struct KERNEL_LIBRARY_STRUCTURE	*library;
+		uintptr_t			library_base_address;
+		uint64_t			library_page;
+	};
+
 	// loads libraries required by executable
-	void kernel_library( struct LIB_ELF_STRUCTURE *elf );
+	uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf );
 
 	// configure and initialize library
-	void kernel_library_load( uint8_t *string, uint64_t length );
+	uint8_t kernel_library_load( uint8_t *name, uint64_t length );
 
 	// reserving entry for new library
 	struct KERNEL_LIBRARY_STRUCTURE *kernel_library_register();

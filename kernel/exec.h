@@ -7,6 +7,17 @@
 
 	#define	KERNEL_EXEC_base_address	0x0000000000100000
 
-	// returns new process ID
+	struct KERNEL_EXEC_STRUCTURE_TMP {	// to be formatted later... variable naming... order... etc.
+		uint8_t				level;
+		struct STD_FILE_STRUCTURE	file;
+		uintptr_t			workbench;
+		struct KERNEL_TASK_STRUCTURE	*exec;
+		uintptr_t			exec_base_address;
+		uint64_t			exec_page;
+		uint8_t				*stack;
+		uint64_t			stack_byte;
+	};
+
+	// returns new process ID or error
 	int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow );
 #endif

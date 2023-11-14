@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_rtc() {
+void kernel_init_rtc( void ) {
 	// state of real-time controller register
 	uint8_t register_status = EMPTY;
 

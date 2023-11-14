@@ -110,7 +110,7 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 	return EMPTY;
 }
 
-int64_t kernel_task_pid() {
+int64_t kernel_task_pid( void ) {
 	// based on ID of active BS/A processor
 	// get from list of active jobs, number of current record in job queue
 	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel -> task_cpu_address[ kernel_lapic_id() ];

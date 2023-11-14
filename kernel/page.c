@@ -269,6 +269,59 @@ void kernel_page_deconstruct( uintptr_t *pml4 ) {
 	kernel_memory_release_page( (uintptr_t) pml4 );
 }
 
+void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages ) {
+	// start with following array[ entries ]
+	uint16_t p4 = (address & ~KERNEL_PAGE_PML5_mask) / KERNEL_PAGE_PML3_byte;
+	uint16_t p3 = ((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) / KERNEL_PAGE_PML2_byte;
+	uint16_t p2 = (((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) / KERNEL_PAGE_PML1_byte;
+	uint16_t p1 = ((((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte;
+
+	// start with an entry representing given address in PML4 array
+	for( ; p4 < 512; p4++ ) {
+		// PML3 array doesn't exist?
+		if( ! pml4[ p4 ] ) return;	// no
+
+		// get PML3 array address (remove flags)
+		uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical);
+
+		// start with an entry representing given address in PML3 array
+		for( ; p3 < 512; p3++ ) {
+			// PML2 array doesn't exist?
+			if( ! pml3[ p3 ] ) return;	// no
+
+			// get PML2 array address (remove flags)
+			uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical);
+
+			// start with an entry representing given address in PML2 array
+			for( ; p2 < 512; p2++ ) {
+				// PML1 array doesn't exist?
+				if( ! pml2[ p2 ] ) return;	// no
+
+				// get PML1 array address (remove flags)
+				uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical);
+
+				// start with an entry representing given address in PML1 array
+				for( ; p1 < 512; p1++ ) {
+					// remove entry
+					pml1[ p1 ] = EMPTY;
+
+					// whole area is detached
+					if( ! --pages ) return;
+				}
+
+				// first entry of PML1 array
+				p1 = 0;
+			}
+
+			// first entry of PML2 array
+			p2 = 0;
+		}
+
+		// first entry of PML3 array
+		p3 = 0;
+	}
+}
+
 uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags ) {
 	// convert source address to canonical
 	source &= ~KERNEL_PAGE_logical;

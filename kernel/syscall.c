@@ -54,7 +54,7 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	return EMPTY;
 }
 
-void kernel_syscall_memory_release( uintptr_t source, uint64_t page) {
+void kernel_syscall_memory_release( uintptr_t source, uint64_t page ) {
 	// task properties
 	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
 

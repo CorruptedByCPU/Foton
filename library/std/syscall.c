@@ -7,7 +7,7 @@ void std_syscall_empty( void ) {
 	__asm__ volatile( "push %%rax\npush %%rcx\npush %%r11\nsyscall\npop %%r11\npop %%rcx\npop %%rax" :: );
 }
 
-uint8_t std_syscall_bool() {
+uint8_t std_syscall_bool( void ) {
 	// initialize local variable
 	uint8_t rax = EMPTY;
 
@@ -18,7 +18,7 @@ uint8_t std_syscall_bool() {
 	return rax;
 }
 
-int64_t std_syscall_value() {
+int64_t std_syscall_value( void ) {
 	// initialize local variable
 	int64_t rax = EMPTY;
 
@@ -29,7 +29,7 @@ int64_t std_syscall_value() {
 	return rax;
 }
 
-uint64_t std_syscall_value_unsigned() {
+uint64_t std_syscall_value_unsigned( void ) {
 	// initialize local variable
 	uint64_t rax = EMPTY;
 
@@ -40,7 +40,7 @@ uint64_t std_syscall_value_unsigned() {
 	return rax;
 }
 
-uintptr_t std_syscall_pointer() {
+uintptr_t std_syscall_pointer( void ) {
 	// initialize local variable
 	uintptr_t rax = EMPTY;
 

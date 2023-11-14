@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_library() {
+void kernel_init_library( void ) {
 	// prepare space for loaded library entries
 	kernel -> library_base_address = (struct KERNEL_LIBRARY_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_LIBRARY_limit * sizeof( struct KERNEL_LIBRARY_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 

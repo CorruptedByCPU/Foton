@@ -135,13 +135,13 @@ struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_multiply_matrix( struct LIB_RGL_STRUCTUR
 	return tmp;
 }
 
-struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_empty() {
+struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_empty( void ) {
 	struct LIB_RGL_STRUCTURE_MATRIX matrix = { 0.0f };
 
 	return matrix;
 }
 
-struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_identity() {
+struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_identity( void ) {
 	struct LIB_RGL_STRUCTURE_MATRIX matrix;
 
 	matrix.cell[ 0 ][ 0 ] = 1.0f;

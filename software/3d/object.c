@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void object_load() {
+void object_load( void ) {
 	// // count materials
 	uint8_t *line = (uint8_t *) &file_material_start;
 	while( line < (uint8_t *) &file_material_end ) {

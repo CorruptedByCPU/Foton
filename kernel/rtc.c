@@ -10,7 +10,7 @@
 	#endif
 
 __attribute__(( no_caller_saved_registers ))
-void kernel_rtc() {
+void kernel_rtc( void ) {
 	// receive pending interrupt of the real-time controller
 	driver_port_out_byte( KERNEL_RTC_PORT_command, KERNEL_RTC_STATUS_REGISTER_C );
 	driver_port_in_byte( KERNEL_RTC_PORT_data );

@@ -103,6 +103,11 @@
 	#define	STD_COLOR_CYAN_LIGHT				0xFF00FFFF
 	#define	STD_COLOR_WHITE					0xFFFFFFFF
 
+	#define	STD_ERROR_file_not_found			-1
+	#define	STD_ERROR_memory_low				-2
+	#define	STD_ERROR_file_not_elf				-3
+	#define	STD_ERROR_file_not_executable			-4
+
 	#define	STD_FILE_MODE_mask				0b0000000111111111
 	#define	STD_FILE_MODE_other_exec			0b0000000000000001
 	#define	STD_FILE_MODE_other_write			0b0000000000000010

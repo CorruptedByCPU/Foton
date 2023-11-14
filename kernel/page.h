@@ -38,6 +38,9 @@
 	// alloc N pages for process
 	uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uint16_t flags );
 
+	// disconnects memory area from paging structure (doesn't release it!)
+	void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages );
+
 	// connect source with target address for definies paging array
 	uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags );
 #endif
