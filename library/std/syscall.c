@@ -220,3 +220,11 @@ void std_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 	// return nothing
 	return std_syscall_empty();
 }
+
+uint64_t std_sleep( uint64_t units ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_SLEEP) );
+
+	// return unsigned value
+	return std_syscall_value_unsigned();
+}

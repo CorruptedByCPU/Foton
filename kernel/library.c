@@ -215,8 +215,6 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 		else
 			// retrieve library function address
 			*got_plt = kernel_library_function( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], lib_string_length( (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ] ) );
-
-		kernel -> log( (uint8_t *) "Link %s\t> 0x%X\n", (uint8_t *) &strtab[ dynsym[ rela[ i ].index ].name_offset ], *got_plt );
 	}
 }
 
@@ -286,8 +284,6 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 
 	// checkpoint reached: assigned area for library
 	library.level++;
-
-	kernel -> log( (uint8_t *) "= Library %s at 0x%X\n", name, library.base_address );
 
 	// map aquired memory space for library
 	if( ! kernel_page_alloc( kernel -> page_base_address, library.base_address, library.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_external ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; }

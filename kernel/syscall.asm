@@ -27,6 +27,7 @@ extern	kernel_syscall_keyboard
 extern	kernel_syscall_stream_set
 extern	kernel_syscall_stream_get
 extern	kernel_syscall_memory
+extern	kernel_syscall_sleep
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -62,6 +63,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_stream_set
 	dq	kernel_syscall_stream_get
 	dq	kernel_syscall_memory
+	dq	kernel_syscall_sleep
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

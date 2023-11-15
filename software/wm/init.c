@@ -74,6 +74,9 @@ void wm_init( void ) {
 	// mark object as taskbar and unmovable
 	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
 
+	// show an empty taskbar
+	wm_taskbar_semaphore = TRUE;
+
 	// execute taskbar function as thread
 	uint8_t wm_string_taskbar[] = "{wm: taskbar}";
 	std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );

@@ -22,7 +22,7 @@
 	#define	LIB_INTERFACE_COLOR_background		0xFF141414
 	#define	LIB_INTERFACE_COLOR_foreground		0xFFF5F5F5
 
-	#define	LIB_INTERFACE_NAME_limit		255
+	#define	LIB_INTERFACE_NAME_limit		64
 
 	struct LIB_INTERFACE_STRUCTURE {
 		struct STD_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
@@ -30,7 +30,7 @@
 		uint16_t	width;
 		uint16_t	height;
 		uint8_t		length;
-		uint8_t		name[ 256 ];
+		uint8_t		name[ LIB_INTERFACE_NAME_limit ];
 	};
 
 	// properties of Interface assigned to Window

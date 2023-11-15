@@ -474,3 +474,23 @@ void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 	// and currently free
 	memory -> available = kernel -> page_available << STD_SHIFT_PAGE;
 }
+
+uint64_t kernel_syscall_sleep( uint64_t units ) {
+	// properties of current task
+	struct KERNEL_TASK_STRUCTURE *task = kernel -> task_cpu_address[ kernel_lapic_id() ];
+
+	// mark task as sleeping
+	task -> flags |= KERNEL_TASK_FLAG_sleep;
+
+	// set release pointer
+	uint64_t stop = kernel -> time_unit + ((KERNEL_RTC_Hz / 1024) * units);
+
+	// wait until we achieve awaited units of time
+	while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
+
+	// remove sleep status
+	task -> flags &= ~KERNEL_TASK_FLAG_sleep;
+
+	// return remaining units (is sleep was broken)
+	return units;
+}

@@ -91,8 +91,6 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// checkpoint reached: prepared task entry for new process
 	exec.level++;
 
-	kernel -> log( (uint8_t *) "[Exec: %s]\n", name );
-
 	//----------------------------------------------------------------------
 
 	// prepare Paging table for new process

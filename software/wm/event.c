@@ -82,14 +82,11 @@ void wm_event( void ) {
 				// if left alt key is holded
 				if( ! wm_keyboard_status_alt_left ) break;	// nope
 
-				// unselect any object before shifting
-				wm_object_selected = EMPTY;
-
 				// search forward for object to show
 				for( uint16_t i = 0; i < wm_list_limit; i++ ) if( wm_list_base_address[ i ] -> pid != wm_pid ) { wm_object_selected = wm_list_base_address[ i ]; break; }
 
 				// move it up
-				if( wm_object_move_up() ) {
+				if( wm_object_move_up( wm_object_selected ) ) {
 					// force object to be visible
 					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_visible;
 
@@ -98,10 +95,13 @@ void wm_event( void ) {
 
 					// cursor pointer may be obscured, redraw
 					wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-				}
 
-				// set as active, if found
-				if( wm_object_selected ) wm_object_active = wm_object_selected;
+					// set as active
+					wm_object_active = wm_object_selected;
+
+					// update taskbar status
+					wm_taskbar_semaphore = TRUE;
+				}
 
 				// done
 				break;
@@ -123,7 +123,6 @@ void wm_event( void ) {
 			}
 		}
 		
-
 		// send key to active object process
 		if( ! action ) std_ipc_send( wm_object_active -> pid, (uint8_t *) message );
 	}
@@ -165,7 +164,7 @@ void wm_event( void ) {
 			// check if object can be moved along Z axis
 			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_status_alt_left ) {
 				// move object up inside list
-				if( wm_object_move_up() ) {
+				if( wm_object_move_up( wm_object_selected ) ) {
 					// redraw object
 					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
@@ -174,8 +173,14 @@ void wm_event( void ) {
 				}
 			}
 
-			// make object as active if left ALT key is not holded
-			if( ! wm_keyboard_status_alt_left ) wm_object_active = wm_object_selected;
+			// if left ALT key is not holded
+			if( ! wm_keyboard_status_alt_left ) {
+				// make object as active 
+				wm_object_active = wm_object_selected;
+
+				// update taskbar status
+				wm_taskbar_semaphore = TRUE;
+			}
 		}
 	} else
 		// release mouse button state

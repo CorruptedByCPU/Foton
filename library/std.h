@@ -298,6 +298,7 @@
 	#define	STD_SYSCALL_STREAM_SET				0x13
 	#define	STD_SYSCALL_STREAM_GET				0x14
 	#define	STD_SYSCALL_MEMORY				0x15
+	#define	STD_SYSCALL_SLEEP				0x16
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -316,6 +317,7 @@
 	#define	STD_WINDOW_FLAG_fixed_xy	0b0000000000000100
 	#define	STD_WINDOW_FLAG_fixed_z		0b0000000000001000
 	#define	STD_WINDOW_FLAG_release		0b0000000000010000	// window marked as ready to be removed
+	#define	STD_WINDOW_FLAG_name		0b0000000000100000
 	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
 	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
 
@@ -330,6 +332,9 @@
 		// pointer position inside window
 		uint16_t	x;
 		uint16_t	y;
+		// window name, it will appear at header and taskbar
+		uint8_t		length;
+		uint8_t		name[ 64 ];
 	} __attribute__( ( aligned( STD_PAGE_byte ) ) );
 
 	// returns properties of available framebuffer ()
@@ -391,6 +396,9 @@
 
 	// returns properties of system memory
 	void std_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory );
+
+	// releases AP rest of time for N units, returns N left units if sleep is broken
+	uint64_t std_sleep( uint64_t units );	// 1 unit ~ 1/1024 of second
 
 	#ifdef	SOFTWARE
 		// function definitions

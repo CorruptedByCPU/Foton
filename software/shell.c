@@ -100,7 +100,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					int64_t shell_exec_pid = std_exec( shell_command, shell_command_length, EMPTY );
 
 					// wait for its end if requested
-					if( shell_command[ shell_command_length - 1 ] != '&' ) while( shell_exec_pid && std_pid_check( shell_exec_pid ) );
+					if( shell_command[ shell_command_length - 1 ] != '&' ) while( shell_exec_pid && std_pid_check( shell_exec_pid ) ) std_sleep( 1 );	// free up AP time until program execution ends
 
 					// new prompt
 					break;
@@ -135,7 +135,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 				// send character to stream out
 				print( (const char *) &keyboard -> key );
-			}
+			} else
+				// free up AP time
+				std_sleep( 1 );	
 		}
 	}
 }

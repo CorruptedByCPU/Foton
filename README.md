@@ -4,6 +4,8 @@ Welcome to
 
 This is a similar project as Cyjon/Fern-Night, but compatibility will no longer be fully supported.
 
+![Foton 0.146](https://blackdev.org/shot/foton-0.146.png)
+
 Simple project of multitasking operating system for 64-bit processors from x86_64 family.
 
 A system that is detached from reality. Fully resident in memory. (Yep, no installation on hard drive needed.)

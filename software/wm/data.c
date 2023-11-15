@@ -38,3 +38,15 @@ uint8_t	wm_keyboard_status_ctrl_left	= FALSE;
 
 MACRO_IMPORT_FILE_AS_ARRAY( wallpaper, "./root/system/var/wallpaper.tga" );
 MACRO_IMPORT_FILE_AS_ARRAY( cursor, "./root/system/var/cursor.tga" );
+
+// semaphore used by event/object function which tells us to refresh taskbar object content
+uint8_t wm_taskbar_semaphore = FALSE;
+
+// amount of objects listed on taskbar
+uint8_t wm_taskbar_limit = EMPTY;
+
+// list of objects to be showed on taskbar list
+struct WM_STRUCTURE_OBJECT **wm_taskbar_base_address = EMPTY;
+
+// width of button on taskbar list
+uint16_t wm_taskbar_entry_width = EMPTY;

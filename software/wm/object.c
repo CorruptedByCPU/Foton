@@ -33,9 +33,22 @@ void wm_object( void ) {
 			}
 
 			// object invisible and marked for delete?
-			if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_release )
+			if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_release ) {
 				// release object
 				wm_object_remove( wm_list_base_address[ i ] );
+
+				// update taskbar list
+				wm_taskbar_semaphore = TRUE;
+			}
+		}
+
+		// object renamed?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_name ) {
+			// done
+			wm_list_base_address[ i ] -> descriptor -> flags ^= STD_WINDOW_FLAG_name;
+
+			// update taskbar list
+			wm_taskbar_semaphore = TRUE;
 		}
 	}
 }
@@ -61,6 +74,9 @@ void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 
 		// insert object on list
 		wm_list_base_address[ i ] = object;
+
+		// update taskbar list
+		wm_taskbar_semaphore = TRUE;
 
 		// release list for modification
 		wm_list_semaphore = UNLOCK;
@@ -124,8 +140,8 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t pars
 			// coordinates at object area?
 			if( wm_list_base_address[ i ] -> x > x ) continue;	// no
 			if( wm_list_base_address[ i ] -> y > y ) continue;	// no
-			if( (wm_list_base_address[ i ] -> x + wm_list_base_address[ i ] -> width) <= x ) continue;	// no
-			if( (wm_list_base_address[ i ] -> y + wm_list_base_address[ i ] -> height) <= y ) continue;	// no
+			if( (wm_list_base_address[ i ] -> x + wm_list_base_address[ i ] -> width) < x ) continue;	// no
+			if( (wm_list_base_address[ i ] -> y + wm_list_base_address[ i ] -> height) < y ) continue;	// no
 
 			// return a pointer to an object
 			return wm_list_base_address[ i ];
@@ -193,33 +209,30 @@ void wm_object_move( int16_t x, int16_t y ) {
 	wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 }
 
-uint8_t wm_object_move_up( void ) {
-	// replace occured
-	uint8_t replaced = FALSE;
-
+uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object ) {
 	// find object at list
 	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
 		// object located?
-		if( wm_list_base_address[ i ] != wm_object_selected ) continue;	// no
+		if( wm_list_base_address[ i ] != object ) continue;	// no
 
 		// move all objects in place of selected
-		for( uint16_t j = i + 1; j < wm_list_limit; j++ ) {
+		for( uint16_t j = i; j < wm_list_limit; j++ ) {
 			// next object will be a taskbar?
-			if( wm_list_base_address[ j ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) break;
+			if( wm_list_base_address[ j + 1 ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) break;
 
 			// no, move the next object to the current position
-			wm_list_base_address[ j - 1 ] = wm_list_base_address[ j ];
-
-			// put the object back in its new position
-			wm_list_base_address[ j ] = wm_object_selected;
-
-			// object changed position
-			replaced = TRUE;
+			wm_list_base_address[ i++ ] = wm_list_base_address[ j + 1 ];
 		}
+
+		// put the object back in its new position
+		wm_list_base_address[ i ] = object;
+
+		// object changed position
+		return TRUE;
 	}
 
 	// object not found
-	return replaced;
+	return FALSE;
 }
 
 void wm_object_remove( struct WM_STRUCTURE_OBJECT *object ) {
@@ -258,6 +271,9 @@ void wm_object_remove( struct WM_STRUCTURE_OBJECT *object ) {
 		// object is visible?
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) wm_object_active = wm_list_base_address[ i ];	// set as active
 	}
+
+	// update taskbar status
+	wm_taskbar_semaphore = TRUE;
 
 	// release old entry in object table
 	object -> descriptor = (void *) EMPTY;

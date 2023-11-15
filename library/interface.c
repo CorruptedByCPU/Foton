@@ -100,6 +100,13 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// print new header
 	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> length, STD_COLOR_WHITE, pixel + (4 * interface -> width) + 4, interface -> width, LIB_FONT_ALIGN_left );
+
+	// synchronize header name with window
+	interface -> descriptor -> length = interface -> length;
+	for( uint8_t i = 0; i < interface -> length; i++ ) interface -> descriptor -> name[ i ] = interface -> name[ i ];
+
+	// inform Window Manager about new window name
+	interface -> descriptor -> flags |= STD_WINDOW_FLAG_name;
 }
 
 void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
