@@ -141,7 +141,13 @@
 	#define	STD_IPC_SIZE_byte				40
 
 	#define	STD_IPC_TYPE_keyboard				0x00
+	#define	STD_IPC_TYPE_mouse				0x01
 	#define	STD_IPC_TYPE_event				0xFF
+
+	#define	STD_IPC_MOUSE_BUTTON_left			0b00000001
+	#define	STD_IPC_MOUSE_BUTTON_right			0b00000010
+	#define	STD_IPC_MOUSE_BUTTON_middle			0b00000100
+	#define	STD_IPC_MOUSE_BUTTON_release			0b10000000
 
 	struct	STD_IPC_STRUCTURE {
 		volatile uint64_t	ttl;
@@ -157,6 +163,12 @@
 	struct	STD_IPC_STRUCTURE_KEYBOARD {
 		struct STD_IPC_STRUCTURE_DEFAULT	ipc;
 		uint16_t	key;
+	} __attribute__( (packed) );
+
+	struct	STD_IPC_STRUCTURE_MOUSE {
+		struct STD_IPC_STRUCTURE_DEFAULT	ipc;
+		uint8_t		button;
+		int16_t		scroll;
 	} __attribute__( (packed) );
 
 	struct STD_IPC_STRUCTURE_WINDOW {
@@ -318,6 +330,7 @@
 	#define	STD_WINDOW_FLAG_fixed_z		0b0000000000001000
 	#define	STD_WINDOW_FLAG_release		0b0000000000010000	// window marked as ready to be removed
 	#define	STD_WINDOW_FLAG_name		0b0000000000100000
+	#define	STD_WINDOW_FLAG_minimize	0b0000000001000000
 	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
 	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
 

@@ -48,11 +48,11 @@ void wm_event( void ) {
 	// incomming key?
 	if( key ) {
 		// properties of keyboard message
-		struct STD_IPC_STRUCTURE_KEYBOARD *message = (struct STD_IPC_STRUCTURE_KEYBOARD *) &data;
+		struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &data;
 
 		// IPC type
-		message -> ipc.type = STD_IPC_TYPE_keyboard;
-		message -> key = key;	// and key code
+		keyboard -> ipc.type = STD_IPC_TYPE_keyboard;
+		keyboard -> key = key;	// and key code
 
 		// action taken state
 		uint8_t action = FALSE;
@@ -123,8 +123,8 @@ void wm_event( void ) {
 			}
 		}
 		
-		// send key to active object process
-		if( ! action ) std_ipc_send( wm_object_active -> pid, (uint8_t *) message );
+		// send event to active object process
+		if( ! action ) std_ipc_send( wm_object_active -> pid, (uint8_t *) keyboard );
 	}
 
 	// retrieve current mouse status and position
@@ -146,8 +146,8 @@ void wm_event( void ) {
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
 
 		// update pointer position
-		wm_list_base_address[ i ] -> descriptor -> x = wm_list_base_address[ i ] -> x - mouse.x;
-		wm_list_base_address[ i ] -> descriptor -> y = wm_list_base_address[ i ] -> y - mouse.y;
+		wm_list_base_address[ i ] -> descriptor -> x = (wm_object_cursor -> x + delta_x) - wm_list_base_address[ i ] -> x;
+		wm_list_base_address[ i ] -> descriptor -> y = (wm_object_cursor -> y + delta_y) - wm_list_base_address[ i ] -> y;
 	}
 
 	//--------------------------------------------------------------------------
@@ -175,8 +175,21 @@ void wm_event( void ) {
 
 			// if left ALT key is not holded
 			if( ! wm_keyboard_status_alt_left ) {
-				// make object as active 
-				wm_object_active = wm_object_selected;
+				// make object as active if not a taskbar
+				if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_taskbar) ) wm_object_active = wm_object_selected;
+
+				// properties of mouse message
+				struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &data;
+
+				// default values
+				mouse -> ipc.type = STD_IPC_TYPE_mouse;
+				mouse -> scroll = EMPTY;
+
+				// left mouse button pressed
+				mouse -> button = STD_IPC_MOUSE_BUTTON_left;
+
+				// send event to selected object process
+				std_ipc_send( wm_object_selected -> pid, (uint8_t *) mouse );
 
 				// update taskbar status
 				wm_taskbar_semaphore = TRUE;

@@ -9,12 +9,15 @@ void wm_object( void ) {
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
 
 		// object visible and requested flush?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) {
 			// parse whole object area
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
 
 			// request parsed
 			wm_list_base_address[ i ] -> descriptor -> flags ^= STD_WINDOW_FLAG_flush;
+
+			// remove minimize flag (even if not set)
+			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_minimize;
 
 			// redraw cursor too
 			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
@@ -50,6 +53,17 @@ void wm_object( void ) {
 			// update taskbar list
 			wm_taskbar_semaphore = TRUE;
 		}
+	}
+}
+
+void wm_object_active_new( void ) {
+	// search thru object list as far as to taskbar object
+	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
+		// taskbar object?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) break;	// yes
+
+		// object is visible?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) wm_object_active = wm_list_base_address[ i ];
 	}
 }
 

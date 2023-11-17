@@ -3,6 +3,7 @@
 ===============================================================================*/
 
 int64_t	wm_pid = EMPTY;
+int64_t	wm_pid_taskbar = EMPTY;
 
 struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
 
