@@ -55,7 +55,7 @@ void wm_event( void ) {
 		keyboard -> key = key;	// and key code
 
 		// action taken state
-		uint8_t action = FALSE;
+		uint8_t send = TRUE;
 
 		// remember state of special behavior - key, or take action immediately
 		switch( key ) {
@@ -115,16 +115,16 @@ void wm_event( void ) {
 					std_exec( (uint8_t *) "console", 7, EMPTY );
 
 					// do not send this key to current process
-					action = TRUE;
+					send = FALSE;
 				}
 
 				// done
 				break;
 			}
 		}
-		
+
 		// send event to active object process
-		if( ! action ) std_ipc_send( wm_object_active -> pid, (uint8_t *) keyboard );
+		if( send ) std_ipc_send( wm_object_active -> pid, (uint8_t *) keyboard );
 	}
 
 	// retrieve current mouse status and position

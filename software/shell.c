@@ -126,9 +126,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 				// command line if full?
 				if( shell_command_length == SHELL_COMMAND_limit ) continue;	// yes
-				
-				// or special key on hold?
-				if( shell_keyboard_status_alt_left || shell_keyboard_status_ctrl_left ) continue;	// yes
 
 				// store character in command line
 				shell_command[ shell_command_length++ ] = (uint8_t) keyboard -> key;

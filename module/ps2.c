@@ -212,8 +212,6 @@ void driver_ps2_keyboard( void ) {
 			for( uint8_t i = 0; i < DRIVER_PS2_CACHE_limit; i++ )
 				// save key code
 				if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = key; break; }
-
-			if( key < 0x80 ) kernel -> log( (uint8_t *) "[Keyboard] Key: %c\n", key );
 		}
 	}
 

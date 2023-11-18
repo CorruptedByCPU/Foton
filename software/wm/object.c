@@ -25,6 +25,15 @@ void wm_object( void ) {
 
 		// object still in touch with process?
 		if( ! std_pid_check( wm_list_base_address[ i ] -> pid ) ) {	// no
+			// object invisible and marked for delete?
+			if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_release ) {
+				// release object
+				wm_object_remove( i );
+
+				// update taskbar list
+				wm_taskbar_semaphore = TRUE;
+			}
+
 			// object visible?
 			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) {
 				// hide it!
@@ -33,15 +42,6 @@ void wm_object( void ) {
 
 				// mark object for delete
 				wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_release;
-			}
-
-			// object invisible and marked for delete?
-			if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_release ) {
-				// release object
-				wm_object_remove( wm_list_base_address[ i ] );
-
-				// update taskbar list
-				wm_taskbar_semaphore = TRUE;
 			}
 		}
 
@@ -249,46 +249,25 @@ uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object ) {
 	return FALSE;
 }
 
-void wm_object_remove( struct WM_STRUCTURE_OBJECT *object ) {
-	// block modification of object list
-	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) );
+void wm_object_remove( uint16_t i ) {
+	// preserve pointer to object
+	struct WM_STRUCTURE_OBJECT *object = wm_list_base_address[ i ];
 
-	// remove the object from the list of objects
-	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
-		// requested object?
-		if( wm_list_base_address[ i ] == object ) {
-			// move all next objects on list one place backward
-			for( uint64_t j = i; j < wm_list_limit - 1; j++ ) wm_list_base_address[ j ] = wm_list_base_address[ j + 1 ];
-
-			// done
-			break;
-		}
-	}
+	// remove object from list
+	for( uint64_t j = i; j < wm_list_limit - 1; j++ ) wm_list_base_address[ j ] = wm_list_base_address[ j + 1 ];
 
 	// clear last entry
 	wm_list_base_address[ --wm_list_limit ] = EMPTY;
 
-	// release list for modification
-	wm_list_semaphore = UNLOCK;
+	// select new active object
+	wm_object_active_new();
 
-	// release object area
+	// release old object area
 	std_memory_release( (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE );
 
-	// parse object list as far as to taskbar type
-	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
-		// object type: taskbar?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) break;	// yes
-
-		// object type: cursor?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// yes
-
-		// object is visible?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) wm_object_active = wm_list_base_address[ i ];	// set as active
-	}
+	// release old entry in object table
+	object -> descriptor = EMPTY;
 
 	// update taskbar status
 	wm_taskbar_semaphore = TRUE;
-
-	// release old entry in object table
-	object -> descriptor = (void *) EMPTY;
 }

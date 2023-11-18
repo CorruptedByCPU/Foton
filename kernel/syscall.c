@@ -173,11 +173,7 @@ uint8_t kernel_syscall_pid_check( int64_t pid ) {
 		if( ! kernel -> task_base_address[ i ].flags ) continue;	// no
 
 		// found?
-		if( kernel -> task_base_address[ i ].pid == pid ) {
-			// task closed?
-			if( kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_close ) return FALSE;	// yes
-			else return TRUE;	// no, running
-		}
+		if( kernel -> task_base_address[ i ].pid == pid ) return TRUE;
 	}
 
 	// process not found

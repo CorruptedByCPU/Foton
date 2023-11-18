@@ -246,8 +246,8 @@ void kernel_page_deconstruct( uintptr_t *pml4 ) {
 		
 				// for each entry of PML1 array
 				for( uint16_t p1 = 0; p1 < 512; p1++ ) {
-					// entry belongs to task and is not shared between other processes?
-					if( ! (pml1[ p1 ] & KERNEL_PAGE_FLAG_process) || pml1[ p1 ] & KERNEL_PAGE_FLAG_shared ) continue;	// nope
+					// entry belongs to task?
+					if( ! (pml1[ p1 ] & KERNEL_PAGE_FLAG_process) ) continue;	// nope
 				
 					// release page from array
 					kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) );

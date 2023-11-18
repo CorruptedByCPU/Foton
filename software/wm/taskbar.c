@@ -42,7 +42,7 @@ void wm_taskbar_list( void ) {
 	wm_taskbar_limit = EMPTY;
 	for( uint16_t i = 0; i < wm_object_limit; i++ ) {
 		// its own object?
-		if( wm_object_base_address[ i ].descriptor && (wm_object_base_address[ i ].pid == wm_pid || wm_object_base_address[ i ].pid == wm_pid_taskbar) ) continue;	// yes
+		if( ! wm_object_base_address[ i ].descriptor || wm_object_base_address[ i ].pid == wm_pid || wm_object_base_address[ i ].pid == wm_pid_taskbar ) continue;	// yes
 
 		// extend taskbar list
 		wm_taskbar_base_address = (struct WM_STRUCTURE_OBJECT **) realloc( wm_taskbar_base_address, sizeof( struct WM_STRUCTURE_OBJECT * ) * (wm_taskbar_limit + 1) );
@@ -80,7 +80,7 @@ void wm_taskbar_list( void ) {
 }
 
 int64_t wm_taskbar( void ) {
-	// get our PID number
+// get our PID number
 	wm_pid_taskbar = std_pid();
 
 	// prepare space for a taskbar list
