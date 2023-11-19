@@ -80,7 +80,7 @@ void wm_taskbar_list( void ) {
 }
 
 int64_t wm_taskbar( void ) {
-// get our PID number
+	// get our PID number
 	wm_pid_taskbar = std_pid();
 
 	// prepare space for a taskbar list

@@ -20,7 +20,10 @@
 void sheet( int64_t pid ) {
 	// find all childs of parent
 	for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
-		// am i parent of that?
+		// ignore empty entries
+		if( ! kernel -> task_base_address[ i ].flags ) continue;
+
+		// am i parent of that child?
 		if( kernel -> task_base_address[ i ].pid_parent == pid ) {
 			// close all childs of that parent :)
 			sheet( kernel -> task_base_address[ i ].pid );
