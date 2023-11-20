@@ -36,8 +36,24 @@ void wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
-	// properties of assigned image to workbench object
-	struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) &file_wallpaper_start;
+	// properties of file
+	struct STD_FILE_STRUCTURE workbench_file = { EMPTY };
+
+	// properties of image
+	struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = EMPTY;
+
+	// set file path name
+	uint8_t wallpaper_path[ 25 ] = "/system/var/wallpaper.tga";
+	for( uint64_t i = 0; i < sizeof( wallpaper_path ); i++ ) workbench_file.name[ workbench_file.length++ ] = wallpaper_path[ i ];
+
+	// retrieve information about module file
+	if( std_file( (struct STD_FILE_STRUCTURE *) &workbench_file ) ) {
+		// assign area for file
+		workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( workbench_file.length_byte );
+
+		// load file content
+		if( workbench_image ) std_file_read( (struct STD_FILE_STRUCTURE *) &workbench_file, (uintptr_t) workbench_image );
+	}
 
 	// create workbench object
 	wm_object_workbench = wm_object_create( 0, 0, wm_object_cache.width, wm_object_cache.height );
@@ -45,20 +61,32 @@ void wm_init( void ) {
 	// mark it as our
 	wm_object_workbench -> pid = wm_pid;
 
-	// convert image to RGBA
-	uint32_t *tmp_workbench_image = (uint32_t *) malloc( wm_object_workbench -> width * wm_object_workbench -> height * STD_VIDEO_DEPTH_byte );
-	lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, (uint64_t) file_wallpaper_end - (uint64_t) file_wallpaper_start );
-
-	// copy scaled image content to workbench object
+	// properties of workbench area content
 	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	float x_scale_factor = (float) ((float) workbench_image -> width / (float) wm_object_workbench -> width);
-	float y_scale_factor = (float) ((float) workbench_image -> height / (float) wm_object_workbench -> height);
-	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
-		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
-			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
 
-	// release temporary image
-	free( tmp_workbench_image );
+	// if default wallpaper file found
+	if( workbench_image ) {
+		// convert image to RGBA
+		uint32_t *tmp_workbench_image = (uint32_t *) malloc( wm_object_workbench -> size_byte );
+		lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file.length_byte );
+
+		// copy scaled image content to workbench object
+		float x_scale_factor = (float) ((float) workbench_image -> width / (float) wm_object_workbench -> width);
+		float y_scale_factor = (float) ((float) workbench_image -> height / (float) wm_object_workbench -> height);
+		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
+			for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
+				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
+
+		// release temporary image
+		// free( tmp_workbench_image );
+
+		// release file content
+		// free( workbench_image );
+	} else
+		// fill workbench with default color
+		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
+			for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
+				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = STD_COLOR_BLACK;
 
 	// object content ready for display
 	wm_object_workbench -> descriptor -> flags |= STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
@@ -80,17 +108,48 @@ void wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
-	// properties of assigned image to cursor object
-	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) &file_cursor_start;
+	// properties of file
+	struct STD_FILE_STRUCTURE cursor_file = { EMPTY };
 
-	// create cursor object
-	wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
+	// properties of image
+	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = EMPTY;
+
+	// set file path name
+	uint8_t cursor_path[ 22 ] = "/system/var/cursor.tga";
+	for( uint64_t i = 0; i < sizeof( cursor_path ); i++ ) cursor_file.name[ cursor_file.length++ ] = cursor_path[ i ];
+
+	// retrieve information about module file
+	if( std_file( (struct STD_FILE_STRUCTURE *) &cursor_file ) ) {
+		// assign area for file
+		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( cursor_file.length_byte );
+
+		// load file content
+		if( cursor_image ) std_file_read( (struct STD_FILE_STRUCTURE *) &cursor_file, (uintptr_t) cursor_image );
+
+		// create cursor object
+		wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
+	} else
+		// create default object
+		wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, 16, 32 );
 
 	// mark it as our
 	wm_object_cursor -> pid = wm_pid;
 
-	// copy image content to cursor object
-	lib_image_tga_parse( (uint8_t *) cursor_image, (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )), (uint64_t) file_cursor_end - (uint64_t) file_cursor_start );
+	// properties of cursor area content
+	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+
+	// if default cursor file found
+	if( cursor_image ) {
+		// copy image content to cursor object
+		lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file.length_byte );
+
+		// release file content
+		// free( cursor_image );
+	} else
+		// fill cursor with default color
+		for( uint16_t y = 0; y < wm_object_cursor -> height; y++ )
+			for( uint16_t x = 0; x < wm_object_cursor -> width; x++ )
+				cursor_pixel[ (y * wm_object_cursor -> width) + x ] = STD_COLOR_WHITE;
 
 	// mark window as cursor, so Window Manager will treat it different than others
 	wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_cursor;

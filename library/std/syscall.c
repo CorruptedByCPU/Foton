@@ -228,3 +228,19 @@ uint64_t std_sleep( uint64_t units ) {
 	// return unsigned value
 	return std_syscall_value_unsigned();
 }
+
+uint64_t std_file( struct STD_FILE_STRUCTURE *file ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE), "D" (file) );
+
+	// return unsigned value
+	return std_syscall_value_unsigned();
+}
+
+void std_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_READ), "D" (file), "S" (target) );
+
+	// return nothing
+	return std_syscall_empty();
+}

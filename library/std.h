@@ -11,6 +11,10 @@
 	#include	"stdarg.h"
 	#include	"./macro.h"
 
+	#ifndef	LIB_VFS
+		#include	"./vfs.h"
+	#endif
+
 	#define	EMPTY						0
 
 	#define	TRUE						1
@@ -107,6 +111,7 @@
 	#define	STD_ERROR_memory_low				-2
 	#define	STD_ERROR_file_not_elf				-3
 	#define	STD_ERROR_file_not_executable			-4
+	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 
 	#define	STD_FILE_MODE_mask				0b0000000111111111
 	#define	STD_FILE_MODE_other_exec			0b0000000000000001
@@ -128,14 +133,15 @@
 	#define	STD_FILE_TYPE_regular_file			0b00010000
 	#define	STD_FILE_TYPE_symbolic_link			0b00100000
 	#define	STD_FILE_TYPE_socket				0b01000000
+	#define	STD_FILE_TYPE_unknown				0b10000000
 
 	struct	STD_FILE_STRUCTURE {
+		uint64_t	id_storage;
 		uint64_t	id;
-		uint64_t	size_byte;
+		uint64_t	length_byte;
 		uint8_t		type;
-		uint16_t	mode;
-		uint16_t	uid;
-		uint16_t	guid;
+		uint8_t		length;
+		uint8_t		name[ LIB_VFS_name_limit ];
 	};
 
 	#define	STD_IPC_SIZE_byte				40
@@ -311,6 +317,8 @@
 	#define	STD_SYSCALL_STREAM_GET				0x14
 	#define	STD_SYSCALL_MEMORY				0x15
 	#define	STD_SYSCALL_SLEEP				0x16
+	#define	STD_SYSCALL_FILE				0x17
+	#define	STD_SYSCALL_FILE_READ				0x18
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -412,6 +420,12 @@
 
 	// releases AP rest of time for N units, returns N left units if sleep is broken
 	uint64_t std_sleep( uint64_t units );	// 1 unit ~ 1/1024 of second
+
+	// returns ID of file if found or EMPTY
+	uint64_t std_file( struct STD_FILE_STRUCTURE *file );
+
+	// loads file content
+	void std_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target );
 
 	#ifdef	SOFTWARE
 		// function definitions

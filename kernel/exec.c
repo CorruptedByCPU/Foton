@@ -38,7 +38,7 @@ static void kernel_exec_cancel( struct KERNEL_EXEC_STRUCTURE_INIT *exec ) {
 		}
 		case 1: {
 			// release workbench area
-			kernel_memory_release( exec -> workbench_address, MACRO_PAGE_ALIGN_UP( exec -> file.size_byte ) >> STD_SHIFT_PAGE );
+			kernel_memory_release( exec -> workbench_address, MACRO_PAGE_ALIGN_UP( exec -> file.length_byte ) >> STD_SHIFT_PAGE );
 		}
 	}
 }
@@ -50,24 +50,29 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// length of exec name
 	uint64_t exec_length = lib_string_word( name, length );
 
-	// retrieve file properties
-	uint8_t path[ 12 + LIB_VFS_name_limit + 1 ] = "/system/bin/";
-	for( uint64_t i = 0; i < exec_length; i++ ) path[ i + 12 ] = name[ i ];
+	// file name length allowed?
+	if( length > (LIB_VFS_name_limit - length) ) return STD_ERROR_syntax_error;	// no
+
+	// set file path name
+	uint8_t path[ 12 ] = "/system/bin/";
+	for( uint64_t i = 0; i < sizeof( path ); i++ ) exec.file.name[ exec.file.length++ ] = path[ i ];
+	for( uint64_t i = 0; i < exec_length; i++ ) exec.file.name[ exec.file.length++ ] = name[ i ];
 
 	// retrieve information about file to execute
-	exec.file = kernel_storage_file( kernel -> storage_root_id, path, 12 + exec_length );
+	exec.file.id_storage = kernel -> storage_root_id;
+	kernel_storage_file( (struct STD_FILE_STRUCTURE *) &exec.file );
 
 	// if file doesn't exist
 	if( ! exec.file.id ) return STD_ERROR_file_not_found;	// yep
 
 	// prepare area for workbench
-	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.file.size_byte ) >> STD_SHIFT_PAGE )) ) return STD_ERROR_memory_low;
+	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.file.length_byte ) >> STD_SHIFT_PAGE )) ) return STD_ERROR_memory_low;
 
 	// checkpoint reached: assigned area for temporary file
 	exec.level++;
 
 	// load file into workbench space
-	kernel_storage_read( kernel -> storage_root_id, exec.file.id, exec.workbench_address );
+	kernel_storage_read( (struct STD_FILE_STRUCTURE *) &exec.file, exec.workbench_address );
 
 	//----------------------------------------------------------------------
 
@@ -260,7 +265,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// release workbench
-	kernel_memory_release( exec.workbench_address, MACRO_PAGE_ALIGN_UP( exec.file.size_byte ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( exec.workbench_address, MACRO_PAGE_ALIGN_UP( exec.file.length_byte ) >> STD_SHIFT_PAGE );
 
 	// map kernel space to process
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) exec.task -> cr3 );

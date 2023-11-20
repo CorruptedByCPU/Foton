@@ -34,7 +34,15 @@ void kernel_init_storage( void ) {
 		if( ! kernel -> storage_base_address[ i ].device_type ) continue;	// leave it
 
 		// properties of file
-		struct STD_FILE_STRUCTURE file = kernel_storage_file( i, (uint8_t *) "/system/bin/init", 16 );
+		struct STD_FILE_STRUCTURE file = { EMPTY };
+
+		// set file path name
+		uint8_t path[ 16 ] = "/system/bin/init";
+		for( uint64_t j = 0; j < sizeof( path ); j++ ) file.name[ file.length++ ] = path[ j ];
+
+		// retrieve properties of file
+		file.id_storage = i;
+		kernel_storage_file( (struct STD_FILE_STRUCTURE *) &file );
 
 		// storage contains requested file?
 		if( file.id ) {	// yes

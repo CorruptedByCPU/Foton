@@ -490,3 +490,17 @@ uint64_t kernel_syscall_sleep( uint64_t units ) {
 	// return remaining units (is sleep was broken)
 	return units;
 }
+
+uint64_t kernel_syscall_file( struct STD_FILE_STRUCTURE *file ) {
+	// retrieve information about file
+	file -> id_storage = kernel -> storage_root_id;
+	kernel_storage_file( file );
+
+	// return file id or EMPTY if not found
+	return file -> id;
+}
+
+void kernel_syscall_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target ) {
+	// load file content	
+	kernel_storage_read( file, target );
+}

@@ -20,38 +20,52 @@ uint8_t lib_vfs_check( uintptr_t address, uint64_t size_byte ) {
 	return FALSE;
 }
 
-struct STD_FILE_STRUCTURE lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, uint8_t *path, uint64_t length ) {
+void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *file ) {
+	// path name index
+	uint64_t i = 0;
+
+	// path name length
+	uint64_t length = file -> length;
+
 	// start from root directory?
-	if( *path == '/' )
+	if( file -> name[ i ] == '/' )
 		// find root directory structure
 		while( vfs[ 0 ].offset != vfs[ 1 ].offset ) vfs = (struct LIB_VFS_STRUCTURE *) vfs[ 1 ].offset;
 
 	// remove all '/' from end of path
-	while( path[ length - 1 ] == '/' ) length--;
+	while( file -> name[ length - 1 ] == '/' ) length--;
 
 	// parse path
 	while( TRUE ) {
 		// remove leading '/'
-		while( *path == '/' ) { path++; length--; };
+		while( file -> name[ i ] == '/' ) { i++; length--; };
 
 		// first file name
-		uint64_t filename_length = lib_string_word_end( path, length, '/' );
+		uint64_t filename_length = lib_string_word_end( (uint8_t *) &file -> name[ i ], length, '/' );
 
 		// select file from current directory structure
-		do { if( vfs -> length == filename_length && lib_string_compare( path, (uint8_t *) vfs -> name, filename_length ) ) break;
+		do { if( vfs -> length == filename_length && lib_string_compare( (uint8_t *) &file -> name[ i ], (uint8_t *) vfs -> name, filename_length ) ) break;
 		} while( (++vfs) -> length );
 
 		// file found?
-		if( ! vfs -> length ) return (struct STD_FILE_STRUCTURE) { EMPTY };	// file not found
+		if( ! vfs -> length ) return;	// no
 
 		// last file from path is requested one?
-		if( length == filename_length && lib_string_compare( path, (uint8_t *) vfs -> name, filename_length ) ) return (struct STD_FILE_STRUCTURE) { (uint64_t) vfs, vfs -> size, vfs -> type, vfs -> mode, vfs -> uid, vfs -> guid };
+		if( length == filename_length && lib_string_compare( (uint8_t *) &file -> name[ i ], (uint8_t *) vfs -> name, filename_length ) ) {
+			// set file properties
+			file -> id = (uint64_t) vfs;		// file identificator / pointer to content
+			file -> length_byte = vfs -> size;	// file size in Bytes
+			file -> type = vfs -> type;		// file type
+
+			// file found
+			return;
+		}
 
 		// change directory
 		vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
 
 		// remove parsed directory from path
-		path += filename_length;
+		i += filename_length;
 		length -= filename_length;
 	}
 }

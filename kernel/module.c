@@ -6,22 +6,27 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	// remember module name length
 	uint64_t name_length = length;
 
-	// retrieve file properties
-	uint8_t path[ 20 + LIB_VFS_name_limit + 1 ] = "/system/lib/modules/";
-	for( uint64_t i = 0; i < name_length; i++ ) path[ i + 20 ] = name[ i ];
+	// properties of file
+	struct STD_FILE_STRUCTURE file = { EMPTY };
 
+	// set file path name
+	uint8_t path[ 20 ] = "/system/lib/modules/";
+	for( uint64_t i = 0; i < sizeof( path ); i++ ) file.name[ file.length++ ] = path[ i ];
+	for( uint64_t i = 0; i < length; i++ ) file.name[ file.length++ ] = name[ i ];
+	
 	// retrieve information about module file
-	struct STD_FILE_STRUCTURE file = kernel_storage_file( kernel -> storage_root_id, path, 20 + name_length );
+	file.id_storage = kernel -> storage_root_id;
+	kernel_storage_file( (struct STD_FILE_STRUCTURE *) &file );
 
 	// if module does not exist
 	if( ! file.id ) return;
 
 	// prepare space for workbench
 	uintptr_t workbench = EMPTY; 
-	if( ! (workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( file.size_byte ) >> STD_SHIFT_PAGE )) ) return;	// no enough memory
+	if( ! (workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( file.length_byte ) >> STD_SHIFT_PAGE )) ) return;	// no enough memory
 
 	// load module into workbench space
-	kernel_storage_read( kernel -> storage_root_id, file.id, workbench );
+	kernel_storage_read( (struct STD_FILE_STRUCTURE *) &file, workbench );
 
 	//----------------------------------------------------------------------
 
@@ -129,7 +134,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	//----------------------------------------------------------------------
 
 	// release workbench
-	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( file.size_byte ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( file.length_byte ) >> STD_SHIFT_PAGE );
 
 	// map kernel space to process
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) module -> cr3 );

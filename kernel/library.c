@@ -45,7 +45,7 @@ static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *tmp ) {
 		}
 		case 2: {
 			// release workbench area
-			kernel_memory_release( tmp -> workbench_address, MACRO_PAGE_ALIGN_UP( tmp -> file.size_byte ) >> STD_SHIFT_PAGE );
+			kernel_memory_release( tmp -> workbench_address, MACRO_PAGE_ALIGN_UP( tmp -> file.length_byte ) >> STD_SHIFT_PAGE );
 		}
 		case 1: {
 			// release library entry
@@ -232,24 +232,26 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	// checkpoint reached: assigned library entry
 	library.level++;
 
-	// retrieve file properties
-	uint8_t path[ 12 + LIB_VFS_name_limit + 1 ] = "/system/lib/";
-	for( uint64_t i = 0; i < length; i++ ) path[ i + 12 ] = name[ i ];
+	// set file path name
+	uint8_t path[ 12 ] = "/system/lib/";
+	for( uint64_t i = 0; i < sizeof( path ); i++ ) library.file.name[ library.file.length++ ] = path[ i ];
+	for( uint64_t i = 0; i < length; i++ ) library.file.name[ library.file.length++ ] = name[ i ];
 
 	// retrieve information about file to execute
-	library.file = kernel_storage_file( kernel -> storage_root_id, (uint8_t *) &path, 12 + length );
+	library.file.id_storage = kernel -> storage_root_id;
+	kernel_storage_file( (struct STD_FILE_STRUCTURE *) &library.file );
 
 	// if file doesn't exist
 	if( ! library.file.id ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
 
 	// prepare area for workbench 
-	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.file.size_byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
+	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.file.length_byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
 
 	// checkpoint reached: assigned area for temporary file
 	library.level++;
 
 	// load file into workbench space
-	kernel_storage_read( kernel -> storage_root_id, library.file.id, library.workbench_address );
+	kernel_storage_read( (struct STD_FILE_STRUCTURE *) &library.file, library.workbench_address );
 
 	//----------------------------------------------------------------------
 
@@ -331,7 +333,7 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.entry -> flags |= KERNEL_LIBRARY_FLAG_active;
 
 	// release workbench space
-	kernel_memory_release( library.workbench_address, MACRO_PAGE_ALIGN_UP( library.file.size_byte ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( library.workbench_address, MACRO_PAGE_ALIGN_UP( library.file.length_byte ) >> STD_SHIFT_PAGE );
 
 	// library loaded
 	return TRUE;
