@@ -76,15 +76,45 @@ uint64_t kernel_memory_acquire_secured( struct KERNEL_TASK_STRUCTURE *task, uint
 	// block access to binary memory map (only one at a time)
 	while( __sync_val_compare_and_swap( &task -> memory_semaphore, UNLOCK, LOCK ) );
 
-	// acquire memory area
-	uint64_t acquired = EMPTY;
-	acquired = kernel_memory_acquire( task -> memory_map, N );
+	// search binary memory map for N continuous (p)ages
+	for( uint64_t p = 0; p < kernel -> page_limit; p++ ) {
+		// by default we found N enabled bits
+		uint8_t found = TRUE;
+
+		// check N (c)onsecutive pages
+		for( uint64_t c = p; c < p + N; c++ ) {
+			// broken continous?
+			if( ! (task -> memory_map[ c >> STD_SHIFT_32 ] & 1 << (c & 0b0011111)) ) {
+				// one of the bits is disabled
+				found = FALSE;
+
+				// start looking from next position
+				p = c;
+
+				// restart
+				break;
+			}
+		}
+
+		// if N consecutive pages have been found
+		if( found ) {
+			// mark pages as (r)eserved
+			for( uint64_t r = p; r < p + N; r++ )
+				task -> memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b0011111) );
+
+			// unlock access to binary memory map
+			task -> memory_semaphore = UNLOCK;
+
+			// return address of acquired memory area
+			return p;
+		}
+	}
 
 	// unlock access to binary memory map
 	task -> memory_semaphore = UNLOCK;
 
 	// no available memory area
-	return acquired;
+	return EMPTY;
 }
 
 void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {

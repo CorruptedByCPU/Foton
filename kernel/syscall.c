@@ -55,18 +55,21 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 }
 
 void kernel_syscall_memory_release( uintptr_t source, uint64_t page ) {
+	// change source to first page number
+	source = (source - KERNEL_EXEC_base_address) >> STD_SHIFT_PAGE;
+
 	// task properties
 	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
 
 	// release occupied pages
-	for( uint64_t i = source >> STD_SHIFT_PAGE; i < (source >> STD_SHIFT_PAGE) + page; i++ ) {
+	for( uint64_t i = source; i < source + page; i++ ) {
 		// remove page from paging structure
-		uintptr_t page = kernel_page_remove( (uint64_t *) task -> cr3, i << STD_SHIFT_PAGE );
+		uintptr_t p = kernel_page_remove( (uint64_t *) task -> cr3, (i << STD_SHIFT_PAGE) + KERNEL_EXEC_base_address );
 
 		// if released
-		if( page ) {
+		if( p ) {
 			// return page back to stack
-			kernel_memory_release_page( page );
+			kernel_memory_release_page( p );
 
 			// process memory usage
 			task -> page--;

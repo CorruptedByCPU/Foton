@@ -78,10 +78,10 @@ void wm_init( void ) {
 				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
 
 		// release temporary image
-		// free( tmp_workbench_image );
+		free( tmp_workbench_image );
 
 		// release file content
-		// free( workbench_image );
+		free( workbench_image );
 	} else
 		// fill workbench with default color
 		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
@@ -144,7 +144,7 @@ void wm_init( void ) {
 		lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file.length_byte );
 
 		// release file content
-		// free( cursor_image );
+		free( cursor_image );
 	} else
 		// fill cursor with default color
 		for( uint16_t y = 0; y < wm_object_cursor -> height; y++ )
