@@ -11,11 +11,11 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of Graphical User Interface
 	//----------------------------------------------------------------------
-	// #include	"./gui/config.h"
 	#include	"./wm/config.h"
 	//----------------------------------------------------------------------
 	// variables, routines, procedures
 	//----------------------------------------------------------------------
+	#include	"./console/config.h"
 	#include	"./console/data.c"
 	#include	"./console/vt100.c"
 	#include	"./console/init.c"

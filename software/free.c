@@ -36,17 +36,17 @@ void status( uint64_t total, uint64_t available ) {
 	uint8_t free = ((double) available / (double) total) * (double) width;
 
 	// by default status bar is green
-	print( "\033[38;5;118m" );
+	print( "\e[38;5;118m" );
 
 	// if there is less than half or quartes space, change color
-	if( available < total >> STD_SHIFT_2 ) print( "\033[38;5;226m" );
-	if( available < total >> STD_SHIFT_4 ) print( "\033[38;5;196m" );
+	if( available < total >> STD_SHIFT_2 ) print( "\e[38;5;226m" );
+	if( available < total >> STD_SHIFT_4 ) print( "\e[38;5;196m" );
 
 	// show usage
 	while( used-- ) print( "|" );
 
 	// and show left space in default color
-	printf( "\033[38;5;239m" );
+	printf( "\e[38;5;239m" );
 	while( free-- ) print( "|" );
 
 	// and at last %

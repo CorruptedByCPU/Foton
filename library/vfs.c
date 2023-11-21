@@ -56,6 +56,7 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 			file -> id = (uint64_t) vfs;		// file identificator / pointer to content
 			file -> length_byte = vfs -> size;	// file size in Bytes
 			file -> type = vfs -> type;		// file type
+			file -> mode = vfs -> mode;		// file permissions
 
 			// file found
 			return;

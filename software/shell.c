@@ -17,7 +17,7 @@
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// assign area for command prompt
-	shell_command = (uint8_t *) malloc( SHELL_COMMAND_limit );
+	shell_command = (uint8_t *) malloc( SHELL_COMMAND_limit + 1 );
 
 	// new prompt loop
 	while( TRUE ) {
@@ -29,7 +29,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( stream_meta.x ) print( "\n" );	// no, move cursor to next line
 
 		// show prompt
-		print( "\033[38;5;82m$\033[0m " );
+		print( "\e[38;5;47m$\e[0m " );
 
 		// length of string passed by user
 		uint64_t shell_command_length = EMPTY;
@@ -71,21 +71,24 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 				// if end of line
 				if( keyboard -> key == STD_ASCII_RETURN ) {
-					// empty command line?
-					if( ! shell_command_length ) break;	// show new prompt
-
 					// each process deserves a new line
 					print( "\n" );
-
+		
 					// remove orphaned "white" characters from command line
 					shell_command_length = lib_string_trim( shell_command, shell_command_length );
+
+					// terminate command from previous one
+					shell_command[ shell_command_length ] = STD_ASCII_TERMINATOR;
+
+					// empty command line?
+					if( ! shell_command_length ) break;	// yep, show new prompt
 
 					// try one of internal commands
 
 					// clear entire screen and move cursor at beginning?
 					if( lib_string_compare( shell_command, (uint8_t *) "clear", 5 ) ) {	// yes
 						// send "clear" sequence
-						print( "\033[2J" );
+						print( "\e[2J" );
 
 						// new prompt
 						break;
@@ -98,6 +101,15 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 					// try to run program with given name and parameters
 					int64_t shell_exec_pid = std_exec( shell_command, shell_command_length, EMPTY );
+
+					// something went wrong?
+					if( shell_exec_pid < 0 ) {
+						// show information
+						printf( "Command \e[38;5;196m%s\e[0m not found.", shell_command );
+
+						// new prompt
+						break;
+					}
 
 					// wait for its end if requested
 					if( shell_command[ shell_command_length - 1 ] != '&' ) while( shell_exec_pid && std_pid_check( shell_exec_pid ) ) std_sleep( 1 );	// free up AP time until program execution ends

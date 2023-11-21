@@ -55,6 +55,7 @@
 	#define	STD_ASCII_DIGIT_8				0x38
 	#define	STD_ASCII_DIGIT_9				0x39
 	#define STD_ASCII_COLON					0x3A
+	#define	STD_ASCII_SEMICOLON				0x3B
 	#define STD_ASCII_LOWER_THAN				0x3C
 	#define	STD_ASCII_GREATER_THAN				0x3E
 	#define	STD_ASCII_QUESTION_MARK				0x3F
@@ -140,6 +141,7 @@
 		uint64_t	id;
 		uint64_t	length_byte;
 		uint8_t		type;
+		uint16_t	mode;
 		uint8_t		length;
 		uint8_t		name[ LIB_VFS_name_limit ];
 	};
@@ -485,4 +487,5 @@
 	void log( const char *string, ... );
 	void print( const char *string );
 	void printf( const char *string, ... );
+	void sprintf( const char *string, ... );
 #endif

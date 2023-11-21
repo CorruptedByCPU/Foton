@@ -32,6 +32,8 @@
 		uint16_t	scanline_char;
 		uint16_t	cursor_x;
 		uint16_t	cursor_y;
+		uint16_t	cursor_x_preserved;
+		uint16_t	cursor_y_preserved;
 		uint64_t	cursor_lock;
 	};
 

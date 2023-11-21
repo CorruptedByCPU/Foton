@@ -203,7 +203,6 @@ void wm_event( void ) {
 				if( mouse.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse.y >= wm_object_taskbar -> y )
 					// execute console application
 					std_exec( (uint8_t *) "console", 7, EMPTY );
-					// log( "click!\n" );
 		}
 	} else
 		// release mouse button state

@@ -281,10 +281,25 @@ void printf( const char *string, ... ) {
 
 			// check sequence type
 			switch( string[ s ] ) {
-				// case '%': {
-				// 	// just show '%' character
-				// 	break;
-				// }
+				case '%': {
+					// just show '%' character
+					break;
+				}
+
+				case 's': {
+					// string properties
+					uint8_t *substring = va_arg( argv, uint8_t * );
+					uint64_t length = lib_string_length( substring );
+
+					// resize cache for substring
+					cache = (uint8_t *) realloc( cache, c + length );
+
+					// insert substring into cache
+					for( uint64_t i = 0; i < length; i++ ) cache[ c++ ] = substring[ i ];
+
+					// next character from string
+					continue;
+				}
 
 				case 'u': {
 					// retrieve value
@@ -320,6 +335,81 @@ void printf( const char *string, ... ) {
 
 	// release cached string
 	free( cache );
+
+	// end of arguemnt list
+	va_end( argv );
+}
+
+void sprintf( const char *string, ... ) {
+	// properties of argument list
+	va_list argv;
+
+	// start of argument list
+	va_start( argv, string );
+
+	// cache for values
+	uint8_t digits[ 64 ];
+
+	// area for output string and its index
+	uint64_t c = 0;
+	uint8_t *cache = va_arg( argv, uint8_t * );
+
+	// for every character from string
+	uint64_t length = lib_string_length( (uint8_t *) string );
+	for( uint64_t s = 0; s < length; s++ ) {
+		// special character?
+		if( string[ s ] == '%' ) {	
+			// prefix before type?
+			uint64_t prefix = lib_string_length_scope_digit( (uint8_t *) &string[ ++s ] );
+			uint64_t p_value = lib_string_to_integer( (uint8_t *) &string[ s ], 10 );
+
+			// omit prefix value if existed
+			s += prefix;
+
+			// check sequence type
+			switch( string[ s ] ) {
+				case '%': {
+					// just show '%' character
+					break;
+				}
+
+				case 's': {
+					// string properties
+					uint8_t *substring = va_arg( argv, uint8_t * );
+					uint64_t length = lib_string_length( substring );
+
+					// insert substring into cache
+					for( uint64_t i = 0; i < length; i++ ) cache[ c++ ] = substring[ i ];
+
+					// next character from string
+					continue;
+				}
+
+				case 'u': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// convert value to string
+					uint8_t v = lib_integer_to_string( value, 10, (uint8_t *) &digits );
+
+					// set prefix before value if higher than value ifself
+					while( p_value-- > v ) {
+						// insert prefix before value
+						cache[ c++ ] = STD_ASCII_SPACE;
+					}
+
+					// insert valuse string into cache
+					for( uint8_t i = 0; i < v; i++ ) cache[ c++ ] = digits[ i ];
+
+					// next character from string
+					continue;
+				}
+			}
+		}
+
+		// insert character into cache
+		cache[ c++ ] = string[ s ];
+	}
 
 	// end of arguemnt list
 	va_end( argv );

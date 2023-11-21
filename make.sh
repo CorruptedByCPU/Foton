@@ -25,9 +25,9 @@ C="clang -include ./library/std.h"
 LD="ld.lld"
 ASM="nasm"
 
-# default optimization -O2, but it's always easier to debug kernel/software with "z" flag
+# default optimization -Oz
 OPT="${1}"
-if [ -z "${OPT}" ]; then OPT="fast"; fi
+if [ -z "${OPT}" ]; then OPT="z"; fi
 
 # build subroutines required by kernel
 EXT=""
