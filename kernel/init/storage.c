@@ -52,6 +52,9 @@ void kernel_init_storage( void ) {
 			// kernels storage device
 			kernel -> task_base_address -> storage = i;
 
+			// kernels root directory
+			kernel -> task_base_address -> directory = kernel -> storage_base_address[ i ].device_block;
+
 			#ifdef	DEBUG
 				kernel -> log( (uint8_t *) "Storage: %u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].device_size_byte ) >> STD_SHIFT_1024 );
 			#endif

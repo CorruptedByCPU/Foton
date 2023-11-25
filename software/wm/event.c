@@ -200,9 +200,12 @@ void wm_event( void ) {
 			// if left ALT key is not holded
 			if( ! wm_keyboard_status_alt_left )
 				// menu button click?
-				if( mouse.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse.y >= wm_object_taskbar -> y )
+				if( mouse.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse.y >= wm_object_taskbar -> y ) {
+					MACRO_DEBUF();
+
 					// execute console application
 					std_exec( (uint8_t *) "console", 7, EMPTY );
+				}
 		}
 	} else
 		// release mouse button state
