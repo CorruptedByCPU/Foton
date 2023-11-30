@@ -5,6 +5,7 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
+	#include	"../library/string.h"
 	#include	"../library/vfs.h"
 	//----------------------------------------------------------------------
 	// variables, routines, procedures
@@ -19,16 +20,22 @@
 	uint8_t	show_properties	= FALSE;
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
+	// user selected file/directory?
+	if( argc > 1 ) {	// yes
+		// load content of selected file/directory
+		for( uint8_t i = 0; i < lib_string_length( argv[ 1 ] ); i++ ) file.name[ file.length++ ] = argv[ 1 ][ i ];
+	} else {	// no
+		// load content of current directory
+		uint8_t path[] = ".";
+		for( uint8_t i = 0; i < sizeof( path ) - 1; i++ ) file.name[ file.length++ ] = path[ i ];
+	}
+
 	//----------------------------------------------------------------------
 
 	// retrieve stream meta data
 	std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT );
 
 	//----------------------------------------------------------------------
-
-	// load content of current directory
-	uint8_t path[] = "/system/lib";
-	for( uint8_t i = 0; i < sizeof( path ) - 1; i++ ) file.name[ file.length++ ] = path[ i ];
 
 	// retrieve properties of current directory content
 	if( ! std_file( (struct STD_FILE_STRUCTURE *) &file ) ) return -1;	// file not found

@@ -38,6 +38,7 @@
 	#define	STD_ASCII_DOLLAR				0x24
 	#define STD_ASCII_PERCENT				0x25
 	#define	STD_ASCII_AMPERSAND				0x26
+	#define	STD_ASCII_APOSTROPHE				0x27
 	#define	STD_ASCII_ASTERISK				0x2A
 	#define	STD_ASCII_PLUS					0x2B
 	#define	STD_ASCII_COMMA					0x2C
@@ -430,6 +431,11 @@
 	void std_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target );
 
 	#ifdef	SOFTWARE
+		struct	STD_STRUCTURE_ENTRY {
+			uint64_t	length;
+			uint8_t		*string;
+		} __attribute__( (packed) );
+
 		// function definitions
 
 		// requests syscall and returns nothing
@@ -439,13 +445,33 @@
 		extern int64_t _main( uint64_t argc, uint8_t *argv[] );
 
 		// initialization of process environment
-		void _entry( void ) {
+		void _entry( struct STD_STRUCTURE_ENTRY entry ) {
 			// sad hack :|
 			__asm__ volatile( "testw $0x08, %sp\nje .+4\npushq $0x00" );
 
+			// amount of args inside string
+			uint64_t argc = 1;	// command itself is always an argument
+			for( uint64_t i = 0; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) { argc++; for( ; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) break; }
+
+			// allocate memory for argv vectors
+			uint8_t *argv[ argc ];
+
+			// insert pointers to every argument inside string
+			uint64_t arg = 0;
+			for( uint64_t i = 0; i < entry.length; i++ ) {
+				// arg?
+				if( entry.string[ i ] != STD_ASCII_SPACE ) {
+					// save pointer to argument
+					argv[ arg++ ] = (uint8_t *) &entry.string[ i ];
+
+					// search for next arg
+					for( ; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) { entry.string[ i ] = STD_ASCII_TERMINATOR; break; }
+				}
+			}
+
 			// execute process flow
 			int64_t result;	// initialize local variable
-			__asm__ volatile( "call _main" : "=a" (result) );
+			__asm__ volatile( "call _main" : "=a" (result) : "D" (argc), "S" (argv) );
 
 			// execute leave out routine
 			__asm__ volatile( "" :: "a" (STD_SYSCALL_EXIT) );

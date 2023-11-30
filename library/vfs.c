@@ -27,13 +27,21 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 	// path name length
 	uint64_t length = file -> length;
 
-	// start from root directory?
-	if( file -> name[ i ] == '/' )
-		// find root directory structure
-		while( vfs[ 0 ].offset != vfs[ 1 ].offset ) vfs = (struct LIB_VFS_STRUCTURE *) vfs[ 1 ].offset;
-
 	// remove all '/' from end of path
 	while( file -> name[ length - 1 ] == '/' ) length--;
+
+	// empty path?
+	if( ! length ) {
+		// return root directory properties
+
+		// set file properties
+		file -> id = (uint64_t) vfs;		// file identificator / pointer to content
+		file -> length_byte = vfs -> size;	// file size in Bytes
+		file -> type = vfs -> type;		// file type
+
+		// file found
+		return;
+	}
 
 	// parse path
 	while( TRUE ) {
@@ -56,7 +64,6 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 			file -> id = (uint64_t) vfs;		// file identificator / pointer to content
 			file -> length_byte = vfs -> size;	// file size in Bytes
 			file -> type = vfs -> type;		// file type
-			file -> mode = vfs -> mode;		// file permissions
 
 			// file found
 			return;

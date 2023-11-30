@@ -270,6 +270,13 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// map kernel space to process
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) exec.task -> cr3 );
 
+	//----------------------------------------------------------------------
+
+	// exec inherites root directory of parent
+	exec.task -> directory = parent -> directory;
+
+	//----------------------------------------------------------------------
+
 	// process ready to run
 	exec.task -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
 

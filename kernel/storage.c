@@ -34,8 +34,20 @@ void kernel_storage_file( struct STD_FILE_STRUCTURE *file ) {
 	// different approach, regarded of device type
 	switch( kernel -> storage_base_address[ file -> id_storage ].device_type ) {
 		case KERNEL_STORAGE_TYPE_vfs: {
+			// properties of root Virtual File System
+			struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ file -> id_storage ].device_block;
+
+			// search from current task directory?
+			if( file -> name[ 0 ] != '/' ) {
+				// properties of task
+				struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+
+				// choose task directory
+				vfs = (struct LIB_VFS_STRUCTURE *) task -> directory;
+			}
+
 			// return properties of file
-			lib_vfs_file( (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ file -> id_storage ].device_block, file );
+			lib_vfs_file( vfs, file );
 		}
 	}
 };
