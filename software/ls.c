@@ -65,7 +65,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	}
 
 	// prepare column movement sequence
-	uint8_t column_string[ ] = { EMPTY };
+	uint8_t column_string[ 8 + 1 ] = { EMPTY };
 	sprintf( "\e[%uC", (uint8_t *) &column_string, column_width + LS_MARGIN );
 
 	// parse each file

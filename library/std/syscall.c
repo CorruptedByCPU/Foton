@@ -244,3 +244,11 @@ void std_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target ) {
 	// return nothing
 	return std_syscall_empty();
 }
+
+uint8_t std_cd( uint8_t *path ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_CD), "D" (path) );
+
+	// return TRUE/FALSE
+	return std_syscall_bool();
+}

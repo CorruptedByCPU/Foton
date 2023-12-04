@@ -30,6 +30,7 @@ extern	kernel_syscall_memory
 extern	kernel_syscall_sleep
 extern	kernel_syscall_file
 extern	kernel_syscall_file_read
+extern	kernel_syscall_cd
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -68,6 +69,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_sleep
 	dq	kernel_syscall_file
 	dq	kernel_syscall_file_read
+	dq	kernel_syscall_cd
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

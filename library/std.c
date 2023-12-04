@@ -253,6 +253,11 @@ void print( const char *string ) {
 	std_stream_out( (uint8_t *) string, lib_string_length( (uint8_t *) string ) );
 }
 
+void putc( uint8_t character ) {
+	// send to default output
+	std_stream_out( (uint8_t *) &character, 1 );
+}
+
 void printf( const char *string, ... ) {
 	// properties of argument list
 	va_list argv;
@@ -284,6 +289,17 @@ void printf( const char *string, ... ) {
 				case '%': {
 					// just show '%' character
 					break;
+				}
+
+				case 'c': {
+					// resize cache for substring
+					cache = (uint8_t *) realloc( cache, c + 1 );
+
+					// insert substring into cache
+					cache[ c++ ] = va_arg( argv, uint64_t );
+
+					// next character from string
+					continue;
 				}
 
 				case 's': {
@@ -371,6 +387,17 @@ void sprintf( const char *string, ... ) {
 				case '%': {
 					// just show '%' character
 					break;
+				}
+
+				case 'c': {
+					// resize cache for substring
+					cache = (uint8_t *) realloc( cache, c + 1 );
+
+					// insert substring into cache
+					cache[ c++ ] = va_arg( argv, uint64_t );
+
+					// next character from string
+					continue;
 				}
 
 				case 's': {

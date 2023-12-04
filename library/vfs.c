@@ -60,6 +60,11 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 
 		// last file from path is requested one?
 		if( length == filename_length && lib_string_compare( (uint8_t *) &file -> name[ i ], (uint8_t *) vfs -> name, filename_length ) ) {
+			// MACRO_DEBUF();
+
+			// symbolic link selected?
+			// while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+
 			// set file properties
 			file -> id = (uint64_t) vfs;		// file identificator / pointer to content
 			file -> length_byte = vfs -> size;	// file size in Bytes

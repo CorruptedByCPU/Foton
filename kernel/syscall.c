@@ -31,8 +31,8 @@ void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *frame
 }
 
 uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
-	// task properties
-	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
@@ -58,8 +58,8 @@ void kernel_syscall_memory_release( uintptr_t source, uint64_t page ) {
 	// change source to first page number
 	source = (source - KERNEL_EXEC_base_address) >> STD_SHIFT_PAGE;
 
-	// task properties
-	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// release occupied pages
 	for( uint64_t i = source; i < source + page; i++ ) {
@@ -303,8 +303,8 @@ uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
 }
 
 uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
-	// retrieve stream output of current task
-	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// stream closed or full?
 	if( task -> stream_out -> flags & KERNEL_STREAM_FLAG_closed || task -> stream_out -> length_byte == STD_STREAM_SIZE_page << STD_SHIFT_PAGE ) return FALSE;	// yes
@@ -475,8 +475,8 @@ void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 }
 
 uint64_t kernel_syscall_sleep( uint64_t units ) {
-	// properties of current task
-	struct KERNEL_TASK_STRUCTURE *task = kernel -> task_cpu_address[ kernel_lapic_id() ];
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// mark task as sleeping
 	task -> flags |= KERNEL_TASK_FLAG_sleep;
@@ -506,4 +506,27 @@ uint64_t kernel_syscall_file( struct STD_FILE_STRUCTURE *file ) {
 void kernel_syscall_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target ) {
 	// load file content	
 	kernel_storage_read( file, target );
+}
+
+uint8_t kernel_syscall_cd( uint8_t *path ) {
+	MACRO_DEBUF();
+
+	// properties of file
+	struct STD_FILE_STRUCTURE file;
+
+	// retrieve information about file
+	file.id_storage = kernel -> storage_root_id;
+	kernel_storage_file( (struct STD_FILE_STRUCTURE *) &file );
+
+	// it is a directory?
+	if( ! (file.type & STD_FILE_TYPE_directory) ) return FALSE;	// no
+
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+
+	// set new root directory of current process
+	task -> directory = (struct LIB_VFS_STRUCTURE *) file.id;
+
+	// directory changed
+	return TRUE;
 }

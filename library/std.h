@@ -322,6 +322,7 @@
 	#define	STD_SYSCALL_SLEEP				0x16
 	#define	STD_SYSCALL_FILE				0x17
 	#define	STD_SYSCALL_FILE_READ				0x18
+	#define	STD_SYSCALL_CD					0x19
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -429,6 +430,12 @@
 
 	// loads file content
 	void std_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target );
+
+	// print character
+	void putc( uint8_t character );
+
+	// change root directory of current process
+	uint8_t std_cd( uint8_t *path );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

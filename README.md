@@ -35,13 +35,24 @@ You will be able to create your own system profiles, and we will build your own 
 
 |Kernel Modules|Description|
 |-|-|
+|ps2.ko|Failover keyboard & mouse management.|
+|shredder.ko|Garbage Collector|
 |usb.ko|Device management connected via USB controller (UHCI in work)|
 
 |Software|Description|
 |-|-|
-|init||
+|3d| Simple **obj**/**mtl** file viewer and example of **librgl.so** library use. |
+|cat|Show content of selected file.|
+|cd|*{work in progress}*|
+|colors|Shows available color palette for Console/Shell program.|
+|console|Build-in terminal.|
+|free|Usage of all abailable devices in system.|
+|init|*{work in progress}*|
+|ls|Listing of files in current directory or selected one.|
+|pwd|*{work in progress}*|
+|shell|Default command line interaction with operating system.|
 |wm|Windows Manager - display, movement.|
-|3d| Simple **obj**/**mtl** file viewer and example of use **librgl.so** library. |
+
 
 |Libraries|Description|
 |-|-|
