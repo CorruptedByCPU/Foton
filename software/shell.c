@@ -87,14 +87,21 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 					// directory change?
 					if( lib_string_compare( shell_command, (uint8_t *) "cd", 2 ) ) {	// yes
-						// move directory path at beginning of shell_command
-						for( uint8_t i = 2; i < shell_command_length; i++ ) shell_command[ i - 2 ] = shell_command[ i ]; shell_command[ shell_command_length - 2 ] = STD_ASCII_TERMINATOR;
+						// remove "cd"
+						shell_command_length = lib_string_word_remove( shell_command, shell_command_length, STD_ASCII_SPACE );
 
-						// remove orphaned "white" characters from command line
-						shell_command_length = lib_string_trim( shell_command, shell_command_length );
+						// properties of requested directory
+						struct STD_FILE_STRUCTURE file = {EMPTY };
+					
+						// set
 
-						// change directory
-						std_cd( shell_command );
+						// length
+						file.length = shell_command_length;
+						// and name
+						sprintf( (const char *) shell_command, (uint8_t *) &file.name, shell_command_length ); file.name[ shell_command_length ] = STD_ASCII_TERMINATOR;
+
+						// request change of root directory
+						std_cd( (struct STD_FILE_STRUCTURE *) &file );
 
 						// new prompt
 						break;

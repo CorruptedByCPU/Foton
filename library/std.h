@@ -435,7 +435,7 @@
 	void putc( uint8_t character );
 
 	// change root directory of current process
-	uint8_t std_cd( uint8_t *path );
+	uint8_t std_cd( struct STD_FILE_STRUCTURE *file );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

@@ -151,3 +151,25 @@ uint64_t lib_string_word_end( uint8_t *string, uint64_t length, uint8_t separato
 	// the whole string is "word"
 	return length;
 }
+
+uint64_t lib_string_word_remove( uint8_t *string, uint64_t length, uint8_t separator ) {
+	// remove white spaces from string
+	length = lib_string_trim( string, length );
+
+	// find first separator inside string
+	uint64_t next = 0;
+	while( string[ ++next ] != separator && next < length );
+
+	// if there is no next word, return empty string
+	if( next >= length ) return EMPTY;
+
+	// move all characters inside string "next" positions back
+	uint8_t i = 0;
+	for( ; next < length; i++ ) string[ i ] = string[ next++ ];
+
+	// terminate string in new place
+	string[ i ] = STD_ASCII_TERMINATOR;
+
+	// return new string length (trimmed)
+	return lib_string_trim( string, i );
+}

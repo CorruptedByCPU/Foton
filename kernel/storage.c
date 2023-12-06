@@ -43,11 +43,18 @@ void kernel_storage_file( struct STD_FILE_STRUCTURE *file ) {
 				struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 				// choose task directory
-				vfs = (struct LIB_VFS_STRUCTURE *) task -> directory;
+				vfs = task -> directory;
 			}
 
 			// return properties of file
 			lib_vfs_file( vfs, file );
+
+			// substitute of superblock
+			// ------------------------
+			// if returned properties are about symbolic link of "." or ".."
+			if( lib_string_compare( (uint8_t *) ".", file -> name, file -> length ) || lib_string_compare( (uint8_t *) "..", file -> name, file -> length ) )
+				// change file type to DIRECTORY
+				file -> type = STD_FILE_TYPE_directory;
 		}
 	}
 };

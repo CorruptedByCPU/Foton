@@ -508,24 +508,20 @@ void kernel_syscall_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target
 	kernel_storage_read( file, target );
 }
 
-uint8_t kernel_syscall_cd( uint8_t *path ) {
-	MACRO_DEBUF();
-
-	// properties of file
-	struct STD_FILE_STRUCTURE file;
-
+uint8_t kernel_syscall_cd( struct STD_FILE_STRUCTURE *file ) {
 	// retrieve information about file
-	file.id_storage = kernel -> storage_root_id;
-	kernel_storage_file( (struct STD_FILE_STRUCTURE *) &file );
+	file -> id_storage = kernel -> storage_root_id;
+	kernel_storage_file( file );
 
 	// it is a directory?
-	if( ! (file.type & STD_FILE_TYPE_directory) ) return FALSE;	// no
+	if( ! (file -> type & STD_FILE_TYPE_directory) ) return FALSE;	// no
 
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// set new root directory of current process
-	task -> directory = (struct LIB_VFS_STRUCTURE *) file.id;
+	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) file -> id;
+	task -> directory = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
 
 	// directory changed
 	return TRUE;
