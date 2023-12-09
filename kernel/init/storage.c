@@ -16,12 +16,26 @@ void kernel_init_storage( void ) {
 			// register device of type VFS
 			struct KERNEL_STORAGE_STRUCTURE *storage = kernel_storage_register( KERNEL_STORAGE_TYPE_vfs );
 
+			// prepare superblock of new VFS
+			struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel_memory_alloc( TRUE );
+
+			// properties of root directory
+			superblock -> type = STD_FILE_TYPE_directory;
+			superblock -> mode = STD_FILE_MODE_user_read | STD_FILE_MODE_user_write | STD_FILE_MODE_user_exec | STD_FILE_MODE_group_read | STD_FILE_MODE_group_exec | STD_FILE_MODE_other_read | STD_FILE_MODE_other_exec;
+
+			// root directory name
+			superblock -> length = 1;
+			superblock -> name[ 0 ] = STD_ASCII_SLASH;
+
+			// root directory content offset
+			superblock -> offset = (uint64_t) limine_module_request.response -> modules[ i ] -> address;
+
 			// initialize Virtual File System files offsets
-			kernel_init_vfs( (struct LIB_VFS_STRUCTURE *) limine_module_request.response -> modules[ i ] -> address, (uintptr_t) limine_module_request.response -> modules[ i ] -> address );
+			superblock -> size = kernel_init_vfs( superblock, superblock );
 
 			// set device properties
 			storage -> device_id = EMPTY;
-			storage -> device_block = (uint64_t) limine_module_request.response -> modules[ i ] -> address;
+			storage -> device_block = (uint64_t) superblock;
 
 			// size of this storage
 			storage -> device_size_byte = limine_module_request.response -> modules[ i ] -> size;
@@ -53,7 +67,7 @@ void kernel_init_storage( void ) {
 			kernel -> task_base_address -> storage = i;
 
 			// kernel root directory
-			kernel -> task_base_address -> directory = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ i ].device_block;
+			kernel -> task_base_address -> directory = kernel -> storage_base_address[ i ].device_block;
 
 			#ifdef	DEBUG
 				kernel -> log( (uint8_t *) "Storage: %u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].device_size_byte ) >> STD_SHIFT_1024 );

@@ -33,7 +33,7 @@
 		int64_t			pid_parent;
 		uint64_t		sleep;
 		uint64_t		storage;
-		struct LIB_VFS_STRUCTURE	*directory;
+		uint64_t		directory;
 		uint64_t		page;	// amount of pages assigned to process
 		uint64_t		stack;	// size of stack in Pages
 		struct KERNEL_STREAM_STRUCTURE *stream_in;

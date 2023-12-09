@@ -45,6 +45,9 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 
 	// parse path
 	while( TRUE ) {
+		// start from current directory
+		vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+
 		// remove leading '/'
 		while( file -> name[ i ] == '/' ) { i++; length--; };
 
@@ -61,19 +64,26 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 		// last file from path is requested one?
 		if( length == filename_length && lib_string_compare( (uint8_t *) &file -> name[ i ], (uint8_t *) vfs -> name, filename_length ) ) {
 			// symbolic link selected?
-			while( vfs -> type & STD_FILE_TYPE_symbolic_link ) if( (uintptr_t) vfs != vfs -> offset ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset; else break;
+			while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
 
 			// set file properties
 			file -> id = (uint64_t) vfs;		// file identificator / pointer to content
 			file -> length_byte = vfs -> size;	// file size in Bytes
 			file -> type = vfs -> type;		// file type
 
+			// update name of selected file
+			file -> length = vfs -> length;
+			for( uint64_t j = 0; j < file -> length; j++ ) file -> name[ j ] = vfs -> name[ j ];
+
 			// file found
 			return;
 		}
 
-		// change directory
-		vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+		// symbolic link selected?
+		while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+
+		// if thats not a directory or symbolic
+		if( ! (vfs -> type & STD_FILE_TYPE_directory) ) return;	// failed
 
 		// remove parsed directory from path
 		i += filename_length;

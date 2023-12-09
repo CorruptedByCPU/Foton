@@ -520,8 +520,7 @@ uint8_t kernel_syscall_cd( struct STD_FILE_STRUCTURE *file ) {
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// set new root directory of current process
-	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) file -> id;
-	task -> directory = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+	task -> directory = file -> id;
 
 	// directory changed
 	return TRUE;

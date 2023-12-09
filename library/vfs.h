@@ -20,7 +20,7 @@
 	#define	LIB_VFS_BLOCK_size		4096
 
 	struct LIB_VFS_STRUCTURE {
-		uint64_t	offset;
+		uintptr_t	offset;
 		uint64_t	size;
 		uint16_t	length;
 		uint16_t	mode;

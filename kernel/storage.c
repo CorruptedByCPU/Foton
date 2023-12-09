@@ -37,24 +37,17 @@ void kernel_storage_file( struct STD_FILE_STRUCTURE *file ) {
 			// properties of root Virtual File System
 			struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ file -> id_storage ].device_block;
 
-			// search from current task directory?
+			// search from root directory?
 			if( file -> name[ 0 ] != '/' ) {
 				// properties of task
 				struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-				// choose task directory
-				vfs = task -> directory;
+				// choose task current directory
+				vfs = (struct LIB_VFS_STRUCTURE *) task -> directory;
 			}
 
 			// return properties of file
 			lib_vfs_file( vfs, file );
-
-			// substitute of superblock
-			// ------------------------
-			// if returned properties are about symbolic link of "." or ".."
-			if( lib_string_compare( (uint8_t *) ".", file -> name, file -> length ) || lib_string_compare( (uint8_t *) "..", file -> name, file -> length ) )
-				// change file type to DIRECTORY
-				file -> type = STD_FILE_TYPE_directory;
 		}
 	}
 };

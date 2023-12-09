@@ -2,23 +2,42 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_vfs( struct LIB_VFS_STRUCTURE *vfs, uintptr_t root ) {
-	// current directory address
-	uintptr_t dir = (uintptr_t) vfs;
+uint64_t kernel_init_vfs( struct LIB_VFS_STRUCTURE *vfs, struct LIB_VFS_STRUCTURE *previous ) {
+	// size of this directory
+	uint64_t size_byte = EMPTY;
+
+	// directory properties
+	struct LIB_VFS_STRUCTURE *knot = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
 
 	// for every file
 	do {
 		// default file content address
-		vfs -> offset += dir;
+		knot -> offset += vfs -> offset;
 
 		// modify offset depending on file type
-		switch( vfs -> type ) {
+		switch( knot -> type ) {
 			// for default symbolic links
-			case STD_FILE_TYPE_symbolic_link: { if( vfs -> length == 2 && lib_string_compare( vfs -> name, (uint8_t *) "..", vfs -> length ) ) vfs -> offset = root; break; }
+			case STD_FILE_TYPE_symbolic_link: {
+				// current?
+				if( knot -> length == 1 && knot -> name[ 0 ] == STD_ASCII_DOT ) knot -> offset = (uintptr_t) vfs;
+
+				// previous?
+				if( knot -> length == 2 && knot -> name[ 0 ] == STD_ASCII_DOT && knot -> name[ 1 ] == STD_ASCII_DOT ) knot -> offset = (uintptr_t) previous;
+
+				break;
+			}
 
 			// for directories
-			case STD_FILE_TYPE_directory: { kernel_init_vfs( (struct LIB_VFS_STRUCTURE *) vfs -> offset, dir ); break; }
+			case STD_FILE_TYPE_directory: {
+				// parse directory entries
+				kernel_init_vfs( (struct LIB_VFS_STRUCTURE *) knot, vfs ); break; }
 		}
+
+		// entry parsed
+		size_byte += sizeof( struct LIB_VFS_STRUCTURE );
 	// until end of file list
-	} while( (++vfs) -> length );
+	} while( (++knot) -> length );
+
+	// return directory size in pages
+	return MACRO_PAGE_ALIGN_UP( size_byte );
 }
