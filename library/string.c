@@ -167,6 +167,9 @@ uint64_t lib_string_word_remove( uint8_t *string, uint64_t length, uint8_t separ
 	uint8_t i = 0;
 	for( ; next < length; i++ ) string[ i ] = string[ next++ ];
 
+	// remove white spaces from string
+	i = lib_string_trim( string, i );
+
 	// terminate string in new place
 	string[ i ] = STD_ASCII_TERMINATOR;
 

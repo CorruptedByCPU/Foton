@@ -90,18 +90,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 						// remove "cd"
 						shell_command_length = lib_string_word_remove( shell_command, shell_command_length, STD_ASCII_SPACE );
 
-						// properties of requested directory
-						struct STD_FILE_STRUCTURE file = {EMPTY };
-					
-						// set
-
-						// length
-						file.length = shell_command_length;
-						// and name
-						sprintf( (const char *) shell_command, (uint8_t *) &file.name, shell_command_length ); file.name[ shell_command_length ] = STD_ASCII_TERMINATOR;
-
 						// request change of root directory
-						std_cd( (struct STD_FILE_STRUCTURE *) &file );
+						std_cd( (uint8_t *) shell_command );
 
 						// new prompt
 						break;

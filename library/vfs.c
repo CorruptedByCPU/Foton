@@ -73,7 +73,7 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 
 			// update name of selected file
 			file -> length = vfs -> length;
-			for( uint64_t j = 0; j < file -> length; j++ ) file -> name[ j ] = vfs -> name[ j ];
+			for( uint64_t j = 0; j < file -> length; j++ ) file -> name[ j ] = vfs -> name[ j ]; file -> name[ file -> length ] = STD_ASCII_TERMINATOR;
 
 			// file found
 			return;
