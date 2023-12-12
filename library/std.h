@@ -521,4 +521,5 @@
 	void print( const char *string );
 	void printf( const char *string, ... );
 	void sprintf( const char *string, ... );
+	uint64_t pow( uint64_t base, uint64_t exponent );
 #endif

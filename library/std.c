@@ -302,6 +302,67 @@ void printf( const char *string, ... ) {
 					continue;
 				}
 
+				case '.':
+				case 'f': {
+					// retrieve value
+					double value = va_arg( argv, double );
+
+					// convert value to string
+					uint8_t v_digits = lib_integer_to_string( (uint64_t) value, 10, (uint8_t *) &digits );
+
+					// align
+					while( p_value-- > v_digits ) {
+						// insert space before value
+						cache = (uint8_t *) realloc( cache, c + 1 );
+						cache[ c++ ] = STD_ASCII_SPACE;
+					}
+
+					// resize cache for value
+					cache = (uint8_t *) realloc( cache, c + v_digits );
+
+					// insert prefix of value on cache
+					for( uint8_t i = 0; i < v_digits; i++ ) cache[ c++ ] = digits[ i ];
+
+					// resize cache for delimiter
+					cache = (uint8_t *) realloc( cache, c + 1 );
+
+					// add DOT delimiter
+					cache[ c++ ] = STD_ASCII_DOT;
+
+					MACRO_DEBUF();
+
+					// amount of digits after digit delimiter
+					uint64_t suffix = lib_string_length_scope_digit( (uint8_t *) &string[ ++s ] );
+					uint64_t s_value = lib_string_to_integer( (uint8_t *) &string[ s ], 10 );
+
+					// number of digits after dot
+					uint64_t s_digits = 1;	// fraction magnitude
+					if( s_value ) for( uint8_t m = 0; m < s_value; m++ ) s_digits *= 10;	// additional ZERO in magnitude
+					else s_digits = 1000000;	// if not specified set default
+
+					// convert fraction to string
+					uint8_t f_digits = lib_integer_to_string( (uint64_t) ((double) (value - (uint64_t) value) * (double) s_digits), 10, (uint8_t *) &digits );
+
+					// resize cache for fraction
+					cache = (uint8_t *) realloc( cache, c + f_digits );
+
+					// insert suffix of value on cache
+					for( uint8_t i = 0; i < f_digits; i++ ) cache[ c++ ] = digits[ i ];
+
+					// align
+					while( s_value-- > f_digits ) {
+						// insert space after fraction
+						cache = (uint8_t *) realloc( cache, c + 1 );
+						cache[ c++ ] = STD_ASCII_DIGIT_0;
+					}
+
+					// omit suffix value if existed
+					s += suffix;
+
+					// next character from string
+					continue;
+				}
+
 				case 's': {
 					// string properties
 					uint8_t *substring = va_arg( argv, uint8_t * );
@@ -440,4 +501,24 @@ void sprintf( const char *string, ... ) {
 
 	// end of arguemnt list
 	va_end( argv );
+}
+
+uint64_t pow( uint64_t base, uint64_t exponent ) {
+	// resulf by default
+	uint64_t result = 1;
+
+	// until exponent exist
+	while( exponent ) {
+		// calculate
+		if( (exponent & 1) == 1) result *= base;
+
+		// remove exponent fraction
+		exponent >>= 1;
+
+		// change power of
+		base *= base;
+	}
+
+	// return result
+	return result;
 }

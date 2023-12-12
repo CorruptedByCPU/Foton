@@ -19,12 +19,42 @@
 	uint8_t show_hidden	= FALSE;
 	uint8_t	show_properties	= FALSE;
 
+uint8_t ls_units[] = { ' ', 'K', 'M', 'G', 'T' };
+
+void ls_format( uint64_t bytes ) {
+	// unity type
+	uint8_t unit = 0;	// bytes by default
+	while( pow( 1024, unit ) < bytes ) unit++;
+
+	// show higher units?
+	if( unit ) printf( "\e[0m %4.1f\e[38;5;241m%c ", (float) bytes / (float) pow( 1024, unit - 1 ), ls_units[ unit - 1] );
+	else printf( "%9u ", bytes );	// only Bytes
+}
+
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	// user selected file/directory?
+	// some arguments provided?
 	if( argc > 1 ) {	// yes
-		// load content of selected file/directory
-		for( uint8_t i = 0; i < lib_string_length( argv[ 1 ] ); i++ ) file.name[ file.length++ ] = argv[ 1 ][ i ];
-	} else {	// no
+		for( uint64_t i = 1; i < argc; i++ ) {	// change behavior
+			// option?
+			if( argv[ i ][ 0 ] == '-' ) {
+				// options
+				uint8_t o = EMPTY;
+				while( argv[ i ][ ++o ] ) {
+					// show hidden?
+					if( argv[ i ][ o ] == 'a' ) show_hidden = TRUE;	// yes
+
+					// properties of every file?
+					if( argv[ i ][ o ] == 'l' ) show_properties = TRUE;	// yes
+				}
+			// then should be path to file/directory
+			} else
+				// load content of first selected file/directory
+				if( ! file.length ) for( uint8_t j = 0; j < lib_string_length( argv[ i ] ); j++ ) file.name[ file.length++ ] = argv[ i ][ j ];
+		}
+	}
+	
+	// if file/directory still not selected
+	if( ! file.length ) {
 		// load content of current directory
 		uint8_t path[] = ".";
 		for( uint8_t i = 0; i < sizeof( path ) - 1; i++ ) file.name[ file.length++ ] = path[ i ];
@@ -71,7 +101,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// parse each file
 	for( uint64_t i = 0; i < file_limit; i++ ) {
 		// show hidden?
-		if( *vfs[ i ].name == '.' && ! show_hidden ) continue;	// no
+		if( vfs[ i ].name[ 0 ] == '.' && ! show_hidden ) continue;	// no
+
+		// properties mode?
+		if( show_properties )
+			// size of file
+			ls_format( vfs[ i ].size );
 
 		// cannot fit name in this column?
 		if( column + vfs[ i ].length + LS_MARGIN > stream_meta.width ) {
@@ -94,6 +129,15 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			}
 			case STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
 			case STD_FILE_TYPE_symbolic_link: { print( "\e[38;5;45m" ); break; }
+		}
+
+		// properties mode?
+		if( show_properties ) {
+			// name of file
+			printf( "%s\n", (uint8_t *) &vfs[ i ].name );
+
+			// next file
+			continue;
 		}
 
 		// show file name

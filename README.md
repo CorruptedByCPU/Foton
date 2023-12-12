@@ -41,17 +41,20 @@ You will be able to create your own system profiles, and we will build your own 
 
 |Software|Description|
 |-|-|
-|3d| Simple **obj**/**mtl** file viewer and example of **librgl.so** library use. |
-|cat|Show content of selected file.|
-|cd|*{work in progress}*|
-|colors|Shows available color palette for Console/Shell program.|
-|console|Build-in terminal.|
-|free|Usage of all abailable devices in system.|
-|init|*{work in progress}*|
-|ls|Listing of files in current directory or selected one.|
-|pwd|*{work in progress}*|
-|shell|Default command line interaction with operating system.|
-|wm|Windows Manager - display, movement.|
+|3d|simple **obj**/**mtl** file viewer and example of **librgl.so** library use. |
+|cat|show content of selected file.|
+|cd|change current root directory, *internal command of shell*|
+|colors|shows available color palette for Console/Shell program.|
+|console|build-in terminal.|
+|free|usage of all abailable devices in system.|
+|init|*{work in progress}* **keeps watch over running programs (window manager)**|
+|ls|listing of files in current directory or selected one.|
+|moko|*{work in progress}* **text editor**|
+|pwd|show current path of root directory|
+|shell|default command line interaction with operating system.|
+|soler|*{work in progress}* **calculator**|
+|top|*{work in progress}*|
+|wm|windows wanager - display, movement.|
 
 
 |Libraries|Description|
@@ -63,6 +66,6 @@ You will be able to create your own system profiles, and we will build your own 
 |libmath.so|Trigonometric functions.|
 |librgl.so|3D object management.|
 |libstd.so|Standard library of Foton OS.|
-|libstring.so||
+|libstring.so|String manipulation library *(compare, length, trim etc.)*|
 |libterminal.so|Text mode display management.|
 |libvfs.so||
