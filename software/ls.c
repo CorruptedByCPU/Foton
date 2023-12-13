@@ -32,6 +32,10 @@ void ls_format( uint64_t bytes ) {
 }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
+	// by default load current directory content
+	uint8_t path[] = ".";
+	for( uint8_t i = 0; i < sizeof( path ) - 1; i++ ) file.name[ file.length++ ] = path[ i ];
+
 	// some arguments provided?
 	if( argc > 1 ) {	// yes
 		for( uint64_t i = 1; i < argc; i++ ) {	// change behavior
@@ -47,17 +51,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					if( argv[ i ][ o ] == 'l' ) show_properties = TRUE;	// yes
 				}
 			// then should be path to file/directory
-			} else
-				// load content of first selected file/directory
-				if( ! file.length ) for( uint8_t j = 0; j < lib_string_length( argv[ i ] ); j++ ) file.name[ file.length++ ] = argv[ i ][ j ];
+			} else {
+				// load content of last selected file/directory
+				file.length = EMPTY;
+				for( uint8_t j = 0; j < lib_string_length( argv[ i ] ); j++ ) file.name[ file.length++ ] = argv[ i ][ j ];
+			}
 		}
-	}
-	
-	// if file/directory still not selected
-	if( ! file.length ) {
-		// load content of current directory
-		uint8_t path[] = ".";
-		for( uint8_t i = 0; i < sizeof( path ) - 1; i++ ) file.name[ file.length++ ] = path[ i ];
 	}
 
 	//----------------------------------------------------------------------
@@ -88,7 +87,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	uint64_t file_limit = EMPTY;
 	while( vfs[ file_limit ].length ) {
 		// set longest file name as column width
-		if( column_width < vfs[ file_limit ].length ) column_width = vfs[ file_limit ].length;
+		if( column_width < vfs[ file_limit ].length ) column_width = vfs[ file_limit ].length + LS_MARGIN;
 
 		// next file
 		file_limit++;
@@ -96,7 +95,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// prepare column movement sequence
 	uint8_t column_string[ 8 + 1 ] = { EMPTY };
-	sprintf( "\e[%uC", (uint8_t *) &column_string, column_width + LS_MARGIN );
+	sprintf( "\e[%uC", (uint8_t *) &column_string, column_width );
 
 	// parse each file
 	for( uint64_t i = 0; i < file_limit; i++ ) {
@@ -109,7 +108,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			ls_format( vfs[ i ].size );
 
 		// cannot fit name in this column?
-		if( column + vfs[ i ].length + LS_MARGIN > stream_meta.width ) {
+		if( column + vfs[ i ].length > stream_meta.width ) {
 			// start from new line
 			print( "\n" );
 

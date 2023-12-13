@@ -45,6 +45,22 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// main loop
 	while( TRUE ) {
+		// incomming message
+		uint8_t ipc_data[ STD_IPC_SIZE_byte ];
+		if( std_ipc_receive( (uint8_t *) &ipc_data ) ) {
+			// properties of incomming message
+			struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &ipc_data;
+
+			// message type: key?
+			if( ipc -> type != STD_IPC_TYPE_keyboard ) continue;	// no
+
+			// properties of Keyboard message
+			struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &ipc_data;
+
+			// close program?
+			if( keyboard -> key == STD_ASCII_ESC ) return 0;
+		}
+
 		// next angle
 		a += 0.01f;
 

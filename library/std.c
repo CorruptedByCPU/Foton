@@ -329,8 +329,6 @@ void printf( const char *string, ... ) {
 					// add DOT delimiter
 					cache[ c++ ] = STD_ASCII_DOT;
 
-					MACRO_DEBUF();
-
 					// amount of digits after digit delimiter
 					uint64_t suffix = lib_string_length_scope_digit( (uint8_t *) &string[ ++s ] );
 					uint64_t s_value = lib_string_to_integer( (uint8_t *) &string[ s ], 10 );

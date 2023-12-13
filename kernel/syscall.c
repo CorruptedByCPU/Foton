@@ -43,6 +43,9 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 		// process memory usage
 		task -> page += page;
 
+		// clean up acquired space
+		kernel_page_clean( KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE), page );
+
 		// return the address of the first page in the collection
 		return KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE);
 	}

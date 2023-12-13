@@ -184,7 +184,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// load executable segments in place
 	for( uint16_t i = 0; i < elf -> h_entry_count; i++ ) {
 		// ignore blank entry or not loadable
- 		if( ! elf_h[ i ].type || ! elf_h[ i ].memory_size || elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load ) continue;
+ 		if( ! elf_h[ i ].type || ! elf_h[ i ].segment_size || ! elf_h[ i ].memory_size || elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load ) continue;
 
 		// segment destination
 		uint8_t *destination = (uint8_t *) ((elf_h[ i ].virtual_address - KERNEL_EXEC_base_address) + exec.base_address);
