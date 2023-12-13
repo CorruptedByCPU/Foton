@@ -374,10 +374,10 @@
 	// returns pid number of calling process
 	int64_t std_pid( void );
 
-	// returns N page sized area regarding of passsed Bytes
+	// returns N page sized area
 	uintptr_t std_memory_alloc( uint64_t page );
 
-	// releases memory area of N Bytes
+	// releases memory area of N pages
 	void std_memory_release( uintptr_t source, uint64_t page );
 
 	// returns ID of newly executed process

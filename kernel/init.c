@@ -94,6 +94,7 @@
 	#include	"init/rtc.c"
 	#include	"init/ipc.c"
 	#include	"init/stream.c"
+	#include	"init/cmd.c"
 
 // our mighty init
 void _entry( void ) {
@@ -154,7 +155,7 @@ void _entry( void ) {
 	kernel_init_module();
 
 	// execute first process
-	kernel_exec( (uint8_t *) "init", 4, EMPTY );
+	kernel_init_cmd();
 
 	// reload BSP configuration
 	kernel_init_ap();

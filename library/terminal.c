@@ -156,23 +156,10 @@ void lib_terminal_drain( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// turn of cursor
 	lib_terminal_cursor_disable( terminal );
 
-	// set pointer to first pixel of video memory area
-	uint32_t *pixel = terminal -> base_address;
-
-	// change all pixels color to DARK
-	for( uint64_t y = 0; y < terminal -> height; y++ ) {
-		for( uint64_t x = 0; x < terminal -> width; x++ )
-			pixel[ x ] = STD_COLOR_BLACK;
-
-		// next line of pixels on framebuffer
-		pixel = (uint32_t *) ((uint64_t) pixel + (terminal -> scanline_pixel << STD_VIDEO_DEPTH_shift));
-	}
-
 	// fill terminal area with solid color
-	for( uint64_t y = 0; y < terminal -> height; y++ ) {
+	for( uint64_t y = 0; y < terminal -> height; y++ )
 		for( uint64_t x = 0; x < terminal -> width; x++ )
 			terminal -> base_address[ (terminal -> scanline_pixel * y) + x ] = terminal -> color_background - (terminal -> alpha << 24);
-	}
 
 	// set new cursor position
 	terminal -> cursor_x = EMPTY;

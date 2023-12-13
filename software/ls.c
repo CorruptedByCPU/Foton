@@ -81,13 +81,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	//----------------------------------------------------------------------
 
 	uint16_t column = 0;
-	uint16_t column_width = 0;
+	uint16_t column_width = LS_MARGIN;
 
 	// amount of files to show
 	uint64_t file_limit = EMPTY;
 	while( vfs[ file_limit ].length ) {
 		// set longest file name as column width
-		if( column_width < vfs[ file_limit ].length ) column_width = vfs[ file_limit ].length + LS_MARGIN;
+		if( column_width <= vfs[ file_limit ].length ) column_width = vfs[ file_limit ].length + LS_MARGIN;
 
 		// next file
 		file_limit++;

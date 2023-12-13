@@ -51,7 +51,7 @@ void kernel_init_storage( void ) {
 		struct STD_FILE_STRUCTURE file = { EMPTY };
 
 		// set file path name
-		uint8_t path[ 16 ] = "/system/bin/init";
+		uint8_t path[ 19 ] = "/system/etc/version";
 		for( uint64_t j = 0; j < sizeof( path ); j++ ) file.name[ file.length++ ] = path[ j ];
 
 		// retrieve properties of file

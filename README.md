@@ -47,7 +47,6 @@ You will be able to create your own system profiles, and we will build your own 
 |colors|shows available color palette for Console/Shell program.|
 |console|build-in terminal.|
 |free|usage of all abailable devices in system.|
-|init|*{work in progress}* **keeps watch over running programs (window manager)**|
 |ls|listing of files in current directory or selected one.|
 |moko|*{work in progress}* **text editor**|
 |pwd|show current path of root directory|
@@ -59,13 +58,16 @@ You will be able to create your own system profiles, and we will build your own 
 
 |Libraries|Description|
 |-|-|
-|libcolor.so||
+|libcolor.so|Contains color palette for various applications.|
 |libelf.so||
 |libfont.so|Bitmap font display.|
+|libimage.so|Privdes support for image files (*tga*)|
 |libinteger.so|Convert string to value, count digits inside value.|
+|libinterface.so||
+|libjson.so|Parsing functions of JSON structure.|
 |libmath.so|Trigonometric functions.|
 |librgl.so|3D object management.|
 |libstd.so|Standard library of Foton OS.|
 |libstring.so|String manipulation library *(compare, length, trim etc.)*|
 |libterminal.so|Text mode display management.|
-|libvfs.so||
+|libvfs.so|Virtual File System management functions.|
