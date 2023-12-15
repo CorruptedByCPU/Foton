@@ -454,6 +454,9 @@ uint16_t driver_usb_port_reset( uint8_t id ) {
 }
 
 void _entry( uintptr_t kernel_ptr ) {
+	// right no this module uses too much RAM, and doesn't do anything right now, so lets disable it for now.
+	while( TRUE );
+
 	// preserve kernel structure pointer
 	kernel = (struct KERNEL *) kernel_ptr;
 
