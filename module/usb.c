@@ -454,17 +454,14 @@ uint16_t driver_usb_port_reset( uint8_t id ) {
 }
 
 void _entry( uintptr_t kernel_ptr ) {
-	// right no this module uses too much RAM, and doesn't do anything right now, so lets disable it for now.
-	while( TRUE );
-
 	// preserve kernel structure pointer
 	kernel = (struct KERNEL *) kernel_ptr;
 
 	// assign space for discovered USB controllers
-	driver_usb_controller = (struct DRIVER_USB_CONTROLLER_STRUCTURE *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct DRIVER_USB_CONTROLLER_STRUCTURE ) * DRIVER_USB_CONTROLLER_limit ) );
+	driver_usb_controller = (struct DRIVER_USB_CONTROLLER_STRUCTURE *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct DRIVER_USB_CONTROLLER_STRUCTURE ) * DRIVER_USB_CONTROLLER_limit ) >> STD_SHIFT_PAGE );
 
 	// assign space for discovered USB ports
-	driver_usb_port = (struct DRIVER_USB_PORT_STRUCTURE *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct DRIVER_USB_PORT_STRUCTURE ) * DRIVER_USB_PORT_limit ) );
+	driver_usb_port = (struct DRIVER_USB_PORT_STRUCTURE *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct DRIVER_USB_PORT_STRUCTURE ) * DRIVER_USB_PORT_limit ) >> STD_SHIFT_PAGE );
 
 	// check every bus;device;function of PCI controller
 	for( uint16_t b = 0; b < 256; b++ )
