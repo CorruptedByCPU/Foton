@@ -13,11 +13,11 @@ PHDRS {
 SECTIONS {
 	. = 0x0000000000000000 + SIZEOF_HEADERS;
 
-	.text : ALIGN( CONSTANT( MAXPAGESIZE ) ) {
+	.text : {
 		*(.text .text.*)
 	} :text
 
-	.rodata : ALIGN( CONSTANT( MAXPAGESIZE ) ) {
+	.rodata : {
 		*(.rodata .rodata.*)
 	} :rodata
 }

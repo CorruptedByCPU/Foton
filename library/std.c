@@ -520,3 +520,15 @@ uint64_t pow( uint64_t base, uint64_t exponent ) {
 	// return result
 	return result;
 }
+
+uint16_t getkey( void ) {
+	// incomming message
+	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
+	if( ! std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) return EMPTY;	// nothing
+
+	// properties of Keyboard message
+	struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &ipc_data;
+
+	// return received key
+	return keyboard -> key;
+}

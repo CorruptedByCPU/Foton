@@ -15,19 +15,19 @@ PHDRS {
 SECTIONS {
 	. = 0x0000000000100000 + SIZEOF_HEADERS;
 
-	.text : ALIGN( CONSTANT( MAXPAGESIZE ) ) {
+	.text : {
 		*(.text .text.*)
 	} :text
 
-	.rodata : ALIGN( CONSTANT( MAXPAGESIZE ) ) {
+	.rodata : {
 		*(.rodata .rodata.*)
 	} :rodata
 
-	.data : ALIGN( CONSTANT( MAXPAGESIZE ) ) {
+	.data : {
 		*(.data .data.*)
 	} :data
 
-	.bss : ALIGN( CONSTANT( MAXPAGESIZE ) ) {
+	.bss : {
 		*(.bss .bss.*)
 	} :bss :dynamic
 }

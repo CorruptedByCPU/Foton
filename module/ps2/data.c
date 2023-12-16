@@ -10,7 +10,7 @@ uint8_t driver_ps2_mouse_package_id		= EMPTY;
 
 uint8_t driver_ps2_keyboard_matrix = FALSE;
 
-uint16_t driver_ps2_scancode = EMPTY;
+volatile uint16_t driver_ps2_scancode = EMPTY;
 
 uint16_t	driver_ps2_keyboard_matrix_low[] = {
 	EMPTY,

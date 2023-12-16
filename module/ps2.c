@@ -153,67 +153,66 @@ void driver_ps2_mouse( void ) {
 __attribute__(( no_caller_saved_registers ))
 void driver_ps2_keyboard( void ) {
 	// get key code
-	volatile uint16_t key = driver_ps2_data_read();
+	driver_ps2_scancode |= driver_ps2_data_read();
 
 	// perform operation depending on opcode
-	switch( key ) {
-		// controller started sequence?
-		case DRIVER_PS2_KEYBOARD_sequence: {
-			// save sequence type
-			driver_ps2_scancode = key << STD_SHIFT_8;
 
-			// event parsed
-			break;
-		}
+	// controller started sequence?
+	if( driver_ps2_scancode == DRIVER_PS2_KEYBOARD_sequence ) {
+		// save sequence type
+		driver_ps2_scancode = 0xE000;
 
-		// controller started alternate sequence?
-		case DRIVER_PS2_KEYBOARD_sequence_alternative: {
-			// zachowaj typ sekwencji
-			driver_ps2_scancode = key << STD_SHIFT_8;
+		// tell APIC of current logical processor that hardware interrupt was handled, propely
+		kernel -> lapic_base_address -> eoi = EMPTY;
 
-			// event parsed
-			break;
-		}
-
-		// controller didn't start a sequence?
-		default: {
-			// complete sequence?
-			if( driver_ps2_scancode ) {
-				// compose key code
-				key |= driver_ps2_scancode;
-
-				// sequence processed
-				driver_ps2_scancode = EMPTY;
-			} else {
-				// key code not in matrix?
-				if( key >= 0x80 ) {
-					// get ASCII code for key from matrix
-					if( ! driver_ps2_keyboard_matrix ) key = driver_ps2_keyboard_matrix_low[ key - 0x80 ];
-					else key = driver_ps2_keyboard_matrix_high[ key - 0x80 ];
-
-					// correct key code
-					key += 0x80;
-				} else
-					// get ASCII code for key from matrix
-					if( ! driver_ps2_keyboard_matrix ) key = driver_ps2_keyboard_matrix_low[ key ];
-					else key = driver_ps2_keyboard_matrix_high[ key ];
-			}
-
-			// SHIFT or CAPSLOCK key?
-			if( key == STD_KEY_CAPSLOCK || key == STD_KEY_SHIFT_LEFT || key == STD_KEY_SHIFT_RIGHT ) {
-				if( driver_ps2_keyboard_matrix ) driver_ps2_keyboard_matrix = FALSE;
-				else driver_ps2_keyboard_matrix = TRUE;
-			} else if( key == STD_KEY_SHIFT_LEFT + 0x80 || key == STD_KEY_SHIFT_RIGHT + 0x80 ) {
-				if( driver_ps2_keyboard_matrix ) driver_ps2_keyboard_matrix = FALSE;
-				else driver_ps2_keyboard_matrix = TRUE;
-			}
-
-			// in first free space in keyboard buffer
-			for( uint8_t i = 0; i < DRIVER_PS2_CACHE_limit; i++ )
-				// save key code
-				if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = key; break; }
-		}
+		// end of interrupt
+		return;
 	}
+
+	// controller started alternate sequence?
+	if( driver_ps2_scancode == DRIVER_PS2_KEYBOARD_sequence_alternative ) {
+		// zachowaj typ sekwencji
+		driver_ps2_scancode = 0xE100;
+
+		// tell APIC of current logical processor that hardware interrupt was handled, propely
+		kernel -> lapic_base_address -> eoi = EMPTY;
+
+		// end of interrupt
+		return;
+	}
+
+	// complete sequence?
+	if( driver_ps2_scancode < 0xE000 ) {
+		// key code not in matrix?
+		if( driver_ps2_scancode >= 0x80 ) {
+			// get ASCII code for key from matrix
+			if( ! driver_ps2_keyboard_matrix ) driver_ps2_scancode = driver_ps2_keyboard_matrix_low[ driver_ps2_scancode - 0x80 ];
+			else driver_ps2_scancode = driver_ps2_keyboard_matrix_high[ driver_ps2_scancode - 0x80 ];
+
+			// correct key code
+			driver_ps2_scancode += 0x80;
+		} else
+			// get ASCII code for key from matrix
+			if( ! driver_ps2_keyboard_matrix ) driver_ps2_scancode = driver_ps2_keyboard_matrix_low[ driver_ps2_scancode ];
+			else driver_ps2_scancode = driver_ps2_keyboard_matrix_high[ driver_ps2_scancode ];
+	}
+
+	// SHIFT or CAPSLOCK key?
+	if( driver_ps2_scancode == STD_KEY_CAPSLOCK || driver_ps2_scancode == STD_KEY_SHIFT_LEFT || driver_ps2_scancode == STD_KEY_SHIFT_RIGHT ) {
+		if( driver_ps2_keyboard_matrix ) driver_ps2_keyboard_matrix = FALSE;
+		else driver_ps2_keyboard_matrix = TRUE;
+	} else if( driver_ps2_scancode == STD_KEY_SHIFT_LEFT + 0x80 || driver_ps2_scancode == STD_KEY_SHIFT_RIGHT + 0x80 ) {
+		if( driver_ps2_keyboard_matrix ) driver_ps2_keyboard_matrix = FALSE;
+		else driver_ps2_keyboard_matrix = TRUE;
+	}
+
+	// in first free space in keyboard buffer
+	for( uint8_t i = 0; i < DRIVER_PS2_CACHE_limit; i++ )
+		// save key code
+		if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = driver_ps2_scancode; break; }
+
+	// key processed
+	driver_ps2_scancode = EMPTY;
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely
 	kernel -> lapic_base_address -> eoi = EMPTY;

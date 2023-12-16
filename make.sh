@@ -25,9 +25,9 @@ C="clang -include ./library/std.h"
 LD="ld.lld"
 ASM="nasm"
 
-# default optimization -Oz
+# default optimization
 OPT="${1}"
-if [ -z "${OPT}" ]; then OPT="z"; fi
+if [ -z "${OPT}" ]; then OPT="fast"; fi
 
 # build subroutines required by kernel
 EXT=""
@@ -84,7 +84,7 @@ done
 lib=""	# include list of libraries
 
 # keep parsing libraries by. dependencies and alphabetically
-for library in color elf image integer string math json font interface std rgl terminal vfs; do
+for library in color elf image integer string math json font interface std random rgl terminal vfs; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 

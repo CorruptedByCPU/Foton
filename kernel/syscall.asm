@@ -31,6 +31,8 @@ extern	kernel_syscall_sleep
 extern	kernel_syscall_file
 extern	kernel_syscall_file_read
 extern	kernel_syscall_cd
+extern	kernel_syscall_ipc_receive_by_type
+extern	kernel_syscall_microtime
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -70,6 +72,8 @@ kernel_syscall_list:
 	dq	kernel_syscall_file
 	dq	kernel_syscall_file_read
 	dq	kernel_syscall_cd
+	dq	kernel_syscall_ipc_receive_by_type
+	dq	kernel_syscall_microtime
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

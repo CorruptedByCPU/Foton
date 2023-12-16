@@ -46,7 +46,7 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 			}
 
 			// debug
-			kernel -> log( (uint8_t *) "Page Fault\nRAX 0x%16X   RBX 0x%16X\nRCX 0x%16X   RDX 0x%16X\nRBP 0x%16X\nR8  0x%16X   R9  0x%16X\nR10 0x%16X   R11 0x%16X\nR12 0x%16X   R13 0x%16X\nR14 0x%16X   R15 0x%16X\n", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rbp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
+			kernel -> log( (uint8_t *) "Page Fault\nRAX 0x%16X\nRBX 0x%16X\nRCX 0x%16X\nRDX 0x%16X\nRBP 0x%16X\nR8  0x%16X\nR9  0x%16X\nR10 0x%16X\nR11 0x%16X\nR12 0x%16X\nR13 0x%16X\nR14 0x%16X\nR15 0x%16X\n", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rbp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
 			
 			// done
 			break;

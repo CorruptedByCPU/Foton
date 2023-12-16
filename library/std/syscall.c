@@ -252,3 +252,19 @@ uint8_t std_cd( uint8_t *path ) {
 	// return TRUE/FALSE
 	return std_syscall_bool();
 }
+
+int64_t std_ipc_receive_by_type( uint8_t *data, uint8_t type ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_IPC_RECEIVE_BY_TYPE), "D" (data), "S" (type) );
+
+	// return value
+	return std_syscall_value();
+}
+
+uint64_t std_microtime( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_MICROTIME) );
+
+	// return value unsigned
+	return std_syscall_value_unsigned();
+}

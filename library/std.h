@@ -323,6 +323,8 @@
 	#define	STD_SYSCALL_FILE				0x17
 	#define	STD_SYSCALL_FILE_READ				0x18
 	#define	STD_SYSCALL_CD					0x19
+	#define	STD_SYSCALL_IPC_RECEIVE_BY_TYPE			0x1A
+	#define	STD_SYSCALL_MICROTIME				0x1B
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -437,6 +439,12 @@
 	// change root directory of current process
 	uint8_t std_cd( uint8_t *path );
 
+	// check for messages of definied type, return PID of source
+	int64_t std_ipc_receive_by_type( uint8_t *data, uint8_t type );
+
+	// returns passed microtime since boot
+	uint64_t std_microtime( void );
+
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
 			uint64_t	length;
@@ -522,4 +530,5 @@
 	void printf( const char *string, ... );
 	void sprintf( const char *string, ... );
 	uint64_t pow( uint64_t base, uint64_t exponent );
+	uint16_t getkey( void );
 #endif

@@ -408,3 +408,22 @@ void lib_rgl_fill( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIAN
 		}
 	}
 }
+
+void lib_rgl_2d_square( struct LIB_RGL_STRUCTURE *rgl, int64_t x, int64_t y, uint64_t width, uint64_t height, uint32_t color ) {
+	// square inside workbench space?
+	if( x >= rgl -> width_pixel )	return;	// no
+	if( y >= rgl -> height_pixel )	return;	// no
+	if( x + width <= 0 ) 	return;	// no
+	if( y + height <= 0 ) 	return;	// no
+
+	// cut invisible fragments
+	if( x < 0 ) { x = 0; }
+	if( x + width >= rgl -> width_pixel ) width -= (x + width) - rgl -> width_pixel;
+	if( y < 0 ) { y = 0; }
+	if( y + height >= rgl -> height_pixel ) height -= (y + height) - rgl -> height_pixel;
+
+	// draw square inside workbench space with definied color
+	for( int32_t ya = y; ya < y + height; ya++ )
+		for( int32_t xa = x; xa < x + width; xa++ )
+			rgl -> workbench_base_address[ (ya * rgl -> width_pixel) + xa ] = color;
+}

@@ -534,3 +534,36 @@ uint8_t kernel_syscall_cd( uint8_t *path ) {
 	// directory changed
 	return TRUE;
 }
+
+int64_t kernel_syscall_ipc_receive_by_type( uint8_t *data, uint8_t type ) {
+	// scan whole IPC area
+	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
+		// message alive?
+		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
+	
+		// message for us?
+		if( kernel -> ipc_base_address[ i ].target != kernel -> task_pid() ) continue;	// no
+
+		// message of requested type?
+		struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &kernel -> ipc_base_address[ i ].data;
+		if( ipc -> type != type ) continue;	// no
+
+		// load data into message
+		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+			data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
+
+		// mark entry as free
+		kernel -> ipc_base_address[ i ].ttl = EMPTY;
+
+		// message acquired
+		return kernel -> ipc_base_address[ i ].source;
+	}
+
+	// no message for process
+	return EMPTY;
+}
+
+uint64_t kernel_syscall_microtime( void ) {
+	// return microtime
+	return kernel -> time_unit;
+}
