@@ -8,21 +8,6 @@ void wm_object( void ) {
 		// ignore cursor object
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
 
-		// object visible and requested flush?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) {
-			// parse whole object area
-			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
-
-			// request parsed
-			wm_list_base_address[ i ] -> descriptor -> flags ^= STD_WINDOW_FLAG_flush;
-
-			// remove minimize flag (even if not set)
-			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_minimize;
-
-			// redraw cursor too
-			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-		}
-
 		// object still in touch with process?
 		if( ! std_pid_check( wm_list_base_address[ i ] -> pid ) ) {	// no
 			// object invisible and marked for delete?
@@ -43,6 +28,21 @@ void wm_object( void ) {
 				// mark object for delete
 				wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_release;
 			}
+		}
+
+		// object visible and requested flush?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) {
+			// parse whole object area
+			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
+
+			// request parsed
+			wm_list_base_address[ i ] -> descriptor -> flags ^= STD_WINDOW_FLAG_flush;
+
+			// remove minimize flag (even if not set)
+			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_minimize;
+
+			// redraw cursor too
+			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
 
 		// object renamed?

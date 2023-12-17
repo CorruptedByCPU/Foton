@@ -23,6 +23,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize gameplay
 	taris_init();
 
+	// reset statistics
+	uint64_t points = 0;
+	uint64_t lines = 0;
 	uint64_t level = 0;
 
 	// restart game loop
@@ -73,17 +76,17 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					}
 				}
 
-				// // if removed some lines
-				// if( removed ) {
-				// 	// increase overall lines
-				// 	lines += removed;
+				// if removed some lines
+				if( removed ) {
+					// increase overall lines
+					lines += removed;
 
-				// 	// calculate scored points
-				// 	points += taris_score[ removed - 1 ] * (level + 1);
+					// calculate scored points
+					points += taris_score[ removed - 1 ] * (level + 1);
 
-				// 	// increase difficulty?
-				// 	if( lines >= taris_difficult[ level ] ) level++;
-				// }
+					// increase difficulty?
+					if( lines >= taris_difficult[ level ] ) level++;
+				}
 
 				// next block
 				break;
@@ -92,6 +95,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// wait for next movement
 			uint64_t wait = std_microtime() + taris_speed[ level ];
 			do {
+				// free up AP time
+				std_sleep( TRUE );
+
 				// recieve key
 				uint16_t key = getkey();
 

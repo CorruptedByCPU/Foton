@@ -31,6 +31,10 @@ uint32_t taris_color[ 8 ] = {
 
 uint16_t taris_speed[] = { 819, 734, 649, 563, 478, 393, 307, 222, 137, 102, 85, 85, 85, 68, 68, 68, 51, 51, 51, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 17 };
 
+uint16_t taris_score[ 4 ] = { 40, 100, 300, 1200 };
+
+uint16_t taris_difficult[] = { 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 100, 100, 100, 100, 100, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 200, 200, 200 };
+
 uint16_t taris_playground[ TARIS_PLAYGROUND_HEIGHT_brick ] = { [0 ... 20] = TARIS_PLAYGROUND_empty, [21] = 0xFFFF };
 
 uint8_t taris_playground_color[ TARIS_PLAYGROUND_WIDTH_bit * TARIS_PLAYGROUND_HEIGHT_brick ];

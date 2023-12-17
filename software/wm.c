@@ -44,6 +44,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		wm_sync();
 
 		// free up AP time
-		std_sleep( 1 );	
+		std_sleep( TRUE );	
 	}
 }
