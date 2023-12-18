@@ -54,5 +54,4 @@ void console_init( void ) {
 
 	// prepare cache for incomming stream
 	console_stream_in = (uint8_t *) malloc( STD_STREAM_SIZE_page << STD_SHIFT_PAGE );
-
 }

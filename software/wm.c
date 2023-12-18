@@ -16,12 +16,13 @@
 	#include	"./wm/zone.c"
 	#include	"./wm/object.c"
 	#include	"./wm/taskbar.c"
+	#include	"./wm/release.c"
 	#include	"./wm/init.c"
 	#include	"./wm/cursor.c"
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize environment
-	wm_init();
+	if( ! wm_init() ) return -1;
 
 	// hold the door
 	while( TRUE ) {

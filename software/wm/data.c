@@ -3,20 +3,22 @@
 ===============================================================================*/
 
 int64_t	wm_pid = EMPTY;
-int64_t	wm_pid_taskbar = EMPTY;
 
 struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
 
 struct WM_STRUCTURE_OBJECT *wm_object_base_address = EMPTY;
 struct WM_STRUCTURE_OBJECT **wm_list_base_address = EMPTY;
 struct WM_STRUCTURE_ZONE *wm_zone_base_address = EMPTY;
+struct WM_STRUCTURE_OBJECT **wm_taskbar_base_address = EMPTY;
 
 uint64_t wm_object_limit = EMPTY;
 uint64_t wm_list_limit = EMPTY;
 uint64_t wm_zone_limit = EMPTY;
+uint64_t wm_taskbar_limit = EMPTY;
 
-uint8_t wm_object_semaphore = FALSE;
-uint8_t wm_list_semaphore = FALSE;
+volatile uint8_t wm_object_semaphore = FALSE;
+volatile uint8_t wm_list_semaphore = FALSE;
+volatile uint8_t wm_taskbar_semaphore = FALSE;
 
 struct WM_STRUCTURE_OBJECT wm_object_cache = { EMPTY };
 
@@ -38,13 +40,7 @@ uint8_t	wm_keyboard_status_shift_left	= FALSE;
 uint8_t	wm_keyboard_status_ctrl_left	= FALSE;
 
 // semaphore used by event/object function which tells us to refresh taskbar object content
-uint8_t wm_taskbar_semaphore = FALSE;
-
-// amount of objects listed on taskbar
-uint8_t wm_taskbar_limit = EMPTY;
-
-// list of objects to be showed on taskbar list
-struct WM_STRUCTURE_OBJECT **wm_taskbar_base_address = EMPTY;
+uint8_t wm_taskbar_modified = FALSE;
 
 // width of button on taskbar list
 uint16_t wm_taskbar_entry_width = EMPTY;

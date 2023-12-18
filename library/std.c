@@ -28,6 +28,9 @@ void *malloc( size_t byte ) {
 	// assign place for area of definied size
 	uint64_t *target = (uint64_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( byte + STD_ALLOC_METADATA_byte ) >> STD_SHIFT_PAGE );
 
+	// area obtained?
+	if( ! target ) return EMPTY;	// no
+	
 	// set metadata of area
 	*target = MACRO_PAGE_ALIGN_UP( byte + STD_ALLOC_METADATA_byte ) - STD_ALLOC_METADATA_byte;
 
@@ -44,6 +47,9 @@ void *realloc( void *source, size_t byte ) {
 		// alloc new area
 		uint64_t *target = (uint64_t *) malloc( byte );
 
+		// wider area obtained?
+		if( ! target ) return EMPTY;	// no
+		
 		// copy content
 		memcpy( (uint8_t *) target, (uint8_t *) source, (uint64_t) *ptr );
 

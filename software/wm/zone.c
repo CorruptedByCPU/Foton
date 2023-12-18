@@ -54,6 +54,10 @@ void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object ) {
 }
 
 void wm_zone( void ) {
+	// block access to object list
+	uint64_t wait_time = std_microtime();
+	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) ) if( wait_time + WM_DEBUG_STARVATION_limit < std_uptime() ) { print( "[wm_zone is starving]\n" ); }
+
 	// parse zones on list
 	for( uint64_t i = 0; i < wm_zone_limit; i++ ) {
 		// object assigned to zone?
@@ -103,4 +107,7 @@ void wm_zone( void ) {
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone, TRUE );
 		}
 	}
+
+	// release access to object list
+	wm_list_semaphore = UNLOCK;
 }

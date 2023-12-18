@@ -5,6 +5,8 @@
 	// hint
 	// all operations are performed on pixels
 
+	#define	WM_DEBUG_STARVATION_limit	1
+
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------

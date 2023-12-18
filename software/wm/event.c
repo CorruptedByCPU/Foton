@@ -15,30 +15,35 @@ void wm_event( void ) {
 		// properties of answer
 		struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *answer = (struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *) &data;
 
-		// if request is invalid
-		if( ! request -> width || ! request -> height ) {
+		// properties of new object
+		struct WM_STRUCTURE_OBJECT *object = EMPTY;
+
+		// pointer to shared object descriptor
+		uintptr_t descriptor = EMPTY;
+
+		// if request is valid
+		if( request -> width && request -> height ) {
+			// try to create new object
+			object = wm_object_create( request -> x, request -> y, request -> width, request -> height );
+
+			// if created properly
+			if( object )
+				// try to share object descriptor with process
+				descriptor = std_memory_share( source, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE );
+		}
+
+		// if everything was done properly
+		if( object && descriptor ) {
+			// update PID of object
+			object -> pid = source;
+
+			// and return object descriptor
+			answer -> descriptor = descriptor;		
+		} else
 			// reject window creation
 			answer -> descriptor = EMPTY;
 
-			// send answer
-			std_ipc_send( source, (uint8_t *) answer );
-
-			// next request
-			continue;
-		}
-
-		// create new object for process
-		struct WM_STRUCTURE_OBJECT *object = wm_object_create( request -> x, request -> y, request -> width, request -> height );
-
-		// update ID of process owning object
-		object -> pid = source;
-
-		// share new object descriptor with process
-		uintptr_t descriptor = EMPTY;
-		if( ! (descriptor = std_memory_share( source, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE )) ) continue;	// no enough memory?
-
 		// send answer
-		answer -> descriptor = descriptor;
 		std_ipc_send( source, (uint8_t *) answer );
 	}
 
@@ -100,7 +105,7 @@ void wm_event( void ) {
 					wm_object_active = wm_object_selected;
 
 					// update taskbar status
-					wm_taskbar_semaphore = TRUE;
+					wm_taskbar_modified = TRUE;
 				}
 
 				// done
@@ -137,6 +142,10 @@ void wm_event( void ) {
 
 	//--------------------------------------------------------------------------
 
+	// block access to object list
+	uint64_t wait_time = std_microtime();
+	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) ) if( wait_time + WM_DEBUG_STARVATION_limit < std_uptime() ) { print( "[wm_event is starving]\n" ); }
+
 	// update cursor position inside objects
 	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
 		// ignore hidden objects
@@ -149,6 +158,9 @@ void wm_event( void ) {
 		wm_list_base_address[ i ] -> descriptor -> x = (wm_object_cursor -> x + delta_x) - wm_list_base_address[ i ] -> x;
 		wm_list_base_address[ i ] -> descriptor -> y = (wm_object_cursor -> y + delta_y) - wm_list_base_address[ i ] -> y;
 	}
+
+	// release access to object list
+	wm_list_semaphore = UNLOCK;
 
 	//--------------------------------------------------------------------------
 	// left mouse button pressed?
@@ -192,7 +204,7 @@ void wm_event( void ) {
 				std_ipc_send( wm_object_selected -> pid, (uint8_t *) mouse );
 
 				// update taskbar status
-				wm_taskbar_semaphore = TRUE;
+				wm_taskbar_modified = TRUE;
 			}
 
 			// substitute of menu
