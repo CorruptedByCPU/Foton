@@ -17,6 +17,11 @@
 	//----------------------------------------------------------------------
 	// constants, structures, definitions
 	//----------------------------------------------------------------------
+	#define	WM_OBJECT_LIMIT			64	// no more than 64 windows
+	#define	WM_LIST_LIMIT			WM_OBJECT_LIMIT
+	#define	WM_ZONE_LIMIT			(WM_OBJECT_LIMIT << STD_SHIFT_4)	// 4 edges per window
+	#define	WM_TASKBAR_LIMIT		WM_OBJECT_LIMIT
+
 	#define	WM_OBJECT_CURSOR_width		32
 	#define	WM_OBJECT_CURSOR_height		32
 

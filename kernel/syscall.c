@@ -188,7 +188,7 @@ uint8_t kernel_syscall_pid_check( int64_t pid ) {
 
 void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
 	// deny access, only one logical processor at a time
-	while( __sync_val_compare_and_swap( &kernel -> ipc_semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( kernel -> ipc_semaphore );
 
 	// wait for free stack area
 	while( TRUE ) {
@@ -211,7 +211,7 @@ void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
 			kernel -> ipc_base_address[ i ].ttl = kernel -> time_unit + KERNEL_IPC_ttl;
 
 			// unlock access to IPC area
-			kernel -> ipc_semaphore = UNLOCK;
+			MACRO_UNLOCK( kernel -> ipc_semaphore );
 
 			// message sent
 			return;
@@ -313,7 +313,7 @@ uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
 	if( task -> stream_out -> flags & KERNEL_STREAM_FLAG_closed || task -> stream_out -> length_byte == STD_STREAM_SIZE_page << STD_SHIFT_PAGE ) return FALSE;	// yes
 
 	// block access to stream modification
-	while( __sync_val_compare_and_swap( &task -> stream_out -> semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( task -> stream_out -> semaphore );
 
 	// amount of data inside stream after operation
 	task -> stream_out -> length_byte += length;
@@ -321,7 +321,7 @@ uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
 	// can we fit it?
 	if( length > (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) - task -> stream_out -> length_byte ) {	// no
 		// unlock stream access
-		task -> stream_out -> semaphore = UNLOCK;
+		MACRO_UNLOCK( task -> stream_out -> semaphore );
 
 		// unable to fit string
 		return FALSE;
@@ -352,7 +352,7 @@ uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
 	task -> stream_out -> flags |= KERNEL_STREAM_FLAG_modified;
 
 	// unlock stream access
-	task -> stream_out -> semaphore = UNLOCK;
+	MACRO_UNLOCK( task -> stream_out -> semaphore );
 
 	// string sended
 	return TRUE;
@@ -366,7 +366,7 @@ uint64_t kernel_syscall_stream_in( uint8_t *target ) {
 	if( task -> stream_in -> flags & KERNEL_STREAM_FLAG_closed || ! task -> stream_in -> length_byte ) return EMPTY;	// yes
 
 	// block access to stream modification
-	while( __sync_val_compare_and_swap( &task -> stream_in -> semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( task -> stream_in -> semaphore );
 
 	// passed data from stream
 	uint64_t length = EMPTY;
@@ -388,7 +388,7 @@ uint64_t kernel_syscall_stream_in( uint8_t *target ) {
 	task -> stream_in -> length_byte = EMPTY;
 
 	// unlock stream modification
-	task -> stream_in -> semaphore = UNLOCK;
+	MACRO_UNLOCK( task -> stream_in -> semaphore );
 
 	// return amount of transferred data in Bytes
 	return length;
@@ -426,7 +426,7 @@ void kernel_syscall_stream_set( uint8_t *meta, uint8_t stream_type ) {
 	else stream = task -> stream_out;
 
 	// block access to stream modification
-	while( __sync_val_compare_and_swap( &stream -> semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( stream -> semaphore );
 
 	// update stream meta only if is empty
 	if( ! stream -> length_byte ) {
@@ -438,7 +438,7 @@ void kernel_syscall_stream_set( uint8_t *meta, uint8_t stream_type ) {
 	}
 
 	// unlock stream modification
-	stream -> semaphore = UNLOCK;
+	MACRO_UNLOCK( stream -> semaphore );
 }
 
 uint8_t kernel_syscall_stream_get( uint8_t *target, uint8_t stream_type ) {
@@ -453,7 +453,7 @@ uint8_t kernel_syscall_stream_get( uint8_t *target, uint8_t stream_type ) {
 	else stream = task -> stream_out;
 
 	// block access to stream modification
-	while( __sync_val_compare_and_swap( &stream -> semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( stream -> semaphore );
 
 	// retrieve meta data
 	for( uint8_t i = 0; i < STD_STREAM_META_limit; i++ ) target[ i ] = stream -> meta[ i ];
@@ -463,7 +463,7 @@ uint8_t kernel_syscall_stream_get( uint8_t *target, uint8_t stream_type ) {
 	if( stream -> flags & KERNEL_STREAM_FLAG_modified ) status = FALSE;	// nope
 
 	// unlock stream modification
-	stream -> semaphore = UNLOCK;
+	MACRO_UNLOCK( stream -> semaphore );
 
 	// return meta data status
 	return status;

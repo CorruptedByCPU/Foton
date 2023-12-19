@@ -32,11 +32,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// which objects have been recently updated?
 		wm_object();
 
+		// check taskbar status
+		wm_taskbar();
+
 		// assign objects to zones
 		wm_zone();
-
-		// fill zones with fragments of objects
-		wm_fill();
 
 		// show cursor
 		wm_cursor();

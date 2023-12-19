@@ -29,7 +29,7 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 
 uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {
 	// block access to binary memory map (only one at a time)
-	while( __sync_val_compare_and_swap( &kernel -> memory_semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( kernel -> memory_semaphore );
 
 	// search binary memory map for N continuous (p)ages
 	for( uint64_t p = 0; p < kernel -> page_limit; p++ ) {
@@ -58,7 +58,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {
 				memory[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b0011111) );
 
 			// unlock access to binary memory map
-			kernel -> memory_semaphore = UNLOCK;
+			MACRO_UNLOCK( kernel -> memory_semaphore );
 
 			// return address of acquired memory area
 			return p;
@@ -66,7 +66,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {
 	}
 
 	// unlock access to binary memory map
-	kernel -> memory_semaphore = UNLOCK;
+	MACRO_UNLOCK( kernel -> memory_semaphore );
 
 	// no available memory area
 	return EMPTY;
@@ -74,7 +74,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {
 
 uint64_t kernel_memory_acquire_secured( struct KERNEL_TASK_STRUCTURE *task, uint64_t N ) {
 	// block access to binary memory map (only one at a time)
-	while( __sync_val_compare_and_swap( &task -> memory_semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( task -> memory_semaphore );
 
 	// search binary memory map for N continuous (p)ages
 	for( uint64_t p = 0; p < kernel -> page_limit; p++ ) {
@@ -103,7 +103,7 @@ uint64_t kernel_memory_acquire_secured( struct KERNEL_TASK_STRUCTURE *task, uint
 				task -> memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b0011111) );
 
 			// unlock access to binary memory map
-			task -> memory_semaphore = UNLOCK;
+			MACRO_UNLOCK( task -> memory_semaphore );
 
 			// return address of acquired memory area
 			return p;
@@ -111,7 +111,7 @@ uint64_t kernel_memory_acquire_secured( struct KERNEL_TASK_STRUCTURE *task, uint
 	}
 
 	// unlock access to binary memory map
-	task -> memory_semaphore = UNLOCK;
+	MACRO_UNLOCK( task -> memory_semaphore );
 
 	// no available memory area
 	return EMPTY;

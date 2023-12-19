@@ -9,7 +9,7 @@ uint8_t kernel_io_apic_line( uint8_t irq ) {
 
 uint8_t kernel_io_apic_line_acquire( void ) {
 	// lock access to lines
-	while( __sync_val_compare_and_swap( &kernel -> io_apic_semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( kernel -> io_apic_semaphore );
 
 	// check every line
 	for( uint8_t i = 0; i < 24; i++ )
@@ -19,14 +19,14 @@ uint8_t kernel_io_apic_line_acquire( void ) {
 			kernel -> io_apic_irq_lines &= ~(1 << i);
 
 			// unlock
-			kernel -> io_apic_semaphore = UNLOCK;
+			MACRO_UNLOCK( kernel -> io_apic_semaphore );
 
 			// acquired
 			return i;
 		}
 
 	// unlock
-	kernel -> io_apic_semaphore = UNLOCK;
+	MACRO_UNLOCK( kernel -> io_apic_semaphore );
 
 	// unavailable
 	return EMPTY;

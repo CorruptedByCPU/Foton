@@ -14,21 +14,21 @@ uint8_t wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
-	// prepare space for an array of objects
-	wm_object_base_address = (struct WM_STRUCTURE_OBJECT *) malloc( TRUE );
+	// prepare area for an array of objects
+	wm_object_base_address = (struct WM_STRUCTURE_OBJECT *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE_OBJECT ) * WM_OBJECT_LIMIT ) >> STD_SHIFT_PAGE );
 
-	// prepare space for a list of objects
-	wm_list_base_address = (struct WM_STRUCTURE_OBJECT **) malloc( TRUE );
+	// prepare area for a list of objects
+	wm_list_base_address = (struct WM_STRUCTURE_OBJECT **) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE_OBJECT * ) * (WM_LIST_LIMIT + 1) ) >> STD_SHIFT_PAGE );	// blank entry at the end of object list
 
-	// prepare space for a list of zones
-	wm_zone_base_address = (struct WM_STRUCTURE_ZONE *) malloc( TRUE );
+	// prepare area for a list of zones
+	wm_zone_base_address = (struct WM_STRUCTURE_ZONE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE_ZONE ) * WM_ZONE_LIMIT ) >> STD_SHIFT_PAGE );
 
-	// prepare space for a taskbar list
-	wm_taskbar_base_address = (struct WM_STRUCTURE_OBJECT **) malloc( TRUE );
+	// prepare area for a taskbar list
+	wm_taskbar_base_address = (struct WM_STRUCTURE_OBJECT **) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE_OBJECT * ) * WM_TASKBAR_LIMIT ) >> STD_SHIFT_PAGE );
 
 	//----------------------------------------------------------------------
 
-	// create cache space
+	// create cache area
 
 	// as local object
 	wm_object_cache.width		= kernel_framebuffer.width_pixel;
@@ -99,15 +99,14 @@ uint8_t wm_init( void ) {
 	// create taskbar object
 	wm_object_taskbar = wm_object_create( 0, wm_object_cache.height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_cache.width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
 
+	// mark it as our
+	wm_object_taskbar -> pid = wm_pid;
+
 	// mark object as taskbar and unmovable
-	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
+	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
 
 	// show an empty taskbar
 	wm_taskbar_modified = TRUE;
-
-	// execute taskbar function as thread
-	uint8_t wm_string_taskbar[] = "{wm: taskbar}";
-	wm_object_taskbar -> pid = std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
 
 	//----------------------------------------------------------------------
 

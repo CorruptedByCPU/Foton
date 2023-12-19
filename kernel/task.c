@@ -70,7 +70,7 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_active( void ) {
 
 struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 	// deny modification of job queue
-	while( __sync_val_compare_and_swap( &kernel -> task_add_semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( kernel -> task_add_semaphore );
 
 	// find an free entry
 	for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
@@ -97,14 +97,14 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 		kernel -> task_count++;
 
 		// free access to job queue
-		kernel -> task_add_semaphore = UNLOCK;
+		MACRO_UNLOCK( kernel -> task_add_semaphore );
 
 		// new task initiated
 		return (struct KERNEL_TASK_STRUCTURE *) &kernel -> task_base_address[ i ];
 	}
 
 	// free access to job queue
-	kernel -> task_add_semaphore = UNLOCK;
+	MACRO_UNLOCK( kernel -> task_add_semaphore );
 
 	// no free entry
 	return EMPTY;
@@ -121,7 +121,7 @@ int64_t kernel_task_pid( void ) {
 
 struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
 	// block possibility of modifying tasks, only 1 CPU at a time
-	while( __sync_val_compare_and_swap( &kernel -> task_cpu_semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( kernel -> task_cpu_semaphore );
 
 	// search until found
 	while( TRUE ) {
@@ -136,7 +136,7 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
 				kernel -> task_cpu_address[ kernel_lapic_id() ] = &kernel -> task_base_address[ i ];
 
 				// unlock access to modification of tasks
-				kernel -> task_cpu_semaphore = UNLOCK;
+				MACRO_UNLOCK( kernel -> task_cpu_semaphore );
 
 				// return address of selected task from queue
 				return &kernel -> task_base_address[ i ];

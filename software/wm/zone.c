@@ -9,8 +9,8 @@ void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object ) {
 	if( zone -> x + zone -> width < 0 ) return;
 	if( zone -> y + zone -> height < 0 ) return;
 
-	// expand zone list if needed
-	wm_zone_base_address = (struct WM_STRUCTURE_ZONE *) realloc( wm_zone_base_address, sizeof( struct WM_STRUCTURE_ZONE ) * (wm_zone_limit + 1) );
+	// block access to zone list
+	MACRO_LOCK( wm_zone_semaphore );
 
 	// inset zone
 
@@ -51,12 +51,17 @@ void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object ) {
 
 	// zone inserted
 	wm_zone_limit++;
+
+	// release access to zone list
+	MACRO_UNLOCK( wm_zone_semaphore );
 }
 
 void wm_zone( void ) {
+	// block access to object array
+	MACRO_LOCK( wm_object_semaphore );
+
 	// block access to object list
-	uint64_t wait_time = std_microtime();
-	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) ) if( wait_time + WM_DEBUG_STARVATION_limit < std_uptime() ) { print( "[wm_zone is starving]\n" ); }
+	MACRO_LOCK( wm_list_semaphore );
 
 	// parse zones on list
 	for( uint64_t i = 0; i < wm_zone_limit; i++ ) {
@@ -108,6 +113,12 @@ void wm_zone( void ) {
 		}
 	}
 
+	// fill zones with fragments of objects
+	wm_fill();
+
 	// release access to object list
-	wm_list_semaphore = UNLOCK;
+	MACRO_UNLOCK( wm_list_semaphore );
+
+	// release access to object array
+	MACRO_UNLOCK( wm_object_semaphore );
 }

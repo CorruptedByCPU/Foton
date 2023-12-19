@@ -3,7 +3,7 @@
 ===============================================================================*/
 
 void wm_event( void ) {
-	// incomming message
+	// // incomming message
 	uint8_t data[ STD_IPC_SIZE_byte ]; int64_t source = EMPTY;
 	while( (source = std_ipc_receive( (uint8_t *) &data )) ) {
 		// event to parse?
@@ -142,12 +142,12 @@ void wm_event( void ) {
 
 	//--------------------------------------------------------------------------
 
+
 	// block access to object list
-	uint64_t wait_time = std_microtime();
-	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) ) if( wait_time + WM_DEBUG_STARVATION_limit < std_uptime() ) { print( "[wm_event is starving]\n" ); }
+	MACRO_LOCK( wm_list_semaphore );
 
 	// update cursor position inside objects
-	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
+	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
 		// ignore hidden objects
 		if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) ) continue;
 
@@ -160,7 +160,7 @@ void wm_event( void ) {
 	}
 
 	// release access to object list
-	wm_list_semaphore = UNLOCK;
+	MACRO_UNLOCK( wm_list_semaphore );
 
 	//--------------------------------------------------------------------------
 	// left mouse button pressed?

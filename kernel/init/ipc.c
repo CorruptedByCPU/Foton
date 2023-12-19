@@ -7,5 +7,5 @@ void kernel_init_ipc( void ) {
 	kernel -> ipc_base_address = (struct STD_IPC_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_IPC_limit * sizeof( struct STD_IPC_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 
 	// unlock access to IPC exchange
-	kernel -> ipc_semaphore = UNLOCK;
+	MACRO_UNLOCK( kernel -> ipc_semaphore );
 }

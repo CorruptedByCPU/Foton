@@ -32,7 +32,7 @@ struct KERNEL_STREAM_STRUCTURE *kernel_stream( void ) {
 	}
 
 	// unlock access to function
-	kernel -> stream_semaphore = UNLOCK;
+	MACRO_UNLOCK( kernel -> stream_semaphore );
 
 	// no free entry
 	return	EMPTY;

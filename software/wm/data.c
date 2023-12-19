@@ -18,6 +18,7 @@ uint64_t wm_taskbar_limit = EMPTY;
 
 volatile uint8_t wm_object_semaphore = FALSE;
 volatile uint8_t wm_list_semaphore = FALSE;
+volatile uint8_t wm_zone_semaphore = FALSE;
 volatile uint8_t wm_taskbar_semaphore = FALSE;
 
 struct WM_STRUCTURE_OBJECT wm_object_cache = { EMPTY };

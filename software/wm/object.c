@@ -4,15 +4,14 @@
 
 void wm_object( void ) {
 	// block access to object list
-	uint64_t wait_time = std_microtime();
-	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) ) if( wait_time + WM_DEBUG_STARVATION_limit < std_uptime() ) { print( "[wm_object is starving]\n" ); }
+	MACRO_LOCK( wm_list_semaphore );
 
 	// search whole list for object flush
 	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
 		// ignore cursor object
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
 
-		// object visible and requested flush?
+		// object minimized or visible and requested flush?
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) {
 			// parse whole object area
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
@@ -38,7 +37,7 @@ void wm_object( void ) {
 	}
 
 	// release access to object list
-	wm_list_semaphore = UNLOCK;
+	MACRO_UNLOCK( wm_list_semaphore );
 }
 
 void wm_object_active_new( void ) {
@@ -52,105 +51,61 @@ void wm_object_active_new( void ) {
 	}
 }
 
-uint8_t wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
+void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 	// block access to object list
-	uint64_t wait_time = std_microtime();
-	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) ) if( wait_time + WM_DEBUG_STARVATION_limit < std_uptime() ) { print( "[wm_object_insert is starving]\n" ); }
+	MACRO_LOCK( wm_list_semaphore );
 
-	// try to extend objects list
-	struct WM_STRUCTURE_OBJECT **wm_list_base_address_tmp = (struct WM_STRUCTURE_OBJECT **) realloc( wm_list_base_address, sizeof( struct WM_STRUCTURE_OBJECT * ) * (wm_list_limit + 1) );
-	if( ! wm_list_base_address_tmp ) { wm_list_semaphore = UNLOCK; return FALSE; }	// cannot do that
+	// insert object on list
+	wm_list_base_address[ wm_list_limit++ ] = object;
 
-	// update new object list pointer
-	wm_list_base_address = wm_list_base_address_tmp;
-
-	// object list extended
-	wm_list_limit++;
-
-	// find available entry
-	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
-		// entry in use?
-		if( wm_list_base_address[ i ] ) {
-			// by taskbar?
-			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) {
-				// move all objects from this point on list including taskbar one place forward
-				for( uint64_t j = wm_list_limit - 1; j > i; j-- ) wm_list_base_address[ j ] = wm_list_base_address[ j - 1 ];
-			// next entry
-			} else continue;
-		}
-
-		// insert object on list
-		wm_list_base_address[ i ] = object;
-
-		// release access to object list
-		wm_list_semaphore = UNLOCK;
-
-		// update taskbar list
-		wm_taskbar_modified = TRUE;
-
-		// done
-		return TRUE;
-	}
-
-	// be silent, clang.
-	return FALSE;
+	// release access to object list
+	MACRO_UNLOCK( wm_list_semaphore );
 }
 
 struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t width, uint16_t height ) {
 	// block access to object array
-	uint64_t wait_time = std_microtime();
-	while( __sync_val_compare_and_swap( &wm_object_semaphore, UNLOCK, LOCK ) ) if( wait_time + WM_DEBUG_STARVATION_limit < std_uptime() ) { print( "[wm_object_create is starving]\n" ); }
+	MACRO_LOCK( wm_object_semaphore );
 
-	// find available entry or extend object array
-	while( TRUE ) {
-		// search for empty entry inside array
-		for( uint64_t i = 0; i < wm_object_limit; i++ ) {
-			// entry in use?
-			if( ! wm_object_base_address[ i ].descriptor ) {	// no
-				// fill object properties
-				wm_object_base_address[ i ].x		= x;
-				wm_object_base_address[ i ].y		= y;
-				wm_object_base_address[ i ].width	= width;
-				wm_object_base_address[ i ].height	= height;
+	// find available entry
+	for( uint64_t i = 0; i < WM_OBJECT_LIMIT; i++ ) {
+		// entry in use?
+		if( wm_object_base_address[ i ].descriptor ) continue;	// yes
 
-				// calculate object area size in Bytes
-				wm_object_base_address[ i ].size_byte = (width * height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR );
+		// fill object properties
+		wm_object_base_address[ i ].x		= x;
+		wm_object_base_address[ i ].y		= y;
+		wm_object_base_address[ i ].width	= width;
+		wm_object_base_address[ i ].height	= height;
 
-				// assign area for object
-				wm_object_base_address[ i ].descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_base_address[ i ].size_byte ) >> STD_SHIFT_PAGE );
+		// calculate object area size in Bytes
+		wm_object_base_address[ i ].size_byte = (width * height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR );
 
-				// register object on list
-				wm_object_insert( (struct WM_STRUCTURE_OBJECT *) &wm_object_base_address[ i ] );
+		// assign area for object
+		wm_object_base_address[ i ].descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_base_address[ i ].size_byte ) >> STD_SHIFT_PAGE );
 
-				// newly created object becomes active
-				wm_object_active = (struct WM_STRUCTURE_OBJECT *) &wm_object_base_address[ i ];
+		// register object on list
+		wm_object_insert( (struct WM_STRUCTURE_OBJECT *) &wm_object_base_address[ i ] );
 
-				// release acces to object array
-				wm_object_semaphore = UNLOCK;
+		// newly created object becomes active
+		wm_object_active = (struct WM_STRUCTURE_OBJECT *) &wm_object_base_address[ i ];
 
-				// ready
-				return wm_object_active;
-			}
-		}
+		// release acces to object array
+		MACRO_UNLOCK( wm_object_semaphore );
 
-		// no available entry
-
-		// try to extend objects array
-		struct WM_STRUCTURE_OBJECT *wm_object_base_address_tmp = (struct WM_STRUCTURE_OBJECT *) realloc( wm_object_base_address, sizeof( struct WM_STRUCTURE_OBJECT ) * (wm_object_limit + 1) );
-		if( ! wm_object_base_address_tmp ) { wm_object_semaphore = UNLOCK; return (struct WM_STRUCTURE_OBJECT *) EMPTY; }	// cannot do that
-
-		// update new objects array pointer
-		wm_object_base_address = wm_object_base_address_tmp;
-
-		// objects array extended
-		wm_object_limit++;
+		// ready
+		return (struct WM_STRUCTURE_OBJECT *) &wm_object_base_address[ i ];
 	}
+
+	// release acces to object array
+	MACRO_UNLOCK( wm_object_semaphore );
+
+	// no available entry
+	return EMPTY;
 }
 
 struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t parse_hidden ) {
 	// block access to object list
-	uint64_t wait_time = std_microtime();
-	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) ) if( wait_time + WM_DEBUG_STARVATION_limit < std_uptime() ) { print( "[wm_object_create is starving]\n" ); }
+	MACRO_LOCK( wm_list_semaphore );
 
 	// find object at current cursor coordinates
 	for( uint16_t i = wm_list_limit - 1; i >= 0; i-- ) {
@@ -158,7 +113,7 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t pars
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// leave it
 
 		// object is visible? (or include hidden ones too)
-		if( parse_hidden || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) {
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible || parse_hidden ) {
 			// coordinates at object area?
 			if( wm_list_base_address[ i ] -> x > x ) continue;	// no
 			if( wm_list_base_address[ i ] -> y > y ) continue;	// no
@@ -169,7 +124,7 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t pars
 			struct WM_STRUCTURE_OBJECT *object = wm_list_base_address[ i ];
 
 			// release access to object list
-			wm_list_semaphore = UNLOCK;
+			MACRO_UNLOCK( wm_list_semaphore );
 
 			// return a pointer to an object
 			return object;
@@ -177,7 +132,7 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t pars
 	}
 
 	// release access to object list
-	wm_list_semaphore = UNLOCK;
+	MACRO_UNLOCK( wm_list_semaphore );
 
 	// nothing under specified coordinates
 	return EMPTY;
@@ -242,8 +197,7 @@ void wm_object_move( int16_t x, int16_t y ) {
 
 uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object ) {
 	// block access to object list
-	uint64_t wait_time = std_microtime();
-	while( __sync_val_compare_and_swap( &wm_list_semaphore, UNLOCK, LOCK ) ) if( wait_time + WM_DEBUG_STARVATION_limit < std_uptime() ) { print( "[wm_object_move_up is starving]\n" ); }
+	MACRO_LOCK( wm_list_semaphore );
 
 	// find object on list
 	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
@@ -263,14 +217,14 @@ uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object ) {
 		wm_list_base_address[ i ] = object;
 
 		// release access to object list
-		wm_list_semaphore = UNLOCK;
+		MACRO_UNLOCK( wm_list_semaphore );
 
 		// object changed position
 		return TRUE;
 	}
 
 	// release access to object list
-	wm_list_semaphore = UNLOCK;
+	MACRO_UNLOCK( wm_list_semaphore );
 
 	// object not found
 	return FALSE;

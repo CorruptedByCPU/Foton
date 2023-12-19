@@ -5,12 +5,15 @@
 #ifndef	MACRO
 	#define MACRO
 
-	#define	MACRO_DEBUF( void ) { __asm__ volatile( "xchg %bx, %bx" ); }
+	// Bochs Enchanced Debugger: line break
+	#define	MACRO_DEBUF( void ) __asm__ volatile( "xchg %bx, %bx" );
 
-	#define	MACRO_PAGE_ALIGN_UP( value )(((value) + STD_PAGE_byte - 1) & ~(STD_PAGE_byte - 1))
-	#define	MACRO_PAGE_ALIGN_DOWN( value )((value) & ~(STD_PAGE_byte - 1))
+	// exclusive access
+	#define	MACRO_LOCK( semaphore ) while( __sync_val_compare_and_swap( &semaphore, UNLOCK, LOCK ) ) {};
+	#define	MACRO_UNLOCK( semaphore ) semaphore = UNLOCK;
 
-	#define	MACRO_MODULO_32( value )( (value) & 0b0011111 )
+	#define	MACRO_PAGE_ALIGN_UP( value )( ((value) + STD_PAGE_byte - 1) & ~(STD_PAGE_byte - 1) )
+	#define	MACRO_PAGE_ALIGN_DOWN( value )( (value) & ~(STD_PAGE_byte - 1) )
 
 	#define	MACRO_STR2( x ) #x
 	#define	MACRO_STR( x ) MACRO_STR2( x )

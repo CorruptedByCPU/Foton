@@ -29,7 +29,7 @@ void kernel_init_task( void ) {
 
 	// register memory map of kernel and unlock access
 	kernel -> task_base_address -> memory_map = kernel -> memory_base_address;
-	kernel -> task_base_address -> memory_semaphore = UNLOCK;
+	MACRO_UNLOCK( kernel -> task_base_address -> memory_semaphore );
 
 	// when BSP (Bootstrap Processor) will end with initialization of every system aspect,
 	// he needs to know which is his current task entry point
