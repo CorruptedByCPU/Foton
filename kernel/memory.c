@@ -144,10 +144,10 @@ uintptr_t kernel_memory_share( uintptr_t address, uint64_t page ) {
 	uintptr_t allocated = EMPTY;
 	if( (allocated = kernel_memory_acquire_secured( task, page )) ) {
 		// map memory area to process
-		kernel_page_map( (uintptr_t *) task -> cr3, address, (uintptr_t) KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_shared );
+		kernel_page_map( (uintptr_t *) task -> cr3, address, (uintptr_t) (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_shared );
 
 		// return the address of the first page in the collection
-		return KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE);
+		return (allocated << STD_SHIFT_PAGE);
 	}
 
 	// no free space

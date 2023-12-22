@@ -3,6 +3,12 @@
 ===============================================================================*/
 
 void wm_fill( void ) {
+	// block access to object array
+	MACRO_LOCK( wm_object_semaphore );
+
+	// block access to object list
+	MACRO_LOCK( wm_list_semaphore );
+
 	// fill every zone with assigned object
 	for( uint64_t i = 0; i < wm_zone_limit; i++ ) {
 		// object assigned to zone?
@@ -36,4 +42,10 @@ void wm_fill( void ) {
 
 	// all zones filled
 	wm_zone_limit = EMPTY;
+
+	// release access to object list
+	MACRO_UNLOCK( wm_list_semaphore );
+
+	// release access to object array
+	MACRO_UNLOCK( wm_object_semaphore );
 }

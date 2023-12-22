@@ -81,10 +81,10 @@ uint8_t wm_init( void ) {
 				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
 
 		// release temporary image
-		free( tmp_workbench_image );
+		// free( tmp_workbench_image );
 
 		// release file content
-		free( workbench_image );
+		// free( workbench_image );
 	} else
 		// fill workbench with default color
 		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
@@ -97,16 +97,17 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// create taskbar object
-	wm_object_taskbar = wm_object_create( 0, wm_object_cache.height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_cache.width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
-
-	// mark it as our
-	wm_object_taskbar -> pid = wm_pid;
+	wm_object_taskbar = wm_object_create( 0, wm_object_workbench -> height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_workbench -> width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
 
 	// mark object as taskbar and unmovable
 	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
 
 	// show an empty taskbar
 	wm_taskbar_modified = TRUE;
+
+	// execute taskbar function as thread
+	uint8_t wm_string_taskbar[] = "{wm: taskbar}";
+	wm_object_taskbar -> pid = std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
 
 	//----------------------------------------------------------------------
 
@@ -151,7 +152,7 @@ uint8_t wm_init( void ) {
 		lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file.length_byte );
 
 		// release file content
-		free( cursor_image );
+		// free( cursor_image );
 	}
 
 	// mark window as cursor, so Window Manager will treat it different than others
@@ -170,7 +171,7 @@ uint8_t wm_init( void ) {
 	std_thread( (uintptr_t) &wm_release, (uint8_t *) &wm_string_release, sizeof( wm_string_release ) );
 
 	// debug
-	std_exec( (uint8_t *) "console", 7, EMPTY );
+	// std_exec( (uint8_t *) "console", 7, EMPTY );
 
 	// Window Manager initialized.
 	return TRUE;

@@ -113,9 +113,6 @@ void wm_zone( void ) {
 		}
 	}
 
-	// fill zones with fragments of objects
-	wm_fill();
-
 	// release access to object list
 	MACRO_UNLOCK( wm_list_semaphore );
 

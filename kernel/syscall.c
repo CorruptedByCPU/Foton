@@ -38,16 +38,16 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	uintptr_t allocated = EMPTY;
 	if( (allocated = kernel_memory_acquire_secured( task, page )) ) {
 		// allocate space inside process paging area
-		kernel_page_alloc( (uint64_t *) task -> cr3, KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
+		kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
 
 		// process memory usage
 		task -> page += page;
 
 		// clean up acquired space
-		kernel_page_clean( KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE), page );
+		kernel_page_clean( allocated << STD_SHIFT_PAGE, page );
 
 		// return the address of the first page in the collection
-		return KERNEL_EXEC_base_address + (allocated << STD_SHIFT_PAGE);
+		return allocated << STD_SHIFT_PAGE;
 	}
 
 	// debug
@@ -58,16 +58,13 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 }
 
 void kernel_syscall_memory_release( uintptr_t source, uint64_t page ) {
-	// change source to first page number
-	source = (source - KERNEL_EXEC_base_address) >> STD_SHIFT_PAGE;
-
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// release occupied pages
-	for( uint64_t i = source; i < source + page; i++ ) {
+	for( uint64_t i = source >> STD_SHIFT_PAGE; i < (source >> STD_SHIFT_PAGE) + page; i++ ) {
 		// remove page from paging structure
-		uintptr_t p = kernel_page_remove( (uint64_t *) task -> cr3, (i << STD_SHIFT_PAGE) + KERNEL_EXEC_base_address );
+		uintptr_t p = kernel_page_remove( (uint64_t *) task -> cr3, i << STD_SHIFT_PAGE );
 
 		// if released
 		if( p ) {
@@ -254,7 +251,7 @@ uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t p
 	struct KERNEL_TASK_STRUCTURE *target = (struct KERNEL_TASK_STRUCTURE *) kernel_task_by_id( pid );
 
 	// acquire space from target task
-	uintptr_t target_pointer = KERNEL_EXEC_base_address + (kernel_memory_acquire_secured( target, pages ) << STD_SHIFT_PAGE);
+	uintptr_t target_pointer = kernel_memory_acquire_secured( target, pages ) << STD_SHIFT_PAGE;
 
 	// connect memory space of parent process with child
 	kernel_page_clang( (uintptr_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process | KERNEL_PAGE_FLAG_shared );

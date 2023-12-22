@@ -12,12 +12,12 @@ void wm_object( void ) {
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
 
 		// object minimized or visible and requested flush?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible && wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) {
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse whole object area
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
 
 			// request parsed
-			wm_list_base_address[ i ] -> descriptor -> flags ^= STD_WINDOW_FLAG_flush;
+			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_flush;
 
 			// remove minimize flag (even if not set)
 			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_minimize;
@@ -29,7 +29,7 @@ void wm_object( void ) {
 		// object renamed?
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_name ) {
 			// done
-			wm_list_base_address[ i ] -> descriptor -> flags ^= STD_WINDOW_FLAG_name;
+			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_name;
 
 			// update taskbar list
 			wm_taskbar_modified = TRUE;
@@ -55,8 +55,26 @@ void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 	// block access to object list
 	MACRO_LOCK( wm_list_semaphore );
 
+	// entry id
+	uint64_t i = 0;	// first one
+
+	// find taskbar object on list
+	for( ; i < wm_list_limit; i++ ) {
+		// taskbar object?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) {
+			// move all objects one position forward
+			for( uint64_t j = wm_list_limit; j > i; j-- ) wm_list_base_address[ j ] = wm_list_base_address[ j - 1 ];
+
+			// entry prepared
+			break;
+		}
+	}
+
 	// insert object on list
-	wm_list_base_address[ wm_list_limit++ ] = object;
+	wm_list_base_address[ i ] = object;
+
+	// amount of objects on list
+	wm_list_limit++;
 
 	// release access to object list
 	MACRO_UNLOCK( wm_list_semaphore );

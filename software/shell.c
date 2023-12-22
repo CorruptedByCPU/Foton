@@ -159,7 +159,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				print( (const char *) &keyboard -> key );
 			} else
 				// free up AP time
-				std_sleep( 1 );	
+				std_sleep( TRUE );
 		}
 	}
 }
