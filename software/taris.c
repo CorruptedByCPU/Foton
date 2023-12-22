@@ -8,6 +8,7 @@
 	#include	"../library/interface.h"
 	#include	"../library/random.h"
 	#include	"../library/rgl.h"
+	#include	"../library/integer.h"
 	#include	"../library/string.h"
 	//----------------------------------------------------------------------
 	// variables, routines, procedures
@@ -18,6 +19,20 @@
 	#include	"./taris/collision.c"
 	#include	"./taris/init.c"
 	#include	"./taris/draw.c"
+
+void taris_statistics( uint64_t points, uint64_t lines, uint64_t level ) {
+	// points
+	taris_points -> length = lib_integer_to_string( points, 10, (uint8_t *) &taris_points -> name[ 0 ] );
+	lib_interface_element_label( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, taris_points );
+
+	// lines
+	taris_lines -> length = lib_integer_to_string( lines, 10, (uint8_t *) &taris_lines -> name[ 0 ] );
+	lib_interface_element_label( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, taris_lines );
+
+	// level
+	taris_level -> length = lib_integer_to_string( level, 10, (uint8_t *) &taris_level -> name[ 0 ] );
+	lib_interface_element_label( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, taris_level );
+}
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize gameplay
@@ -141,6 +156,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// wait for restart of game
 			while( getkey() != STD_ASCII_SPACE );
 
+			// reset statistics
+			points = 0;
+			lines = 0;
+			level = 0;
+
 			// clean up playground
 			for( uint8_t i = 0; i < TARIS_PLAYGROUND_HEIGHT_brick - 1; i++ )
 				taris_playground[ i ] = TARIS_PLAYGROUND_empty;
@@ -148,6 +168,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// start new round
 			taris_play = TRUE;
 		}
+
+		// update fields
+		taris_statistics( points, lines, level );
 	}
 
 	// end of execution

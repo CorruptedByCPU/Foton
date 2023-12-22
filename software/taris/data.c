@@ -6,6 +6,10 @@ MACRO_IMPORT_FILE_AS_ARRAY( interface, "./software/taris/interface.json" );
 
 struct LIB_INTERFACE_STRUCTURE	taris_interface;
 
+struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *taris_points;
+struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *taris_lines;
+struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *taris_level;
+
 struct LIB_RGL_STRUCTURE *taris_rgl = EMPTY;
 
 uint64_t taris_brick[ 7 ] = {
