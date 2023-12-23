@@ -21,5 +21,7 @@
 		uint8_t		pixeltype;		// 17
 	} __attribute__( (packed));
 
+	void lib_image_blur( uint32_t *image, uint8_t level, uint64_t width, uint64_t height );
+
 	uint8_t lib_image_tga_parse( uint8_t *source, uint32_t *target, uint64_t bytes );
 #endif

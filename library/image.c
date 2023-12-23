@@ -9,6 +9,49 @@
 		#include	"./image.h"
 	#endif
 
+void lib_image_blur( uint32_t *image, uint8_t level, uint64_t width, uint64_t height ) {
+	// temporary image space
+	uint32_t *tmp = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( ( width * height ) << STD_VIDEO_DEPTH_shift ) >> STD_SHIFT_PAGE );
+
+	// for every pixel in row
+	for (int y = 0; y < height; y++) {
+		// and column
+		for (int x = 0; x < width; x++) {
+			// initialize ratios [a]lpha, [r]ed, [g]reen, [b]lue, [p]ixels
+			uint64_t a = 0, r = 0, g = 0, b = 0, p = 0;
+
+			// add up all individual colors for current pixel, and all around him
+			for( int zy = y - level; zy < y + level; zy++ ) {
+				for( int zx = x - level; zx < x + level; zx++ ) {
+					// if pixel exist
+					if( zy >= 0 && zy < height && zx >= 0 && zx < width ) {
+						// alpha
+						a += (image[ (zy * width) + zx ] >> 24) & 0x00FF;
+						// red
+						r += (image[ (zy * width) + zx ] >> 16) & 0x00FF;
+						// green
+						g += (image[ (zy * width) + zx ] >> 8) & 0x00FF;
+						// blue
+						b += (image[ (zy * width) + zx ]) & 0x00FF;
+
+						// amount of pixels for current color
+						p++;
+					}
+				}
+			}
+
+			// combine new color
+			tmp[ (y * width) + x ] = ((a/p) & 0x00FF) << 24 | ((r/p) & 0x00FF) << 16 | ((g/p) & 0x00FF) << 8 | ((b/p) & 0x00FF);
+		}
+	}
+
+	// update
+	for( uint64_t i = 0; i < width * height; i++ ) image[ i ] = tmp[ i ];
+
+	// release temporary space
+	std_memory_release( (uintptr_t) tmp, MACRO_PAGE_ALIGN_UP( ( width * height ) << STD_VIDEO_DEPTH_shift ) >> STD_SHIFT_PAGE );
+}
+
 uint8_t lib_image_tga_parse( uint8_t *source, uint32_t *target, uint64_t bytes ) {
 	int i, j, k, x, y, w = (source[ 13 ] << 8) + source[ 12 ], h = (source[ 15 ] << 8) + source[ 14 ], o = (source[ 11 ] << 8) + source[ 10 ];
 	int m = ( (source[ 1 ] ? (source[ 7 ] >> 3) * source[ 5 ] : 0) + 18 );

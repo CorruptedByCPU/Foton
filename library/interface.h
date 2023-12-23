@@ -28,6 +28,8 @@
 
 	#define	LIB_INTERFACE_NAME_limit		64
 
+	#define	LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit	0xFFFF
+
 	struct LIB_INTERFACE_STRUCTURE {
 		struct STD_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
 		uint8_t		*properties;
@@ -51,8 +53,8 @@
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	label_or_button;
-		uint8_t		length;
-		uint8_t		name[ 214 ];
+		uint16_t	length;
+		uint8_t		name[ EMPTY ];
 	};
 
 	// properties of Interface assigned to Window

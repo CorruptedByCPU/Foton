@@ -171,7 +171,7 @@ uint8_t wm_init( void ) {
 	std_thread( (uintptr_t) &wm_release, (uint8_t *) &wm_string_release, sizeof( wm_string_release ) );
 
 	// debug
-	// std_exec( (uint8_t *) "console", 7, EMPTY );
+	std_exec( (uint8_t *) "welcome", 7, EMPTY );
 
 	// Window Manager initialized.
 	return TRUE;

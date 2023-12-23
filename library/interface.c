@@ -112,6 +112,9 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 			// parse all keys
 			do {
+				// element name alignment
+				uint16_t element_name_align = EMPTY;
+
 				// x
 				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_x ) ) element -> label_or_button.x = label_or_button.value;
 
@@ -144,11 +147,25 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				// name
 				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_name ) ) {
 					// set length
-					element -> length = label_or_button.length;
-				
+					if( label_or_button.length < LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit )
+						// length if proper
+						element -> length = label_or_button.length;
+					else
+						// limit name length
+						element -> length = LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit;
+
+					// calculate name alignment
+					if( label_or_button.length % STD_PTR_byte ) element_name_align = STD_PTR_byte - (label_or_button.length % STD_PTR_byte);
+
+					// alloc area for element name
+					properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON ) + label_or_button.length + element_name_align );
+
 					// and name
 					uint8_t *name = (uint8_t *) label_or_button.value;
-					for( uint8_t i = 0; i < label_or_button.length; i++ ) element -> name[ i ] = name[ i ];
+					for( uint64_t i = 0; i < label_or_button.length; i++ ) element -> name[ i ] = name[ i ];
+
+					// update element size
+					element -> label_or_button.size_byte += element -> length + element_name_align;
 				}
 
 			// next key

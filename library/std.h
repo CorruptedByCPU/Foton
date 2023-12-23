@@ -265,6 +265,8 @@
 	#define	STD_PAGE_byte					0x1000
 	#define	STD_PAGE_mask					0xFFFFFFFFFFFFF000
 
+	#define	STD_PTR_byte					0x08
+
 	#define	STD_SHIFT_2					1
 	#define	STD_SHIFT_4					2
 	#define	STD_SHIFT_8					3
@@ -362,7 +364,7 @@
 		// window name, it will appear at header and taskbar
 		uint8_t		length;
 		uint8_t		name[ 64 ];
-	} __attribute__( ( aligned( STD_PAGE_byte ) ) );
+	};
 
 	// returns properties of available framebuffer ()
 	void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
