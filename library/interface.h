@@ -8,6 +8,9 @@
 	#ifndef	LIB_FONT
 		#include	"./font.h"
 	#endif
+	#ifndef	LIB_IMAGE
+		#include	"./image.h"
+	#endif
 	#ifndef	LIB_JSON
 		#include	"./json.h"
 	#endif
@@ -24,9 +27,11 @@
 	#define	LIB_INTERFACE_BORDER_pixel		1
 
 	#define	LIB_INTERFACE_COLOR_background		0xFF141414
-	#define	LIB_INTERFACE_COLOR_foreground		0xFFF5F5F5
+	#define	LIB_INTERFACE_COLOR_foreground		0xFFF0F0F0
 
 	#define	LIB_INTERFACE_NAME_limit		64
+
+	#define	LIB_INTERFACE_SHADOW_length		8
 
 	#define	LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit	0xFFFF
 
@@ -71,6 +76,12 @@
 
 	// show label element of definied properties
 	void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element );
+
+	// rename window header
+	void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface );
+
+	//
+	void lib_interface_shadow( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// create window space accoring to JSON specification
 	void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );

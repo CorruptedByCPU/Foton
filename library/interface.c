@@ -46,8 +46,8 @@ void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// fill window with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t y = 0; y < interface -> height; y++ )
-		for( uint16_t x = 0; x < interface -> width; x++ )
+	for( uint16_t y = interface -> descriptor -> offset; y < interface -> height - interface -> descriptor -> offset; y++ )
+		for( uint16_t x = interface -> descriptor -> offset; x < interface -> width - interface -> descriptor -> offset; x++ )
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 }
@@ -251,13 +251,13 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t y = 0; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
-		for( uint16_t x = 1; x < interface -> width - 2; x++ )
+	for( uint16_t y = interface -> descriptor -> offset; y < LIB_INTERFACE_HEADER_HEIGHT_pixel + interface -> descriptor -> offset; y++ )
+		for( uint16_t x = interface -> descriptor -> offset; x < interface -> width - interface -> descriptor -> offset; x++ )
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 
 	// print new header
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> length, STD_COLOR_WHITE, pixel + (4 * interface -> width) + 4, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> length, STD_COLOR_WHITE, pixel + ((4 + interface -> descriptor -> offset) * interface -> width) + 4 + interface -> descriptor -> offset, interface -> width, LIB_FONT_ALIGN_left );
 
 	// synchronize header name with window
 	interface -> descriptor -> length = interface -> length;
@@ -265,6 +265,18 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// inform Window Manager about new window name
 	interface -> descriptor -> flags |= STD_WINDOW_FLAG_name;
+}
+
+void lib_interface_shadow( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// set shadow color
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	for( uint16_t y = interface -> descriptor -> offset; y < interface -> height - interface -> descriptor -> offset; y++ )
+		for( uint16_t x = interface -> descriptor -> offset; x < interface -> width - interface -> descriptor -> offset; x++ )
+			// draw pixel
+			pixel[ (y * interface -> width) + x ] = 0x40000000;
+
+	// blur shadow
+	lib_image_blur( pixel, 4, interface -> width, interface -> height );
 }
 
 void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -303,6 +315,12 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// properties of console window
 	interface -> descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) answer -> descriptor;
+
+	// set shadow length
+	interface -> descriptor -> offset = LIB_INTERFACE_SHADOW_length;
+
+	// prepare shadow of window
+	lib_interface_shadow( interface );
 
 	// clear window content
 	lib_interface_clear( interface );

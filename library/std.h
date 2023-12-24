@@ -361,6 +361,7 @@
 		// pointer position inside window
 		uint16_t	x;
 		uint16_t	y;
+		uint8_t		offset;
 		// window name, it will appear at header and taskbar
 		uint8_t		length;
 		uint8_t		name[ 64 ];

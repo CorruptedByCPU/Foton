@@ -142,11 +142,10 @@ void wm_event( void ) {
 
 	//--------------------------------------------------------------------------
 
-
 	// block access to object list
 	MACRO_LOCK( wm_list_semaphore );
 
-	// update cursor position inside objects
+	// update cursor position over object (active only)
 	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
 		// ignore hidden objects
 		if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) ) continue;
@@ -163,6 +162,7 @@ void wm_event( void ) {
 	MACRO_UNLOCK( wm_list_semaphore );
 
 	//--------------------------------------------------------------------------
+
 	// left mouse button pressed?
 	if( mouse.status & STD_MOUSE_BUTTON_left ) {
 		// isn't holded down?
@@ -172,6 +172,9 @@ void wm_event( void ) {
 
 			// select object under cursor position
 			wm_object_selected = wm_object_find( mouse.x, mouse.y, FALSE );
+
+			// if cursor over selected object is in place of possible header
+			if( wm_object_selected -> descriptor -> y > wm_object_selected -> descriptor -> offset && wm_object_selected -> descriptor -> y - wm_object_selected -> descriptor -> offset < LIB_INTERFACE_HEADER_HEIGHT_pixel ) wm_object_drag_semaphore = TRUE;
 
 			// check if object can be moved along Z axis
 			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_status_alt_left ) {
@@ -216,9 +219,13 @@ void wm_event( void ) {
 					// execute console application
 					std_exec( (uint8_t *) "console", 7, EMPTY );
 		}
-	} else
+	} else {
 		// release mouse button state
 		wm_mouse_button_left_semaphore = FALSE;
+
+		// by default object is not draggable
+		wm_object_drag_semaphore = FALSE;
+	}
 
 	//--------------------------------------------------------------------------
 	// if cursor pointer movement occurs
@@ -234,7 +241,7 @@ void wm_event( void ) {
 		wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 		// if object selected and left mouse button is held with left alt key
-		if( wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_alt_left )
+		if( wm_object_drag_semaphore || (wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_alt_left) )
 			// move object along with cursor pointer
 			wm_object_move( delta_x, delta_y );
 	}

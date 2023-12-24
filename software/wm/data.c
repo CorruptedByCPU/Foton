@@ -36,6 +36,8 @@ uint8_t	wm_mouse_button_left_semaphore		= FALSE;
 uint8_t	wm_mouse_button_right_semaphore		= FALSE;
 uint8_t	wm_mouse_button_middle_semaphore	= FALSE;
 
+uint8_t wm_object_drag_semaphore		= FALSE;
+
 uint8_t wm_keyboard_status_alt_left	= FALSE;
 uint8_t	wm_keyboard_status_shift_left	= FALSE;
 uint8_t	wm_keyboard_status_ctrl_left	= FALSE;

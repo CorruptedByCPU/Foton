@@ -17,10 +17,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	welcome_interface.properties = (uint8_t *) &file_interface_start;
 	lib_interface( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface );
 
-	// debug
-	// uint32_t *pixel = (uint32_t *) ((uintptr_t) welcome_interface.descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	// lib_image_blur( pixel, 2, welcome_interface.width, welcome_interface.height );
-
 	// update window content on screen
 	welcome_interface.descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 

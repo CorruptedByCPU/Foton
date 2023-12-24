@@ -13,6 +13,7 @@
 	#include	"../../library/color.h"
 	#include	"../../library/font.h"
 	#include	"../../library/image.h"
+	#include	"../../library/interface.h"
 
 	//----------------------------------------------------------------------
 	// constants, structures, definitions
