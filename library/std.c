@@ -538,3 +538,9 @@ uint16_t getkey( void ) {
 	// return received key
 	return keyboard -> key;
 }
+
+void exit( void ) {
+	// execute leave out routine
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_EXIT) );
+	std_syscall_empty();
+}

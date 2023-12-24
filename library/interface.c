@@ -268,15 +268,19 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 }
 
 void lib_interface_shadow( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// no shadow?
+	if( ! interface -> descriptor -> offset ) return;
+
 	// set shadow color
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t y = interface -> descriptor -> offset; y < interface -> height - interface -> descriptor -> offset; y++ )
-		for( uint16_t x = interface -> descriptor -> offset; x < interface -> width - interface -> descriptor -> offset; x++ )
-			// draw pixel
-			pixel[ (y * interface -> width) + x ] = 0x40000000;
+	for( uint16_t i = 0; i < interface -> descriptor -> offset; i ++ )
+		for( uint16_t y = i + interface -> descriptor -> offset; y < interface -> height - (i + interface -> descriptor -> offset); y++ )
+			for( uint16_t x = i + interface -> descriptor -> offset; x < interface -> width - (i + interface -> descriptor -> offset); x++ )
+				// draw pixel
+				pixel[ (y * interface -> width) + x ] = i << 28;
 
 	// blur shadow
-	lib_image_blur( pixel, 4, interface -> width, interface -> height );
+	lib_image_blur( pixel, interface -> descriptor -> offset, interface -> width, interface -> height );
 }
 
 void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -307,11 +311,24 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	std_ipc_send( wm_pid, (uint8_t *) request );
 
 	// wait for answer
-	while( ! std_ipc_receive( (uint8_t *) wm_data ) );
+	uint64_t timeout = std_microtime() + 1024;	// wait no more than ~1 second
+	while( ! std_ipc_receive( (uint8_t *) wm_data ) ) if( timeout < std_microtime() ) {
+		// show error
+		print( "Could not connect to Window Manager." );
+
+		// failsafe exit
+		exit();
+	}
 
 	// window assigned?
 	answer = (struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *) &wm_data;
-	if( ! answer -> descriptor ) return;	// no
+	if( ! answer -> descriptor ) {
+		// show error
+		print( "Window Manager denied request." );
+
+		// failsafe exit
+		exit();
+	}
 
 	// properties of console window
 	interface -> descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) answer -> descriptor;

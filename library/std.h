@@ -534,4 +534,5 @@
 	void sprintf( const char *string, ... );
 	uint64_t pow( uint64_t base, uint64_t exponent );
 	uint16_t getkey( void );
+	void exit( void );
 #endif
