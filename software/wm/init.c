@@ -106,12 +106,25 @@ uint8_t wm_init( void ) {
 	// mark object as taskbar and unmovable
 	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
 
-	// show an empty taskbar
-	wm_taskbar_modified = TRUE;
+	// fill taskbar with default background color
+	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	for( uint16_t y = 0; y < wm_object_taskbar -> height; y++ )
+		for( uint16_t x = 0; x < wm_object_taskbar -> width; x++ )
+			taskbar_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;
+
+	// show menu buton on taskbar
+	uint8_t test[ 3 ] = "|||";
+	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), 0xFFFFFFFF, taskbar_pixel + (((WM_OBJECT_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) * wm_object_taskbar -> width) + (22 >> STD_SHIFT_2), wm_object_taskbar -> width, LIB_FONT_ALIGN_center );
 
 	// execute taskbar function as thread
 	uint8_t wm_string_taskbar[] = "{wm: taskbar}";
 	wm_object_taskbar -> pid = std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
+
+	//----------------------------------------------------------------------
+
+	// execute clock function as thread
+	uint8_t wm_string_clock[] = "{wm: clock}";
+	std_thread( (uintptr_t) &wm_clock, (uint8_t *) &wm_string_clock, sizeof( wm_string_clock ) );
 
 	//----------------------------------------------------------------------
 
@@ -175,7 +188,7 @@ uint8_t wm_init( void ) {
 	std_thread( (uintptr_t) &wm_release, (uint8_t *) &wm_string_release, sizeof( wm_string_release ) );
 
 	// debug
-	std_exec( (uint8_t *) "welcome", 7, EMPTY );
+	// std_exec( (uint8_t *) "welcome", 7, EMPTY );
 
 	// Window Manager initialized.
 	return TRUE;

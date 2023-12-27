@@ -327,6 +327,7 @@
 	#define	STD_SYSCALL_CD					0x19
 	#define	STD_SYSCALL_IPC_RECEIVE_BY_TYPE			0x1A
 	#define	STD_SYSCALL_MICROTIME				0x1B
+	#define	STD_SYSCALL_TIME				0x1C
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -447,6 +448,9 @@
 
 	// returns passed microtime since boot
 	uint64_t std_microtime( void );
+
+	// returns information about current date and time in format: 0x00wwyymmddHHMMSS
+	uint64_t std_time( void );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

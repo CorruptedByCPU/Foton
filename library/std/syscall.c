@@ -268,3 +268,11 @@ uint64_t std_microtime( void ) {
 	// return value unsigned
 	return std_syscall_value_unsigned();
 }
+
+uint64_t std_time( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_TIME) );
+
+	// return value unsigned
+	return std_syscall_value_unsigned();
+}

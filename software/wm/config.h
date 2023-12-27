@@ -29,6 +29,8 @@
 	#define	WM_OBJECT_TASKBAR_HEIGHT_pixel	22
 	#define	WM_OBJECT_TASKBAR_ENTRY_pixel	(255 + 1)
 
+	#define	WM_OBJECT_TASKBAR_CLOCK_pixel	50
+
 	#define	WM_TASKBAR_BG_default	0xA0000000
 	#define	WM_TASKBAR_BG_invisible	0xE0000000
 	#define	WM_TASKBAR_BG_visible	0xC0101010

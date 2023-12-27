@@ -12,11 +12,11 @@ extern	kernel_rtc
 section	.text
 
 ; share routine
-global	kernel_rtc_entry
+global	driver_rtc_entry
 
 ; align routine to full address
 align	0x08,	db	0x00
-kernel_rtc_entry:
+driver_rtc_entry:
 	; execute driver handler
 	call	kernel_rtc
 

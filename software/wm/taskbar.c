@@ -65,12 +65,8 @@ void wm_taskbar_list( void ) {
 	// fill taskbar with default background color
 	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	for( uint16_t y = 0; y < wm_object_taskbar -> height; y++ )
-		for( uint16_t x = 0; x < wm_object_taskbar -> width; x++ )
+		for( uint16_t x = LIB_INTERFACE_HEADER_HEIGHT_pixel; x < wm_object_taskbar -> width - WM_OBJECT_TASKBAR_CLOCK_pixel; x++ )
 			taskbar_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;
-
-	// show menu buton on taskbar
-	uint8_t test[ 3 ] = "|||";
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), 0xFFFFFFFF, taskbar_pixel + (((WM_OBJECT_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) * wm_object_taskbar -> width) + (22 >> STD_SHIFT_2), wm_object_taskbar -> width, LIB_FONT_ALIGN_center );
 
 	// block access to object list
 	MACRO_LOCK( wm_list_semaphore );
@@ -87,7 +83,7 @@ void wm_taskbar_list( void ) {
 	// there are objects?
 	if( wm_taskbar_limit ) {
 		// calculate width of entry
-		wm_taskbar_entry_width = (wm_object_taskbar -> width - WM_OBJECT_TASKBAR_HEIGHT_pixel) / wm_taskbar_limit;
+		wm_taskbar_entry_width = (wm_object_taskbar -> width - (WM_OBJECT_TASKBAR_HEIGHT_pixel + WM_OBJECT_TASKBAR_CLOCK_pixel)) / wm_taskbar_limit;
 
 		// if entry wider than allowed
 		if( wm_taskbar_entry_width > WM_OBJECT_TASKBAR_ENTRY_pixel ) wm_taskbar_entry_width = WM_OBJECT_TASKBAR_ENTRY_pixel;	// limit it
@@ -98,7 +94,7 @@ void wm_taskbar_list( void ) {
 		// for every entry
 		for( uint8_t i = 0; i < wm_taskbar_limit; i++ ) {
 			// last entry width, align
-			if( i + 1 == wm_taskbar_limit ) wm_taskbar_list_entry( wm_taskbar_base_address[ i ], x, wm_taskbar_entry_width + (wm_object_taskbar -> width - WM_OBJECT_TASKBAR_HEIGHT_pixel) % wm_taskbar_limit );
+			if( i + 1 == wm_taskbar_limit ) wm_taskbar_list_entry( wm_taskbar_base_address[ i ], x, wm_taskbar_entry_width + (wm_object_taskbar -> width - (WM_OBJECT_TASKBAR_HEIGHT_pixel + WM_OBJECT_TASKBAR_CLOCK_pixel)) % wm_taskbar_limit );
 			else
 				// show on taskbar list
 				wm_taskbar_list_entry( wm_taskbar_base_address[ i ], x, wm_taskbar_entry_width );
@@ -110,9 +106,6 @@ void wm_taskbar_list( void ) {
 
 	// release access to object list
 	MACRO_UNLOCK( wm_list_semaphore );
-
-	// update taskbar content on screen
-	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 }
 
 int64_t wm_taskbar( void ) {
@@ -121,62 +114,61 @@ int64_t wm_taskbar( void ) {
 		// free up AP time
 		std_sleep( TRUE );
 
-		// retrieve incomming message
-		uint8_t data[ STD_IPC_SIZE_byte ];
-		if( std_ipc_receive( (uint8_t *) &data ) ) {
-			// properties of message
-			struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &data;
+		// incomming message
+		uint8_t ipc_data[ STD_IPC_SIZE_byte ];
 
-			// message type: mouse?
-			if( ipc -> type == STD_IPC_TYPE_mouse ) {	// yes
-				// properties of mouse message
-				struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &data;
+		// receive pending messages
+		if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
+			// message properties
+			struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &ipc_data;
 
-				// button: left mouse pressed?
-				if( mouse -> button & STD_IPC_MOUSE_BUTTON_left ) {	// yes
-					// there are entries on taskbar list?
-					if( wm_taskbar_limit ) {
-						// mouse pointer in range of any taskbar list entry?
-						if( wm_object_taskbar -> descriptor -> x >= WM_OBJECT_TASKBAR_HEIGHT_pixel && (wm_object_taskbar -> descriptor -> x - WM_OBJECT_TASKBAR_HEIGHT_pixel) / wm_taskbar_entry_width < wm_taskbar_limit ) {
-							// properties of selected object entry
-							struct WM_STRUCTURE_OBJECT *object = wm_taskbar_base_address[ (wm_object_taskbar -> descriptor -> x - WM_OBJECT_TASKBAR_HEIGHT_pixel) / wm_taskbar_entry_width ];
+			// released left mouse button?
+			if( mouse -> button == STD_IPC_MOUSE_BUTTON_left ) {
+				// there are entries on taskbar list?
+				if( wm_taskbar_limit ) {
+					// mouse pointer in range of any taskbar list entry?
+					if( wm_object_taskbar -> descriptor -> x >= WM_OBJECT_TASKBAR_HEIGHT_pixel && (wm_object_taskbar -> descriptor -> x - WM_OBJECT_TASKBAR_HEIGHT_pixel) / wm_taskbar_entry_width < wm_taskbar_limit ) {
+						// properties of selected object entry
+						struct WM_STRUCTURE_OBJECT *object = wm_taskbar_base_address[ (wm_object_taskbar -> descriptor -> x - WM_OBJECT_TASKBAR_HEIGHT_pixel) / wm_taskbar_entry_width ];
 
-							// its an active object?
-							if( object == wm_object_active ) {
-								// hide it
-								object -> descriptor -> flags |= STD_WINDOW_FLAG_minimize;
+						// its an active object?
+						if( object == wm_object_active ) {
+							// hide it
+							object -> descriptor -> flags |= STD_WINDOW_FLAG_minimize;
 
-								// mark object as invisible
-								object -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
+							// mark object as invisible
+							object -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
 
-								// and select new active object
-								wm_object_active_new();
-							} else {
-								// move object up inside list
-								wm_object_move_up( object );
+							// and select new active object
+							wm_object_active_new();
+						} else {
+							// move object up inside list
+							wm_object_move_up( object );
 
-								// redraw object on screen
-								object -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+							// redraw object on screen
+							object -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
-								// mark as new active
-								wm_object_active = object;
-							}
-
-							// update taskbar list content
-							wm_taskbar_modified = TRUE;
+							// mark as new active
+							wm_object_active = object;
 						}
+
+						// update taskbar list content
+						wm_taskbar_modified = TRUE;
 					}
 				}
 			}
 		}
 
 		// if there was significant modification on object list/array
-		if( ! wm_taskbar_modified ) continue;	// no
+		if( wm_taskbar_modified ) {
+			// taskbar object content update in progress
+			wm_taskbar_modified = FALSE;
 
-		// taskbar object content update in progress
-		wm_taskbar_modified = FALSE;
+			// update taskbar list content/status
+			wm_taskbar_list();
 
-		// update taskbar list content/status
-		wm_taskbar_list();
+			// update taskbar content on screen
+			wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		}
 	}
 }

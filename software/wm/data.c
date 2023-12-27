@@ -47,3 +47,5 @@ uint8_t wm_taskbar_modified = FALSE;
 
 // width of button on taskbar list
 uint16_t wm_taskbar_entry_width = EMPTY;
+
+uint64_t wm_taskbar_clock_time = EMPTY;

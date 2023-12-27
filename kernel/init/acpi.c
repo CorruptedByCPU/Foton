@@ -108,14 +108,14 @@ void kernel_init_acpi( void ) {
 			}
 		}
 
-		// // if entry contains an HPET signature (High-Precision Event Timer)
-		// struct KERNEL_INIT_ACPI_STRUCTURE_HPET *local_hpet = (struct KERNEL_INIT_ACPI_STRUCTURE_HPET *) local_entry;
-		// if( local_hpet -> signature == KERNEL_INIT_ACPI_HPET_signature ) {
-		// 	// store base address of HPET
-		// 	kernel -> hpet_base_address = (struct KERNEL_HPET_STRUCTURE_REGISTER *) (uintptr_t) (local_hpet -> base_address | KERNEL_PAGE_logical);
+		// if entry contains an HPET signature (High-Precision Event Timer)
+		struct KERNEL_INIT_ACPI_STRUCTURE_HPET *local_hpet = (struct KERNEL_INIT_ACPI_STRUCTURE_HPET *) local_entry;
+		if( local_hpet -> signature == KERNEL_INIT_ACPI_HPET_signature ) {
+			// store base address of HPET
+			kernel -> hpet_base_address = (struct KERNEL_HPET_STRUCTURE_REGISTER *) (uintptr_t) (local_hpet -> base_address | KERNEL_PAGE_logical);
 
-		// 	// show message regarding HPET
-		// 	kernel -> log( (uint8_t *) " HPET base address 0x%X\n", (uint64_t) kernel -> hpet_base_address );
-		// }
+			// show message regarding HPET
+			kernel -> log( (uint8_t *) " HPET base address 0x%X\n", (uint64_t) kernel -> hpet_base_address );
+		}
 	}
 }

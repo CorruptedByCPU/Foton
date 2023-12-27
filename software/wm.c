@@ -17,6 +17,7 @@
 	#include	"./wm/object.c"
 	#include	"./wm/taskbar.c"
 	#include	"./wm/release.c"
+	#include	"./wm/clock.c"
 	#include	"./wm/init.c"
 	#include	"./wm/cursor.c"
 

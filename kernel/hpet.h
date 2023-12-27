@@ -29,6 +29,6 @@
 	extern void kernel_hpet_uptime_entry( void );
 
 	// function counting miliseconds
-	__attribute__ (( preserve_all ))
+	__attribute__(( no_caller_saved_registers ))
 	void kernel_hpet_uptime( void );
 #endif
