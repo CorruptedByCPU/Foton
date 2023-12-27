@@ -20,14 +20,21 @@
 
 	#define	LIB_INTERFACE_HEADER_HEIGHT_pixel	(LIB_FONT_HEIGHT_pixel + 6)	// 3 pixels from above and under
 
-	#define	LIB_INTERFACE_ELEMENT_TYPE_null		0x00
-	#define	LIB_INTERFACE_ELEMENT_TYPE_label	0x01
-	#define	LIB_INTERFACE_ELEMENT_TYPE_button	0x02
+	#define	LIB_INTERFACE_ELEMENT_TYPE_null			0x00
+	#define	LIB_INTERFACE_ELEMENT_TYPE_label		0x01
+	#define	LIB_INTERFACE_ELEMENT_TYPE_button		0x02
+	#define	LIB_INTERFACE_ELEMENT_TYPE_control_close	0x03
+	#define	LIB_INTERFACE_ELEMENT_TYPE_control_maximize	0x04
+	#define	LIB_INTERFACE_ELEMENT_TYPE_control_minimize	0x05
+
+	#define	LIB_INTERFACE_ELEMENT_FLAG_hover		0b00000001
 
 	#define	LIB_INTERFACE_BORDER_pixel		1
 
 	#define	LIB_INTERFACE_COLOR_background		0xFF141414
 	#define	LIB_INTERFACE_COLOR_foreground		0xFFF0F0F0
+	#define	LIB_INTERFACE_COLOR_background_light	0xFF282828
+	#define	LIB_INTERFACE_COLOR_background_hover	0xFF208020
 
 	#define	LIB_INTERFACE_NAME_limit		64
 
@@ -40,6 +47,7 @@
 		uint8_t		*properties;
 		uint16_t	width;
 		uint16_t	height;
+		uint8_t		controls;
 		uint8_t		length;
 		uint8_t		name[ LIB_INTERFACE_NAME_limit ];
 	};
@@ -54,6 +62,11 @@
 		uint16_t	height;
 		uint16_t	id;
 		void		(*function)( void );
+	};
+
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL {
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	control;
+		void	(*event)( void );
 	};
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON {
@@ -72,10 +85,18 @@
 	void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// find element properties by its ID
-	struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface, uint64_t id );
+	uintptr_t lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface, uint64_t id );
+
+	void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control );
 
 	// show label element of definied properties
 	void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element );
+
+	// check incomming events
+	void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface );
+
+	// change status of elements of interface
+	void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// rename window header
 	void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface );

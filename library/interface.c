@@ -25,6 +25,11 @@ const uint8_t lib_interface_string_align[] = "align";
 const uint8_t lib_interface_string_center[] = "center";
 const uint8_t lib_interface_string_right[] = "right";
 const uint8_t lib_interface_string_justify[] = "justify";
+const uint8_t lib_interface_string_type[] = "type";
+const uint8_t lib_interface_string_control[] = "control";
+const uint8_t lib_interface_string_close[] = "close";
+const uint8_t lib_interface_string_minimize[] = "minimize";
+const uint8_t lib_interface_string_maximize[] = "maximize";
 
 void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// prepare JSON structure for parsing
@@ -45,9 +50,9 @@ void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// fill window with default background
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t y = interface -> descriptor -> offset; y < interface -> height - interface -> descriptor -> offset; y++ )
-		for( uint16_t x = interface -> descriptor -> offset; x < interface -> width - interface -> descriptor -> offset; x++ )
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (interface -> descriptor -> offset * interface -> width) + interface -> descriptor -> offset;
+	for( uint16_t y = 0; y < interface -> height - (interface -> descriptor -> offset << STD_SHIFT_2); y++ )
+		for( uint16_t x = 0; x < interface -> width - (interface -> descriptor -> offset << STD_SHIFT_2); x++ )
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 }
@@ -89,6 +94,50 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &window ) );
 		}
 
+		// control?
+		if( lib_json_key( json, (uint8_t *) &lib_interface_string_control ) ) {
+			// alloc space for element
+			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL ) );
+
+			// element structure position
+			struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &properties[ i ];
+	
+			// control properties
+			struct LIB_JSON_STRUCTURE control = lib_json( (uint8_t *) json.value );
+
+			// default properties of control
+			element -> control.y = LIB_INTERFACE_SHADOW_length;
+			element -> control.width = LIB_INTERFACE_HEADER_HEIGHT_pixel;
+			element -> control.height = LIB_INTERFACE_HEADER_HEIGHT_pixel;
+			element -> control.flags = EMPTY;
+			element -> control.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL );
+
+			// parse all keys
+			do {
+				// id
+				if( lib_json_key( control, (uint8_t *) &lib_interface_string_id ) ) element -> control.id = control.value;
+
+				// x
+				if( lib_json_key( control, (uint8_t *) &lib_interface_string_x ) ) element -> control.x = control.value;
+
+				// type
+				if( lib_json_key( control, (uint8_t *) &lib_interface_string_type ) ) {
+					// close
+					if( lib_string_compare( (uint8_t *) control.value, (uint8_t *) "close", control.length ) ) element -> control.type = LIB_INTERFACE_ELEMENT_TYPE_control_close;
+
+					// maximize
+					if( lib_string_compare( (uint8_t *) control.value, (uint8_t *) "maximize", control.length ) ) element -> control.type = LIB_INTERFACE_ELEMENT_TYPE_control_maximize;
+
+					// minimize
+					if( lib_string_compare( (uint8_t *) control.value, (uint8_t *) "minimize", control.length ) ) element -> control.type = LIB_INTERFACE_ELEMENT_TYPE_control_minimize;
+				}
+			// next key
+			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &control ) );
+
+			// change interface structure index
+			i += element -> control.size_byte;
+		}
+
 		// check element type
 		uint8_t type = EMPTY;
 		if( lib_json_key( json, (uint8_t *) &lib_interface_string_label ) ) type = LIB_INTERFACE_ELEMENT_TYPE_label;
@@ -115,6 +164,9 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				// element name alignment
 				uint16_t element_name_align = EMPTY;
 
+				// id
+				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_id ) ) element -> label_or_button.id = label_or_button.value;
+
 				// x
 				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_x ) ) element -> label_or_button.x = label_or_button.value;
 
@@ -126,10 +178,7 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 				// height
 				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_height ) ) element -> label_or_button.height = label_or_button.value;
-
-				// id
-				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_id ) ) element -> label_or_button.id = label_or_button.value;
-
+		
 				// align
 				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_align ) ) {
 					// by default
@@ -194,6 +243,9 @@ void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	while( element -> type != LIB_INTERFACE_ELEMENT_TYPE_null ) {
 		switch( element -> type ) {
 			case LIB_INTERFACE_ELEMENT_TYPE_label: { lib_interface_element_label( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
+			case LIB_INTERFACE_ELEMENT_TYPE_control_close: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
+			case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
+			case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
 		}
 	
 		// next element properties
@@ -201,7 +253,7 @@ void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	}
 }
 
-struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface, uint64_t id ) {
+uintptr_t lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface, uint64_t id ) {
 	// check which element is under cursor position
 	uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
 	while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
@@ -209,7 +261,7 @@ struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *lib_interface_element_by
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT *properties = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) &element[ e ];
 
 		// element found?
-		if( properties -> id == id ) return (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) properties;
+		if( properties -> id == id ) return (uintptr_t) properties;
 
 		// next element from list
 		e += properties -> size_byte;
@@ -217,6 +269,56 @@ struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *lib_interface_element_by
 
 	// element of ID not found
 	return EMPTY;
+}
+
+void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *element ) {
+	// properties of control buttons of window
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (interface -> descriptor -> offset * interface -> width) + element -> control.x;
+
+	// choose background color
+	uint32_t background_color = LIB_INTERFACE_COLOR_background;
+	if( element -> control.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) {
+		if( element -> control.type == LIB_INTERFACE_ELEMENT_TYPE_control_close ) background_color = LIB_INTERFACE_COLOR_background_hover;
+		else background_color = LIB_INTERFACE_COLOR_background_light;
+	}
+
+	// clear element space
+	for( uint8_t y = 0; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
+		for( uint8_t x = 0; x < LIB_INTERFACE_HEADER_HEIGHT_pixel; x++ )
+			pixel[ (y * interface -> width) + x ] = background_color;
+
+	// choose element type
+	switch( element -> control.type ) {	
+		case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
+			// display minimize window button
+			for( uint64_t x = 6; x <= 16; x++ ) pixel[ (16 * interface -> width) + x ] = 0xFFC0C0C0;
+
+			// done
+			break;
+		}
+		case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: {
+			// display window maximize button
+			for( uint64_t y = 6; y <= 16; y++ ) {
+				pixel[ (6 * interface -> width) + y ] = 0xFFC0C0C0;
+				pixel[ (y * interface -> width) + 6 ] = 0xFFC0C0C0;
+				pixel[ (y * interface -> width) + 16 ] = 0xFFC0C0C0;
+				pixel[ (16 * interface -> width) + y ] = 0xFFC0C0C0;
+			}
+
+			// done
+			break;
+		}
+		case LIB_INTERFACE_ELEMENT_TYPE_control_close: {
+			// display close window button
+			for( uint64_t y = 6; y <= 16; y++ ) {
+				pixel[ (y * interface -> width) + y ] = 0xFFF0F0F0;
+				pixel[ (LIB_INTERFACE_HEADER_HEIGHT_pixel - y) + (y * interface -> width) ] = 0xFFF0F0F0;
+			}
+
+			// done
+			break;
+		}
+	}
 }
 
 void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
@@ -240,6 +342,106 @@ void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, str
 
 	// display the content of element
 	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, element -> label_or_button.flags );
+}
+
+void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// incomming message
+	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
+
+	// receive pending messages
+	if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) {
+		// message properties
+		struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &ipc_data;
+
+		// pressed left mouse button?
+		if( mouse -> button & STD_IPC_MOUSE_BUTTON_left ) {
+			// check which element is under cursor position
+			uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
+			while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
+				// element properties
+				struct LIB_INTERFACE_STRUCTURE_ELEMENT *properties = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) &element[ e ];
+
+				// cursor overlaps this element? (check only if object is located under cursor)
+				if( interface -> descriptor -> x >= properties -> x + interface -> descriptor -> offset && interface -> descriptor -> x < (properties -> x + properties -> width + interface -> descriptor -> offset) && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < (properties -> y + properties -> height) ) {
+					// execute event of element
+					switch( properties -> type ) {
+						case LIB_INTERFACE_ELEMENT_TYPE_control_close: {
+							// properties of control
+							struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) properties;
+
+							// if event function exist, do it
+							if( control -> event ) control -> event();
+
+							// done
+							break;
+						}
+
+						case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
+							// minimize window
+							interface -> descriptor -> flags |= STD_WINDOW_FLAG_minimize;
+
+							// done
+							break;
+						}
+					}
+				}
+
+				// next element from list
+				e += properties -> size_byte;
+			}
+		}
+	}
+
+	//--------------------------------------------------------------------------------
+	// "hover over elements"
+	//--------------------------------------------------------------------------------
+	lib_interface_hover( interface );
+}
+
+void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// check every element of interface
+	uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
+
+	// check which element is under cursor position
+	while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
+		// element properties
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT *properties = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) &element[ e ];
+
+		// ignore unsupported elements
+		if( properties -> type == LIB_INTERFACE_ELEMENT_TYPE_label ) { e += properties -> size_byte; continue; }
+
+		// last event
+		uint8_t previous = properties -> flags;
+
+		// cursor overlaps this element? (check only if object is located under cursor)
+		if(
+			interface -> descriptor -> x >= properties -> x &&
+			interface -> descriptor -> x < properties -> x + properties -> width &&
+			interface -> descriptor -> y >= properties -> y &&
+			interface -> descriptor -> y < properties -> y + properties -> height
+		) {
+			// mark as hovered
+			properties -> flags |= LIB_INTERFACE_ELEMENT_FLAG_hover;
+		} else
+			// mark as not hovered
+			properties -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_hover;
+
+		// if "event" changed
+		if( properties -> flags != previous ) {
+			// redraw element inside object
+			switch( properties -> type ) {
+				case LIB_INTERFACE_ELEMENT_TYPE_control_close: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
+				case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
+				case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
+			}
+
+			// update window content on screen
+			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		}
+
+		// next element from list
+		e += properties -> size_byte;
+	}
 }
 
 void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -303,7 +505,7 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// wallpaper window properties
 	request -> ipc.type = STD_IPC_TYPE_event;
 	request -> x = (kernel_framebuffer.width_pixel >> STD_SHIFT_2) - (interface -> width >> STD_SHIFT_2);
-	request -> y = (kernel_framebuffer.height_pixel >> STD_SHIFT_2) - (interface -> height >> STD_SHIFT_2);
+	request -> y = ((kernel_framebuffer.height_pixel - LIB_INTERFACE_HEADER_HEIGHT_pixel) >> STD_SHIFT_2) - (interface -> height >> STD_SHIFT_2);
 	request -> width = interface -> width;
 	request -> height = interface -> height;
 
