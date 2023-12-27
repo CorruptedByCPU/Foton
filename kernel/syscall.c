@@ -82,7 +82,7 @@ void kernel_syscall_memory_release( uintptr_t source, uint64_t page ) {
 
 uint64_t kernel_syscall_uptime( void ) {
 	// return uptime
-	return kernel -> time_unit / DRIVER_RTC_Hz;
+	return kernel -> time_unit;
 }
 
 void kernel_syscall_log( uint8_t *string, uint64_t length ) {
@@ -482,7 +482,7 @@ uint64_t kernel_syscall_sleep( uint64_t units ) {
 	task -> flags |= KERNEL_TASK_FLAG_sleep;
 
 	// set release pointer
-	uint64_t stop = kernel -> time_unit + ((DRIVER_RTC_Hz / 1024) * units);
+	uint64_t stop = kernel -> time_unit + units;
 
 	// wait until we achieve awaited units of time
 	while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );

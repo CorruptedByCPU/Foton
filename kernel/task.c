@@ -4,6 +4,9 @@
 
 // round robin queue type
 void kernel_task( void ) {
+	// increment microtime of BSP
+	if( kernel_lapic_id() == EMPTY ) kernel -> time_unit++;
+
 	// task properties
 	struct KERNEL_TASK_STRUCTURE *current = kernel -> task_cpu_address[ kernel_lapic_id() ];
 

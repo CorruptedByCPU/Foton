@@ -4,7 +4,7 @@
 
 void kernel_time_sleep( uint64_t t ) {
 	// set release pointer
-	uint64_t stop = kernel -> time_unit + ((DRIVER_RTC_Hz / 1024) * t);
+	uint64_t stop = kernel -> time_unit + t;
 
 	// wait until we achieve
 	while( stop > kernel -> time_unit );

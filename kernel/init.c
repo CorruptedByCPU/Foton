@@ -31,7 +31,7 @@
 	#include	"gdt.h"
 	#include	"tss.h"
 	#include	"lapic.h"
-	#include	"hpet.h"
+	// #include	"hpet.h"
 	#include	"io_apic.h"
 	#include	"config.h"
 	#include	"lapic.h"
@@ -54,7 +54,7 @@
 	//----------------------------------------------------------------------
 	#include	"log.c"
 	#include	"lapic.c"
-	#include	"hpet.c"
+	// #include	"hpet.c"
 	#include	"idt.c"
 	#include	"io_apic.c"
 	#include	"memory.c"
@@ -80,7 +80,7 @@
 	#include	"init/acpi.c"
 	#include	"init/env.c"
 	#include	"init/gdt.c"
-	#include	"init/hpet.c"
+	// #include	"init/hpet.c"
 	#include	"init/idt.c"
 	#include	"init/lapic.c"
 	#include	"init/memory.c"
@@ -138,7 +138,7 @@ void _entry( void ) {
 	kernel_init_rtc();
 
 	// configure HPET
-	kernel_init_hpet();
+	// kernel_init_hpet();
 
 	// initialize other CPUs
 	kernel_init_smp();
