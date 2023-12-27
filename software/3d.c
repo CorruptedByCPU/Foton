@@ -16,8 +16,14 @@
 	//----------------------------------------------------------------------
 	// routines, procedures
 	//----------------------------------------------------------------------
+	#include	"3d/config.h"
 	#include	"3d/object.c"
 	#include	"3d/init.c"
+
+void close( void ) {
+	// end of program
+	exit();
+}
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize environment
@@ -45,21 +51,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// main loop
 	while( TRUE ) {
-		// incomming message
-		uint8_t ipc_data[ STD_IPC_SIZE_byte ];
-		if( std_ipc_receive( (uint8_t *) &ipc_data ) ) {
-			// properties of incomming message
-			struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &ipc_data;
+		// check events from interface
+		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &d3_interface );
 
-			// message type: key?
-			if( ipc -> type != STD_IPC_TYPE_keyboard ) continue;	// no
+		// recieve key
+		uint16_t key = getkey();
 
-			// properties of Keyboard message
-			struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &ipc_data;
-
-			// close program?
-			if( keyboard -> key == STD_ASCII_ESC ) return 0;
-		}
+		// exit game?
+		if( key == STD_ASCII_ESC ) return 0;	// yes
 
 		// next angle
 		a += 0.01f;

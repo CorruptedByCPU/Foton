@@ -7,6 +7,12 @@ void taris_init( void ) {
 	taris_interface.properties = (uint8_t *) &file_interface_start;
 	lib_interface( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface );
 
+	// find control element of type: close
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, 0 );
+
+	// assign executable function to element
+	control -> event = (void *) close;
+
 	// find label element with points value
 	taris_points = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) lib_interface_element_by_id( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, 1 );
 

@@ -19,8 +19,20 @@ void wm_object( void ) {
 			// request parsed
 			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_flush;
 
-			// remove minimize flag (even if not set)
-			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_minimize;
+			// remove minimize flag (if set)
+			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize ) {
+				// hide object
+				wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
+
+				// remove minimize flag
+				wm_list_base_address[ i ] -> descriptor -> flags  &= ~STD_WINDOW_FLAG_minimize;
+
+				// find new active object
+				wm_object_active_new();
+
+				// update taskbar list
+				wm_taskbar_modified = TRUE;
+			}
 
 			// redraw cursor too
 			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;

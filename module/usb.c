@@ -236,8 +236,6 @@ void driver_usb_debug_descriptors( struct DRIVER_USB_TD_STRUCTURE *td ) {
 
 // 	//----------------------------------------------------------------------
 
-// 	MACRO_DEBUF();
-
 // 	// insert Transfer Descriptors on Queue
 // 	driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
 

@@ -61,3 +61,4 @@
 	uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object );
 	void wm_object_move( int16_t x, int16_t y );
 	void wm_object_remove( uint16_t i );
+	void wm_object_active_new( void );

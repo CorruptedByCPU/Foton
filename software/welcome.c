@@ -12,6 +12,11 @@ MACRO_IMPORT_FILE_AS_ARRAY( interface, "./software/welcome/interface.json" );
 
 struct LIB_INTERFACE_STRUCTURE	welcome_interface;
 
+void close( void ) {
+	// end of program
+	exit();
+}
+
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize interface library
 	welcome_interface.properties = (uint8_t *) &file_interface_start;
@@ -19,10 +24,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// find control element of type: close
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface, 0 );
-	if( ! control ) { return -1; }	// element not found
 
 	// assign executable function to element
-	control -> event = (void *) exit;
+	control -> event = (void *) close;
 
 	// update window content on screen
 	welcome_interface.descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
@@ -39,7 +43,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		uint16_t key = getkey();
 
 		// exit?
-		if( key == STD_ASCII_ESC ) return 0;	// yes
+		if( key == STD_ASCII_ESC ) break;	// yes
 	}
 
 	// end of execution

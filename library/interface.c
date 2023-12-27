@@ -349,12 +349,12 @@ void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
 
 	// receive pending messages
-	if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) {
+	if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
 		// message properties
 		struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &ipc_data;
 
-		// pressed left mouse button?
-		if( mouse -> button & STD_IPC_MOUSE_BUTTON_left ) {
+		// released left mouse button?
+		if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) {
 			// check which element is under cursor position
 			uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
 			while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
@@ -362,7 +362,7 @@ void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				struct LIB_INTERFACE_STRUCTURE_ELEMENT *properties = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) &element[ e ];
 
 				// cursor overlaps this element? (check only if object is located under cursor)
-				if( interface -> descriptor -> x >= properties -> x + interface -> descriptor -> offset && interface -> descriptor -> x < (properties -> x + properties -> width + interface -> descriptor -> offset) && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < (properties -> y + properties -> height) ) {
+				if( interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height ) {
 					// execute event of element
 					switch( properties -> type ) {
 						case LIB_INTERFACE_ELEMENT_TYPE_control_close: {
@@ -378,7 +378,7 @@ void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 						case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
 							// minimize window
-							interface -> descriptor -> flags |= STD_WINDOW_FLAG_minimize;
+							interface -> descriptor -> flags |= STD_WINDOW_FLAG_minimize | STD_WINDOW_FLAG_flush;
 
 							// done
 							break;
@@ -414,15 +414,10 @@ void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
 		uint8_t previous = properties -> flags;
 
 		// cursor overlaps this element? (check only if object is located under cursor)
-		if(
-			interface -> descriptor -> x >= properties -> x &&
-			interface -> descriptor -> x < properties -> x + properties -> width &&
-			interface -> descriptor -> y >= properties -> y &&
-			interface -> descriptor -> y < properties -> y + properties -> height
-		) {
+		if( interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height )
 			// mark as hovered
 			properties -> flags |= LIB_INTERFACE_ELEMENT_FLAG_hover;
-		} else
+		else
 			// mark as not hovered
 			properties -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_hover;
 

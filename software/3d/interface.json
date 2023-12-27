@@ -2,6 +2,15 @@
 	"window": {
 		"width": 338,
 		"height": 358,
-		"name": "3D - Press ESC key to close."
+		"name": "3D Engine"
+	},
+	"control": {
+		"id": 0,
+		"x": 308,
+		"type": "close"
+	},
+	"control": {
+		"x": 284,
+		"type": "minimize"
 	}
 }

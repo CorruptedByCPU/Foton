@@ -3,5 +3,14 @@
 		"width": 642,
 		"height": 375,
 		"name": "Console"
+	},
+	"control": {
+		"id": 0,
+		"x": 612,
+		"type": "close"
+	},
+	"control": {
+		"x": 588,
+		"type": "minimize"
 	}
 }

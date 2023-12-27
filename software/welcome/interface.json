@@ -11,10 +11,6 @@
 	},
 	"control": {
 		"x": 282,
-		"type": "maximize"
-	},
-	"control": {
-		"x": 260,
 		"type": "minimize"
 	},
 	"label": {
@@ -22,13 +18,6 @@
 		"y": 30,
 		"width": 314,
 		"height": 16,
-		"name": "ESC to close this window."
-	},
-	"label": {
-		"x": 13,
-		"y": 46,
-		"width": 314,
-		"height": 16,
-		"name": "DEBUG, nothing should work right now.\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi quis consectetur diam. Ut luctus nibh quis posuere semper. Cras rutrum condimentum sem vitae faucibus. Aenean eu cursus metus. Suspendisse tortor ex, ullamcorper a mauris at, accumsan efficitur purus. Sed pellentesque faucibus interdum. Phasellus id justo vitae dolor venenatis sagittis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eget neque sit amet magna scelerisque tincidunt. Pellentesque ac arcu pharetra, lobortis nisi eu, viverra mi. Fusce condimentum sapien vel massa semper iaculis. Vestibulum a viverra ipsum. Donec hendrerit, sem viverra euismod tincidunt, justo justo viverra arcu, ut molestie odio urna ac nulla. Sed sed sodales neque. Mauris tristique erat ut nulla efficitur volutpat. Vivamus mattis arcu id lorem dapibus ultricies."
+		"name": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi quis consectetur diam. Ut luctus nibh quis posuere semper. Cras rutrum condimentum sem vitae faucibus. Aenean eu cursus metus. Suspendisse tortor ex, ullamcorper a mauris at, accumsan efficitur purus. Sed pellentesque faucibus interdum. Phasellus id justo vitae dolor venenatis sagittis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eget neque sit amet magna scelerisque tincidunt. Pellentesque ac arcu pharetra, lobortis nisi eu, viverra mi. Fusce condimentum sapien vel massa semper iaculis. Vestibulum a viverra ipsum. Donec hendrerit, sem viverra euismod tincidunt, justo justo viverra arcu, ut molestie odio urna ac nulla. Sed sed sodales neque. Mauris tristique erat ut nulla efficitur volutpat. Vivamus mattis arcu id lorem dapibus ultricies."
 	}
 }

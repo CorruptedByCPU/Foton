@@ -28,6 +28,12 @@ void console_init( void ) {
 		console_interface.properties = (uint8_t *) &file_interface_start;
 		lib_interface( (struct LIB_INTERFACE_STRUCTURE *) &console_interface );
 
+		// find control element of type: close
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( (struct LIB_INTERFACE_STRUCTURE *) &console_interface, 0 );
+
+		// assign executable function to element
+		control -> event = (void *) close;
+
 		// initialize terminal library
 		console_terminal.width			= console_interface.width - ((LIB_INTERFACE_BORDER_pixel + console_interface.descriptor -> offset) << STD_SHIFT_2);
 		console_terminal.height			= console_interface.height - (LIB_INTERFACE_HEADER_HEIGHT_pixel + 1 + (console_interface.descriptor -> offset << STD_SHIFT_2));

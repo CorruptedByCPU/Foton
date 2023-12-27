@@ -34,6 +34,11 @@ void taris_statistics( uint64_t points, uint64_t lines, uint64_t level ) {
 	lib_interface_element_label( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, taris_level );
 }
 
+void close( void ) {
+	// end of program
+	exit();
+}
+
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize gameplay
 	taris_init();
@@ -113,6 +118,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// free up AP time
 				std_sleep( TRUE );
 
+				// check events from interface
+				lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface );
+
 				// recieve key
 				uint16_t key = getkey();
 
@@ -154,7 +162,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// if end of game
 		if( ! taris_play ) {
 			// wait for restart of game
-			while( getkey() != STD_ASCII_SPACE );
+			while( getkey() != STD_ASCII_SPACE )
+				// check events from interface
+				lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface );
 
 			// reset statistics
 			points = 0;

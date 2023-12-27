@@ -4,6 +4,15 @@
 		"height": 414,
 		"name": "Taris"
 	},
+	"control": {
+		"id": 0,
+		"x": 157,
+		"type": "close"
+	},
+	"control": {
+		"x": 133,
+		"type": "minimize"
+	},
 	"label": {
 		"x": 9,
 		"y": 32,

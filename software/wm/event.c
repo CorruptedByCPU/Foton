@@ -174,7 +174,7 @@ void wm_event( void ) {
 			wm_object_selected = wm_object_find( mouse.x, mouse.y, FALSE );
 
 			// if cursor over selected object is in place of possible header
-			if( wm_object_selected -> descriptor -> y > wm_object_selected -> descriptor -> offset && wm_object_selected -> descriptor -> y - wm_object_selected -> descriptor -> offset < LIB_INTERFACE_HEADER_HEIGHT_pixel ) wm_object_drag_semaphore = TRUE;
+			if( wm_object_selected -> descriptor -> y > wm_object_selected -> descriptor -> offset && wm_object_selected -> descriptor -> y - wm_object_selected -> descriptor -> offset < LIB_INTERFACE_HEADER_HEIGHT_pixel && wm_object_selected -> descriptor -> x < wm_object_selected -> width - ((LIB_INTERFACE_HEADER_HEIGHT_pixel * 0x03) + wm_object_selected -> descriptor -> offset) ) wm_object_drag_semaphore = TRUE;
 
 			// check if object can be moved along Z axis
 			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_status_alt_left ) {
@@ -220,6 +220,22 @@ void wm_event( void ) {
 					std_exec( (uint8_t *) "console", 7, EMPTY );
 		}
 	} else {
+		// left mouse button was held?
+		if( wm_mouse_button_left_semaphore ) {
+			// properties of mouse message
+			struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &data;
+
+			// default values
+			mouse -> ipc.type = STD_IPC_TYPE_mouse;
+			mouse -> scroll = EMPTY;
+
+			// left mouse button released
+			mouse -> button = ~STD_IPC_MOUSE_BUTTON_left;
+
+			// send event to selected object process
+			std_ipc_send( wm_object_selected -> pid, (uint8_t *) mouse );
+		}
+
 		// release mouse button state
 		wm_mouse_button_left_semaphore = FALSE;
 
