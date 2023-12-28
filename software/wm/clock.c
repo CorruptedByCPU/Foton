@@ -25,8 +25,16 @@ int64_t wm_clock( void ) {
 		// clock template
 		uint8_t clock_string[ 5 ] = "00:00";
 
+		// hour
+		if( hours < 10 ) { clock_string[ 0 ] = STD_ASCII_SPACE; lib_integer_to_string( hours, 10, (uint8_t *) &clock_string[ 1 ] ); }
+		else lib_integer_to_string( hours, 10, (uint8_t *) &clock_string );
+
 		// colon animation
 		if( seconds % 2 ) clock_string[ 2 ] = STD_ASCII_SPACE;
+
+		// minute
+		if( minutes < 10 ) { clock_string[ 3 ] = STD_ASCII_DIGIT_0; lib_integer_to_string( minutes, 10, (uint8_t *) &clock_string[ 4 ] ); }
+		else lib_integer_to_string( minutes, 10, (uint8_t *) &clock_string[ 3 ] );
 
 		// fill clock area with default background color
 		uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (wm_object_taskbar -> width - WM_OBJECT_TASKBAR_CLOCK_pixel);
