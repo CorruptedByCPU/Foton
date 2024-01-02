@@ -162,9 +162,19 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// if end of game
 		if( ! taris_play ) {
 			// wait for restart of game
-			while( getkey() != STD_ASCII_SPACE )
+			while( TRUE ) {
+				// get key from user
+				uint16_t key = getkey();
+
+				// next game?
+				if( key == STD_ASCII_SPACE ) break;	// yes
+
+				// end of game?
+				if( key == 'q' ) return 0;	// yes
+
 				// check events from interface
 				lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface );
+			}
 
 			// reset statistics
 			points = 0;

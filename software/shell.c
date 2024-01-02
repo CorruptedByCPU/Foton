@@ -21,6 +21,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// new prompt loop
 	while( TRUE ) {
+		// set header
+		print( "\eXShell\e\\" );
+
 		// retrieve stream meta data
 		struct STD_STREAM_STRUCTURE_META stream_meta;
 		while( ! std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT ) );

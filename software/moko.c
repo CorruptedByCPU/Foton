@@ -4,12 +4,16 @@
 
 // PROGRAM IN PROGRESS
 
+	#include	"../library/vfs.h"
+
 	struct STD_STREAM_STRUCTURE_META stream_meta;
 	struct STD_FILE_STRUCTURE file = { EMPTY };
 
 	uint8_t *document = EMPTY;
 	uint64_t docuemnt_index = EMPTY;
 	uint64_t document_length = EMPTY;
+
+	uint8_t *document_name = EMPTY;
 
 	uint8_t string_menu[] = "\e[48;5;15m\e[38;5;0m^x\e[0m Exit"; // \e[48;5;15m\e[38;5;0m^r\e[0m Read \e[48;5;15m\e[38;5;0m^o\e[0m Save";
 
@@ -18,6 +22,9 @@
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// retrieve stream meta data
 	std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT );
+
+	// prepare area for document name
+	document_name = malloc( LIB_VFS_name_limit + 1 );
 
 	// file selected?
 	if( argc > 1 )	{
@@ -41,22 +48,30 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// if file exist
 	if( file.id ) {
+		// set document name
+		sprintf( "%s", (uint8_t *) document_name, file.name );
+
 		// alloc area for file content
 		document = malloc( file.length_byte );
 
 		// load file content into document area
 		std_file_read( (struct STD_FILE_STRUCTURE *) &file, (uintptr_t) document );
-	} else
+	} else {
 		// prepare new document area
 		document = malloc( TRUE );
+
+		// set default document name
+		uint8_t name[] = "New document";
+		sprintf( "%s", (uint8_t *) document_name, name );
+	}
 
 	// INTERFACE -----------------------------------------------------------
 
 	// clear screen
 	print( "\e[2J" );
 
-	// show header
-	print( "\e[48;5;15m\e[38;5;0m\e[2K New document" );
+	// set header
+	printf( "\eX%s\e\\", document_name );
 
 	// prepare row movement sequence
 	uint8_t cursor_string[ 14 + 1 ] = { EMPTY };
@@ -71,7 +86,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// =====================================================================
 
 	// move cursor at beginning of document
-	print( "\e[0;1H" );
+	print( "\e[0;0H" );
 
 	// main loop
 	while( TRUE ) {
