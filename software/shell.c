@@ -91,7 +91,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 						shell_command_length = lib_string_word_remove( shell_command, shell_command_length, STD_ASCII_SPACE );
 
 						// request change of root directory
-						std_cd( (uint8_t *) shell_command );
+						if( ! std_cd( (uint8_t *) shell_command ) ) printf( "No such directory." );
 
 						// new prompt
 						break;
@@ -117,6 +117,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 					// something went wrong?
 					if( shell_exec_pid < 0 ) {
+						// truncate command name
+						shell_command[ lib_string_word( shell_command, shell_command_length ) ] = STD_ASCII_TERMINATOR;
+						
 						// show information
 						printf( "Command \e[38;5;196m%s\e[0m not found.", shell_command );
 

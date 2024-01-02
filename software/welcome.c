@@ -38,12 +38,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// check events from interface
 		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface );
-
-		// recieve key
-		uint16_t key = getkey();
-
-		// exit?
-		if( key == STD_ASCII_ESC ) break;	// yes
 	}
 
 	// end of execution
