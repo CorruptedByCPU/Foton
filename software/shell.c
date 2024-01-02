@@ -127,8 +127,19 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 						break;
 					}
 
-					// wait for its end if requested
-					if( shell_command[ shell_command_length - 1 ] != '&' ) while( shell_exec_pid && std_pid_check( shell_exec_pid ) ) std_sleep( 1 );	// free up AP time until program execution ends
+					// if requested
+					if( shell_command[ shell_command_length - 1 ] != '&' )
+						// wait for child end
+						while( shell_exec_pid && std_pid_check( shell_exec_pid ) ) {
+							// pass all incomming messages to child
+							uint8_t data[ STD_IPC_SIZE_byte ];
+							while( std_ipc_receive( (uint8_t *) &data ) )
+								// send this message forward to child
+								std_ipc_send( shell_exec_pid, (uint8_t *) &data );
+						
+							// free up AP time until program execution ends
+							std_sleep( 1 );
+						}
 
 					// new prompt
 					break;

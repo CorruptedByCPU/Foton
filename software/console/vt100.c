@@ -54,6 +54,29 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 			return CONSOLE_VT100_SEQUENCE_LENGTH + arg_length[ 0 ] + 1;
 		}
 
+		// set cursor at
+		case 'H': {
+			// set new cursor position
+			console_terminal.cursor_x = arg_value[ 0 ];
+			console_terminal.cursor_y = arg_value[ 1 ];
+
+			// cursor behind text area?
+			if( console_terminal.width_char < console_terminal.cursor_x )
+				// leave it at last position
+				console_terminal.cursor_x = console_terminal.width_char - 1;
+			
+			// cursor behind text area?
+			if( console_terminal.height_char < console_terminal.cursor_y )
+				// leave it at last position
+				console_terminal.cursor_y = console_terminal.height_char - 1;
+				
+			// update cursor position inside terminal
+			lib_terminal_cursor_set( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
+
+			// return sequence length
+			return CONSOLE_VT100_SEQUENCE_LENGTH + arg_length[ 0 ] + 1 + arg_length[ 1 ] + 1;
+		}
+
 		// clear screen or part of it
 		case 'J': {
 			// select behavior

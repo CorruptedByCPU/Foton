@@ -199,6 +199,7 @@
 	#define	STD_KEY_ESC					0x001B
 	#define	STD_KEY_CTRL_LEFT				0x001D
 	#define	STD_KEY_SPACE					0x0020
+	#define	STD_KEY_RELEASE					0x0080
 	#define	STD_KEY_SHIFT_LEFT				0xE02A
 	#define	STD_KEY_SHIFT_RIGHT				0xE036
 	#define	STD_KEY_NUMLOCK_MULTIPLY			0xE037
