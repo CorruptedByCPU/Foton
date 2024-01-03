@@ -109,7 +109,20 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// check if key is printable
-		if( key < STD_ASCII_SPACE && key > STD_ASCII_TILDE ) continue;	// no, ignore key
+		if( key < STD_ASCII_SPACE || key > STD_ASCII_TILDE ) continue;	// no, ignore key
+
+		// assign area for key inside document
+		document = realloc( document, ++document_length );
+
+		// key will be placed at end of document?
+		if( docuemnt_index == document_length - 1 ) document[ docuemnt_index++ ] = key;	// yes
+		else {
+			// move all characters after index of document, one place further
+			for( uint64_t i = document_length; i > docuemnt_index; --i ) document[ i ] = document[ i + 1 ];
+
+			// insert key into document
+			document[ docuemnt_index++ ] = key;
+		}
 	}
 
 	// process ended properly
