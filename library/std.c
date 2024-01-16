@@ -162,6 +162,16 @@ void log( const char *string, ... ) {
 			// omit prefix value if existed
 			i += prefix;
 
+			// definied suffix length?
+			uint64_t pre_suffix = EMPTY;
+			if( string[ i ] == '.' && string[ i + 1 ] == '*' ) {
+				// amount of digits after digit delimiter
+				pre_suffix = va_arg( argv, uint64_t );
+
+				// leave predefinied suffix
+				i += 2;
+			}
+
 			// check sequence type
 			switch( string[ i ] ) {
 				case '%': {
@@ -212,11 +222,15 @@ void log( const char *string, ... ) {
 				}
 
 				case 's': {
-					// retrieve substring
+					// string properties
 					uint8_t *substring = va_arg( argv, uint8_t * );
-					
+					uint64_t length = lib_string_length( substring );
+
+					// change string length if predefinied value exist
+					if( pre_suffix ) length = pre_suffix;
+
 					// show 'substring' on terminal
-					std_log( substring, lib_string_length( substring ) );
+					std_log( substring, length );
 
 					// next character from string
 					continue;
@@ -289,6 +303,16 @@ void printf( const char *string, ... ) {
 
 			// omit prefix value if existed
 			s += prefix;
+
+			// definied suffix length?
+			uint64_t pre_suffix = EMPTY;
+			if( string[ s ] == '.' && string[ s + 1 ] == '*' ) {
+				// amount of digits after digit delimiter
+				pre_suffix = va_arg( argv, uint64_t );
+
+				// leave predefinied suffix
+				s += 2;
+			}
 
 			// check sequence type
 			switch( string[ s ] ) {
@@ -372,6 +396,9 @@ void printf( const char *string, ... ) {
 					uint8_t *substring = va_arg( argv, uint8_t * );
 					uint64_t length = lib_string_length( substring );
 
+					// change string length if predefinied value exist
+					if( pre_suffix ) length = pre_suffix;
+
 					// resize cache for substring
 					cache = (uint8_t *) realloc( cache, c + length );
 
@@ -447,6 +474,16 @@ void sprintf( const char *string, ... ) {
 			// omit prefix value if existed
 			s += prefix;
 
+			// definied suffix length?
+			uint64_t pre_suffix = EMPTY;
+			if( string[ s ] == '.' && string[ s + 1 ] == '*' ) {
+				// amount of digits after digit delimiter
+				pre_suffix = va_arg( argv, uint64_t );
+
+				// leave predefinied suffix
+				s += 2;
+			}
+
 			// check sequence type
 			switch( string[ s ] ) {
 				case '%': {
@@ -469,6 +506,9 @@ void sprintf( const char *string, ... ) {
 					// string properties
 					uint8_t *substring = va_arg( argv, uint8_t * );
 					uint64_t length = lib_string_length( substring );
+
+					// change string length if predefinied value exist
+					if( pre_suffix ) length = pre_suffix;
 
 					// insert substring into cache
 					for( uint64_t i = 0; i < length; i++ ) cache[ c++ ] = substring[ i ];

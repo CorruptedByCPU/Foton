@@ -106,6 +106,7 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			struct LIB_JSON_STRUCTURE control = lib_json( (uint8_t *) json.value );
 
 			// default properties of control
+			element -> control.y = LIB_INTERFACE_SHADOW_length;
 			element -> control.width = LIB_INTERFACE_HEADER_HEIGHT_pixel;
 			element -> control.height = LIB_INTERFACE_HEADER_HEIGHT_pixel;
 			element -> control.flags = EMPTY;
@@ -132,9 +133,6 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				}
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &control ) );
-
-			// window interface contains additional control element
-			interface -> controls++;
 
 			// change interface structure index
 			i += element -> control.size_byte;
@@ -446,12 +444,12 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( ! interface -> length ) return;	// no
 
 	// limit name length to header width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> length ) > interface -> width - ((interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) + interface -> descriptor -> offset) ) if( ! --interface -> length ) return;
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> length ) > interface -> width - 8 ) if( ! --interface -> length ) return;
 
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	for( uint16_t y = interface -> descriptor -> offset; y < LIB_INTERFACE_HEADER_HEIGHT_pixel + interface -> descriptor -> offset; y++ )
-		for( uint16_t x = interface -> descriptor -> offset; x < interface -> width - ((interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) + interface -> descriptor -> offset); x++ )
+		for( uint16_t x = interface -> descriptor -> offset; x < interface -> width - interface -> descriptor -> offset; x++ )
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 

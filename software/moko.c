@@ -9,15 +9,38 @@
 	struct STD_STREAM_STRUCTURE_META stream_meta;
 	struct STD_FILE_STRUCTURE file = { EMPTY };
 
+	uint8_t *document_name = EMPTY;
+
 	uint8_t *document = EMPTY;
-	uint64_t docuemnt_index = EMPTY;
+	uint64_t docuemnt_index = 0;
 	uint64_t document_length = EMPTY;
 
-	uint8_t *document_name = EMPTY;
+	uint64_t document_line = EMPTY;
+	uint64_t document_line_index = 0;
+
+	uint64_t document_cursor = EMPTY;
 
 	uint8_t string_menu[] = "\e[48;5;15m\e[38;5;0m^x\e[0m Exit"; // \e[48;5;15m\e[38;5;0m^r\e[0m Read \e[48;5;15m\e[38;5;0m^o\e[0m Save";
 
 	uint8_t key_ctrl_semaphore = FALSE;
+
+void document_parse( void ) {
+	// until end of document
+	uint64_t i = 0;
+	while( document[ i ] ) {
+		MACRO_DEBUF();
+
+		// calculate line length
+		uint64_t document_line_length = lib_string_length( (uint8_t *) &document[ i ] );
+
+		// show line (limited length)
+		if( document_line_length > stream_meta.width ) document_line_length = stream_meta.width;
+		printf( "%.*s\n", document_line_length, (uint8_t *) &document[ i ] );
+
+		// next line
+		i += document_line_length;
+	}
+}
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// retrieve stream meta data
@@ -53,6 +76,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// alloc area for file content
 		document = malloc( file.length_byte );
+		document_length = file.length_byte;
 
 		// load file content into document area
 		std_file_read( (struct STD_FILE_STRUCTURE *) &file, (uintptr_t) document );
@@ -88,6 +112,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// move cursor at beginning of document
 	print( "\e[0;0H" );
 
+	// parse document and show it content
+	document_parse();
+
 	// main loop
 	while( TRUE ) {
 		// recieve key
@@ -109,20 +136,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// check if key is printable
-		if( key < STD_ASCII_SPACE || key > STD_ASCII_TILDE ) continue;	// no, ignore key
-
-		// assign area for key inside document
-		document = realloc( document, ++document_length );
-
-		// key will be placed at end of document?
-		if( docuemnt_index == document_length - 1 ) document[ docuemnt_index++ ] = key;	// yes
-		else {
-			// move all characters after index of document, one place further
-			for( uint64_t i = document_length; i > docuemnt_index; --i ) document[ i ] = document[ i + 1 ];
-
-			// insert key into document
-			document[ docuemnt_index++ ] = key;
-		}
+		if( key < STD_ASCII_SPACE && key > STD_ASCII_TILDE ) continue;	// no, ignore key
 	}
 
 	// process ended properly
