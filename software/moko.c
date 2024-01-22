@@ -20,25 +20,29 @@
 
 	uint64_t document_cursor = EMPTY;
 
+	uint8_t menu_height_line = 1;
 	uint8_t string_menu[] = "\e[48;5;15m\e[38;5;0m^x\e[0m Exit"; // \e[48;5;15m\e[38;5;0m^r\e[0m Read \e[48;5;15m\e[38;5;0m^o\e[0m Save";
 
 	uint8_t key_ctrl_semaphore = FALSE;
 
 void document_parse( void ) {
+	// move cursor at beginning of document
+	print( "\e[0;0H" );
+
 	// until end of document
 	uint64_t i = 0;
-	while( document[ i ] ) {
-		MACRO_DEBUF();
-
+	// or end of document area
+	uint64_t j = stream_meta.height - menu_height_line;
+	while( document[ i ] && j-- ) {
 		// calculate line length
-		uint64_t document_line_length = lib_string_length( (uint8_t *) &document[ i ] );
+		uint64_t length = lib_string_length_line( (uint8_t *) &document[ i ] );
 
 		// show line (limited length)
-		if( document_line_length > stream_meta.width ) document_line_length = stream_meta.width;
-		printf( "%.*s\n", document_line_length, (uint8_t *) &document[ i ] );
+		if( length > stream_meta.width ) length = stream_meta.width;
+		printf( "%.*s\n", length, (uint8_t *) &document[ i ] );
 
 		// next line
-		i += document_line_length;
+		i += lib_string_length_line( (uint8_t *) &document[ i ] ) + 1;
 	}
 }
 
@@ -109,11 +113,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// =====================================================================
 
-	// move cursor at beginning of document
-	print( "\e[0;0H" );
-
 	// parse document and show it content
 	document_parse();
+
+	// move cursor at beginning of document
+	print( "\e[0;0H" );
 
 	// main loop
 	while( TRUE ) {

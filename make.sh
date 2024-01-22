@@ -21,7 +21,7 @@ mkdir -p root/system/{bin,lib}
 cp -rf root build
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
-C="clang -include ./library/std.h"
+C="clang -include ./library/std.h -g"
 LD="ld.lld"
 ASM="nasm"
 
@@ -47,7 +47,7 @@ LDFLAGS="-nostdlib -static -no-dynamic-linker"
 # build kernel file
 ${C} -c kernel/init.c -o build/kernel.o ${CFLAGS} || exit 1;
 ${LD} ${EXT} build/kernel.o -o build/kernel -T tools/kernel.ld ${LDFLAGS} || exit 1;
-strip -R .comment -s build/kernel
+#strip -R .comment -s -g build/kernel
 
 # copy kernel file and limine files onto destined iso folder
 gzip -k build/kernel
@@ -76,7 +76,7 @@ for module in `(cd module && ls *.c)`; do
 	${LD} ${SUB} build/${name}.o -o build/root/system/lib/modules/${name}.ko -T tools/module.ld ${LDFLAGS}
 
 	# we do not need any additional information
-	strip -R .comment -s build/root/system/lib/modules/${name}.ko > /dev/null 2>&1
+	strip -R .comment -s -g build/root/system/lib/modules/${name}.ko > /dev/null 2>&1
 done
 
 #===============================================================================
@@ -92,7 +92,7 @@ for library in color elf integer string math json font std image interface rando
 	${C} -shared build/${library}.o -o build/root/system/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/system/lib/ ${lib} || exit 1
 
 	# we do not need any additional information
-	strip -R .comment -s build/root/system/lib/lib${library}.so > /dev/null 2>&1
+	strip -R .comment -s -g build/root/system/lib/lib${library}.so > /dev/null 2>&1
 
 	# update libraries list
 	lib="${lib} -l${library}"
@@ -111,7 +111,7 @@ for software in `(cd software && ls *.c)`; do
 	${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
 
 	# we do not need any additional information
-	strip -R .comment -s build/root/system/bin/${name} > /dev/null 2>&1
+	#strip -R .comment -s -g build/root/system/bin/${name} > /dev/null 2>&1
 done
 
 #===============================================================================

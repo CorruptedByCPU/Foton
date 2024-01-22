@@ -29,6 +29,25 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize console window
 	console_init();
 
+	// file selected?
+	if( argc > 1 )	{
+		struct STD_FILE_STRUCTURE file = { EMPTY };
+
+		// search for file name
+		for( uint64_t i = 1; i < argc; i++ ) {
+			// set file properties
+			for( uint8_t j = 0; j < lib_string_length( argv[ i ] ); j++ ) file.name[ file.length++ ] = argv[ i ][ j ];
+
+			// add separator of path
+			file.name[ file.length++ ] = STD_ASCII_SPACE;
+		}
+
+		// open in console selected program
+		console_pid_of_shell = std_exec( (uint8_t *) &file.name, file.length - 1, STD_STREAM_FLOW_out_to_parent_in );
+	} else
+		// run Shell program
+		console_pid_of_shell = std_exec( (uint8_t *) "shell", 5, STD_STREAM_FLOW_out_to_parent_in );
+
 	// main look
 	while( TRUE ) {
 		// end of shell?

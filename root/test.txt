@@ -1,3 +1,5 @@
+[text editor - in progress]
+
 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 Donec sollicitudin ipsum vel scelerisque fringilla.
 Etiam porttitor diam nec nulla fringilla, a pretium ex consequat.

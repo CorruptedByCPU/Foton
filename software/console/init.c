@@ -55,9 +55,6 @@ void console_init( void ) {
 	// set default meta data of input stream
 	std_stream_set( (uint8_t *) &console_stream_meta, STD_STREAM_IN );
 
-	// run Shell program
-	console_pid_of_shell = std_exec( (uint8_t *) "shell", 5, STD_STREAM_FLOW_out_to_parent_in );
-
 	// prepare cache for incomming stream
 	console_stream_in = (uint8_t *) malloc( STD_STREAM_SIZE_page << STD_SHIFT_PAGE );
 }
