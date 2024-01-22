@@ -31,8 +31,7 @@ void document_parse( void ) {
 
 	// until end of document
 	uint64_t i = 0;
-	// or end of document area
-	uint64_t j = stream_meta.height - menu_height_line;
+	uint64_t j = stream_meta.height - menu_height_line;	// or end of document area
 	while( document[ i ] && j-- ) {
 		// calculate line length
 		uint64_t length = lib_string_length_line( (uint8_t *) &document[ i ] );

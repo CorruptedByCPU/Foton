@@ -470,16 +470,16 @@ void lib_interface_shadow( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// no shadow?
 	if( ! interface -> descriptor -> offset ) return;
 
-	// set shadow color
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t i = 0; i < interface -> descriptor -> offset; i ++ )
-		for( uint16_t y = i + interface -> descriptor -> offset; y < interface -> height - (i + interface -> descriptor -> offset); y++ )
-			for( uint16_t x = i + interface -> descriptor -> offset; x < interface -> width - (i + interface -> descriptor -> offset); x++ )
-				// draw pixel
-				pixel[ (y * interface -> width) + x ] = i << 28;
+	// // set shadow color
+	// uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	// for( uint16_t i = 0; i < interface -> descriptor -> offset; i ++ )
+	// 	for( uint16_t y = i + interface -> descriptor -> offset; y < interface -> height - (i + interface -> descriptor -> offset); y++ )
+	// 		for( uint16_t x = i + interface -> descriptor -> offset; x < interface -> width - (i + interface -> descriptor -> offset); x++ )
+	// 			// draw pixel
+	// 			pixel[ (y * interface -> width) + x ] = i << 28;
 
-	// blur shadow
-	lib_image_blur( pixel, interface -> descriptor -> offset, interface -> width, interface -> height );
+	// // blur shadow
+	// lib_image_blur( pixel, interface -> descriptor -> offset, interface -> width, interface -> height );
 }
 
 void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
