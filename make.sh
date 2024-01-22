@@ -4,8 +4,8 @@
 #=================================================================================
 
 # external resources initialization
-git submodule update --init
-(cd limine && make > /dev/null 2>&1)
+git submodule update --remote
+#(cd limine && make > /dev/null 2>&1)
 
 # for clear view
 clear
