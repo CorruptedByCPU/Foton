@@ -11,14 +11,17 @@
 
 	uint8_t *document_name = EMPTY;
 
-	uint8_t *document = EMPTY;
-	uint64_t docuemnt_index = 0;
-	uint64_t document_length = EMPTY;
+	uint8_t *document_area = EMPTY;
+	uint8_t *variable_document_address_start = EMPTY;
+	uint8_t *variable_cursor_indicator = EMPTY;
+	uint8_t *variable_document_address_end = EMPTY;
+	uint8_t *variable_cursor_position_on_line = EMPTY;
+	uint64_t variable_document_count_of_chars = EMPTY;
 
-	uint64_t document_line = EMPTY;
-	uint64_t document_line_index = 0;
-
-	uint64_t document_cursor = EMPTY;
+	uint64_t variable_document_line_start = 0;
+	uint64_t variable_line_count_of_chars = EMPTY;
+	uint64_t variable_line_print_start = EMPTY;
+	uint64_t variable_document_count_of_lines = EMPTY;
 
 	uint8_t menu_height_line = 1;
 	uint8_t string_menu[] = "\e[48;5;15m\e[38;5;0m^x\e[0m Exit"; // \e[48;5;15m\e[38;5;0m^r\e[0m Read \e[48;5;15m\e[38;5;0m^o\e[0m Save";
@@ -29,20 +32,31 @@ void document_parse( void ) {
 	// move cursor at beginning of document
 	print( "\e[0;0H" );
 
+	variable_document_count_of_lines = EMPTY;
+
 	// until end of document
 	uint64_t i = 0;
 	uint64_t j = stream_meta.height - menu_height_line;	// or end of document area
-	while( document[ i ] && j-- ) {
+	while( document_area[ i ] && j-- ) {
 		// calculate line length
-		uint64_t length = lib_string_length_line( (uint8_t *) &document[ i ] );
+		uint64_t length = lib_string_length_line( (uint8_t *) &document_area[ i ] );
 
 		// show line (limited length)
 		if( length > stream_meta.width ) length = stream_meta.width;
-		printf( "%.*s\n", length, (uint8_t *) &document[ i ] );
+		printf( "%.*s\n", length, (uint8_t *) &document_area[ i ] );
 
 		// next line
-		i += lib_string_length_line( (uint8_t *) &document[ i ] ) + 1;
+		i += lib_string_length_line( (uint8_t *) &document_area[ i ] ) + 1;
+
+		variable_document_count_of_lines++;
 	}
+
+	variable_document_address_start = document_area;
+	variable_cursor_indicator = document_area;
+	variable_document_address_end = document_area;
+	variable_cursor_position_on_line = document_area;
+	variable_line_count_of_chars = lib_string_length_line( document_area );
+	variable_line_print_start = EMPTY;
 }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
@@ -78,14 +92,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		sprintf( "%s", (uint8_t *) document_name, file.name );
 
 		// alloc area for file content
-		document = malloc( file.length_byte );
-		document_length = file.length_byte;
+		document_area = malloc( file.length_byte );
+		variable_document_count_of_chars = file.length_byte;
 
 		// load file content into document area
-		std_file_read( (struct STD_FILE_STRUCTURE *) &file, (uintptr_t) document );
+		std_file_read( (struct STD_FILE_STRUCTURE *) &file, (uintptr_t) document_area );
 	} else {
 		// prepare new document area
-		document = malloc( TRUE );
+		document_area = malloc( TRUE );
 
 		// set default document name
 		uint8_t name[] = "New document";
@@ -136,6 +150,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// done
 			exit();
+		}
+
+		// Arrow RIGHT?
+		if( key == STD_KEY_ARROW_RIGHT ) {
+			// pointer at end of line?
+			if( variable_cursor_position_on_line < variable_line_count_of_chars ) {	// no
+				
+			}
 		}
 
 		// check if key is printable
