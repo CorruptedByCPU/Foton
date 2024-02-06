@@ -58,6 +58,23 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 					return 2 + arg_length[ 0 ] + 1;
 				}
 
+				// move cursor to selected column
+				case 'G': {
+					// move cursor to selected column
+					console_terminal.cursor_x = arg_value[ 0 ];
+
+					// cursor behind text area?
+					if( console_terminal.width_char < console_terminal.cursor_x )
+						// leave it at last position
+						console_terminal.cursor_x = console_terminal.width_char - 1;
+					
+					// update cursor position inside terminal
+					lib_terminal_cursor_set( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
+
+					// return sequence length
+					return 2 + arg_length[ 0 ] + 1;
+				}
+
 				// set cursor at
 				case 'H': {
 					// set new cursor position
