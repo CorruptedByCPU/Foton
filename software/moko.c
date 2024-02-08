@@ -13,20 +13,15 @@
 
 	uint8_t *document_area = EMPTY;
 	uint64_t document_pointer = 0;
+	uint64_t document_byte = 0;
+
 	uint64_t document_line_location = 0;
 	uint64_t document_line_pointer = 0;
 	uint64_t document_line_indicator = 0;
 	uint64_t document_line_byte = 0;
-	uint8_t *variable_document_address_start = EMPTY;
-	uint8_t *variable_cursor_indicator = EMPTY;
-	uint8_t *variable_document_address_end = EMPTY;
-	uint8_t *variable_cursor_position_on_line = EMPTY;
-	uint64_t variable_document_count_of_chars = EMPTY;
-
-	uint64_t variable_document_line_start = 0;
-	uint64_t variable_line_count_of_chars = EMPTY;
-	uint64_t variable_line_print_start = EMPTY;
-	uint64_t variable_document_count_of_lines = 1;
+	
+	uint64_t document_cursor_x = 0;
+	uint64_t document_cursor_y = 0;
 
 	uint8_t menu_height_line = 1;
 	uint8_t string_menu[] = "\e[48;5;15m\e[38;5;0m^x\e[0m Exit"; // \e[48;5;15m\e[38;5;0m^r\e[0m Read \e[48;5;15m\e[38;5;0m^o\e[0m Save";
@@ -65,12 +60,12 @@
 // }
 
 void line_update( void ) {
-	// clean up current line and move cursor at its beginning
-	print( "\033[2K\033[G" );
+	// move cursor at beginning of line
+	print( "\033[G" );
 
 	// update line content on terminal
-	for( uint64_t i = document_line_indicator; i < document_line_pointer; i++ )
-		printf( "%c", document_area[ i ] );
+	for( uint64_t i = 0; i < document_cursor_x; i++ )
+		printf( "%c", document_area[ document_line_location + document_line_indicator + i ] );
 }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
@@ -166,34 +161,41 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			exit();
 		}
 
-		// // Arrow RIGHT?
-		// if( key == STD_KEY_ARROW_RIGHT ) {
-		// 	// pointer at end of line?
-		// 	// if( variable_cursor_position_on_line < variable_line_count_of_chars ) {	// no
-				
-		// 	// }
-		// }
+		// Arrow LEFT?
+		if( key == STD_KEY_ARROW_LEFT ) {
+			// we are at beginning of docuemnt?
+			if( ! document_pointer ) continue;	// yes
+
+			// we are at beginning of line?
+			if( ! document_line_pointer ) continue;	// yes
+
+
+		}
 
 		// check if key is printable
-		if( key >= STD_ASCII_SPACE && key <= STD_ASCII_TILDE ) {
-			// resize document for additional character
-			// document_area = realloc( document_area, document_bytes + 1 )
+		if( key < STD_ASCII_SPACE || key > STD_ASCII_TILDE ) continue;
 
-			// retrieve stream meta data
-			std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT );
+		// resize document for additional character
+		// document_area = realloc( document_area, document_bytes + 1 )
 
-			// cursor position at end of row?
-			if( stream_meta.x == stream_meta.width ) document_line_indicator++;
+		// cursor position at end of row?
+		if( document_cursor_x == stream_meta.width ) document_line_indicator++;
+		else document_cursor_x++;
 
-			// insert character into document
-			document_area[ document_line_pointer++ ] = key;
+		// insert character into line of document
+		document_area[ document_line_pointer++ ] = key;
 
-			// length of current line
-			document_line_byte++;
+		// length of current line
+		document_line_byte++;
 
-			// update line content
-			line_update();
-		}
+		// current cursor position inside document
+		document_pointer++;
+
+		// whole document size
+		document_byte++;
+
+		// update line content
+		line_update();
 	}
 
 	// process ended properly
