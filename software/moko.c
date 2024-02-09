@@ -59,12 +59,26 @@
 // 	variable_line_print_start = EMPTY;
 // }
 
-void line_update( void ) {
-	// move cursor at beginning of line
-	print( "\033[G" );
+void line_fill( void ) {
+	// preserve cursor position
+	print( "\e[s");
 
 	// update line content on terminal
-	for( uint64_t i = 0; i < document_cursor_x; i++ )
+	uint64_t length = (document_line_location + document_line_byte) - document_pointer;
+	if( length >= stream_meta.width - document_cursor_x ) length = stream_meta.width - document_cursor_x;
+	for( uint64_t i = 0; i < length; i++ )
+		printf( "%c", document_area[ document_pointer + i ] );
+	
+	// restore cursor position
+	print( "\e[u" );
+}
+
+void line_update( void ) {
+	// move cursor at beginning of line
+	print( "\e[G" );
+
+	// update whole line content
+	for( uint64_t i = 0; i < stream_meta.width; i++ ) 
 		printf( "%c", document_area[ document_line_location + document_line_indicator + i ] );
 }
 
@@ -167,35 +181,167 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			if( ! document_pointer ) continue;	// yes
 
 			// we are at beginning of line?
-			if( ! document_line_pointer ) continue;	// yes
+			if( ! document_line_pointer ) continue;	// not now
 
+			// set mark on previous character
+			document_pointer--;
 
+			// cursor index inside line
+			document_line_pointer--;
+
+			// cursor in middle of line?
+			if( document_cursor_x ) {
+				// update properties of cursor
+				document_cursor_x--;
+
+				// move cursor one step backward
+				print( "\e[D" );
+
+				// done
+				continue;
+			}
+
+			// at beginning of line?
+			if( document_line_indicator ) {	// no
+				// show line from previous character
+				document_line_indicator--;
+
+				// update line content after cursor
+				line_fill();	// if exist
+			}
+		}
+
+		// Arrow RIGHT?
+		if( key == STD_KEY_ARROW_RIGHT ) {
+			// we are at end of docuemnt?
+			if( document_pointer == document_byte ) continue;	// yes
+
+			// we are at end of line?
+			if( document_line_pointer == document_line_byte ) continue;	// not now
+
+			// set mark on next character
+			document_pointer++;
+
+			// cursor index inside line
+			document_line_pointer++;
+
+			// cursor in middle of line?
+			if( document_cursor_x < stream_meta.width ) {
+				// update properties of cursor
+				document_cursor_x++;
+
+				// move cursor one step backward
+				print( "\e[C" );
+
+				// done
+				continue;
+			}
+
+			// show line from next character
+			document_line_indicator++;
+
+			// update line content
+			line_update();
+		}
+
+		// HOME?
+		if( key == STD_KEY_HOME ) {
+			// we are at beginning of docuemnt?
+			if( ! document_pointer ) continue;	// yes
+
+			// we are at beginning of line?
+			if( ! document_line_pointer ) continue;	// not now
+
+			// set mark on beginning of line
+			document_pointer -= document_line_pointer;
+
+			// cursor index inside line
+			document_line_pointer = 0;
+
+			// show line from beginning
+			document_line_indicator = 0;
+
+			// move cursor at first column
+			print( "\e[G" );
+
+			// update cursor properties
+			document_cursor_x = 0;
+
+			// update line content after cursor
+			line_fill();	// if exist
+
+			// done
+			continue;
+		}
+
+		// END?
+		if( key == STD_KEY_END ) {
+			// we are at end of docuemnt?
+			if( document_pointer == document_byte ) continue;	// yes
+
+			// we are at end of line?
+			if( document_line_pointer == document_line_byte ) continue;	// not now
+
+			// set mark on beginning of line
+			document_pointer += document_line_byte - document_line_pointer;
+
+			// cursor index inside line
+			document_line_pointer = document_line_byte;
+
+			// update cursor properties
+			document_cursor_x = document_line_pointer;
+			if( document_cursor_x > stream_meta.width ) document_cursor_x = stream_meta.width;
+
+			// show last characters of line
+			if( document_cursor_x == stream_meta.width ) document_line_indicator = document_line_byte - document_cursor_x; else document_line_indicator = 0;
+
+			// update line content
+			line_update();
+
+			// done
+			continue;
 		}
 
 		// check if key is printable
 		if( key < STD_ASCII_SPACE || key > STD_ASCII_TILDE ) continue;
 
-		// resize document for additional character
-		// document_area = realloc( document_area, document_bytes + 1 )
+		// pointer in middle of document?
+		if( document_pointer != document_byte )
+			// move all characters one position further
+			for( uint64_t i = document_byte; i > document_pointer; i-- )
+				document_area[ i ] = document_area[ i - 1 ];
+		
+		// insert character at end of document
+		document_area[ document_pointer++ ] = key;
 
-		// cursor position at end of row?
-		if( document_cursor_x == stream_meta.width ) document_line_indicator++;
-		else document_cursor_x++;
+		// cursor index inside line
+		document_line_pointer++;
 
-		// insert character into line of document
-		document_area[ document_line_pointer++ ] = key;
-
-		// length of current line
+		// line size
 		document_line_byte++;
 
-		// current cursor position inside document
-		document_pointer++;
-
-		// whole document size
+		// document size
 		document_byte++;
 
-		// update line content
-		line_update();
+		// cursor position at end of row?
+		if( document_cursor_x == stream_meta.width ) {
+			// show line from next character
+			document_line_indicator++;
+			
+			// update line content
+			line_update();
+		} else {
+			// update properties of cursor
+			document_cursor_x++;
+
+			// show character on terminal
+			printf( "%c", key );
+
+			// update line content after cursor
+			line_fill();	// if exist
+		}
+
+		// log( "dp: %u, db: %u, dli: %u, dlp: %u, dlb: %u, dcx: %u\n", document_pointer, document_byte, document_line_indicator, document_line_pointer, document_line_byte, document_cursor_x );
 	}
 
 	// process ended properly

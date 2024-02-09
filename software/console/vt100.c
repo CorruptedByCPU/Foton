@@ -58,6 +58,24 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 					return 2 + arg_length[ 0 ] + 1;
 				}
 
+				// move cursor back
+				case 'D': {
+					// if steps are not specified
+					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 1; }	// by default 1 step
+
+					// cursor not at first column
+					if( console_terminal.cursor_x ) {
+						// move cursor N steps back
+						console_terminal.cursor_x -= arg_value[ 0 ];
+
+						// update cursor position inside terminal
+						lib_terminal_cursor_set( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
+					}
+
+					// return sequence length
+					return 2 + arg_length[ 0 ] + 1;
+				}
+
 				// move cursor to selected column
 				case 'G': {
 					// move cursor to selected column
