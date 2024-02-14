@@ -4,6 +4,7 @@
 
 // PROGRAM IN PROGRESS
 
+	#include	"../library/string.h"
 	#include	"../library/vfs.h"
 
 	struct STD_STREAM_STRUCTURE_META stream_meta;
@@ -22,6 +23,7 @@
 	
 	uint64_t document_cursor_x = 0;
 	uint64_t document_cursor_y = 0;
+	uint64_t document_cursor_x_last = 0;
 
 	uint8_t menu_height_line = 1;
 	uint8_t string_menu[] = "\e[48;5;15m\e[38;5;0m^x\e[0m Exit"; // \e[48;5;15m\e[38;5;0m^r\e[0m Read \e[48;5;15m\e[38;5;0m^o\e[0m Save";
@@ -66,7 +68,7 @@ void line_fill( void ) {
 	for( uint64_t i = 0; i < length; i++ )
 		printf( "%c", document_area[ document_pointer + i ] );
 
-	// clean up last character
+	// clean up other character locations on line
 	print( " " );
 
 	// restore cursor position
@@ -246,6 +248,46 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// update line content
 			line_update();
 		}
+	
+		// // Arrow DOWN?
+		// if( key == STD_KEY_ARROW_DOWN ) {
+		// 	// it's a last line of document?
+		// 	if( document_line_location + document_line_byte == document_byte ) continue;	// yes
+
+		// 	// check next line size
+		// 	uint64_t length = lib_string_length_line( (uint8_t *) &document_area[ document_line_location + document_line_byte + 1 ] );
+
+		// 	// move document pointer at beginning of current line
+		// 	document_pointer -= document_line_pointer;
+
+		// 	// preserve important line and cursor properties
+		// 	uint64_t indicator = document_line_indicator;
+		// 	uint64_t pointer = document_line_pointer;
+		// 	uint64_t x = document_cursor_x;
+
+		// 	// reset line properties
+		// 	document_line_pointer = 0;
+
+		// 	// current line visible from beginning?
+		// 	if( document_line_indicator ) {	// no
+		// 		// preserve cursor position
+		// 		print( "\e[s");
+
+		// 		// show line from beginning
+		// 		document_line_indicator = 0;
+		// 		line_update();
+
+		// 		// restore cursor position
+		// 		print( "\e[u" );
+		// 	}
+
+		// 	// move cursor line down
+		// 	print( "\e[B" );
+
+		// 	// current line have same properties as previous?
+		// 	if( length >= x ) document_cursor_x = x; else document_cursor_x = length;
+		// 	while( length > stream_meta.width ) { length -= stream_meta.width; document_line_indicator += stream_meta.width; }
+		// }
 
 		// HOME?
 		if( key == STD_KEY_HOME ) {

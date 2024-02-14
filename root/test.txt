@@ -1,2 +1,2 @@
-[text editor - in progress]
+[text editor - in progress] 012345678901234567890123456789012345678901234567890123456789
 already in: arrows {left,right}, backspace, delete, home, end
