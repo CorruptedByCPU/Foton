@@ -38,10 +38,25 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 
 			// choose sequence type
 			switch( *string ) {
+				// move cursor up
+				case 'A': {
+					// if steps are not specified
+					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 0; }	// by default 1 step
+
+					// move cursor N steps up, if possible
+					if( console_terminal.cursor_y >= arg_value[ 0 ] ) console_terminal.cursor_y -= arg_value[ 0 ];
+					else console_terminal.cursor_y = 0;
+					
+					// update cursor position inside terminal
+					lib_terminal_cursor_set( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
+
+					// return sequence length
+					return 2 + arg_length[ 0 ] + 1;
+				}
 				// move cursor down
 				case 'B': {
 					// if steps are not specified
-					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 1; }	// by default 1 step
+					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 0; }	// by default 1 step
 
 					// move cursor N steps down
 					console_terminal.cursor_y += arg_value[ 0 ];
@@ -61,7 +76,7 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 				// move cursor forward
 				case 'C': {
 					// if steps are not specified
-					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 1; }	// by default 1 step
+					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 0; }	// by default 1 step
 
 					// move cursor N steps forward
 					console_terminal.cursor_x += arg_value[ 0 ];
@@ -81,16 +96,14 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 				// move cursor back
 				case 'D': {
 					// if steps are not specified
-					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 1; }	// by default 1 step
+					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 0; }	// by default 1 step
 
-					// cursor not at first column
-					if( console_terminal.cursor_x ) {
-						// move cursor N steps back
-						console_terminal.cursor_x -= arg_value[ 0 ];
+					// move cursor N steps back, if possible
+					if( console_terminal.cursor_x >= arg_value[ 0 ] ) console_terminal.cursor_x -= arg_value[ 0 ];
+					else console_terminal.cursor_x = 0;
 
-						// update cursor position inside terminal
-						lib_terminal_cursor_set( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
-					}
+					// update cursor position inside terminal
+					lib_terminal_cursor_set( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
 
 					// return sequence length
 					return 2 + arg_length[ 0 ] + 1;

@@ -58,6 +58,27 @@ void document_parse( void ) {
 	document_cursor_x = 0;
 }
 
+void line_start( void ) {
+	// preserve cursor position
+	print( "\e[s");
+
+	// move cursor at beginning of line
+	print( "\e[G" );
+
+	// update line content on terminal
+	uint64_t length = document_line_byte;
+	if( length > stream_meta.width ) length = stream_meta.width;
+	for( uint64_t i = 0; i < length; i++ )
+		printf( "%c", document_area[ document_line_location + i ] );
+
+	for( uint64_t i = 0; i < stream_meta.width - length; i++ )
+		// clean up other character locations on line
+		print( " " );
+
+	// restore cursor position
+	print( "\e[u" );
+}
+
 void line_fill( void ) {
 	// preserve cursor position
 	print( "\e[s");
@@ -84,6 +105,27 @@ void line_update( void ) {
 	if( length > document_line_byte ) length = document_line_byte;
 	for( uint64_t i = 0; i < length; i++ ) 
 		printf( "%c", document_area[ document_line_location + document_line_indicator + i ] );
+}
+
+void line_refresh( void ) {
+	// move cursor at beginning of line and clean it
+	print( "\e[G\e[2K" );
+
+	// update line content before cursor
+	for( uint64_t i = 0; i < document_cursor_x; i++ )
+		printf( "%c", document_area[ document_line_location + document_line_indicator + i ] );
+
+	// preserve cursor position
+	print( "\e[s");
+
+	// update line content after cursor
+	uint64_t length = stream_meta.width - document_cursor_x;
+	if( length > document_line_byte - document_line_pointer ) length = document_line_byte - document_line_pointer;
+	for( uint64_t i = 0; i < length; i++ )
+		printf( "%c", document_area[ document_line_location + document_line_indicator + document_cursor_x + i ] );
+
+	// restore cursor position
+	print( "\e[u" );
 }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
@@ -186,7 +228,41 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			if( ! document_pointer ) continue;	// yes
 
 			// we are at beginning of line?
-			if( ! document_line_pointer ) continue;	// not now
+			if( ! document_line_pointer ) {
+				// show current line from beginning
+				document_line_indicator = 0;
+				line_refresh();
+
+				// search for previous line beginning
+				while( document_pointer && document_area[ --document_pointer - 1 ] != '\n' );
+
+				// check next line size
+				uint64_t new_length = lib_string_length_line( (uint8_t *) &document_area[ document_pointer ] );
+
+				// move cursor at previous line
+				print( "\e[A" );
+
+				// new properties of line
+				document_line_location = document_pointer;
+				document_line_pointer = new_length;
+				document_line_byte = new_length;
+
+				// and document
+				document_pointer += new_length;
+
+				// find which part of line to show
+				document_line_indicator = 0;
+				while( new_length > stream_meta.width ) { new_length -= stream_meta.width; document_line_indicator += stream_meta.width; }
+
+				// place cursor at end of line
+				document_cursor_x = new_length;
+
+				// show new state of line on screen
+				line_refresh();
+
+				// done
+				continue;
+			}
 
 			// set mark on previous character
 			document_pointer--;
@@ -212,8 +288,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				document_line_indicator--;
 
 				// update line content after cursor
-				line_fill();	// if exist
+				line_refresh();	// if exist
 			}
+
+			// done
+			continue;
 		}
 
 		// Arrow RIGHT?
@@ -222,7 +301,33 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			if( document_pointer == document_byte ) continue;	// yes
 
 			// we are at end of line?
-			if( document_line_pointer == document_line_byte ) continue;	// not now
+			if( document_line_pointer == document_line_byte ) {
+				// show current line from beginning
+				document_pointer -= document_line_pointer;
+				document_line_indicator = 0;
+				line_refresh();
+				
+				// check next line size
+				document_pointer += document_line_byte + 1;
+				uint64_t new_length = lib_string_length_line( (uint8_t *) &document_area[ document_pointer ] );
+
+				// move cursor at beginning of next line
+				print( "\e[B\e[G" );
+
+				// new properties of line
+				document_line_location = document_pointer;
+				document_line_pointer = 0;
+				document_line_byte = new_length;
+				
+				// and cursor
+				document_cursor_x = 0;
+				document_cursor_y++;
+
+				// log( "dp: %u, db: %u, dli: %u, dlp: %u, dlb: %u, dcx: %u\n", document_pointer, document_byte, document_line_indicator, document_line_pointer, document_line_byte, document_cursor_x );
+
+				// done
+				continue;
+			}
 
 			// set mark on next character
 			document_pointer++;
@@ -246,48 +351,125 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			document_line_indicator++;
 
 			// update line content
-			line_update();
+			line_refresh();
+
+			// done
+			continue;
 		}
 	
-		// // Arrow DOWN?
-		// if( key == STD_KEY_ARROW_DOWN ) {
-		// 	// it's a last line of document?
-		// 	if( document_line_location + document_line_byte == document_byte ) continue;	// yes
+		// Arrow DOWN?
+		if( key == STD_KEY_ARROW_DOWN ) {
+			// it's a last line of document?
+			if( document_line_location + document_line_byte == document_byte ) continue;	// yes
 
-		// 	// check next line size
-		// 	uint64_t length = lib_string_length_line( (uint8_t *) &document_area[ document_line_location + document_line_byte + 1 ] );
+			// check next line size
+			uint64_t new_length = lib_string_length_line( (uint8_t *) &document_area[ document_line_location + document_line_byte + 1 ] );
 
-		// 	// move document pointer at beginning of current line
-		// 	document_pointer -= document_line_pointer;
+			// move document pointer at beginning of current line
+			document_pointer -= document_line_pointer;
 
-		// 	// preserve important line and cursor properties
-		// 	uint64_t indicator = document_line_indicator;
-		// 	uint64_t pointer = document_line_pointer;
-		// 	uint64_t x = document_cursor_x;
+			// preserve important line and cursor properties
+			uint64_t old_indicator = document_line_indicator;
+			uint64_t old_pointer = document_line_pointer;
+			uint64_t old_length = document_line_byte;
+			uint64_t old_x = document_cursor_x;
 
-		// 	// reset line properties
-		// 	document_line_pointer = 0;
+			// current line visible from beginning?
+			document_line_indicator = 0;
+			if( old_indicator ) line_refresh(); // no
 
-		// 	// current line visible from beginning?
-		// 	if( document_line_indicator ) {	// no
-		// 		// preserve cursor position
-		// 		print( "\e[s");
+			// new properties of document
+			document_pointer = document_line_location + document_line_byte + 1;
 
-		// 		// show line from beginning
-		// 		document_line_indicator = 0;
-		// 		line_update();
+			// new properties of line
+			document_line_location = document_pointer;
+			document_line_byte = new_length;
 
-		// 		// restore cursor position
-		// 		print( "\e[u" );
-		// 	}
+			// move cursor to next line
+			print( "\e[B" );
 
-		// 	// move cursor line down
-		// 	print( "\e[B" );
+			// current line have similar properties as previous?
+			if( new_length >= document_line_pointer ) {
+				// nothing changed
+				document_pointer += old_pointer;
+				document_line_pointer = old_pointer;
+				document_line_indicator = old_indicator;
+			} else {
+				// find which part of line to show
+				document_line_indicator = 0;
+				while( new_length > stream_meta.width ) { new_length -= stream_meta.width; document_line_indicator += stream_meta.width; }
 
-		// 	// current line have same properties as previous?
-		// 	if( length >= x ) document_cursor_x = x; else document_cursor_x = length;
-		// 	while( length > stream_meta.width ) { length -= stream_meta.width; document_line_indicator += stream_meta.width; }
-		// }
+				// place cursor at end of line
+				document_cursor_x = new_length;
+
+				// new propertied of line and document
+				document_line_pointer = document_line_indicator + new_length;
+				document_pointer += document_line_pointer;
+			}
+
+			// show new state of line on screen
+			line_refresh();
+
+			// done
+			continue;
+		}
+
+		// Arrow UP?
+		if( key == STD_KEY_ARROW_UP ) {
+			// it's a first line of document?
+			if( ! document_line_location ) continue;	// yes
+
+			// move document pointer at beginning of current line
+			document_pointer -= document_line_pointer;
+
+			// preserve important line and cursor properties
+			uint64_t old_indicator = document_line_indicator;
+			uint64_t old_pointer = document_line_pointer;
+			uint64_t old_length = document_line_byte;
+			uint64_t old_x = document_cursor_x;
+
+			// current line visible from beginning?
+			document_line_indicator = 0;
+			if( old_indicator ) line_refresh(); // no
+
+			// search for previous line beginning
+			while( document_pointer && document_area[ --document_pointer - 1 ] != '\n' );
+
+			// check next line size
+			uint64_t new_length = lib_string_length_line( (uint8_t *) &document_area[ document_pointer ] );
+
+			// new properties of line
+			document_line_location = document_pointer;
+			document_line_byte = new_length;
+
+			// move cursor to previous
+			print( "\e[A" );
+
+			// previous line have similar properties as previous?
+			if( new_length >= old_pointer ) {
+				// nothing changed
+				document_pointer += old_pointer;
+				document_line_pointer = old_pointer;
+				document_line_indicator = old_indicator;
+			} else {
+				// find which part of line to show
+				document_line_indicator = 0;
+				while( new_length > stream_meta.width ) { new_length -= stream_meta.width; document_line_indicator += stream_meta.width; }
+
+				// place cursor at end of line
+				document_cursor_x = new_length;
+
+				// new propertied of line and document
+				document_line_pointer = document_line_indicator + new_length;
+				document_pointer += document_line_pointer;
+			}
+
+			// show new state of line on screen
+			line_refresh();
+
+			// done
+			continue;
+		}
 
 		// HOME?
 		if( key == STD_KEY_HOME ) {
@@ -298,7 +480,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			if( ! document_line_pointer ) continue;	// not now
 
 			// set mark on beginning of line
-			document_pointer -= document_line_pointer;
+			document_pointer = document_line_location;
 
 			// cursor index inside line
 			document_line_pointer = 0;
@@ -378,6 +560,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// update line content after cursor
 			line_fill();	// if exist
+
+			// done
+			continue;
 		}
 
 		// DELETE?
@@ -398,6 +583,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// update line content after cursor
 			line_fill();	// if exist
+
+			// done
+			continue;
 		}
 
 		// check if key is printable
@@ -438,10 +626,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// update line content after cursor
 			line_fill();	// if exist
 		}
-
-		// log( "dp: %u, db: %u, dli: %u, dlp: %u, dlb: %u, dcx: %u\n", document_pointer, document_byte, document_line_indicator, document_line_pointer, document_line_byte, document_cursor_x );
 	}
 
 	// process ended properly
 	return EMPTY;
 }
+
+// log( "dp: %u, db: %u, dli: %u, dlp: %u, dlb: %u, dcx: %u\n", document_pointer, document_byte, document_line_indicator, document_line_pointer, document_line_byte, document_cursor_x );

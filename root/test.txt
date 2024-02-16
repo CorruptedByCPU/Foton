@@ -1,2 +1,3 @@
-[text editor - in progress] 012345678901234567890123456789012345678901234567890123456789
-already in: arrows {left,right}, backspace, delete, home, end
+[text editor - in progress]
+already in: arrows {left,right,up,down}, backspace, delete, home, end
+to do: enter, line break and merge, scroll, page up/down, save, read
