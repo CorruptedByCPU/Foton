@@ -58,11 +58,17 @@
 	// clear current line of terminal
 	void lib_terminal_drain_line( struct LIB_TERMINAL_STRUCTURE *terminal );
 
+	// clear selected line of terminal
+	void lib_terminal_drain_line_n( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t n );
+
 	// main printing function
 	void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *string, ... );
 
 	// move all lines up of terminal by one line
 	void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal );
+
+	// move all lines down of terminal by one line
+	void lib_terminal_scroll_down( struct LIB_TERMINAL_STRUCTURE *terminal );
 
 	// draw whole string inside terminal
 	void lib_terminal_string( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *string, uint64_t length );

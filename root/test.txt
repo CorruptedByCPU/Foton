@@ -1,3 +1,22 @@
-[text editor - in progress]
-already in: arrows {left,right,up,down}, backspace, delete, home, end
-to do: enter, line break and merge, scroll, page up/down, save, read
+0  [text editor - in progress]
+1
+2  already in:
+3    arrows {left,right,up,down}, backspace, delete, home, end
+4    scroll up/down
+5
+6  to do:
+7    ctrl + arrows (word/line jump), enter
+8    line break and merge (enter/backspace/delete), page up/down
+9    save, read, column preserve (try to keep cursor Y position)
+10
+11 at finish:
+12   code cleanup
+13
+14
+15
+16
+17
+18
+19
+20
+21 hidden!

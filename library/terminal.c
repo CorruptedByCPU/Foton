@@ -180,6 +180,16 @@ void lib_terminal_drain_line( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 			line_pointer[ (terminal -> scanline_pixel * y) + x ] = terminal -> color_background - (terminal -> alpha << 24);
 }
 
+void lib_terminal_drain_line_n( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t n ) {
+	// position the pointer to the cursor position at line beginning
+	uint32_t *line_pointer = terminal -> base_address + ((n * (terminal -> scanline_pixel * LIB_FONT_HEIGHT_pixel)));
+
+	// clear the entire line with the default background color
+	for( uint16_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ )
+		for( uint16_t x = 0; x < terminal -> width; x++ )
+			line_pointer[ (terminal -> scanline_pixel * y) + x ] = terminal -> color_background - (terminal -> alpha << 24);
+}
+
 void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// number of pixels to be moved
 	uint64_t count = terminal -> height_char * terminal -> scanline_line;
@@ -188,8 +198,18 @@ void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	for( uint64_t i = 0; i < count; i++ )
 		terminal -> base_address[ i ] = terminal -> base_address[ i + terminal -> scanline_line ];
 
-	// clear the current terminal line
-	lib_terminal_drain_line( terminal );
+	// clear last line of terminal
+	lib_terminal_drain_line_n( terminal, terminal -> height_char );
+}
+
+void lib_terminal_scroll_down( struct LIB_TERMINAL_STRUCTURE *terminal ) {
+	// scroll all lines one by one
+	uint64_t line = terminal -> height_char;
+	do for( uint64_t x = 0; x < terminal -> scanline_line; x++ ) terminal -> base_address[ (line * terminal -> scanline_line) + x ] = terminal -> base_address[ ((line - 1) * terminal -> scanline_line) + x ];
+	while( --line );
+
+	// clear first line of terminal
+	lib_terminal_drain_line_n( terminal, EMPTY );
 }
 
 void lib_terminal_parse( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *string, va_list arg ) {
