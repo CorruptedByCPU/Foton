@@ -146,22 +146,7 @@ void line_update( void ) {
 		printf( "%c", document_area[ document_line_location + document_line_indicator + i ] );
 }
 
-void draw_menu( void ) {
-	// preserve cursor position
-	print( "\e[s");
-
-	// set cursor position at lowest line of terminal
-	printf( "%s", string_cursor_at_interaction );
-
-	// clear current line and move to next one
-	print( "\e[2K\e[E" );
-
-	// show menu
-	printf( "%s", string_menu );
-
-	// restore cursor position
-	print( "\e[u" );
-}
+void draw_menu( void ) { printf( "\e[s%s\e[2K\e[E%s\e[u", string_cursor_at_interaction, string_menu ); }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// retrieve stream meta data
@@ -239,7 +224,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		uint16_t key = getkey();
 
 		// debug
-		if( key & 0x8000 ) log( "dp: %u, ds: %u, dln: %u, dli: %u, dlp: %u, dls: %u, dcx: %u, dcy: %u\n", document_pointer, document_size, document_line_number, document_line_indicator, document_line_pointer, document_line_size, document_cursor_x, document_cursor_y );
+		// if( key & 0x8000 ) log( "ds: %u, dln: %u, dll: %u, dli: %u, dlp: %u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_location, document_line_indicator, document_line_pointer, document_line_size, document_cursor_x, document_cursor_y );
 
 		// CTRL push?
 		if( key == STD_KEY_CTRL_LEFT || key == STD_KEY_CTRL_RIGHT ) key_ctrl_semaphore = TRUE;
@@ -259,166 +244,101 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// Arrow LEFT?
 		if( key == STD_KEY_ARROW_LEFT ) {
 			// we are at beginning of docuemnt?
-			if( ! document_pointer ) continue;	// yes
+			if( ! document_line_location && ! document_line_pointer ) continue;	// yes
 
-			// we are at beginning of line?
-			if( ! document_line_pointer ) {
-				// show current line from beginning
-				document_line_indicator = 0;
-				line_refresh();
+			// we are inside of line?
+			if( document_line_pointer ) {
+				// somewhere far in line?
+				if( document_line_indicator == document_line_pointer )
+					// show line from previous character
+					document_line_indicator--;
+				else document_cursor_x--;	// new properties of cursor
 
+				// line index
+				document_line_pointer--;
+			} else {
 				// we are at first line of document view?
-				if( ! document_cursor_y ) {
-					// scroll down
-					print( "\e[T" );
+				if( document_cursor_y ) {	// no
+					// new properties of cursor
+					document_cursor_y--;
 
+					// move cursor to previous line
+					print( "\e[A" );
+				} else {	// yes
 					// view document from previous line
 					document_line_number--;
 
 					// refresh menu
-					draw_menu();
-				} else {
-					// new properties of cursor
-					document_cursor_y--;
-
-					// move cursor to next line
-					print( "\e[A" );
+					document_refresh();
 				}
 
 				// search for previous line beginning
-				while( document_pointer && document_area[ --document_pointer - 1 ] != '\n' );
+				while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_NEW_LINE );
 
-				// check next line size
-				uint64_t new_length = lib_string_length_line( (uint8_t *) &document_area[ document_pointer ] );
-
+				// check previous line size
+				document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
+				
 				// new properties of line
-				document_line_location = document_pointer;
-				document_line_pointer = new_length;
-				document_line_size = new_length;
-
-				// and document
-				document_pointer += new_length;
+				document_line_pointer = document_line_size;
 
 				// find which part of line to show
 				document_line_indicator = 0;
-				while( new_length > stream_meta.width ) { new_length -= stream_meta.width; document_line_indicator += stream_meta.width; }
+				while( document_line_size - document_line_indicator > stream_meta.width ) document_line_indicator++;
 
 				// place cursor at end of line
-				document_cursor_x = new_length;
-
-				// show new state of line on screen
-				line_refresh();
-
-				// done
-				continue;
+				document_cursor_x = document_line_size - document_line_indicator;
 			}
 
-			// set mark on previous character
-			document_pointer--;
-
-			// cursor index inside line
-			document_line_pointer--;
-
-			// cursor in middle of line?
-			if( document_cursor_x ) {
-				// update properties of cursor
-				document_cursor_x--;
-
-				// move cursor one step backward
-				print( "\e[D" );
-
-				// done
-				continue;
-			}
-
-			// at beginning of line?
-			if( document_line_indicator ) {	// no
-				// show line from previous character
-				document_line_indicator--;
-
-				// update line content after cursor
-				line_refresh();	// if exist
-			}
-
-			// done
-			continue;
+			// show new state of line on screen
+			line_refresh();
 		}
 
 		// Arrow RIGHT?
 		if( key == STD_KEY_ARROW_RIGHT ) {
 			// we are at end of docuemnt?
-			if( document_pointer == document_size ) continue;	// yes
+			if( document_line_location + document_line_pointer == document_size ) continue;	// yes
 
-			// we are at end of line?
-			if( document_line_pointer == document_line_size ) {
-				// show current line from beginning
-				document_pointer -= document_line_pointer;
+			// we are inside of line?
+			if( document_line_pointer < document_line_size ) {
+				// line index
+				document_line_pointer++;
+
+				// cursor already at end of document view?
+				if( document_cursor_x == stream_meta.width ) document_line_indicator++;
+				else document_cursor_x++;	// no
+			} else {
+				// show new state of line on screen
 				document_line_indicator = 0;
 				line_refresh();
 
-				// we are at last line of document view?
-				if( document_cursor_y == stream_meta.height - 2 ) {
-					// scroll up
-					print( "\e[S" );
+				// we are in middle of document view?
+				if( document_cursor_y < stream_meta.height - 2 ) {
+					// new properties of cursor
+					document_cursor_y++;
 
+					// move cursor to next line
+					print( "\e[B" );
+				} else {
 					// view document from next line
 					document_line_number++;
 
 					// refresh menu
-					draw_menu();
-				} else {
-					// new properties of cursor
-					document_cursor_y++;
-
-					// move cursor at beginning of next line
-					print( "\e[B\e[G" );
+					document_refresh();
 				}
 
 				// check next line size
-				document_pointer += document_line_size + 1;
-				uint64_t new_length = lib_string_length_line( (uint8_t *) &document_area[ document_pointer ] );
+				document_line_location += document_line_size + 1;
+				document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
 
 				// new properties of line
-				document_line_location = document_pointer;
 				document_line_pointer = 0;
-				document_line_size = new_length;
-				
-				// and cursor
+
+				// place cursor at beginning of line
 				document_cursor_x = 0;
-
-				// update line content
-				line_refresh();
-
-				// done
-				continue;
 			}
 
-			// set mark on next character
-			document_pointer++;
-
-			// cursor index inside line
-			document_line_pointer++;
-
-			// cursor in middle of line?
-			if( document_cursor_x < stream_meta.width ) {
-				// update properties of cursor
-				document_cursor_x++;
-
-				// move cursor one step backward
-				print( "\e[C" );
-
-				// done
-				continue;
-			}
-
-			// show line from next character
-			document_line_indicator++;
-
-			// update line content
+			// show new state of line on screen
 			line_refresh();
-
-			// done
-			continue;
 		}
 	
 		// Arrow DOWN?
@@ -717,13 +637,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( key < STD_ASCII_SPACE || key > STD_ASCII_TILDE ) continue;
 
 		// pointer in middle of document?
-		if( document_pointer != document_size )
+		if( document_line_location + document_line_pointer != document_size )
 			// move all characters one position further
-			for( uint64_t i = document_size; i > document_pointer; i-- )
+			for( uint64_t i = document_size; i > document_line_location + document_line_pointer; i-- )
 				document_area[ i ] = document_area[ i - 1 ];
 		
 		// insert character at end of document
-		document_area[ document_pointer++ ] = key;
+		document_area[ document_line_location + document_line_pointer ] = key;
 
 		// cursor index inside line
 		document_line_pointer++;
@@ -735,22 +655,15 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		document_size++;
 
 		// cursor position at end of row?
-		if( document_cursor_x == stream_meta.width ) {
+		if( document_cursor_x == stream_meta.width )
 			// show line from next character
 			document_line_indicator++;
-			
-			// update line content
-			line_update();
-		} else {
+		else
 			// update properties of cursor
 			document_cursor_x++;
 
-			// show character on terminal
-			printf( "%c", key );
-
-			// update line content after cursor
-			line_fill();	// if exist
-		}
+		// show new state of line on screen
+		line_refresh();
 	}
 
 	// process ended properly
