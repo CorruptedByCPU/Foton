@@ -309,11 +309,17 @@ uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-	// stream closed or full?
-	if( task -> stream_out -> flags & KERNEL_STREAM_FLAG_closed || task -> stream_out -> length_byte == STD_STREAM_SIZE_page << STD_SHIFT_PAGE ) return FALSE;	// yes
-
 	// block access to stream modification
 	MACRO_LOCK( task -> stream_out -> semaphore );
+
+	// stream closed or full?
+	if( task -> stream_out -> flags & KERNEL_STREAM_FLAG_closed || task -> stream_out -> length_byte == STD_STREAM_SIZE_page << STD_SHIFT_PAGE ) {
+		// unlock stream access
+		MACRO_UNLOCK( task -> stream_out -> semaphore );
+
+		// yes
+		return FALSE;
+	}
 
 	// amount of data inside stream after operation
 	task -> stream_out -> length_byte += length;
@@ -362,11 +368,17 @@ uint64_t kernel_syscall_stream_in( uint8_t *target ) {
 	// get the process output stream id
 	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
 
-	// stream closed or empty?
-	if( task -> stream_in -> flags & KERNEL_STREAM_FLAG_closed || ! task -> stream_in -> length_byte ) return EMPTY;	// yes
-
 	// block access to stream modification
 	MACRO_LOCK( task -> stream_in -> semaphore );
+
+	// stream closed or empty?
+	if( task -> stream_in -> flags & KERNEL_STREAM_FLAG_closed || ! task -> stream_in -> length_byte ) {
+		// unlock stream modification
+		MACRO_UNLOCK( task -> stream_in -> semaphore );
+
+		// yes
+		return EMPTY;
+	}
 
 	// passed data from stream
 	uint64_t length = EMPTY;

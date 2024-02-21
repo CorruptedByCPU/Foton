@@ -195,6 +195,7 @@
 
 	#define	STD_KEY_BACKSPACE				0x0008
 	#define	STD_KEY_TAB					0x0009
+	#define	STD_KEY_NEW_LINE				0x000A
 	#define	STD_KEY_ENTER					0x000D
 	#define	STD_KEY_ESC					0x001B
 	#define	STD_KEY_CTRL_LEFT				0x001D
