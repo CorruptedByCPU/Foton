@@ -93,7 +93,7 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 					return 2 + arg_length[ 0 ] + 1;
 				}
 
-				// move cursor back
+				// move cursor backward
 				case 'D': {
 					// if steps are not specified
 					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 0; }	// by default 1 step
@@ -109,7 +109,7 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 					return 2 + arg_length[ 0 ] + 1;
 				}
 
-				// move cursor at beggining of next (N th) line
+				// move cursor at beginning of next (N th) line
 				case 'E': {
 					// if steps are not specified
 					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 0; }	// by default 1 step
@@ -117,6 +117,25 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 					// move cursor N lines forward, if possible
 					if( console_terminal.cursor_y + arg_value[ 0 ] <= console_terminal.height_char ) console_terminal.cursor_y += arg_value[ 0 ];
 					else console_terminal.cursor_y = console_terminal.height_char;
+
+					// and at beggining of that line
+					console_terminal.cursor_x = 0;
+
+					// update cursor position inside terminal
+					lib_terminal_cursor_set( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
+
+					// return sequence length
+					return 2 + arg_length[ 0 ] + 1;
+				}
+
+				// move cursor at beginning of previous (N th) line
+				case 'F': {
+					// if steps are not specified
+					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 0; }	// by default 1 step
+
+					// move cursor N lines backward, if possible
+					if( console_terminal.cursor_y - arg_value[ 0 ] >= 0 ) console_terminal.cursor_y -= arg_value[ 0 ];
+					else console_terminal.cursor_y = 0;
 
 					// and at beggining of that line
 					console_terminal.cursor_x = 0;
