@@ -4,6 +4,7 @@
 3    arrows {left,right,up,down}, backspace, delete, home, end
 4    scroll up/down, column preserve (try to keep inline cursor Y position)
 5    line merge (delete, backspace)
+6
 7
 8  to do:
 9    ctrl + arrows (word/line jump), enter

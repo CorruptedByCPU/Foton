@@ -11,8 +11,8 @@
 
 void lib_terminal( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// convert terminal height and width to characters
-	terminal -> width_char = (terminal -> width / LIB_FONT_WIDTH_pixel) - 1;
-	terminal -> height_char = (terminal -> height / LIB_FONT_HEIGHT_pixel) - 1;
+	terminal -> width_char = terminal -> width / LIB_FONT_WIDTH_pixel;
+	terminal -> height_char = terminal -> height / LIB_FONT_HEIGHT_pixel;
 
 	// set scanline in characters
 	terminal -> scanline_char = terminal -> width / terminal -> width_char;
@@ -75,7 +75,7 @@ void lib_terminal_char( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t ascii )
 			else if( terminal -> cursor_y ) {
 				// place the cursor at the end of the previous line
 				terminal -> cursor_y--;
-				terminal -> cursor_x = terminal -> width_char;
+				terminal -> cursor_x = terminal -> width_char - 1;
 			}
 		}
 
@@ -125,14 +125,14 @@ void lib_terminal_cursor_enable( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 
 void lib_terminal_cursor_set( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// cursor outside the space to the right?
-	if( terminal -> cursor_x > terminal -> width_char ) {
+	if( terminal -> cursor_x >= terminal -> width_char ) {
 		// place the cursor to the beginning of a new line
 		terminal -> cursor_x = EMPTY;
 		terminal -> cursor_y++;
 	}
 
 	// if cursor is out of vertical space
-	if( terminal -> cursor_y > terminal -> height_char ) {
+	if( terminal -> cursor_y >= terminal -> height_char ) {
 		// correct cursor position vertically
 		terminal -> cursor_y--;
 
@@ -192,19 +192,19 @@ void lib_terminal_drain_line_n( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_
 
 void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// number of pixels to be moved
-	uint64_t count = terminal -> height_char * terminal -> scanline_line;
+	uint64_t count = (terminal -> height_char - 1) * terminal -> scanline_line;
 
 	// scroll all lines one by one (except the last one)
 	for( uint64_t i = 0; i < count; i++ )
 		terminal -> base_address[ i ] = terminal -> base_address[ i + terminal -> scanline_line ];
 
 	// clear last line of terminal
-	lib_terminal_drain_line_n( terminal, terminal -> height_char );
+	lib_terminal_drain_line_n( terminal, terminal -> height_char - 1 );
 }
 
 void lib_terminal_scroll_down( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// scroll all lines one by one
-	uint64_t line = terminal -> height_char;
+	uint64_t line = terminal -> height_char - 1;
 	do for( uint64_t x = 0; x < terminal -> scanline_line; x++ ) terminal -> base_address[ (line * terminal -> scanline_line) + x ] = terminal -> base_address[ ((line - 1) * terminal -> scanline_line) + x ];
 	while( --line );
 

@@ -57,7 +57,7 @@ void document_refresh( void ) {
 		uint64_t length = lib_string_length_line( (uint8_t *) &document_area[ i ] );
 
 		// show line (with limited length)
-		if( length > stream_meta.width ) length = stream_meta.width;
+		if( length > stream_meta.width - 1 ) length = stream_meta.width - 1;
 		printf( "\e[G%.*s\n", length, (uint8_t *) &document_area[ i ] );
 
 		// next line
@@ -83,7 +83,7 @@ void line_refresh( void ) {
 	print( "\e[s");
 
 	// update line content after cursor
-	uint64_t length = stream_meta.width - document_cursor_x;
+	uint64_t length = (stream_meta.width - 1) - document_cursor_x;
 	if( length > document_line_size - document_line_pointer ) length = document_line_size - document_line_pointer;
 	for( uint64_t i = 0; i < length; i++ )
 		printf( "%c", document_area[ document_line_location + document_line_indicator + document_cursor_x + i ] );
@@ -100,7 +100,7 @@ void line_restore( void ) {
 
 		// find which part of line to show
 		document_line_indicator = 0;
-		while( document_line_size - document_line_indicator > stream_meta.width ) document_line_indicator++;
+		while( document_line_size - document_line_indicator > stream_meta.width - 1 ) document_line_indicator++;
 
 		// place cursor at end of line
 		document_cursor_x = document_line_size - document_line_indicator;
@@ -275,7 +275,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 				// find which part of line to show
 				document_line_indicator = 0;
-				while( document_line_size - document_line_indicator > stream_meta.width ) document_line_indicator++;
+				while( document_line_size - document_line_indicator > stream_meta.width - 1 ) document_line_indicator++;
 
 				// place cursor at end of line
 				document_cursor_x = document_line_size - document_line_indicator;
@@ -287,6 +287,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// show new state of line on screen
 			line_refresh();
+
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
 
 			// done
 			continue;
@@ -303,7 +305,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				document_line_pointer++;
 
 				// cursor already at end of document view?
-				if( document_cursor_x == stream_meta.width ) document_line_indicator++;
+				if( document_cursor_x == stream_meta.width - 1 ) document_line_indicator++;
 				else document_cursor_x++;	// no
 			} else {
 				// show new state of line on screen
@@ -311,7 +313,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				line_refresh();
 
 				// we are in middle of document view?
-				if( document_cursor_y < stream_meta.height - 2 ) {
+				if( document_cursor_y < (stream_meta.height - menu_height_line) - 1 ) {
 					// new properties of cursor
 					document_cursor_y++;
 
@@ -343,6 +345,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// show new state of line on screen
 			line_refresh();
 
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
+
 			// done
 			continue;
 		}
@@ -353,7 +357,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			if( document_line_location + document_line_size == document_size ) continue;	// yes
 
 			// we are at end of document view?
-			if( document_cursor_y == stream_meta.height - 2 ) {
+			if( document_cursor_y == (stream_meta.height - menu_height_line) - 1 ) {
 				// view document from next line
 				document_line_number++;
 
@@ -379,6 +383,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// try saved line properties
 			line_restore();
+
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
 
 			// done
 			continue;
@@ -419,6 +425,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// try saved line properties
 			line_restore();
 
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
+
 			// done
 			continue;
 		}
@@ -442,6 +450,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// show new state of line on screen
 			line_refresh();
 
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
+
 			// done
 			continue;
 		}
@@ -456,7 +466,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// find which part of line to show
 			document_line_indicator = 0;
-			while( document_line_pointer - document_line_indicator > stream_meta.width ) document_line_indicator++;
+			while( document_line_pointer - document_line_indicator > stream_meta.width - 1 ) document_line_indicator++;
 
 			// place cursor at end of line
 			document_cursor_x = document_line_pointer - document_line_indicator;
@@ -467,6 +477,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// show new state of line on screen
 			line_refresh();
+
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
 
 			// done
 			continue;
@@ -524,9 +536,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// character removed from document
 				document_size--;
 
+				document_line_count--;
+
 				// find which part of line to show
 				document_line_indicator = 0;
-				while( document_line_pointer - document_line_indicator > stream_meta.width ) document_line_indicator++;
+				while( document_line_pointer - document_line_indicator > stream_meta.width - 1 ) document_line_indicator++;
 
 				// place cursor at end of line
 				document_cursor_x = document_line_pointer - document_line_indicator;
@@ -541,6 +555,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// show new state of line on screen
 			line_refresh();
+
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
 
 			// done
 			continue;
@@ -563,6 +579,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// get new line size
 				document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
 
+				document_line_count--;
+
 				// refresh document view
 				document_refresh();
 			}
@@ -570,19 +588,38 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// show new state of line on screen
 				line_refresh();
 
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
+
 			// done
 			continue;
 		}
 
 		// PAGE Down?
 		if( key == STD_KEY_PAGE_DOWN ) {
+			// selected line
+			uint64_t line;
+
 			// select page to show up
-			if( document_line_number + (stream_meta.height - menu_height_line) < document_line_count )
+			if( document_line_number + (stream_meta.height - menu_height_line) < document_line_count - 1 ) {
 				// change page
 				document_line_number += stream_meta.height - menu_height_line;
 
-			// current line
-			uint64_t line = document_line_number;
+				// by default first line of page
+				line = document_line_number;
+
+				// can we change line to cursor placed?
+				if( line + document_cursor_y < document_line_count - 1 ) line += document_cursor_y;
+
+			} else {
+				// select last line of current page
+				line = document_line_count - 1;
+
+				// place cursor at last line of document page
+				document_cursor_y = (document_line_count - 1) - document_line_number;
+			}
+
+			// set cursor at current line of page
+			printf( "\e[%u;%uH", document_cursor_x, document_cursor_y );
 
 			// locate line inside document
 			document_line_location = 0;	// default pointer at beginning of document
@@ -591,26 +628,47 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// get new line size
 			document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
 
-			// set cursor at beginning of first line of page
-			print( "\e[0;0H" );
-
 			// try saved line properties
 			line_restore();
 
 			// refresh document view
 			document_refresh();
+
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
+
+			// done
+			continue;
 		}
 
 		// PAGE Up?
 		if( key == STD_KEY_PAGE_UP ) {
+			// selected line
+			uint64_t line;
+
 			// select page to show up
-			document_line_number -= stream_meta.height - menu_height_line;
-			if( document_line_number > document_line_count )
-				// first page of document
+			if( document_line_number - (stream_meta.height - menu_height_line) < document_line_count - 1 ) {
+				// change page
+				document_line_number -= stream_meta.height - menu_height_line;
+
+				// by default first line of page
+				line = document_line_number;
+
+				// can we change line to cursor placed?
+				if( line + document_cursor_y < document_line_count - 1 ) line += document_cursor_y;
+
+			} else {
+				// select first page of document
 				document_line_number = 0;
-	
-			// current line
-			uint64_t line = document_line_number;
+
+				// select first line of page
+				line = 0;
+
+				// place cursor at first line of document page
+				document_cursor_y = 0;
+			}
+
+			// set cursor at current line of page
+			printf( "\e[%u;%uH", document_cursor_x, document_cursor_y );
 
 			// locate line inside document
 			document_line_location = 0;	// default pointer at beginning of document
@@ -619,73 +677,94 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// get new line size
 			document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
 
-			// set cursor at beginning of first line of page
-			print( "\e[0;0H" );
-
 			// try saved line properties
 			line_restore();
 
 			// refresh document view
 			document_refresh();
+
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
+
+			// done
+			continue;
 		}
 
-		// if( key == STD_KEY_ENTER ) key = STD_KEY_NEW_LINE;
+		// // ENTER?
+		// if( key == STD_KEY_ENTER ) {
+		// 	// pointer in middle of document?
+		// 	if( document_line_location + document_line_pointer != document_size )
+		// 		// move all characters one position further
+		// 		for( uint64_t i = document_size; i > document_line_location + document_line_pointer; i-- )
+		// 			document_area[ i ] = document_area[ i - 1 ];
+			
+		// 	// insert character at end of document
+		// 	document_area[ document_line_location + document_line_pointer ] = key;
+
+		// 	// new line start
+		// 	document_line_location += document_line_pointer;
+
+		// 	// reset cursor index in line
+		// 	document_line_pointer = 0;
+		// 	document_line_indicator = 0;
+
+		// 	// get new line size
+		// 	document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
+
+		// 	// update cursor position
+		// 	document_cursor_x = 0;
+		// 	document_cursor_y++;
+
+		// 	// refresh document view
+		// 	document_refresh();
+
+		// 	// document size
+		// 	document_size++;
+
+		// 	// remember current pointer and indicator position for cursor at X axis
+		// 	document_line_pointer_saved = document_line_pointer;
+		// 	document_line_indicator_saved = document_line_indicator;
+
+		// 	// done
+		// 	continue;
+		// }
 
 		// check if key is printable
-		if( key == STD_KEY_NEW_LINE || (key >= STD_ASCII_SPACE && key <= STD_ASCII_TILDE) ) {
-			// pointer in middle of document?
-			if( document_line_location + document_line_pointer != document_size )
-				// move all characters one position further
-				for( uint64_t i = document_size; i > document_line_location + document_line_pointer; i-- )
-					document_area[ i ] = document_area[ i - 1 ];
-			
-			// insert character at end of document
-			document_area[ document_line_location + document_line_pointer ] = key;
+		if( key < STD_ASCII_SPACE || key > STD_ASCII_TILDE) continue;	// no, done
 
-			// ENTER?
-			if( key == STD_KEY_NEW_LINE ) {
-				// new line start
-				document_line_location += document_line_pointer;
+		// pointer in middle of document?
+		if( document_line_location + document_line_pointer != document_size )
+			// move all characters one position further
+			for( uint64_t i = document_size; i > document_line_location + document_line_pointer; i-- )
+				document_area[ i ] = document_area[ i - 1 ];
+		
+		// insert character at end of document
+		document_area[ document_line_location + document_line_pointer ] = key;
 
-				// reset cursor index in line
-				document_line_pointer = 0;
-				document_line_indicator = 0;
+		// cursor index inside line
+		document_line_pointer++;
 
-				// get new line size
-				document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
+		// line size
+		document_line_size++;
 
-				// update cursor position
-				document_cursor_x = 0;
-				document_cursor_y++;
-
-				// refresh document view
-				document_refresh();
-			} else {
-				// cursor index inside line
-				document_line_pointer++;
-
-				// line size
-				document_line_size++;
-
-				// cursor position at end of row?
-				if( document_cursor_x == stream_meta.width )
-					// show line from next character
-					document_line_indicator++;
-				else
-					// update properties of cursor
-					document_cursor_x++;
+		// cursor position at end of row?
+		if( document_cursor_x == stream_meta.width - 1 )
+			// show line from next character
+			document_line_indicator++;
+		else
+			// update properties of cursor
+			document_cursor_x++;
 				
-				// show new state of line on screen
-				line_refresh();
-			}
+		// show new state of line on screen
+		line_refresh();
 
-			// document size
-			document_size++;
+		// document size
+		document_size++;
 
-			// remember current pointer and indicator position for cursor at X axis
-			document_line_pointer_saved = document_line_pointer;
-			document_line_indicator_saved = document_line_indicator;
-		}
+		// remember current pointer and indicator position for cursor at X axis
+		document_line_pointer_saved = document_line_pointer;
+		document_line_indicator_saved = document_line_indicator;
+
+log( "ds: %u, dln/c: %u/%u, dll: %u, dli/s: %u/%u, dlp/s: %u/%u, dls: %u, dcx: %u, dcy: %u\n", document_size, document_line_number, document_line_count, document_line_location, document_line_indicator, document_line_indicator_saved, document_line_pointer, document_line_pointer_saved, document_line_size, document_cursor_x, document_cursor_y );
 	}
 
 	// process ended properly
