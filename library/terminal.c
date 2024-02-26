@@ -149,7 +149,8 @@ void lib_terminal_cursor_set( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 void lib_terminal_cursor_switch( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// set the pointer to the cursor position
 	for( uint64_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ )
-		terminal -> pointer[ terminal -> scanline_pixel * y ] = (terminal -> pointer[ terminal -> scanline_pixel * y ] & STD_COLOR_mask) | (~terminal -> pointer[ terminal -> scanline_pixel * y ] & ~STD_COLOR_mask);
+		for( uint64_t x = 0; x < LIB_FONT_WIDTH_pixel; x++ )
+			terminal -> pointer[ (terminal -> scanline_pixel * y) + x ] = (terminal -> pointer[ (terminal -> scanline_pixel * y) + x ] & STD_COLOR_mask) | (~terminal -> pointer[ (terminal -> scanline_pixel * y) + x ] & ~STD_COLOR_mask);
 }
 
 void lib_terminal_drain( struct LIB_TERMINAL_STRUCTURE *terminal ) {
