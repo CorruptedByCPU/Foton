@@ -75,10 +75,10 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			// parse all keys of this object
 			do {
 				// retrieve width value
-				if( lib_json_key( window, (uint8_t *) &lib_interface_string_width ) ) interface -> width = window.value;
+				if( lib_json_key( window, (uint8_t *) &lib_interface_string_width ) ) interface -> width = window.value + (LIB_INTERFACE_SHADOW_length << STD_SHIFT_2);
 	
 				// retrieve height value
-				if( lib_json_key( window, (uint8_t *) &lib_interface_string_height ) ) interface -> height = window.value;
+				if( lib_json_key( window, (uint8_t *) &lib_interface_string_height ) ) interface -> height = window.value + (LIB_INTERFACE_SHADOW_length << STD_SHIFT_2);
 
 				// retrieve name value
 				if( lib_json_key( window, (uint8_t *) &lib_interface_string_name ) ) {
@@ -106,7 +106,8 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			struct LIB_JSON_STRUCTURE control = lib_json( (uint8_t *) json.value );
 
 			// default properties of control
-						element -> control.width = LIB_INTERFACE_HEADER_HEIGHT_pixel;
+			element -> control.y = LIB_INTERFACE_SHADOW_length;
+			element -> control.width = LIB_INTERFACE_HEADER_HEIGHT_pixel;
 			element -> control.height = LIB_INTERFACE_HEADER_HEIGHT_pixel;
 			element -> control.flags = EMPTY;
 			element -> control.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL );
@@ -117,7 +118,7 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				if( lib_json_key( control, (uint8_t *) &lib_interface_string_id ) ) element -> control.id = control.value;
 
 				// x
-				if( lib_json_key( control, (uint8_t *) &lib_interface_string_x ) ) element -> control.x = control.value;
+				if( lib_json_key( control, (uint8_t *) &lib_interface_string_x ) ) element -> control.x = control.value + LIB_INTERFACE_SHADOW_length;
 
 				// type
 				if( lib_json_key( control, (uint8_t *) &lib_interface_string_type ) ) {
@@ -170,10 +171,10 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_id ) ) element -> label_or_button.id = label_or_button.value;
 
 				// x
-				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_x ) ) element -> label_or_button.x = label_or_button.value;
+				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_x ) ) element -> label_or_button.x = label_or_button.value + LIB_INTERFACE_SHADOW_length;
 
 				// y
-				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_y ) ) element -> label_or_button.y = label_or_button.value;
+				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_y ) ) element -> label_or_button.y = label_or_button.value + LIB_INTERFACE_SHADOW_length;
 
 				// width
 				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_width ) ) element -> label_or_button.width = label_or_button.value;
@@ -470,16 +471,16 @@ void lib_interface_shadow( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// no shadow?
 	if( ! interface -> descriptor -> offset ) return;
 
-	// // set shadow color
-	// uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	// for( uint16_t i = 0; i < interface -> descriptor -> offset; i ++ )
-	// 	for( uint16_t y = i + interface -> descriptor -> offset; y < interface -> height - (i + interface -> descriptor -> offset); y++ )
-	// 		for( uint16_t x = i + interface -> descriptor -> offset; x < interface -> width - (i + interface -> descriptor -> offset); x++ )
-	// 			// draw pixel
-	// 			pixel[ (y * interface -> width) + x ] = i << 28;
+	// set shadow color
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	for( uint16_t i = 0; i < interface -> descriptor -> offset; i ++ )
+		for( uint16_t y = i + interface -> descriptor -> offset; y < interface -> height - (i + interface -> descriptor -> offset); y++ )
+			for( uint16_t x = i + interface -> descriptor -> offset; x < interface -> width - (i + interface -> descriptor -> offset); x++ )
+				// draw pixel
+				pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_SHADOW_color;
 
-	// // blur shadow
-	// lib_image_blur( pixel, interface -> descriptor -> offset, interface -> width, interface -> height );
+	// blur shadow
+	lib_image_blur( pixel, interface -> descriptor -> offset, interface -> width, interface -> height );
 }
 
 void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -501,7 +502,7 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// wallpaper window properties
 	request -> ipc.type = STD_IPC_TYPE_event;
-	request -> x = (kernel_framebuffer.width_pixel >> STD_SHIFT_2) - (interface -> width >> STD_SHIFT_2);
+	request -> x = (kernel_framebuffer.width_pixel >> STD_SHIFT_2) - (interface -> width >> STD_SHIFT_2);	// todo, shadow
 	request -> y = ((kernel_framebuffer.height_pixel - LIB_INTERFACE_HEADER_HEIGHT_pixel) >> STD_SHIFT_2) - (interface -> height >> STD_SHIFT_2);
 	request -> width = interface -> width;
 	request -> height = interface -> height;

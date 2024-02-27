@@ -38,7 +38,8 @@
 
 	#define	LIB_INTERFACE_NAME_limit		64
 
-	#define	LIB_INTERFACE_SHADOW_length		8
+	#define	LIB_INTERFACE_SHADOW_length		4
+	#define	LIB_INTERFACE_SHADOW_color		0x40000000
 
 	#define	LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit	0xFFFF
 

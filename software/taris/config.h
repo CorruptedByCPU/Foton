@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-	#define	TARIS_MENU_HEIGHT_pixel		(LIB_FONT_HEIGHT_pixel << STD_SHIFT_2) + 4
+	#define	TARIS_MENU_HEIGHT_pixel		(LIB_FONT_HEIGHT_pixel << STD_SHIFT_2)
 
 	#define	TARIS_BRICK_START_POSITION_x	6
 	#define	TARIS_BRICK_START_POSITION_y	-1

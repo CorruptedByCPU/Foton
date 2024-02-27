@@ -1,37 +1,37 @@
 {
 	"window": {
-		"width": 187,
-		"height": 414,
+		"width": 171,
+		"height": 394,
 		"name": "Taris"
 	},
 	"control": {
 		"id": 0,
-		"x": 157,
+		"x": 149,
 		"type": "close"
 	},
 	"control": {
-		"x": 133,
+		"x": 127,
 		"type": "minimize"
 	},
 	"label": {
-		"x": 9,
-		"y": 32,
+		"x": 1,
+		"y": 22,
 		"width": 56,
 		"height": 16,
 		"align": "center",
 		"name": "Points"
 	},
 	"label": {
-		"x": 65,
-		"y": 32,
+		"x": 57,
+		"y": 22,
 		"width": 56,
 		"height": 16,
 		"align": "center",
 		"name": "Lines"
 	},
 	"label": {
-		"x": 121,
-		"y": 32,
+		"x": 113,
+		"y": 22,
 		"width": 56,
 		"height": 16,
 		"align": "center",
@@ -39,8 +39,8 @@
 	},
 	"label": {
 		"id": 1,
-		"x": 9,
-		"y": 48,
+		"x": 1,
+		"y": 38,
 		"width": 56,
 		"height": 16,
 		"align": "center",
@@ -48,8 +48,8 @@
 	},
 	"label": {
 		"id": 2,
-		"x": 65,
-		"y": 48,
+		"x": 57,
+		"y": 38,
 		"width": 56,
 		"height": 16,
 		"align": "center",
@@ -57,8 +57,8 @@
 	},
 	"label": {
 		"id": 3,
-		"x": 121,
-		"y": 48,
+		"x": 113,
+		"y": 38,
 		"width": 56,
 		"height": 16,
 		"align": "center",
