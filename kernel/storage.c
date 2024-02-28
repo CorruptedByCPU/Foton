@@ -35,7 +35,7 @@ void kernel_storage_file( struct STD_FILE_STRUCTURE *file ) {
 	switch( kernel -> storage_base_address[ file -> id_storage ].device_type ) {
 		case KERNEL_STORAGE_TYPE_vfs: {
 			// properties of root Virtual File System
-			struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ file -> id_storage ].device_block;
+			struct KERNEL_VFS_STRUCTURE *vfs = (struct KERNEL_VFS_STRUCTURE *) kernel -> storage_base_address[ file -> id_storage ].device_block;
 
 			// search from root directory?
 			if( file -> name[ 0 ] != '/' ) {
@@ -43,11 +43,11 @@ void kernel_storage_file( struct STD_FILE_STRUCTURE *file ) {
 				struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 				// choose task current directory
-				vfs = (struct LIB_VFS_STRUCTURE *) task -> directory;
+				vfs = (struct KERNEL_VFS_STRUCTURE *) task -> directory;
 			}
 
 			// return properties of file
-			lib_vfs_file( vfs, file );
+			kernel_vfs_file( vfs, file );
 		}
 	}
 };
@@ -55,8 +55,25 @@ void kernel_storage_file( struct STD_FILE_STRUCTURE *file ) {
 void kernel_storage_read( struct STD_FILE_STRUCTURE *file, uintptr_t target_address ) {
 	// different approach, regarded of device type
 	switch( kernel -> storage_base_address[ file -> id_storage ].device_type ) {
-		case KERNEL_STORAGE_TYPE_vfs:
-			// return properties of file
-			return lib_vfs_read( (struct LIB_VFS_STRUCTURE *) file -> id, target_address );
+		case KERNEL_STORAGE_TYPE_vfs: {
+			// read file content
+			kernel_vfs_read( (struct KERNEL_VFS_STRUCTURE *) file -> id, target_address );
+
+			// done
+			break;
+		}
+	}
+};
+
+void kernel_storage_write( struct STD_FILE_STRUCTURE *file, uintptr_t source_address, uint64_t byte ) {
+	// different approach, regarded of device type
+	switch( kernel -> storage_base_address[ file -> id_storage ].device_type ) {
+		case KERNEL_STORAGE_TYPE_vfs: {
+			// write new file content
+			kernel_vfs_write( (struct KERNEL_VFS_STRUCTURE *) file -> id, source_address, byte );
+
+			// done
+			break;
+		}
 	}
 };

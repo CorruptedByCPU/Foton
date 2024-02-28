@@ -584,3 +584,11 @@ uint64_t kernel_syscall_time( void ) {
 	// return current date and time
 	return driver_rtc_time();
 }
+
+int64_t kernel_syscall_file_write( struct STD_FILE_STRUCTURE *file, uintptr_t target, uint64_t byte ) {
+	// write file content	
+	kernel_storage_write( file, target, byte );
+
+	// return EMPTY
+	return EMPTY;
+}

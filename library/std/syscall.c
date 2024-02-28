@@ -276,3 +276,11 @@ uint64_t std_time( void ) {
 	// return value unsigned
 	return std_syscall_value_unsigned();
 }
+
+int64_t std_file_write( struct STD_FILE_STRUCTURE *file, uintptr_t source, uint64_t byte ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_WRITE), "D" (file), "S" (source), "d" (byte) );
+
+	// return value
+	return std_syscall_value();
+}

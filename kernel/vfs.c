@@ -2,25 +2,18 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-	//----------------------------------------------------------------------
-	// variables, structures, definitions
-	//----------------------------------------------------------------------
-	#ifndef	LIB_VFS
-		#include	"./vfs.h"
-	#endif
-
-uint8_t lib_vfs_check( uintptr_t address, uint64_t size_byte ) {
+uint8_t kernel_vfs_check( uintptr_t address, uint64_t size_byte ) {
 	// properties of file
 	uint32_t *vfs = (uint32_t *) address;
 
 	// magic value?
-	if( vfs[ (size_byte >> STD_SHIFT_4) - 1 ] == LIB_VFS_magic ) return TRUE;	// yes
+	if( vfs[ (size_byte >> STD_SHIFT_4) - 1 ] == KERNEL_VFS_magic ) return TRUE;	// yes
 
 	// no
 	return FALSE;
 }
 
-void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *file ) {
+void kernel_vfs_file( struct KERNEL_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *file ) {
 	// path name index
 	uint64_t i = 0;
 
@@ -46,7 +39,7 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 	// parse path
 	while( TRUE ) {
 		// start from current directory
-		vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+		vfs = (struct KERNEL_VFS_STRUCTURE *) vfs -> offset;
 
 		// remove leading '/'
 		while( file -> name[ i ] == '/' ) { i++; length--; };
@@ -64,7 +57,7 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 		// last file from path is requested one?
 		if( length == filename_length && lib_string_compare( (uint8_t *) &file -> name[ i ], (uint8_t *) vfs -> name, filename_length ) ) {
 			// symbolic link selected?
-			while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+			while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct KERNEL_VFS_STRUCTURE *) vfs -> offset;
 
 			// set file properties
 			file -> id = (uint64_t) vfs;		// file identificator / pointer to content
@@ -80,7 +73,7 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 		}
 
 		// symbolic link selected?
-		while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+		while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct KERNEL_VFS_STRUCTURE *) vfs -> offset;
 
 		// if thats not a directory or symbolic
 		if( ! (vfs -> type & STD_FILE_TYPE_directory) ) return;	// failed
@@ -91,14 +84,14 @@ void lib_vfs_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *fil
 	}
 }
 
-void lib_vfs_read( struct LIB_VFS_STRUCTURE *vfs, uintptr_t target_address ) {
+void kernel_vfs_read( struct KERNEL_VFS_STRUCTURE *vfs, uintptr_t target_address ) {
 	// copy content of file to destination
 	uint8_t *source = (uint8_t *) vfs -> offset;
 	uint8_t *target = (uint8_t *) target_address;
 	for( uint64_t i = 0; i < vfs -> size; i++ ) target[ i ] = source[ i ];
 }
 
-void lib_vfs_write( struct LIB_VFS_STRUCTURE *vfs, uintptr_t source_address, uint64_t length_byte ) {
+int64_t kernel_vfs_write( struct KERNEL_VFS_STRUCTURE *vfs, uintptr_t source_address, uint64_t length_byte ) {
 	// current file allocation is enough?
 	if( MACRO_PAGE_ALIGN_UP( vfs -> size ) >= length_byte ) {
 		// copy content of file to destination
@@ -110,6 +103,27 @@ void lib_vfs_write( struct LIB_VFS_STRUCTURE *vfs, uintptr_t source_address, uin
 		vfs -> size = length_byte;
 
 		// done
-		return;
+		return EMPTY;
+
 	}
+
+	// assign new file area
+	uint8_t *target = (uint8_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( length_byte ) >> STD_SHIFT_PAGE );
+
+	// area assigned?
+	if( ! target ) return STD_ERROR_memory_low;
+
+	// copy content of file to destination
+	uint8_t *source = (uint8_t *) source_address;
+	for( uint64_t i = 0; i < length_byte; i++ ) target[ i ] = source[ i ];
+
+	// release old file content
+	kernel -> memory_release( vfs -> offset, MACRO_PAGE_ALIGN_UP( vfs -> size ) >> STD_SHIFT_PAGE );
+
+	// preserve new file length and content area
+	vfs -> offset = (uintptr_t) target;
+	vfs -> size = length_byte;
+
+	// done
+	return EMPTY;
 }

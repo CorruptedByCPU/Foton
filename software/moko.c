@@ -28,7 +28,7 @@
 	uint64_t document_cursor_y = 0;
 
 	uint8_t menu_height_line = 2;
-	uint8_t string_menu[] = "\e[48;5;15m\e[38;5;0m^x\e[0m Exit"; // \e[48;5;15m\e[38;5;0m^r\e[0m Read \e[48;5;15m\e[38;5;0m^o\e[0m Save";
+	uint8_t string_menu[] = "\e[48;5;15m\e[38;5;0m^x\e[0m Exit \e[48;5;15m\e[38;5;0m^o\e[0m Save";
 
 	uint8_t key_ctrl_semaphore = FALSE;
 
@@ -76,8 +76,11 @@ void document_refresh( void ) {
 	draw_menu();
 }
 
-void line_refresh( void ) {
-	// move cursor at beginning of line and clean it
+void line_refresh( uint8_t current ) {
+	// highlight current line
+	if( current ) print( "\e[48;5;233m" );
+
+	// move cursor at beginning of line and clear current line
 	print( "\e[G\e[2K" );
 
 	// update line content before cursor
@@ -94,7 +97,7 @@ void line_refresh( void ) {
 		printf( "%c", document_area[ document_line_location + document_line_indicator + document_cursor_x + i ] );
 
 	// restore cursor position
-	print( "\e[u" );
+	print( "\e[0m\e[u" );
 }
 
 void line_restore( void ) {
@@ -119,7 +122,7 @@ void line_restore( void ) {
 	}
 
 	// show new state of line on screen
-	line_refresh();
+	line_refresh( TRUE );
 }
 
 void document_parse( void ) {
@@ -146,8 +149,6 @@ void document_parse( void ) {
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// retrieve stream meta data
 	std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT );
-
-	log( "%u\n", stream_meta.height );
 
 	// prepare row movement sequence for interaction and menu
 	sprintf( "\e[%u;%uH", (uint8_t *) &string_cursor_at_interaction, 0, stream_meta.height - 2 );
@@ -215,6 +216,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// move cursor at beginning of document
 	print( "\e[0;0H" );
 
+	// show new state of line on screen
+	line_refresh( TRUE );
+
 	// main loop
 	while( TRUE ) {
 		// recieve key
@@ -226,13 +230,33 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// CTRL release?
 		if( key == (STD_KEY_CTRL_LEFT | STD_KEY_RELEASE) || key == (STD_KEY_CTRL_RIGHT | STD_KEY_RELEASE) ) key_ctrl_semaphore = FALSE;
 
-		// selected menu option? EXIT
-		if( key_ctrl_semaphore && key == 'x' ) {
-			// set cursor position below document area
-			printf( "%s\n", string_cursor_at_menu );
+		// selected menu option?
+		if( key_ctrl_semaphore ) {
+			switch( key ) {
+				// SAVE
+				case 'o': {
+					// ask about file name
+					printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSave as: %s {in progress, do not use}\e[0m\e[u", 0, stream_meta.height - 2, file.name );
+
+					// write document content to file
+					std_file_write( (struct STD_FILE_STRUCTURE *) &file, (uintptr_t) document_area, document_size );
+
+					// done
+					break;
+				}
+
+				// EXIT
+				case 'x': {
+					// set cursor position below document area
+					printf( "%s\n", string_cursor_at_menu );
+
+					// done
+					exit();
+				}
+			}
 
 			// done
-			exit();
+			continue;
 		}
 
 		// Arrow LEFT?
@@ -253,6 +277,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			} else {
 				// we are at first line of document view?
 				if( document_cursor_y ) {	// no
+					// show new state of line on screen (only remove highlight)
+					line_refresh( FALSE );
+
 					// new properties of cursor
 					document_cursor_y--;
 
@@ -288,7 +315,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			document_line_indicator_saved = document_line_indicator;
 
 			// show new state of line on screen
-			line_refresh();
+			line_refresh( TRUE );
 
 			// done
 			continue;
@@ -310,7 +337,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			} else {
 				// show new state of line on screen
 				document_line_indicator = 0;	// from beginning
-				line_refresh();
+				line_refresh( FALSE );
 
 				// we are in middle of document view?
 				if( document_cursor_y < (stream_meta.height - menu_height_line) - 1 ) {
@@ -343,7 +370,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			document_line_indicator_saved = document_line_indicator;
 
 			// show new state of line on screen
-			line_refresh();
+			line_refresh( TRUE );
 
 			// done
 			continue;
@@ -366,7 +393,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				document_line_indicator = 0;
 
 				// show new state of line on screen
-				line_refresh();
+				line_refresh( FALSE );
 
 				// new properties of cursor
 				document_cursor_y++;
@@ -403,7 +430,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				document_line_indicator = 0;
 
 				// show new state of line on screen
-				line_refresh();
+				line_refresh( FALSE );
 
 				// new properties of cursor
 				document_cursor_y--;
@@ -442,7 +469,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			document_line_indicator_saved = document_line_indicator;
 
 			// show new state of line on screen
-			line_refresh();
+			line_refresh( TRUE );
 
 			// done
 			continue;
@@ -468,7 +495,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			document_line_indicator_saved = document_line_indicator;
 
 			// show new state of line on screen
-			line_refresh();
+			line_refresh( TRUE );
 
 			// done
 			continue;
@@ -545,7 +572,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			document_line_indicator_saved = document_line_indicator;
 
 			// show new state of line on screen
-			line_refresh();
+			line_refresh( TRUE );
 
 			// done
 			continue;
@@ -574,9 +601,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// refresh document view
 				document_refresh();
 			}
-			else
-				// show new state of line on screen
-				line_refresh();
+
+			// show new state of line on screen
+			line_refresh( TRUE );
 
 			// done
 			continue;
@@ -611,11 +638,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// get new line size
 			document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
 
-			// try saved line properties
-			line_restore();
-
 			// refresh document view
 			document_refresh();
+
+			// try saved line properties
+			line_restore();
 
 			// done
 			continue;
@@ -658,11 +685,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// get new line size
 			document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
 
-			// try saved line properties
-			line_restore();
-
 			// refresh document view
 			document_refresh();
+
+			// try saved line properties
+			line_restore();
 
 			// done
 			continue;
@@ -712,6 +739,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// refresh document view
 			document_refresh();
 
+			// refresh current line staste
+			line_refresh( TRUE );
+
 			// remember current pointer and indicator position for cursor at X axis
 			document_line_pointer_saved = document_line_pointer;
 			document_line_indicator_saved = document_line_indicator;
@@ -747,7 +777,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			document_cursor_x++;
 				
 		// show new state of line on screen
-		line_refresh();
+		line_refresh( TRUE );
 
 		// document size
 		document_size++;

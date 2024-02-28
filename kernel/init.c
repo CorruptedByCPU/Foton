@@ -7,7 +7,6 @@
 	//----------------------------------------------------------------------
 	#include	"../library/elf.c"
 	#include	"../library/string.c"
-	#include	"../library/vfs.c"
 	//----------------------------------------------------------------------
 	// drivers
 	//----------------------------------------------------------------------
@@ -45,6 +44,7 @@
 	#include	"module.h"
 	#include	"ipc.h"
 	#include	"stream.h"
+	#include	"vfs.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -60,6 +60,7 @@
 	#include	"memory.c"
 	#include	"page.c"
 	#include	"task.c"
+	#include	"vfs.c"
 	#include	"storage.c"
 	#include	"syscall.c"
 	#include	"library.c"

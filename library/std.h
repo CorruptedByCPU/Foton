@@ -331,6 +331,7 @@
 	#define	STD_SYSCALL_IPC_RECEIVE_BY_TYPE			0x1A
 	#define	STD_SYSCALL_MICROTIME				0x1B
 	#define	STD_SYSCALL_TIME				0x1C
+	#define	STD_SYSCALL_FILE_WRITE				0x1D
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -454,6 +455,9 @@
 
 	// returns information about current date and time in format: 0x00wwyymmddHHMMSS
 	uint64_t std_time( void );
+
+	// writes new file content
+	int64_t std_file_write( struct STD_FILE_STRUCTURE *file, uintptr_t target, uint64_t byte );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

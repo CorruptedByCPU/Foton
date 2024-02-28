@@ -1,16 +1,16 @@
 {
 	"window": {
-		"width": 622,
-		"height": 375,
+		"width": 642,
+		"height": 423,
 		"name": "Console"
 	},
 	"control": {
 		"id": 0,
-		"x": 600,
+		"x": 620,
 		"type": "close"
 	},
 	"control": {
-		"x": 578,
+		"x": 598,
 		"type": "minimize"
 	}
 }

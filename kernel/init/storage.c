@@ -12,7 +12,7 @@ void kernel_init_storage( void ) {
 	// check each attached module
 	for( uint64_t i = 0; i < limine_module_request.response -> module_count; i++ ) {
 		// module type of VFS?
-		if( lib_vfs_check( (uintptr_t) limine_module_request.response -> modules[ i ] -> address, limine_module_request.response -> modules[ i ] -> size ) ) {
+		if( kernel_vfs_check( (uintptr_t) limine_module_request.response -> modules[ i ] -> address, limine_module_request.response -> modules[ i ] -> size ) ) {
 			// register device of type VFS
 			struct KERNEL_STORAGE_STRUCTURE *storage = kernel_storage_register( KERNEL_STORAGE_TYPE_vfs );
 
