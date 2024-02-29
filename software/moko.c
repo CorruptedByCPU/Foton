@@ -4,6 +4,7 @@
 
 // PROGRAM IN PROGRESS
 
+	#include	"../library/input.h"
 	#include	"../library/string.h"
 	#include	"../library/vfs.h"
 
@@ -223,6 +224,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	while( TRUE ) {
 		// recieve key
 		uint16_t key = getkey();
+		if( ! key ) continue;
 
 		// CTRL push?
 		if( key == STD_KEY_CTRL_LEFT || key == STD_KEY_CTRL_RIGHT ) key_ctrl_semaphore = TRUE;
@@ -236,10 +238,17 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// SAVE
 				case 'o': {
 					// ask about file name
-					printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSave as: %s {in progress, do not use}\e[0m\e[u", 0, stream_meta.height - 2, file.name );
+					// printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSave as: %s", 0, stream_meta.height - 2, file.name );
+					printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSaved.", 0, stream_meta.height - 2 );
+
+					// retrieve file name
+					// lib_input( (uint8_t *) &file.name, stream_meta.width - 9, file.length, FALSE );
 
 					// write document content to file
 					std_file_write( (struct STD_FILE_STRUCTURE *) &file, (uintptr_t) document_area, document_size );
+
+					// restore cursor properties
+					print( "\e[0m\e[u" );
 
 					// done
 					break;

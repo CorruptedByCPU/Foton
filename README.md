@@ -64,6 +64,7 @@ You will be able to create your own system profiles, and we will build your own 
 |libimage.so|Privdes support for image files (*tga*)|
 |libinteger.so|Convert string to value, count digits inside value.|
 |libinterface.so||
+|libinput.so|Receives characters from user, and passing them to application.|
 |libjson.so|Parsing functions of JSON structure.|
 |libmath.so|Trigonometric functions.|
 |librgl.so|3D object management.|
