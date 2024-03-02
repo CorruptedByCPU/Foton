@@ -28,15 +28,26 @@
 	uint64_t document_cursor_x = 0;
 	uint64_t document_cursor_y = 0;
 
+	uint8_t document_modified_semaphore = FALSE;
+
 	uint8_t menu_height_line = 2;
-	uint8_t string_menu[] = "\e[48;5;15m\e[38;5;0m^x\e[0m Exit \e[48;5;15m\e[38;5;0m^o\e[0m Save";
+	uint8_t string_menu[] = "\e[48;5;15m\e[38;5;0m^x\e[0m Exit %s^o\e[0m Save";
+
+	uint8_t string_color_default[] = "\e[0m";
+	uint8_t string_color_modified[] = "\e[48;5;9m\e[38;5;15m";
+	uint8_t string_color_shortcut[] = "\e[48;5;15m\e[38;5;0m";
 
 	uint8_t key_ctrl_semaphore = FALSE;
 
 	uint8_t string_cursor_at_menu[ 42 + 4 + 1 ] = { EMPTY };
 	uint8_t string_cursor_at_interaction[ 42 + 4 + 1 ] = { EMPTY };
 
-void draw_menu( void ) { printf( "\e[s%s\e[2K\e[E%s\e[u", string_cursor_at_interaction, string_menu ); }
+void draw_menu( void ) {
+	printf( "\e[s%s\e[2K\e[E", string_cursor_at_interaction );
+	if( document_modified_semaphore ) printf( "%s^x\e[0m Exit %s^o\e[0m Save", string_color_shortcut, string_color_modified );
+	else printf( "%s^x\e[0m Exit %s^o\e[0m Save", string_color_shortcut, string_color_shortcut );
+	print( "\e[u" );
+}
 
 void document_refresh( void ) {
 	// locate line inside document
@@ -237,18 +248,65 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			switch( key ) {
 				// SAVE
 				case 'o': {
-					// ask about file name
-					// printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSave as: %s", 0, stream_meta.height - 2, file.name );
-					printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSaved.", 0, stream_meta.height - 2 );
+					// by default file wasn't saved, yet
+					uint8_t saved = FALSE;
 
 					// retrieve file name
-					// lib_input( (uint8_t *) &file.name, stream_meta.width - 9, file.length, FALSE );
+					struct STD_FILE_STRUCTURE save_as = { EMPTY };
+					for( uint64_t i = 0; i < file.length; i++ ) save_as.name[ save_as.length++ ] = file.name[ i ];
+			
+					// file saved?
+					while( ! saved ) {
+						// ask about file name
+						printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSave as: %s", 0, stream_meta.height - 2, save_as.name );
 
-					// write document content to file
-					std_file_write( (struct STD_FILE_STRUCTURE *) &file, (uintptr_t) document_area, document_size );
+						// select current or new file name form user
+						save_as.length = lib_input( (uint8_t *) &save_as.name, stream_meta.width - 9, save_as.length, FALSE );
 
-					// restore cursor properties
-					print( "\e[0m\e[u" );
+						// if file name provided, retrieve properties of file if exist
+						if( save_as.length ) std_file( (struct STD_FILE_STRUCTURE *) &save_as );
+
+						// diffrent exist file selected?
+						if( save_as.id != file.id && save_as.id ) {
+							// ask, can we overwrite it
+							print( "\e[G\e[2KOverwrite? (y/N)" );
+							while( TRUE ) {
+								// recieve key
+								uint16_t key = getkey();
+								if( ! key || key & 0x80 ) continue;
+
+								// yes?
+								if( key == 'y' || key == 'Y' ) saved = TRUE;
+
+								// done
+								break;
+							}
+						} else
+							// save
+							saved = TRUE;
+
+						// write document content to file
+						// if( saved ) std_file_write( (struct STD_FILE_STRUCTURE *) &save_as, (uintptr_t) document_area, document_size );
+
+						// restore cursor properties
+						print( "\e[0m\e[2K\e[u" );
+					}
+
+					// release key state
+					key_ctrl_semaphore = FALSE;
+
+					// document saved
+					document_modified_semaphore = FALSE;
+
+					// update file name
+					file.length = 0;
+					for( uint64_t i = 0; i < save_as.length; i++ ) file.name[ file.length++ ] = save_as.name[ i ]; file.name[ file.length ] = STD_ASCII_TERMINATOR;
+
+					// set document name
+					printf( "\eX%s\e\\", file.name );
+
+					// update menu state
+					draw_menu();
 
 					// done
 					break;
@@ -515,6 +573,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// we are at beginning of docuemnt?
 			if( ! document_line_location && ! document_line_pointer ) continue;	// yes
 
+			// document modified
+			document_modified_semaphore = TRUE;
+
 			// we are inside of line?
 			if( document_line_pointer ) {
 				// move line pointer one character back
@@ -583,6 +644,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// show new state of line on screen
 			line_refresh( TRUE );
 
+			// update menu state
+			draw_menu();
+
 			// done
 			continue;
 		}
@@ -591,6 +655,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( key == STD_KEY_DELETE ) {
 			// we are at end of docuemnt?
 			if( document_line_location + document_line_pointer == document_size ) continue;	// yes
+
+			// document modified
+			document_modified_semaphore = TRUE;
 
 			// move all characters one position back
 			for( uint64_t i = document_line_location + document_line_pointer; i < document_size; i++ )
@@ -613,6 +680,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// show new state of line on screen
 			line_refresh( TRUE );
+
+			// update menu state
+			draw_menu();
 
 			// done
 			continue;
@@ -706,6 +776,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// ENTER?
 		if( key == STD_KEY_ENTER ) {
+			// document modified
+			document_modified_semaphore = TRUE;
+
 			// pointer in middle of document?
 			if( document_line_location + document_line_pointer != document_size )
 				// move all characters one position further
@@ -762,6 +835,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// check if key is printable
 		if( key < STD_ASCII_SPACE || key > STD_ASCII_TILDE) continue;	// no, done
 
+		// document modified
+		document_modified_semaphore = TRUE;
+
 		// pointer in middle of document?
 		if( document_line_location + document_line_pointer != document_size )
 			// move all characters one position further
@@ -784,9 +860,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		else
 			// update properties of cursor
 			document_cursor_x++;
-				
+
 		// show new state of line on screen
 		line_refresh( TRUE );
+
+		// update menu state
+		draw_menu();
 
 		// document size
 		document_size++;

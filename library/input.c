@@ -36,7 +36,7 @@ uint64_t lib_input( uint8_t *cache, uint64_t length_max, uint64_t length_current
 				length_current = lib_string_trim( cache, length_current );
 
 				// terminate command from previous one
-				cache[ length_current++ ] = STD_ASCII_TERMINATOR;
+				cache[ length_current ] = STD_ASCII_TERMINATOR;
 
 				// return current length
 				return length_current;

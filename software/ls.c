@@ -108,7 +108,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			ls_format( vfs[ i ].size );
 
 		// cannot fit name in this column?
-		if( column + vfs[ i ].length > stream_meta.width ) {
+		if( column + vfs[ i ].length >= stream_meta.width ) {
 			// start from new line
 			print( "\n" );
 

@@ -41,6 +41,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// empty command line?
 		if( ! shell_command_length ) continue;	// yep, show new prompt
 
+		// each process deserves a new line
+		print( "\n" );
+
 		// try one of internal commands
 
 		// directory change?

@@ -75,7 +75,7 @@ void kernel_vfs_file( struct KERNEL_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTUR
 		// symbolic link selected?
 		while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct KERNEL_VFS_STRUCTURE *) vfs -> offset;
 
-		// if thats not a directory or symbolic
+		// if thats not a directory or symbolic link
 		if( ! (vfs -> type & STD_FILE_TYPE_directory) ) return;	// failed
 
 		// remove parsed directory from path
@@ -104,7 +104,6 @@ int64_t kernel_vfs_write( struct KERNEL_VFS_STRUCTURE *vfs, uintptr_t source_add
 
 		// done
 		return EMPTY;
-
 	}
 
 	// assign new file area
