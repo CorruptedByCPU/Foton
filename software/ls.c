@@ -114,7 +114,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// first column
 			column = 0;
-		}
+		} else
+			// move cursor to next column
+			if( column ) printf( "%s", column_string );
 
 		// change color by type
 		switch( vfs[ i ].type ) {
@@ -141,9 +143,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// show file name
 		printf( "\e[s%s\e[u\e[0m", (uint8_t *) &vfs[ i ].name );
-
-		// move cursor to next column
-		printf( "%s", column_string );
 
 		// next column position
 		column += column_width;

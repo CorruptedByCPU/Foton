@@ -2,12 +2,12 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint64_t kernel_init_vfs( struct LIB_VFS_STRUCTURE *vfs, struct LIB_VFS_STRUCTURE *previous ) {
+uint64_t kernel_init_vfs( struct KERNEL_VFS_STRUCTURE *vfs, struct KERNEL_VFS_STRUCTURE *previous ) {
 	// size of this directory
 	uint64_t size_byte = EMPTY;
 
 	// directory properties
-	struct LIB_VFS_STRUCTURE *knot = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+	struct KERNEL_VFS_STRUCTURE *knot = (struct KERNEL_VFS_STRUCTURE *) vfs -> offset;
 
 	// for every file
 	do {
@@ -30,11 +30,11 @@ uint64_t kernel_init_vfs( struct LIB_VFS_STRUCTURE *vfs, struct LIB_VFS_STRUCTUR
 			// for directories
 			case STD_FILE_TYPE_directory: {
 				// parse directory entries
-				kernel_init_vfs( (struct LIB_VFS_STRUCTURE *) knot, vfs ); break; }
+				kernel_init_vfs( (struct KERNEL_VFS_STRUCTURE *) knot, vfs ); break; }
 		}
 
 		// entry parsed
-		size_byte += sizeof( struct LIB_VFS_STRUCTURE );
+		size_byte += sizeof( struct KERNEL_VFS_STRUCTURE );
 	// until end of file list
 	} while( (++knot) -> length );
 

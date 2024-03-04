@@ -6,6 +6,9 @@ void kernel_init_storage( void ) {
 	// allocate space for the list of available media
 	kernel -> storage_base_address = (struct KERNEL_STORAGE_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_STORAGE_limit  * sizeof( struct KERNEL_STORAGE_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 
+	// allocate space for the list of files in use
+	kernel -> storage_files_node = (struct KERNEL_STORAGE_STRUCTURE_NODE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_STORAGE_NODE_limit  * sizeof( struct KERNEL_STORAGE_STRUCTURE_NODE ) ) >> STD_SHIFT_PAGE );
+
 	// no root storage by default
 	kernel -> storage_root_id = -1;
 
@@ -17,7 +20,7 @@ void kernel_init_storage( void ) {
 			struct KERNEL_STORAGE_STRUCTURE *storage = kernel_storage_register( KERNEL_STORAGE_TYPE_vfs );
 
 			// prepare superblock of new VFS
-			struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel_memory_alloc( TRUE );
+			struct KERNEL_VFS_STRUCTURE *superblock = (struct KERNEL_VFS_STRUCTURE *) kernel_memory_alloc( TRUE );
 
 			// properties of root directory
 			superblock -> type = STD_FILE_TYPE_directory;

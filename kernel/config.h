@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"207"
+#define	KERNEL_revision		"210"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -109,6 +109,7 @@ struct KERNEL {
 
 	// variables of Storage management functions
 	struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;
+	struct KERNEL_STORAGE_STRUCTURE_NODE			*storage_files_node;
 	uint64_t	storage_root_id;
 	uint8_t		storage_semaphore;
 
@@ -133,4 +134,7 @@ struct KERNEL {
 
 	// variables of TSS management functions
 	struct KERNEL_TSS_STRUCTURE				tss_table;
+
+	// variables of VFS management functions
+	// struct KERNEL_VFS_STRUCTURE				vfs_base_address;
 };
