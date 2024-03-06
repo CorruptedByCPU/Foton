@@ -238,8 +238,8 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	for( uint64_t i = 0; i < length; i++ ) library.file.name[ library.file.length++ ] = name[ i ];
 
 	// retrieve information about file to execute
-	library.file.id_storage = kernel -> storage_root_id;
-	kernel_storage_file( (struct STD_FILE_STRUCTURE *) &library.file );
+	// library.file.id_storage = kernel -> storage_old_root_id;
+	kernel_storage_old_file( (struct STD_FILE_OLD_STRUCTURE *) &library.file );
 
 	// if file doesn't exist
 	if( ! library.file.id ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
@@ -251,7 +251,7 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.level++;
 
 	// load file into workbench space
-	kernel_storage_read( (struct STD_FILE_STRUCTURE *) &library.file, library.workbench_address );
+	kernel_storage_old_read( (struct STD_FILE_OLD_STRUCTURE *) &library.file, library.workbench_address );
 
 	//----------------------------------------------------------------------
 

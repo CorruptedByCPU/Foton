@@ -509,30 +509,30 @@ uint64_t kernel_syscall_sleep( uint64_t units ) {
 	return units;
 }
 
-uint64_t kernel_syscall_file( struct STD_FILE_STRUCTURE *file ) {
+uint64_t kernel_syscall_file( struct STD_FILE_OLD_STRUCTURE *file ) {
 	// retrieve information about file
-	file -> id_storage = kernel -> storage_root_id;
-	kernel_storage_file( file );
+	// file -> id_storage = kernel -> storage_old_root_id;
+	kernel_storage_old_file( file );
 
 	// return file id or EMPTY if not found
 	return file -> id;
 }
 
-void kernel_syscall_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target ) {
+void kernel_syscall_file_read( struct STD_FILE_OLD_STRUCTURE *file, uintptr_t target ) {
 	// load file content	
-	kernel_storage_read( file, target );
+	kernel_storage_old_read( file, target );
 }
 
 uint8_t kernel_syscall_cd( uint8_t *path ) {
 	// properties of directory at end of path
-	struct STD_FILE_STRUCTURE file = { EMPTY };
+	struct STD_FILE_OLD_STRUCTURE file = { EMPTY };
 
 	// copy path information to file properties
 	for( uint64_t i = 0; i < lib_string_length( path ); i++ ) file.name[ file.length++ ] = path[ i ];
 
 	// retrieve information about file
-	file.id_storage = kernel -> storage_root_id;
-	kernel_storage_file( (struct STD_FILE_STRUCTURE *) &file );
+	// file.id_storage = kernel -> storage_old_root_id;
+	kernel_storage_old_file( (struct STD_FILE_OLD_STRUCTURE *) &file );
 
 	// it is a directory?
 	if( ! (file.type & STD_FILE_TYPE_directory) ) return FALSE;	// no
@@ -585,9 +585,9 @@ uint64_t kernel_syscall_time( void ) {
 	return driver_rtc_time();
 }
 
-int64_t kernel_syscall_file_write( struct STD_FILE_STRUCTURE *file, uintptr_t target, uint64_t byte ) {
+int64_t kernel_syscall_file_write( struct STD_FILE_OLD_STRUCTURE *file, uintptr_t target, uint64_t byte ) {
 	// write file content	
-	kernel_storage_write( file, target, byte );
+	kernel_storage_old_write( file, target, byte );
 
 	// return EMPTY
 	return EMPTY;
