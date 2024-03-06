@@ -11,7 +11,6 @@
 
 	struct	KERNEL_STORAGE_STRUCTURE {
 		uint8_t		type;
-		uint64_t	id;
 		uint64_t	root;
 		uint64_t	byte;
 	};

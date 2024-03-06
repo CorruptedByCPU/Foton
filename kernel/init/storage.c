@@ -26,7 +26,7 @@ void kernel_init_storage( void ) {
 			// VFS
 			case KERNEL_STORAGE_TYPE_vfs: {
 				// properties of registered storage
-				struct KERNEL_STORAGE_STRUCTURE *storage = (struct KERNEL_STORAGE_STRUCTURE *) &kernel -> storage_base_address[ kernel_storage_register( KERNEL_STORAGE_TYPE_vfs ) ];
+				struct KERNEL_STORAGE_STRUCTURE *storage = (struct KERNEL_STORAGE_STRUCTURE *) &kernel -> storage_base_address[ i ];
 
 				// craete superblock of VFS
 				struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( LIB_VFS_BLOCK_byte ) >> STD_SHIFT_PAGE );
@@ -42,7 +42,7 @@ void kernel_init_storage( void ) {
 				superblock -> offset = storage -> root;
 
 				// initialize VFS
-				kernel_init_vfs( superblock, superblock );
+				superblock -> byte = kernel_init_vfs( superblock, superblock );
 
 				// set new location of storage root
 				storage -> root = (uintptr_t) superblock;
@@ -50,40 +50,36 @@ void kernel_init_storage( void ) {
 		}
 	}
 
-// OLD ========================================================================
+	// check storage containing "version" file
+	for( int64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) {
+		// empty storage entry?
+		if( ! kernel -> storage_base_address[ i ].type ) continue;	// leave it
 
-	// // find storage containing "init" file
-	// for( int64_t i = 0; i < KERNEL_STORAGE_OLD_limit; i++ ) {
-	// 	// empty storage entry?
-	// 	if( ! kernel -> storage_old_base_address[ i ].device_type ) continue;	// leave it
+		// file path
+		uint8_t string_file_path[] = "/system/etc/version";
 
-	// 	// properties of file
-	// 	struct STD_FILE_OLD_STRUCTURE file = { EMPTY };
+		// marked as
+		switch( kernel -> storage_base_address[ i ].type ) {
+			// VFS
+			case KERNEL_STORAGE_TYPE_vfs: {
+				// retrieve properties of file
+				struct STD_FILE_STRUCTURE_SOCKET *socket = { EMPTY };
+				if( ! (socket = kernel_vfs_file( (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ i ].root )) ) continue;	// not found
 
-	// 	// set file path name
-	// 	uint8_t path[ 19 ] = "/system/etc/version";
-	// 	for( uint64_t j = 0; j < sizeof( path ); j++ ) file.name[ file.length++ ] = path[ j ];
+				// kernel storage device
+				kernel -> task_base_address -> storage = i;
 
-	// 	// retrieve properties of file
-	// 	file.id_storage = i;
-	// 	kernel_storage_old_file( (struct STD_FILE_OLD_STRUCTURE *) &file );
+				// kernel root directory
+				kernel -> task_base_address -> directory = kernel -> storage_base_address[ i ].root;
 
-	// 	// storage contains requested file?
-	// 	if( file.id ) {	// yes
-	// 		// save storage ID
-	// 		kernel -> storage_old_root_id = i;
+				// information
+				kernel -> log( (uint8_t *) "Storage: %u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].byte ) >> STD_SHIFT_1024 );
 
-	// 		// kernel storage device
-	// 		kernel -> task_base_address -> storage = i;
-
-	// 		// kernel root directory
-	// 		kernel -> task_base_address -> directory = kernel -> storage_old_base_address[ i ].device_block;
-
-	// 		#ifdef	DEBUG
-	// 			kernel -> log( (uint8_t *) "Storage: %u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_old_base_address[ i ].device_size_byte ) >> STD_SHIFT_1024 );
-	// 		#endif
-	// 	}
-	// }
+				// done
+				break;
+			}
+		}
+	}
 
 	// // kernel storage not found?
 	// if( kernel -> storage_old_root_id == -1 ) {
