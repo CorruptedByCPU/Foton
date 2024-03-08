@@ -109,6 +109,7 @@ struct KERNEL {
 
 	// variables of Storage management functions
 	struct	KERNEL_STORAGE_STRUCTURE			*storage_base_address;
+	uint64_t	storage_root;
 	uint8_t		storage_semaphore;
 
 	// variables of Stream management functions
@@ -132,4 +133,9 @@ struct KERNEL {
 
 	// variables of TSS management functions
 	struct KERNEL_TSS_STRUCTURE				tss_table;
+
+	// variables of VFS management functions
+	struct	KERNEL_VFS_STRUCTURE				*vfs_base_address;
+	uint64_t	vfs_root;
+	uint8_t		vfs_semaphore;
 };

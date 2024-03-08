@@ -138,6 +138,10 @@
 	#define	STD_FILE_TYPE_socket				0b01000000
 	#define	STD_FILE_TYPE_unknown				0b10000000
 
+	struct	STD_FILE_STRUCTURE_SOCKET {
+		uint64_t	id;
+	};
+
 	struct	STD_FILE_OLD_STRUCTURE {
 		uint64_t	id_storage;
 		uint64_t	id;

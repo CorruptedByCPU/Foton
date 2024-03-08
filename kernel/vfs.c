@@ -13,34 +13,21 @@ uint8_t kernel_vfs_identify( uintptr_t base_address, uint64_t byte ) {
 	return FALSE;
 }
 
-// void kernel_vfs_old_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_OLD_STRUCTURE *file ) {
-// 	// path name index
-// 	uint64_t i = 0;
+struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length ) {
+	// remove all "white" characters from path
+	length = lib_string_trim( path, length );
 
-// 	// path name length
-// 	uint64_t length = file -> length;
+	// remove all SLASH characters from end of path
+	while( path[ length - 1 ] == '/' ) length--;
 
-// 	// remove all '/' from end of path
-// 	while( file -> name[ length - 1 ] == '/' ) length--;
+	// if path is empty
+	if( ! length ) return EMPTY;	// file not found
 
-// 	// empty path?
-// 	if( ! length ) {
-// 		// return root directory properties
+	// start from default directory
+	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].root;
 
-// 		// set file properties
-// 		file -> id = (uint64_t) vfs;		// file identificator / pointer to content
-// 		file -> length_byte = vfs -> size;	// file size in Bytes
-// 		file -> type = vfs -> type;		// file type
-
-// 		// file found
-// 		return;
-// 	}
-
-// 	// parse path
-// 	while( TRUE ) {
-// 		// start from current directory
-// 		vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
-
+	// parse path
+	while( TRUE ) {
 // 		// remove leading '/'
 // 		while( file -> name[ i ] == '/' ) { i++; length--; };
 
@@ -81,7 +68,34 @@ uint8_t kernel_vfs_identify( uintptr_t base_address, uint64_t byte ) {
 // 		// remove parsed directory from path
 // 		i += filename_length;
 // 		length -= filename_length;
-// 	}
+	}
+
+
+	// file not found
+	return EMPTY;
+}
+
+uint64_t kernel_vfs_register( void ) {
+	// block modification of vfs socket list by anyone else
+	MACRO_LOCK( kernel -> vfs_semaphore );
+
+	// return nereast socket
+	uint64_t i = 0;
+
+	// if entry found, secure it
+	while( i < KERNEL_VFS_limit ) if( ! kernel -> vfs_base_address[ i++ ].flags ) { kernel -> vfs_base_address[ i ].flags = KERNEL_VFS_FLAG_reserved; break; }
+
+	// unlock access
+	MACRO_UNLOCK( kernel -> storage_semaphore );
+
+	// return ID of storage
+	return i;
+}
+
+void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket ) {
+
+}
+
 // }
 
 // void kernel_vfs_old_read( struct LIB_VFS_STRUCTURE *vfs, uintptr_t target_address ) {
