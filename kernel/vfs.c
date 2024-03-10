@@ -13,7 +13,7 @@ uint8_t kernel_vfs_identify( uintptr_t base_address, uint64_t byte ) {
 	return FALSE;
 }
 
-struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length ) {
+struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length, uint8_t mode ) {
 	// remove all "white" characters from path
 	length = lib_string_trim( path, length );
 
@@ -28,54 +28,61 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 
 	// parse path
 	while( TRUE ) {
-// 		// remove leading '/'
-// 		while( file -> name[ i ] == '/' ) { i++; length--; };
+		// start from current directory
+		vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
 
-// 		// first file name
-// 		uint64_t filename_length = lib_string_word_end( (uint8_t *) &file -> name[ i ], length, '/' );
+		// remove leading '/', if exist
+		while( *path == '/' ) { path++; length--; }
 
-// 		// select file from current directory structure
-// 		do { if( vfs -> length == filename_length && lib_string_compare( (uint8_t *) &file -> name[ i ], (uint8_t *) vfs -> name, filename_length ) ) break;
-// 		} while( (++vfs) -> length );
+		// select file name from path
+		uint64_t file_length = lib_string_word_end( path, length, '/' );
 
-// 		// file found?
-// 		if( ! vfs -> length ) return;	// no
+		// search file inside current directory
+		do { if( file_length == vfs -> name_length && lib_string_compare( path, (uint8_t *) vfs -> name, file_length ) ) break;
+		} while( (++vfs) -> name_length );
 
-// 		// last file from path is requested one?
-// 		if( length == filename_length && lib_string_compare( (uint8_t *) &file -> name[ i ], (uint8_t *) vfs -> name, filename_length ) ) {
-// 			// symbolic link selected?
-// 			while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+		// file found?
+		if( ! vfs -> name_length ) return EMPTY;	// no
 
-// 			// set file properties
-// 			file -> id = (uint64_t) vfs;		// file identificator / pointer to content
-// 			file -> length_byte = vfs -> size;	// file size in Bytes
-// 			file -> type = vfs -> type;		// file type
+		// last file from path is requested one?
+		if( length == file_length && lib_string_compare( path, (uint8_t *) vfs -> name, file_length ) ) {
+			// follow symbolic links (if possible)
+			while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
 
-// 			// update name of selected file
-// 			file -> length = vfs -> length;
-// 			for( uint64_t j = 0; j < file -> length; j++ ) file -> name[ j ] = vfs -> name[ j ]; file -> name[ file -> length ] = STD_ASCII_TERMINATOR;
+			// open socket
+			struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket() ];
 
-// 			// file found
-// 			return;
-// 		}
+			// file located on definied storage
+			socket -> storage = kernel -> storage_root;
 
-// 		// symbolic link selected?
-// 		while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+			// type of operation on file
+			socket -> mode = mode;
 
-// 		// if thats not a directory or symbolic link
-// 		if( ! (vfs -> type & STD_FILE_TYPE_directory) ) return;	// failed
+			// socket opened by process with ID
+			socket -> pid = kernel -> task_pid();
 
-// 		// remove parsed directory from path
-// 		i += filename_length;
-// 		length -= filename_length;
+			// file identificator
+			socket -> id = (uint64_t) vfs;
+
+			// file found
+			return socket;
+		}
+
+		// follow symbolic links (if possible)
+		while( vfs -> type & STD_FILE_TYPE_symbolic_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+
+		// if thats not a directory or symbolic link
+		if( ! (vfs -> type & STD_FILE_TYPE_directory) ) return EMPTY;	// failed
+
+		// remove parsed directory from path
+		path += file_length; length -= file_length;
 	}
-
 
 	// file not found
 	return EMPTY;
 }
 
-uint64_t kernel_vfs_register( void ) {
+uint64_t kernel_vfs_socket( void ) {
 	// block modification of vfs socket list by anyone else
 	MACRO_LOCK( kernel -> vfs_semaphore );
 
@@ -83,7 +90,7 @@ uint64_t kernel_vfs_register( void ) {
 	uint64_t i = 0;
 
 	// if entry found, secure it
-	while( i < KERNEL_VFS_limit ) if( ! kernel -> vfs_base_address[ i++ ].flags ) { kernel -> vfs_base_address[ i ].flags = KERNEL_VFS_FLAG_reserved; break; }
+	while( i < KERNEL_VFS_limit ) if( ! kernel -> vfs_base_address[ i++ ].mode ) { kernel -> vfs_base_address[ i ].mode = KERNEL_VFS_MODE_reserved; break; }
 
 	// unlock access
 	MACRO_UNLOCK( kernel -> storage_semaphore );
