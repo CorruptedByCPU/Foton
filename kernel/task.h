@@ -22,7 +22,7 @@
 	#define	KERNEL_TASK_EFLAGS_df		0b000000000000010000000000
 	#define	KERNEL_TASK_EFLAGS_default	KERNEL_TASK_EFLAGS_if
 
-	#define	KERNEL_TASK_NAME_limit		255
+	#define	KERNEL_TASK_NAME_limit		LIB_VFS_NAME_limit
 
 	#define	KERNEL_TASK_STACK_pointer	KERNEL_LIBRARY_base_address
 

@@ -32,20 +32,28 @@ uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf ) {
 static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *tmp ) {
 	// undo performed operations depending on cavity
 	switch( tmp -> level ) {
-		case 5: {
+		case 7: {
 			// cannot foresee an error at this level and above
 		}
-		case 4: {
+		case 6: {
 			// detach library area from global paging array
 			kernel_page_detach( (uintptr_t *) kernel -> page_base_address, tmp -> base_address, tmp -> page );
 		}
-		case 3: {
+		case 5: {
 			// release library area
 			kernel_memory_dispose( kernel -> library_map_address, (tmp -> base_address - KERNEL_LIBRARY_base_address) >> STD_SHIFT_PAGE, tmp -> page );
 		}
-		case 2: {
+		case 4: {
 			// release workbench area
 			kernel_memory_release( tmp -> workbench_address, MACRO_PAGE_ALIGN_UP( tmp -> file.length_byte ) >> STD_SHIFT_PAGE );
+		}
+		case 3: {
+			// close file
+			kernel_vfs_file_close( tmp -> socket );
+		}
+		case 2: {
+			// release path area
+			kernel_memory_release( (uintptr_t) tmp -> path, MACRO_PAGE_ALIGN_UP( tmp -> path_length ) >> STD_SHIFT_PAGE );
 		}
 		case 1: {
 			// release library entry
@@ -232,26 +240,47 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	// checkpoint reached: assigned library entry
 	library.level++;
 
+	// default location of libraries
+	uint8_t path_default[ 20 ] = "/system/lib/";
+	library.path_length = length + sizeof( path_default ) + 1;
+
+	// assign area for path to file
+	uint64_t path_length = 0;
+	uint8_t *path = (uint8_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( library.path_length ) >> STD_SHIFT_PAGE );
+
+	// assigned area for file path?
+	if( ! path ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
+
+	// checkpoint reached: allocated memory for path
+	library.level++;
+
 	// set file path name
-	uint8_t path[ 12 ] = "/system/lib/";
-	for( uint64_t i = 0; i < sizeof( path ); i++ ) library.file.name[ library.file.length++ ] = path[ i ];
-	for( uint64_t i = 0; i < length; i++ ) library.file.name[ library.file.length++ ] = name[ i ];
+	for( uint64_t i = 0; i < sizeof( path_default ); i++ ) path[ path_length++ ] = path_default[ i ];
+	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ]; name[ path_length ] = EMPTY;
 
-	// retrieve information about file to execute
-	// library.file.id_storage = kernel -> storage_old_root_id;
-	kernel_storage_old_file( (struct STD_FILE_OLD_STRUCTURE *) &library.file );
+	// open file from prepared path
+	library.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length, KERNEL_VFS_MODE_read );
 
-	// if file doesn't exist
-	if( ! library.file.id ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
+	// file exist?
+	if( ! library.socket ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
+
+	// checkpoint reached: file exist
+	library.level++;
+
+	// gather information about file
+	library.file_properties = kernel_vfs_file_properties( library.socket );
 
 	// prepare area for workbench 
-	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.file.length_byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
+	library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.file_properties.byte ) >> STD_SHIFT_PAGE );
+
+	// workbench area allocated?
+	if( ! library.workbench_address ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
 
 	// checkpoint reached: assigned area for temporary file
 	library.level++;
 
-	// load file into workbench space
-	kernel_storage_old_read( (struct STD_FILE_OLD_STRUCTURE *) &library.file, library.workbench_address );
+	// load whole library into workbench area
+	kernel_vfs_file_read( library.socket, (uint8_t *) library.workbench_address, EMPTY, library.file_properties.byte );
 
 	//----------------------------------------------------------------------
 

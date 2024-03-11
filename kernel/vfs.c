@@ -13,6 +13,24 @@ uint8_t kernel_vfs_identify( uintptr_t base_address, uint64_t byte ) {
 	return FALSE;
 }
 
+struct KERNEL_VFS_STRUCTURE_PROPERTIES kernel_vfs_file_properties( struct KERNEL_VFS_STRUCTURE *socket ) {
+	// properties to return
+	struct KERNEL_VFS_STRUCTURE_PROPERTIES properties = { EMPTY };
+
+	// properties of file
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> id;
+
+	// retrun file size in Bytes
+	properties.byte = file -> byte;
+
+	// return file name
+	properties.name_length = file -> name_length;
+	for( uint64_t i = 0; i < file -> name_length; i++ ) properties.name[ i ] = file -> name[ i ];
+
+	// return properties of file
+	return properties;
+}
+
 struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length, uint8_t mode ) {
 	// remove all "white" characters from path
 	length = lib_string_trim( path, length );
@@ -33,6 +51,8 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 
 		// remove leading '/', if exist
 		while( *path == '/' ) { path++; length--; }
+
+kernel -> log( (uint8_t *) "%s\n", path );
 
 		// select file name from path
 		uint64_t file_length = lib_string_word_end( path, length, '/' );
@@ -90,27 +110,31 @@ uint64_t kernel_vfs_socket( void ) {
 	uint64_t i = 0;
 
 	// if entry found, secure it
-	while( i < KERNEL_VFS_limit ) if( ! kernel -> vfs_base_address[ i++ ].mode ) { kernel -> vfs_base_address[ i ].mode = KERNEL_VFS_MODE_reserved; break; }
+	for( ; i < KERNEL_VFS_limit; i++ ) if( ! kernel -> vfs_base_address[ i ].mode ) { kernel -> vfs_base_address[ i ].mode = KERNEL_VFS_MODE_reserved; break; }
 
 	// unlock access
-	MACRO_UNLOCK( kernel -> storage_semaphore );
+	MACRO_UNLOCK( kernel -> vfs_semaphore );
 
 	// return ID of storage
 	return i;
 }
 
 void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket ) {
-
+	// release socket
+	socket -> mode = EMPTY;
 }
 
-// }
+void kernel_vfs_file_read( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *target, uint64_t start_byte, uint64_t length_byte ) {
+	// properties of file
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> id;
 
-// void kernel_vfs_old_read( struct LIB_VFS_STRUCTURE *vfs, uintptr_t target_address ) {
-// 	// copy content of file to destination
-// 	uint8_t *source = (uint8_t *) vfs -> offset;
-// 	uint8_t *target = (uint8_t *) target_address;
-// 	for( uint64_t i = 0; i < vfs -> size; i++ ) target[ i ] = source[ i ];
-// }
+	// invalid read request?
+	if( start_byte + length_byte > file -> byte ) return;	// yes, ignore
+
+	// copy content of file to destination
+	uint8_t *source = (uint8_t *) file -> offset;
+	for( uint64_t i = start_byte; i < start_byte + length_byte; i++ ) target[ i ] = source[ i ];
+}
 
 // int64_t kernel_vfs_old_write( struct LIB_VFS_STRUCTURE *vfs, uintptr_t source_address, uint64_t length_byte ) {
 // 	// current file allocation is enough?

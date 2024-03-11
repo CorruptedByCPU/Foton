@@ -38,14 +38,14 @@
 	#include	"memory.h"
 	#include	"page.h"
 	#include	"task.h"
-	#include	"exec.h"
 	#include	"tss.h"
 	#include	"storage.h"
+	#include	"vfs.h"
 	#include	"library.h"
+	#include	"exec.h"
 	#include	"module.h"
 	#include	"ipc.h"
 	#include	"stream.h"
-	#include	"vfs.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------

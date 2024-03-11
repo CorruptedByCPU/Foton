@@ -28,6 +28,10 @@
 		struct STD_FILE_OLD_STRUCTURE	file;
 		struct KERNEL_LIBRARY_STRUCTURE	*entry;
 		uintptr_t			workbench_address;
+		struct KERNEL_VFS_STRUCTURE_PROPERTIES	file_properties;
+				uint8_t				*path;
+		uint64_t			path_length;
+		struct KERNEL_VFS_STRUCTURE	*socket;
 		uintptr_t			base_address;
 		uint64_t			page;
 	};

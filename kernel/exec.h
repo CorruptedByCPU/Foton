@@ -16,6 +16,10 @@
 		uint64_t			page;
 		uint8_t				*stack;
 		uint64_t			stack_byte;
+				struct KERNEL_VFS_STRUCTURE_PROPERTIES	file_properties;
+				uint8_t				*path;
+		uint64_t			path_length;
+		struct KERNEL_VFS_STRUCTURE	*socket;
 	};
 
 	// returns new process ID or error

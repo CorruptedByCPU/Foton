@@ -16,7 +16,12 @@
 		int64_t		pid;		// to which process this socket belongs to
 		uint8_t		mode;		// type of operation on file
 		uint64_t	id;		// file identificator (we should be able to locate file on storage by this value)
-		uint64_t	byte;		// size of file/directory(structure) in Bytes
+	};
+
+	struct	KERNEL_VFS_STRUCTURE_PROPERTIES {
+		uint64_t	byte;
+		uint8_t		name_length;
+		uint8_t		name[ LIB_VFS_NAME_limit ];
 	};
 
 	struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length, uint8_t mode );
