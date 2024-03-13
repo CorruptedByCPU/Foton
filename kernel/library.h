@@ -19,8 +19,8 @@
 		uint8_t		*strtab;
 		struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL	*dynamic_linking;
 		uint64_t	d_entry_count;
-		uint8_t		length;
-		uint8_t		name[ 255 ];
+		uint8_t		name_length;
+		uint8_t		name[ LIB_VFS_NAME_limit ];
 	};
 
 	struct KERNEL_LIBRARY_STRUCTURE_INIT {

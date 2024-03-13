@@ -52,8 +52,6 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 		// remove leading '/', if exist
 		while( *path == '/' ) { path++; length--; }
 
-kernel -> log( (uint8_t *) "%s\n", path );
-
 		// select file name from path
 		uint64_t file_length = lib_string_word_end( path, length, '/' );
 

@@ -66,7 +66,7 @@ uint8_t kernel_library_find( uint8_t *name, uint8_t length ) {
 	// check every entry
 	for( uint64_t i = 0; i < KERNEL_LIBRARY_limit; i++ )
 		// library with exact name and length?
-		if( lib_string_compare( name, (uint8_t *) &kernel -> library_base_address[ i ].name, length ) && kernel -> library_base_address[ i ].length == length )
+		if( lib_string_compare( name, (uint8_t *) &kernel -> library_base_address[ i ].name, length ) && kernel -> library_base_address[ i ].name_length == length )
 			// yes
 			return TRUE;
 	
@@ -241,8 +241,10 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.level++;
 
 	// default location of libraries
-	uint8_t path_default[ 20 ] = "/system/lib/";
+	uint8_t path_default[ 12 ] = "/system/lib/";
 	library.path_length = length + sizeof( path_default ) + 1;
+
+MACRO_DEBUF();
 
 	// assign area for path to file
 	uint64_t path_length = 0;
@@ -355,7 +357,7 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	kernel_library_link( elf, library.base_address, TRUE );
 
 	// set parsed library name
-	library.entry -> length = length;
+	library.entry -> name_length = length;
 	for( uint8_t i = 0; i < length; i++ ) library.entry -> name[ i ] = name[ i ];
 
 	// library parsed
@@ -363,6 +365,12 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 
 	// release workbench space
 	kernel_memory_release( library.workbench_address, MACRO_PAGE_ALIGN_UP( library.file.length_byte ) >> STD_SHIFT_PAGE );
+
+	// close file
+	kernel_vfs_file_close( library.socket );
+	
+	// release path area
+	kernel_memory_release( (uintptr_t) library.path, MACRO_PAGE_ALIGN_UP( library.path_length ) >> STD_SHIFT_PAGE );
 
 	// library loaded
 	return TRUE;

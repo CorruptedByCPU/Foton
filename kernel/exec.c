@@ -73,8 +73,6 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	for( uint64_t i = 0; i < sizeof( path_default ); i++ ) path[ path_length++ ] = path_default[ i ];
 	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ]; name[ path_length ] = EMPTY;
 
-MACRO_DEBUF();
-
 	// open file from prepared path
 	exec.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length, KERNEL_VFS_MODE_read );
 
