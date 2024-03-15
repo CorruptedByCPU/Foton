@@ -7,7 +7,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	uint64_t name_length = length;
 
 	// properties of file
-	struct STD_FILE_STRUCTURE file = { EMPTY };
+	struct DEPRECATED_STD_FILE_STRUCTURE file = { EMPTY };
 
 	// set file path name
 	uint8_t path[ 20 ] = "/system/lib/modules/";
@@ -15,8 +15,8 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	for( uint64_t i = 0; i < length; i++ ) file.name[ file.length++ ] = name[ i ];
 	
 	// retrieve information about module file
-	file.id_storage = kernel -> storage_root_id;
-	kernel_storage_file( (struct STD_FILE_STRUCTURE *) &file );
+	file.id_storage = kernel -> DEPRECATED_storage_root_id;
+	DEPRECATED_kernel_storage_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file );
 
 	// if module does not exist
 	if( ! file.id ) return;
@@ -26,7 +26,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	if( ! (workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( file.length_byte ) >> STD_SHIFT_PAGE )) ) return;	// no enough memory
 
 	// load module into workbench space
-	kernel_storage_read( (struct STD_FILE_STRUCTURE *) &file, workbench );
+	DEPRECATED_kernel_storage_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file, workbench );
 
 	//----------------------------------------------------------------------
 

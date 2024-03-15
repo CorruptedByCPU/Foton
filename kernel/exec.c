@@ -51,7 +51,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	uint64_t exec_length = lib_string_word( name, length );
 
 	// file name length allowed?
-	if( length > (LIB_VFS_name_limit - length) ) return STD_ERROR_syntax_error;	// no
+	if( length > (EXCHANGE_LIB_VFS_name_limit - length) ) return STD_ERROR_syntax_error;	// no
 
 	// set file path name
 	uint8_t path[ 12 ] = "/system/bin/";
@@ -59,8 +59,8 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	for( uint64_t i = 0; i < exec_length; i++ ) exec.file.name[ exec.file.length++ ] = name[ i ];
 
 	// retrieve information about file to execute
-	exec.file.id_storage = kernel -> storage_root_id;
-	kernel_storage_file( (struct STD_FILE_STRUCTURE *) &exec.file );
+	exec.file.id_storage = kernel -> DEPRECATED_storage_root_id;
+	DEPRECATED_kernel_storage_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &exec.file );
 
 	// if file doesn't exist
 	if( ! exec.file.id ) return STD_ERROR_file_not_found;	// yep
@@ -72,7 +72,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	exec.level++;
 
 	// load file into workbench space
-	kernel_storage_read( (struct STD_FILE_STRUCTURE *) &exec.file, exec.workbench_address );
+	DEPRECATED_kernel_storage_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &exec.file, exec.workbench_address );
 
 	//----------------------------------------------------------------------
 

@@ -9,7 +9,7 @@
 	#include	"../library/vfs.h"
 
 	struct STD_STREAM_STRUCTURE_META stream_meta;
-	struct STD_FILE_STRUCTURE file = { EMPTY };
+	struct DEPRECATED_STD_FILE_STRUCTURE file = { EMPTY };
 
 	uint8_t *document_name = EMPTY;
 
@@ -167,7 +167,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	sprintf( "\e[%u;%uH", (uint8_t *) &string_cursor_at_menu, 0, stream_meta.height - 1 );
 
 	// prepare area for document name
-	document_name = malloc( LIB_VFS_name_limit + 1 );
+	document_name = malloc( EXCHANGE_LIB_VFS_name_limit + 1 );
 
 	// file selected?
 	if( argc > 1 )	{
@@ -187,7 +187,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	}
 
 	// if selected, retrieve properties of file
-	if( file.length ) std_file( (struct STD_FILE_STRUCTURE *) &file );
+	if( file.length ) std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file );
 
 	// if file exist
 	if( file.id ) {
@@ -199,7 +199,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		document_size = file.length_byte;
 
 		// load file content into document area
-		std_file_read( (struct STD_FILE_STRUCTURE *) &file, (uintptr_t) document_area );
+		std_file_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file, (uintptr_t) document_area );
 	} else {
 		// prepare new document area
 		document_area = malloc( STD_PAGE_byte + 1 );
@@ -252,7 +252,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					uint8_t saved = FALSE;
 
 					// retrieve file name
-					struct STD_FILE_STRUCTURE save_as = { EMPTY };
+					struct DEPRECATED_STD_FILE_STRUCTURE save_as = { EMPTY };
 					for( uint64_t i = 0; i < file.length; i++ ) save_as.name[ save_as.length++ ] = file.name[ i ];
 			
 					// file saved?
@@ -264,7 +264,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 						save_as.length = lib_input( (uint8_t *) &save_as.name, stream_meta.width - 9, save_as.length, FALSE );
 
 						// if file name provided, retrieve properties of file if exist
-						if( save_as.length ) std_file( (struct STD_FILE_STRUCTURE *) &save_as );
+						if( save_as.length ) std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &save_as );
 
 						// diffrent exist file selected?
 						if( save_as.id != file.id && save_as.id ) {
@@ -286,7 +286,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 							saved = TRUE;
 
 						// write document content to file
-						// if( saved ) std_file_write( (struct STD_FILE_STRUCTURE *) &save_as, (uintptr_t) document_area, document_size );
+						// if( saved ) std_file_write( (struct DEPRECATED_STD_FILE_STRUCTURE *) &save_as, (uintptr_t) document_area, document_size );
 
 						// restore cursor properties
 						print( "\e[0m\e[2K\e[u" );

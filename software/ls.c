@@ -11,7 +11,7 @@
 	// variables, routines, procedures
 	//----------------------------------------------------------------------
 	struct STD_STREAM_STRUCTURE_META stream_meta;
-	struct STD_FILE_STRUCTURE file = { EMPTY };
+	struct DEPRECATED_STD_FILE_STRUCTURE file = { EMPTY };
 
 	#define	LS_MARGIN	2
 
@@ -67,16 +67,16 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	//----------------------------------------------------------------------
 
 	// retrieve properties of current directory content
-	if( ! std_file( (struct STD_FILE_STRUCTURE *) &file ) ) return -1;	// file not found
+	if( ! std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file ) ) return -1;	// file not found
 
 	// assign area for directory content
-	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) malloc( file.length_byte );
+	struct EXCHANGE_LIB_VFS_STRUCTURE *vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) malloc( file.length_byte );
 
 	// area acquired?
 	if( ! vfs ) return -1;	// no
 
 	// load directory content
-	std_file_read( (struct STD_FILE_STRUCTURE *) &file, (uintptr_t) vfs );
+	std_file_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file, (uintptr_t) vfs );
 
 	//----------------------------------------------------------------------
 
@@ -85,9 +85,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// amount of files to show
 	uint64_t file_limit = EMPTY;
-	while( vfs[ file_limit ].length ) {
+	while( vfs[ file_limit ].name_length ) {
 		// set longest file name as column width
-		if( column_width <= vfs[ file_limit ].length ) column_width = vfs[ file_limit ].length + LS_MARGIN;
+		if( column_width <= vfs[ file_limit ].name_length ) column_width = vfs[ file_limit ].name_length + LS_MARGIN;
 
 		// next file
 		file_limit++;
@@ -105,10 +105,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// properties mode?
 		if( show_properties )
 			// size of file
-			ls_format( vfs[ i ].size );
+			ls_format( vfs[ i ].byte );
 
 		// cannot fit name in this column?
-		if( column + vfs[ i ].length >= stream_meta.width ) {
+		if( column + vfs[ i ].name_length >= stream_meta.width ) {
 			// start from new line
 			print( "\n" );
 
@@ -120,16 +120,16 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// change color by type
 		switch( vfs[ i ].type ) {
-			case STD_FILE_TYPE_regular_file: {
+			case DEPRECATED_STD_FILE_TYPE_regular_file: {
 				// file is executable?
-				if( vfs[ i ].mode & STD_FILE_MODE_user_exec ) print( "\e[38;5;47m" );	// yes
+				if( vfs[ i ].DEPRECATED_mode & DEPRECATED_STD_FILE_MODE_user_exec ) print( "\e[38;5;47m" );	// yes
 				else print( "\e[38;5;253m" );	// no
 				
 				// done
 				break;
 			}
-			case STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
-			case STD_FILE_TYPE_symbolic_link: { print( "\e[38;5;45m" ); break; }
+			case DEPRECATED_STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
+			case DEPRECATED_STD_FILE_TYPE_symbolic_link: { print( "\e[38;5;45m" ); break; }
 		}
 
 		// properties mode?

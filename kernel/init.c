@@ -147,6 +147,9 @@ void _entry( void ) {
 	// register all available storage devices
 	kernel_init_storage();
 
+	// initialize VFS storages
+	NEW_kernel_init_vfs();
+
 	// create library management space
 	kernel_init_library();
 

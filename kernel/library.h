@@ -25,7 +25,7 @@
 
 	struct KERNEL_LIBRARY_STRUCTURE_INIT {
 		uint8_t				level;
-		struct STD_FILE_STRUCTURE	file;
+		struct DEPRECATED_STD_FILE_STRUCTURE	file;
 		struct KERNEL_LIBRARY_STRUCTURE	*entry;
 		uintptr_t			workbench_address;
 		uintptr_t			base_address;

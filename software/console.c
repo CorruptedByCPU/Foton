@@ -31,7 +31,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// file selected?
 	if( argc > 1 )	{
-		struct STD_FILE_STRUCTURE file = { EMPTY };
+		struct DEPRECATED_STD_FILE_STRUCTURE file = { EMPTY };
 
 		// search for file name
 		for( uint64_t i = 1; i < argc; i++ ) {

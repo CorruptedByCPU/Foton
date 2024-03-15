@@ -116,36 +116,36 @@
 	#define	STD_ERROR_file_not_executable			-4
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 
-	#define	STD_FILE_MODE_mask				0b0000000111111111
-	#define	STD_FILE_MODE_other_exec			0b0000000000000001
-	#define	STD_FILE_MODE_other_write			0b0000000000000010
-	#define	STD_FILE_MODE_other_read			0b0000000000000100
-	#define	STD_FILE_MODE_group_exec			0b0000000000001000
-	#define	STD_FILE_MODE_group_write			0b0000000000010000
-	#define	STD_FILE_MODE_group_read			0b0000000000100000
-	#define	STD_FILE_MODE_user_exec				0b0000000001000000
-	#define	STD_FILE_MODE_user_write			0b0000000010000000
-	#define	STD_FILE_MODE_user_read				0b0000000100000000
-	#define	STD_FILE_MODE_sticky				0b0000001000000000
-	#define	STD_FILE_MODE_default_directory			(STD_FILE_MODE_user_read | STD_FILE_MODE_user_write | STD_FILE_MODE_user_exec | STD_FILE_MODE_group_read | STD_FILE_MODE_group_write | STD_FILE_MODE_group_exec | STD_FILE_MODE_other_read | STD_FILE_MODE_other_exec)
+	#define	DEPRECATED_STD_FILE_MODE_mask				0b0000000111111111
+	#define	DEPRECATED_STD_FILE_MODE_other_exec			0b0000000000000001
+	#define	DEPRECATED_STD_FILE_MODE_other_write			0b0000000000000010
+	#define	DEPRECATED_STD_FILE_MODE_other_read			0b0000000000000100
+	#define	DEPRECATED_STD_FILE_MODE_group_exec			0b0000000000001000
+	#define	DEPRECATED_STD_FILE_MODE_group_write			0b0000000000010000
+	#define	DEPRECATED_STD_FILE_MODE_group_read			0b0000000000100000
+	#define	DEPRECATED_STD_FILE_MODE_user_exec				0b0000000001000000
+	#define	DEPRECATED_STD_FILE_MODE_user_write			0b0000000010000000
+	#define	DEPRECATED_STD_FILE_MODE_user_read				0b0000000100000000
+	#define	DEPRECATED_STD_FILE_MODE_sticky				0b0000001000000000
+	#define	DEPRECATED_STD_FILE_MODE_default_directory			(DEPRECATED_STD_FILE_MODE_user_read | DEPRECATED_STD_FILE_MODE_user_write | DEPRECATED_STD_FILE_MODE_user_exec | DEPRECATED_STD_FILE_MODE_group_read | DEPRECATED_STD_FILE_MODE_group_write | DEPRECATED_STD_FILE_MODE_group_exec | DEPRECATED_STD_FILE_MODE_other_read | DEPRECATED_STD_FILE_MODE_other_exec)
 
-	#define	STD_FILE_TYPE_fifo				0b00000001
-	#define	STD_FILE_TYPE_character_device			0b00000010
-	#define	STD_FILE_TYPE_directory				0b00000100
-	#define	STD_FILE_TYPE_block_device			0b00001000
-	#define	STD_FILE_TYPE_regular_file			0b00010000
-	#define	STD_FILE_TYPE_symbolic_link			0b00100000
-	#define	STD_FILE_TYPE_socket				0b01000000
-	#define	STD_FILE_TYPE_unknown				0b10000000
+	#define	DEPRECATED_STD_FILE_TYPE_fifo				0b00000001
+	#define	DEPRECATED_STD_FILE_TYPE_character_device			0b00000010
+	#define	DEPRECATED_STD_FILE_TYPE_directory				0b00000100
+	#define	DEPRECATED_STD_FILE_TYPE_block_device			0b00001000
+	#define	DEPRECATED_STD_FILE_TYPE_regular_file			0b00010000
+	#define	DEPRECATED_STD_FILE_TYPE_symbolic_link			0b00100000
+	#define	DEPRECATED_STD_FILE_TYPE_socket				0b01000000
+	#define	DEPRECATED_STD_FILE_TYPE_unknown				0b10000000
 
-	struct	STD_FILE_STRUCTURE {
+	struct	DEPRECATED_STD_FILE_STRUCTURE {
 		uint64_t	id_storage;
 		uint64_t	id;
 		uint64_t	length_byte;
 		uint8_t		type;
 		uint16_t	mode;
 		uint8_t		length;
-		uint8_t		name[ LIB_VFS_name_limit ];
+		uint8_t		name[ EXCHANGE_LIB_VFS_name_limit ];
 	};
 
 	#define	STD_IPC_SIZE_byte				40
@@ -436,10 +436,10 @@
 	uint64_t std_sleep( uint64_t units );	// 1 unit ~ 1/1024 of second
 
 	// returns ID of file if found or EMPTY
-	uint64_t std_file( struct STD_FILE_STRUCTURE *file );
+	uint64_t std_file( struct DEPRECATED_STD_FILE_STRUCTURE *file );
 
 	// loads file content
-	void std_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target );
+	void std_file_read( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t target );
 
 	// print character
 	void putc( uint8_t character );
@@ -457,7 +457,7 @@
 	uint64_t std_time( void );
 
 	// writes new file content
-	int64_t std_file_write( struct STD_FILE_STRUCTURE *file, uintptr_t target, uint64_t byte );
+	int64_t std_file_write( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t target, uint64_t byte );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

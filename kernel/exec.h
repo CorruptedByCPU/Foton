@@ -9,7 +9,7 @@
 
 	struct KERNEL_EXEC_STRUCTURE_INIT {
 		uint8_t				level;
-		struct STD_FILE_STRUCTURE	file;
+		struct DEPRECATED_STD_FILE_STRUCTURE	file;
 		struct KERNEL_TASK_STRUCTURE	*task;
 		uintptr_t			workbench_address;
 		uintptr_t			base_address;

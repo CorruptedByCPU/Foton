@@ -108,10 +108,15 @@ struct KERNEL {
 	void							(*page_deconstruct)( uintptr_t *pml4 );
 
 	// variables of Storage management functions
-	struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;
-	struct KERNEL_STORAGE_STRUCTURE_NODE			*storage_files_node;
-	uint64_t	storage_root_id;
-	uint8_t		storage_semaphore;
+	struct DEPRECATED_KERNEL_STORAGE_STRUCTURE				*DEPRECATED_storage_base_address;
+	struct DEPRECATED_KERNEL_STORAGE_STRUCTURE_NODE			*DEPRECATED_storage_files_node;
+	uint64_t	DEPRECATED_storage_root_id;
+	uint8_t		DEPRECATED_storage_semaphore;
+
+	// variables of Storage management functions
+	struct NEW_KERNEL_STORAGE_STRUCTURE				*NEW_storage_base_address;
+	uint64_t	NEW_storage_root;
+	uint8_t		NEW_storage_semaphore;
 
 	// variables of Stream management functions
 	struct KERNEL_STREAM_STRUCTURE	*stream_base_address;
@@ -136,5 +141,6 @@ struct KERNEL {
 	struct KERNEL_TSS_STRUCTURE				tss_table;
 
 	// variables of VFS management functions
-	// struct KERNEL_VFS_STRUCTURE				vfs_base_address;
+	uint64_t	vfs_root;
+	// struct EXCHANGE_KERNEL_VFS_STRUCTURE				vfs_base_address;
 };
