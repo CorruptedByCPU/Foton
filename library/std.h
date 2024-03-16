@@ -138,14 +138,18 @@
 	#define	STD_FILE_TYPE_socket				0b01000000
 	#define	STD_FILE_TYPE_unknown				0b10000000
 
-	struct	STD_FILE_STRUCTURE {
+	struct	STD_FILE_STRUCTURE_SOCKET {
+		uint64_t	id;
+	};
+
+	struct	STD_FILE_OLD_STRUCTURE {
 		uint64_t	id_storage;
 		uint64_t	id;
 		uint64_t	length_byte;
 		uint8_t		type;
 		uint16_t	mode;
 		uint8_t		length;
-		uint8_t		name[ LIB_VFS_name_limit ];
+		uint8_t		name[ LIB_VFS_NAME_limit ];
 	};
 
 	#define	STD_IPC_SIZE_byte				40
@@ -436,10 +440,10 @@
 	uint64_t std_sleep( uint64_t units );	// 1 unit ~ 1/1024 of second
 
 	// returns ID of file if found or EMPTY
-	uint64_t std_file( struct STD_FILE_STRUCTURE *file );
+	uint64_t std_file( struct STD_FILE_OLD_STRUCTURE *file );
 
 	// loads file content
-	void std_file_read( struct STD_FILE_STRUCTURE *file, uintptr_t target );
+	void std_file_read( struct STD_FILE_OLD_STRUCTURE *file, uintptr_t target );
 
 	// print character
 	void putc( uint8_t character );
@@ -457,7 +461,7 @@
 	uint64_t std_time( void );
 
 	// writes new file content
-	int64_t std_file_write( struct STD_FILE_STRUCTURE *file, uintptr_t target, uint64_t byte );
+	int64_t std_file_write( struct STD_FILE_OLD_STRUCTURE *file, uintptr_t target, uint64_t byte );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

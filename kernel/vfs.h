@@ -5,33 +5,34 @@
 #ifndef	KERNEL_VFS
 	#define	KERNEL_VFS
 
-	#define	KERNEL_VFS_align	16
-	#define	KERNEL_VFS_base		64
-	#define	KERNEL_VFS_length	4
-	#define	KERNEL_VFS_magic	0x53465623	// "#VFS"
-	#define	KERNEL_VFS_name_limit	255
-	#define	KERNEL_VFS_shift	6
-	#define	KERNEL_VFS_default	2
+	#define	KERNEL_VFS_limit	(STD_PAGE_byte / sizeof( struct KERNEL_VFS_STRUCTURE ))	// hard limit
 
-	#define	KERNEL_VFS_BLOCK_size		4096
+	#define	KERNEL_VFS_MODE_read		0b00000001
+	#define	KERNEL_VFS_MODE_write		0b00000010
+	#define	KERNEL_VFS_MODE_reserved	0b10000000
 
 	struct KERNEL_VFS_STRUCTURE {
-		uintptr_t	offset;
-		uint64_t	size;
-		uint16_t	length;
-		uint16_t	mode;
-		uint16_t	uid;
-		uint16_t	guid;
-		uint8_t		type;
-		uint8_t		name[ KERNEL_VFS_name_limit ];
+		uint64_t	storage;	// id of storage where file/directory is stored
+		int64_t		pid;		// to which process this socket belongs to
+		uint8_t		mode;		// type of operation on file
+		uint64_t	id;		// file identificator (we should be able to locate file on storage by this value)
 	};
 
-	// returns TRUE if at specified address is VFS structure
-	uint8_t kernel_vfs_check( uintptr_t address, uint64_t size_byte );
+	struct	KERNEL_VFS_STRUCTURE_PROPERTIES {
+		uint64_t	byte;
+		uint8_t		name_length;
+		uint8_t		name[ LIB_VFS_NAME_limit ];
+	};
 
-	void kernel_vfs_file( struct KERNEL_VFS_STRUCTURE *vfs, struct STD_FILE_STRUCTURE *file );
+	struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length, uint8_t mode );
+	void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket );
+	uint64_t kernel_vfs_socket( void );
 
-	void kernel_vfs_read( struct KERNEL_VFS_STRUCTURE *vfs, uintptr_t target_address );
+// OLD ========================================================================
 
-	int64_t kernel_vfs_write( struct KERNEL_VFS_STRUCTURE *vfs, uintptr_t source_address, uint64_t length_byte );
+	void kernel_vfs_old_file( struct LIB_VFS_STRUCTURE *vfs, struct STD_FILE_OLD_STRUCTURE *file );
+
+	void kernel_vfs_old_read( struct LIB_VFS_STRUCTURE *vfs, uintptr_t target_address );
+
+	int64_t kernel_vfs_old_write( struct LIB_VFS_STRUCTURE *vfs, uintptr_t source_address, uint64_t length_byte );
 #endif

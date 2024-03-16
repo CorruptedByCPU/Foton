@@ -5,40 +5,48 @@
 static void kernel_exec_cancel( struct KERNEL_EXEC_STRUCTURE_INIT *exec ) {
 	// undo performed operations depending on cavity
 	switch( exec -> level ) {
-		case 9: {
+		case 11: {
 			// cannot foresee an error at this level and above
 		}
-		case 8: {
+		case 10: {
 			// release memory map from task entry
 			kernel_memory_release( (uintptr_t) exec -> task -> memory_map, MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) >> STD_SHIFT_PAGE );
 		}
-		case 7: {
+		case 9: {
 			// detach process area from paging structure
 			kernel_page_detach( (uintptr_t *) exec -> task -> cr3, KERNEL_EXEC_base_address, exec -> page );
 		}
-		case 6: {
+		case 8: {
 			// release process area
 			kernel_memory_release( (uintptr_t) exec -> base_address, exec -> page );
 		}
-		case 5: {
+		case 7: {
 			// detach stack from paging structure
 			kernel_page_detach( (uintptr_t *) exec -> task -> cr3, MACRO_PAGE_ALIGN_DOWN( KERNEL_TASK_STACK_pointer - exec -> stack_byte ), MACRO_PAGE_ALIGN_UP( exec -> stack_byte ) >> STD_SHIFT_PAGE );
 		}
-		case 4: {
+		case 6: {
 			// release stack area
 			kernel_memory_release( (uintptr_t) exec -> stack, MACRO_PAGE_ALIGN_UP( exec -> stack_byte ) >> STD_SHIFT_PAGE );
 		}
-		case 3: {
+		case 5: {
 			// release paging structure
 			kernel_page_deconstruct( (uintptr_t *) exec -> task -> cr3 );
 		}
-		case 2: {
+		case 4: {
 			// release task entry
 			exec -> task -> flags = EMPTY;
 		}
-		case 1: {
+		case 3: {
 			// release workbench area
 			kernel_memory_release( exec -> workbench_address, MACRO_PAGE_ALIGN_UP( exec -> file.length_byte ) >> STD_SHIFT_PAGE );
+		}
+		case 2: {
+			// close file
+			kernel_vfs_file_close( exec -> socket );
+		}
+		case 1: {
+			// release path area
+			kernel_memory_release( (uintptr_t) exec -> path, MACRO_PAGE_ALIGN_UP( exec -> path_length ) >> STD_SHIFT_PAGE );
 		}
 	}
 }
@@ -47,32 +55,47 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// prepare temporary execution area
 	struct KERNEL_EXEC_STRUCTURE_INIT exec = { EMPTY };
 
-	// length of exec name
-	uint64_t exec_length = lib_string_word( name, length );
+	// default location of executables
+	uint8_t path_default[ 12 ] = "/system/bin/";
+	exec.path_length = length + sizeof( path_default ) + 1;
 
-	// file name length allowed?
-	if( length > (LIB_VFS_name_limit - length) ) return STD_ERROR_syntax_error;	// no
+	// assign area for path to file
+	uint64_t path_length = 0;
+	uint8_t *path = (uint8_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( exec.path_length ) >> STD_SHIFT_PAGE );
+
+	// assigned area for file path?
+	if( ! path ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return FALSE; };
+
+	// checkpoint reached: allocated memory for path
+	exec.level++;
 
 	// set file path name
-	uint8_t path[ 12 ] = "/system/bin/";
-	for( uint64_t i = 0; i < sizeof( path ); i++ ) exec.file.name[ exec.file.length++ ] = path[ i ];
-	for( uint64_t i = 0; i < exec_length; i++ ) exec.file.name[ exec.file.length++ ] = name[ i ];
+	for( uint64_t i = 0; i < sizeof( path_default ); i++ ) path[ path_length++ ] = path_default[ i ];
+	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ]; name[ path_length ] = EMPTY;
 
-	// retrieve information about file to execute
-	exec.file.id_storage = kernel -> storage_root_id;
-	kernel_storage_file( (struct STD_FILE_STRUCTURE *) &exec.file );
+	// open file from prepared path
+	exec.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length, KERNEL_VFS_MODE_read );
 
-	// if file doesn't exist
-	if( ! exec.file.id ) return STD_ERROR_file_not_found;	// yep
+	// file exist?
+	if( ! exec.socket ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return FALSE; };
 
-	// prepare area for workbench
-	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.file.length_byte ) >> STD_SHIFT_PAGE )) ) return STD_ERROR_memory_low;
+	// checkpoint reached: file exist
+	exec.level++;
+
+	// gather information about file
+	exec.file_properties = kernel_vfs_file_properties( exec.socket );
+
+	// prepare area for workbench 
+	exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.file_properties.byte ) >> STD_SHIFT_PAGE );
+
+	// workbench area allocated?
+	if( ! exec.workbench_address ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return FALSE; };
 
 	// checkpoint reached: assigned area for temporary file
 	exec.level++;
 
-	// load file into workbench space
-	kernel_storage_read( (struct STD_FILE_STRUCTURE *) &exec.file, exec.workbench_address );
+	// load whole executable into workbench area
+	kernel_vfs_file_read( exec.socket, (uint8_t *) exec.workbench_address, EMPTY, exec.file_properties.byte );
 
 	//----------------------------------------------------------------------
 

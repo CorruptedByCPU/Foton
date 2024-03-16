@@ -108,9 +108,8 @@ struct KERNEL {
 	void							(*page_deconstruct)( uintptr_t *pml4 );
 
 	// variables of Storage management functions
-	struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;
-	struct KERNEL_STORAGE_STRUCTURE_NODE			*storage_files_node;
-	uint64_t	storage_root_id;
+	struct	KERNEL_STORAGE_STRUCTURE			*storage_base_address;
+	uint64_t	storage_root;
 	uint8_t		storage_semaphore;
 
 	// variables of Stream management functions
@@ -136,5 +135,7 @@ struct KERNEL {
 	struct KERNEL_TSS_STRUCTURE				tss_table;
 
 	// variables of VFS management functions
-	// struct KERNEL_VFS_STRUCTURE				vfs_base_address;
+	struct	KERNEL_VFS_STRUCTURE				*vfs_base_address;
+	uint64_t	vfs_root;
+	uint8_t		vfs_semaphore;
 };
