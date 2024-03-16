@@ -116,6 +116,9 @@
 	#define	STD_ERROR_file_not_executable			-4
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 
+	#define	NEW_STD_FILE_TYPE_directory			0b00000100
+	#define	NEW_STD_FILE_TYPE_link				0b00100000
+
 	#define	DEPRECATED_STD_FILE_MODE_mask				0b0000000111111111
 	#define	DEPRECATED_STD_FILE_MODE_other_exec			0b0000000000000001
 	#define	DEPRECATED_STD_FILE_MODE_other_write			0b0000000000000010
@@ -145,7 +148,7 @@
 		uint8_t		type;
 		uint16_t	mode;
 		uint8_t		length;
-		uint8_t		name[ EXCHANGE_LIB_VFS_name_limit ];
+		uint8_t		name[ EXCHANGE_LIB_VFS_NAME_limit ];
 	};
 
 	#define	STD_IPC_SIZE_byte				40

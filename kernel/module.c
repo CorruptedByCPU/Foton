@@ -3,43 +3,45 @@
 ===============================================================================*/
 
 void kernel_module_load( uint8_t *name, uint64_t length ) {
-	// remember module name length
-	uint64_t name_length = length;
-
-	// properties of file
-	struct DEPRECATED_STD_FILE_STRUCTURE file = { EMPTY };
+	// default location of modules
+	uint64_t path_length = 0;
+	uint8_t path_default[ 20 ] = "/system/lib/modules/";
 
 	// set file path name
-	uint8_t path[ 20 ] = "/system/lib/modules/";
-	for( uint64_t i = 0; i < sizeof( path ); i++ ) file.name[ file.length++ ] = path[ i ];
-	for( uint64_t i = 0; i < length; i++ ) file.name[ file.length++ ] = name[ i ];
-	
+	uint8_t path[ 20 + EXCHANGE_LIB_VFS_NAME_limit ];
+	for( uint64_t i = 0; i < 20; i++ ) path[ path_length++ ] = path_default[ i ];
+	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
+
 	// retrieve information about module file
-	file.id_storage = kernel -> DEPRECATED_storage_root_id;
-	DEPRECATED_kernel_storage_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file );
+	struct NEW_KERNEL_VFS_STRUCTURE *socket = (struct NEW_KERNEL_VFS_STRUCTURE *) NEW_kernel_vfs_file_open( path, path_length, NEW_KERNEL_VFS_MODE_read );
 
 	// if module does not exist
-	if( ! file.id ) return;
+	if( ! socket ) return;	// ignore
 
-	// prepare space for workbench
-	uintptr_t workbench = EMPTY; 
-	if( ! (workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( file.length_byte ) >> STD_SHIFT_PAGE )) ) return;	// no enough memory
+	// gather information about file
+	struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES properties;
+	NEW_kernel_vfs_file_properties( socket, (struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES *) &properties );
+
+	// assign area for workbench
+	uintptr_t workbench;
+	if( ! (workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( properties.byte ) >> STD_SHIFT_PAGE )) ) {
+		// close file
+		NEW_kernel_vfs_file_close( socket );
+
+		// done
+		return;
+	}
 
 	// load module into workbench space
-	DEPRECATED_kernel_storage_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file, workbench );
+	NEW_kernel_vfs_file_read( socket, (uint8_t *) workbench, EMPTY, properties.byte );
+
+	// close file
+	NEW_kernel_vfs_file_close( socket );
 
 	//----------------------------------------------------------------------
-
-	// file contains proper ELF header?
-	if( ! lib_elf_identify( workbench ) ) return;	// no
 
 	// ELF structure properties
 	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) workbench;
-
-	// it's an executable file?
-	if( elf -> type != LIB_ELF_TYPE_executable ) return;	// no
-
-	//----------------------------------------------------------------------
 
 	// create a new job in task queue
 	struct KERNEL_TASK_STRUCTURE *module = kernel_task_add( name, length );
@@ -134,7 +136,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	//----------------------------------------------------------------------
 
 	// release workbench
-	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( file.length_byte ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( properties.byte ) >> STD_SHIFT_PAGE );
 
 	// map kernel space to process
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) module -> cr3 );

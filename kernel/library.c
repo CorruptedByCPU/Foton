@@ -29,27 +29,31 @@ uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf ) {
 	return TRUE;
 }
 
-static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *tmp ) {
+static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *library ) {
 	// undo performed operations depending on cavity
-	switch( tmp -> level ) {
-		case 5: {
+	switch( library -> level ) {
+		case 6: {
 			// cannot foresee an error at this level and above
 		}
-		case 4: {
+		case 5: {
 			// detach library area from global paging array
-			kernel_page_detach( (uintptr_t *) kernel -> page_base_address, tmp -> base_address, tmp -> page );
+			kernel_page_detach( (uintptr_t *) kernel -> page_base_address, library -> base_address, library -> page );
+		}
+		case 4: {
+			// release library area
+			kernel_memory_dispose( kernel -> library_map_address, (library -> base_address - KERNEL_LIBRARY_base_address) >> STD_SHIFT_PAGE, library -> page );
 		}
 		case 3: {
-			// release library area
-			kernel_memory_dispose( kernel -> library_map_address, (tmp -> base_address - KERNEL_LIBRARY_base_address) >> STD_SHIFT_PAGE, tmp -> page );
+			// release workbench area
+			kernel_memory_release( library -> workbench_address, MACRO_PAGE_ALIGN_UP( library -> properties.byte ) >> STD_SHIFT_PAGE );
 		}
 		case 2: {
-			// release workbench area
-			kernel_memory_release( tmp -> workbench_address, MACRO_PAGE_ALIGN_UP( tmp -> file.length_byte ) >> STD_SHIFT_PAGE );
+			// close file
+			NEW_kernel_vfs_file_close( library -> socket );
 		}
 		case 1: {
 			// release library entry
-			tmp -> entry -> flags = EMPTY;
+			library -> entry -> flags = EMPTY;
 		}
 	}
 }
@@ -58,7 +62,7 @@ uint8_t kernel_library_find( uint8_t *name, uint8_t length ) {
 	// check every entry
 	for( uint64_t i = 0; i < KERNEL_LIBRARY_limit; i++ )
 		// library with exact name and length?
-		if( lib_string_compare( name, (uint8_t *) &kernel -> library_base_address[ i ].name, length ) && kernel -> library_base_address[ i ].length == length )
+		if( lib_string_compare( name, (uint8_t *) &kernel -> library_base_address[ i ].name, length ) && kernel -> library_base_address[ i ].name_length == length )
 			// yes
 			return TRUE;
 	
@@ -232,26 +236,35 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	// checkpoint reached: assigned library entry
 	library.level++;
 
+	// default location of libraries
+	uint64_t path_length = 0;
+	uint8_t path_default[ 12 ] = "/system/lib/";
+
 	// set file path name
-	uint8_t path[ 12 ] = "/system/lib/";
-	for( uint64_t i = 0; i < sizeof( path ); i++ ) library.file.name[ library.file.length++ ] = path[ i ];
-	for( uint64_t i = 0; i < length; i++ ) library.file.name[ library.file.length++ ] = name[ i ];
+	uint8_t path[ 12 + EXCHANGE_LIB_VFS_NAME_limit ];
+	for( uint64_t i = 0; i < 12; i++ ) path[ path_length++ ] = path_default[ i ];
+	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
 
-	// retrieve information about file to execute
-	library.file.id_storage = kernel -> DEPRECATED_storage_root_id;
-	DEPRECATED_kernel_storage_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &library.file );
+	// retrieve information about library file
+	library.socket = (struct NEW_KERNEL_VFS_STRUCTURE *) NEW_kernel_vfs_file_open( path, path_length, NEW_KERNEL_VFS_MODE_read );
 
-	// if file doesn't exist
-	if( ! library.file.id ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
+	// if library does not exist
+	if( ! library.socket ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
 
-	// prepare area for workbench 
-	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.file.length_byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
+	// checkpoint reached: file socket opened
+	library.level++;
+
+	// gather information about file
+	NEW_kernel_vfs_file_properties( library.socket, (struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES *) &library.properties );
+
+	// assign area for workbench
+	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
 
 	// checkpoint reached: assigned area for temporary file
 	library.level++;
 
-	// load file into workbench space
-	DEPRECATED_kernel_storage_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &library.file, library.workbench_address );
+	// load library into workbench space
+	NEW_kernel_vfs_file_read( library.socket, (uint8_t *) library.workbench_address, EMPTY, library.properties.byte );
 
 	//----------------------------------------------------------------------
 
@@ -326,14 +339,14 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	kernel_library_link( elf, library.base_address, TRUE );
 
 	// set parsed library name
-	library.entry -> length = length;
+	library.entry -> name_length = length;
 	for( uint8_t i = 0; i < length; i++ ) library.entry -> name[ i ] = name[ i ];
 
 	// library parsed
 	library.entry -> flags |= KERNEL_LIBRARY_FLAG_active;
 
 	// release workbench space
-	kernel_memory_release( library.workbench_address, MACRO_PAGE_ALIGN_UP( library.file.length_byte ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( library.workbench_address, MACRO_PAGE_ALIGN_UP( library.properties.byte ) >> STD_SHIFT_PAGE );
 
 	// library loaded
 	return TRUE;

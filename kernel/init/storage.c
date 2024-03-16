@@ -17,6 +17,9 @@ void kernel_init_storage( void ) {
 		// address of VFS main block location
 		storage -> device_block = (uintptr_t) limine_module_request.response -> modules[ i ] -> address;
 
+		// default block size in Bytes
+		storage -> device_byte = STD_PAGE_byte;
+
 		// length of storage
 		storage -> device_length = MACRO_PAGE_ALIGN_UP( limine_module_request.response -> modules[ i ] -> size ) >> STD_SHIFT_PAGE;
 	}
@@ -40,7 +43,7 @@ void kernel_init_storage( void ) {
 			struct DEPRECATED_KERNEL_STORAGE_STRUCTURE *storage = DEPRECATED_kernel_storage_register( DEPRECATED_KERNEL_STORAGE_TYPE_vfs );
 
 			// prepare superblock of new VFS
-			struct EXCHANGE_KERNEL_VFS_STRUCTURE *superblock = (struct EXCHANGE_KERNEL_VFS_STRUCTURE *) kernel_memory_alloc( TRUE );
+			struct EXCHANGE_LIB_VFS_STRUCTURE *superblock = (struct EXCHANGE_LIB_VFS_STRUCTURE *) kernel_memory_alloc( TRUE );
 
 			// properties of root directory
 			superblock -> type = DEPRECATED_STD_FILE_TYPE_directory;

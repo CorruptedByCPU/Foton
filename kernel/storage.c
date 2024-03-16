@@ -62,7 +62,7 @@ void DEPRECATED_kernel_storage_file( struct DEPRECATED_STD_FILE_STRUCTURE *file 
 	switch( kernel -> DEPRECATED_storage_base_address[ file -> id_storage ].device_type ) {
 		case DEPRECATED_KERNEL_STORAGE_TYPE_vfs: {
 			// properties of root Virtual File System
-			struct EXCHANGE_KERNEL_VFS_STRUCTURE *vfs = (struct EXCHANGE_KERNEL_VFS_STRUCTURE *) kernel -> DEPRECATED_storage_base_address[ file -> id_storage ].device_block;
+			struct EXCHANGE_LIB_VFS_STRUCTURE *vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) kernel -> DEPRECATED_storage_base_address[ file -> id_storage ].device_block;
 
 			// search from root directory?
 			if( file -> name[ 0 ] != '/' ) {
@@ -70,7 +70,7 @@ void DEPRECATED_kernel_storage_file( struct DEPRECATED_STD_FILE_STRUCTURE *file 
 				struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 				// choose task current directory
-				vfs = (struct EXCHANGE_KERNEL_VFS_STRUCTURE *) task -> directory;
+				vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) task -> directory;
 			}
 
 			// return properties of file
@@ -84,7 +84,7 @@ void DEPRECATED_kernel_storage_read( struct DEPRECATED_STD_FILE_STRUCTURE *file,
 	switch( kernel -> DEPRECATED_storage_base_address[ file -> id_storage ].device_type ) {
 		case DEPRECATED_KERNEL_STORAGE_TYPE_vfs: {
 			// read file content
-			DEPRECATED_kernel_vfs_read( (struct EXCHANGE_KERNEL_VFS_STRUCTURE *) file -> id, target_address );
+			DEPRECATED_kernel_vfs_read( (struct EXCHANGE_LIB_VFS_STRUCTURE *) file -> id, target_address );
 
 			// done
 			break;
@@ -97,7 +97,7 @@ void DEPRECATED_kernel_storage_write( struct DEPRECATED_STD_FILE_STRUCTURE *file
 	switch( kernel -> DEPRECATED_storage_base_address[ file -> id_storage ].device_type ) {
 		case DEPRECATED_KERNEL_STORAGE_TYPE_vfs: {
 			// write new file content
-			DEPRECATED_kernel_vfs_write( (struct EXCHANGE_KERNEL_VFS_STRUCTURE *) file -> id, source_address, byte );
+			DEPRECATED_kernel_vfs_write( (struct EXCHANGE_LIB_VFS_STRUCTURE *) file -> id, source_address, byte );
 
 			// done
 			break;

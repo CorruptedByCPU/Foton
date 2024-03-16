@@ -10,14 +10,16 @@
 	#endif
 
 	#define	NEW_LIB_VFS_magic	0x53465623	// "#VFS"
-	#define	EXCHANGE_LIB_VFS_name_limit		255
+	#define	NEW_LIB_VFS_block	STD_PAGE_byte
+
+	#define	EXCHANGE_LIB_VFS_NAME_limit	255
 
 	struct EXCHANGE_LIB_VFS_STRUCTURE {
 		uintptr_t	offset;
 		uint64_t	byte;
 		uint8_t		type;
 		uint8_t		name_length;
-		uint8_t		name[ EXCHANGE_LIB_VFS_name_limit ];
+		uint8_t		name[ EXCHANGE_LIB_VFS_NAME_limit ];
 		uint16_t	DEPRECATED_mode;
 		uint16_t	DEPRECATED_uid;
 		uint16_t	DEPRECATED_guid;

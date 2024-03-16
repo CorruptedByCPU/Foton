@@ -18,7 +18,7 @@
 	struct NEW_KERNEL_STORAGE_STRUCTURE {
 		uint8_t		device_type;
 		uint8_t		device_class;
-		uintptr_t	device_block;	// first usable block of storage
+		uint64_t	device_block;	// first usable block of storage
 		uint64_t	device_byte;	// size of single BLOCK in Bytes;
 		uint64_t	device_length;	// size of storage CLASS in blocks
 	};

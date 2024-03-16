@@ -167,7 +167,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	sprintf( "\e[%u;%uH", (uint8_t *) &string_cursor_at_menu, 0, stream_meta.height - 1 );
 
 	// prepare area for document name
-	document_name = malloc( EXCHANGE_LIB_VFS_name_limit + 1 );
+	document_name = malloc( EXCHANGE_LIB_VFS_NAME_limit + 1 );
 
 	// file selected?
 	if( argc > 1 )	{

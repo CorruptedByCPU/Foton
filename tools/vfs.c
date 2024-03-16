@@ -100,7 +100,7 @@ int main( int argc, char *argv[] ) {
 		if( ! strcmp( entry -> d_name, "." ) || ! strcmp( entry -> d_name, ".." ) ) continue;
 
 		// file name longer than limit?
-		if( strlen( entry -> d_name ) > EXCHANGE_LIB_VFS_name_limit ) { printf( " [name \"%s\" too long]\n", entry -> d_name ); return -1; }
+		if( strlen( entry -> d_name ) > EXCHANGE_LIB_VFS_NAME_limit ) { printf( " [name \"%s\" too long]\n", entry -> d_name ); return -1; }
 
 		// resize header for new file
 		vfs = realloc( vfs, sizeof( struct EXCHANGE_LIB_VFS_STRUCTURE ) * (files_included + 1) );
@@ -114,7 +114,7 @@ int main( int argc, char *argv[] ) {
 		strcpy( (char *) vfs[ files_included ].name, entry -> d_name );
 
 		// combine path to file
-		char path_local[ sizeof( argv[ 1 ] ) + EXCHANGE_LIB_VFS_name_limit + 1 ];
+		char path_local[ sizeof( argv[ 1 ] ) + EXCHANGE_LIB_VFS_NAME_limit + 1 ];
 		snprintf( path_local, sizeof( path_local ), "%s%c%s", path_import, 0x2F, vfs[ files_included ].name );
 
 		// Insert
@@ -130,14 +130,14 @@ int main( int argc, char *argv[] ) {
 		// type is directory?
 		if( (isdir = opendir( path_local )) != NULL ) {
 			// prepare directory path
-			char path_directory[ 6 + sizeof( argv[ 1 ] ) + EXCHANGE_LIB_VFS_name_limit ];
+			char path_directory[ 6 + sizeof( argv[ 1 ] ) + EXCHANGE_LIB_VFS_NAME_limit ];
 			snprintf( path_directory, sizeof( path_directory ), "./vfs %s/%s internal", argv[ 1 ], entry -> d_name );
 
 			// prepare subdirectory file structure
 			system( path_directory );
 
 			// combine path to file
-			char path_insert[ sizeof( argv[ 1 ] ) + EXCHANGE_LIB_VFS_name_limit + 1];
+			char path_insert[ sizeof( argv[ 1 ] ) + EXCHANGE_LIB_VFS_NAME_limit + 1];
 			snprintf( path_insert, sizeof( path_insert ), "%s/%s.vfs", argv[ 1 ], entry -> d_name );
 
 			// size of file in Bytes
@@ -185,7 +185,7 @@ int main( int argc, char *argv[] ) {
 	/*--------------------------------------------------------------------*/
 
 	// combine path to file
-	char path_local[ sizeof( path_export ) + sizeof( argv[ 1 ] ) + EXCHANGE_LIB_VFS_name_limit + sizeof( file_extension ) ];
+	char path_local[ sizeof( path_export ) + sizeof( argv[ 1 ] ) + EXCHANGE_LIB_VFS_NAME_limit + sizeof( file_extension ) ];
 	snprintf( path_local, sizeof( path_local ), "%s%s%s", path_export, argv[ 1 ], file_extension );
 
 	// open new package for write
@@ -202,7 +202,7 @@ int main( int argc, char *argv[] ) {
 
 		if( vfs[ i ].type & DEPRECATED_STD_FILE_TYPE_directory ) {
 			// combine path to file
-			char path_insert[ sizeof( path_import ) + EXCHANGE_LIB_VFS_name_limit + 1];
+			char path_insert[ sizeof( path_import ) + EXCHANGE_LIB_VFS_NAME_limit + 1];
 			snprintf( path_insert, sizeof( path_insert ), "%s/%s.vfs", path_import, vfs[ i ].name );
 
 			// append file to package
@@ -211,7 +211,7 @@ int main( int argc, char *argv[] ) {
 			fclose( file );
 		} else {
 			// combine path to file
-			char path_insert[ sizeof( path_import ) + EXCHANGE_LIB_VFS_name_limit + 1 ];
+			char path_insert[ sizeof( path_import ) + EXCHANGE_LIB_VFS_NAME_limit + 1 ];
 			snprintf( path_insert, sizeof( path_insert ), "%s/%s", path_import, vfs[ i ].name );
 
 			// append file to package

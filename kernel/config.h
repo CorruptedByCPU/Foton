@@ -141,6 +141,7 @@ struct KERNEL {
 	struct KERNEL_TSS_STRUCTURE				tss_table;
 
 	// variables of VFS management functions
-	uint64_t	vfs_root;
-	// struct EXCHANGE_KERNEL_VFS_STRUCTURE				vfs_base_address;
+	struct NEW_KERNEL_VFS_STRUCTURE			*NEW_vfs_base_address;
+	uint64_t	NEW_vfs_root;
+	uint8_t		NEW_vfs_semaphore;
 };
