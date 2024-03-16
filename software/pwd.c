@@ -12,21 +12,21 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	int64_t i = 0;
 
 	// array of files path
-	struct STD_FILE_OLD_STRUCTURE *dir = malloc( sizeof( struct STD_FILE_OLD_STRUCTURE ) * (i + 1) );
+	struct DEPRECATED_STD_FILE_STRUCTURE *dir = malloc( sizeof( struct DEPRECATED_STD_FILE_STRUCTURE ) * (i + 1) );
 
 	// get properties of current directory
 	uint8_t link[ 2 ] = "..";
 	for( uint8_t j = 0; j < sizeof( link ) - 1; j++ ) dir[ i ].name[ dir[ i ].length++ ] = link[ j ];
-	std_file( (struct STD_FILE_OLD_STRUCTURE *) &dir[ i ] );
+	std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &dir[ i ] );
 
 	// check previous directory names
 	while( *dir[ i ].name != STD_ASCII_SLASH ) {
 		// prepare space for dir properties
-		dir = realloc( dir, sizeof( struct STD_FILE_OLD_STRUCTURE ) * ++i );
+		dir = realloc( dir, sizeof( struct DEPRECATED_STD_FILE_STRUCTURE ) * ++i );
 
 		// get directory properties
 		for( uint8_t j = 0; j < sizeof( link ); j++ ) dir[ i ].name[ dir[ i ].length++ ] = link[ j ];
-		std_file( (struct STD_FILE_OLD_STRUCTURE *) &dir[ i ] );
+		std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &dir[ i ] );
 
 		// change directory to previous one
 		std_cd( (uint8_t *) &link );

@@ -229,7 +229,7 @@ uint64_t std_sleep( uint64_t units ) {
 	return std_syscall_value_unsigned();
 }
 
-uint64_t std_file( struct STD_FILE_OLD_STRUCTURE *file ) {
+uint64_t std_file( struct DEPRECATED_STD_FILE_STRUCTURE *file ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE), "D" (file) );
 
@@ -237,7 +237,7 @@ uint64_t std_file( struct STD_FILE_OLD_STRUCTURE *file ) {
 	return std_syscall_value_unsigned();
 }
 
-void std_file_read( struct STD_FILE_OLD_STRUCTURE *file, uintptr_t target ) {
+void std_file_read( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t target ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_READ), "D" (file), "S" (target) );
 
@@ -277,7 +277,7 @@ uint64_t std_time( void ) {
 	return std_syscall_value_unsigned();
 }
 
-int64_t std_file_write( struct STD_FILE_OLD_STRUCTURE *file, uintptr_t source, uint64_t byte ) {
+int64_t std_file_write( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t source, uint64_t byte ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_WRITE), "D" (file), "S" (source), "d" (byte) );
 

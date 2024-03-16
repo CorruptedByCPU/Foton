@@ -10,7 +10,7 @@
 	//----------------------------------------------------------------------
 	// variables, routines, procedures
 	//----------------------------------------------------------------------
-	struct STD_FILE_OLD_STRUCTURE file = { EMPTY };
+	struct DEPRECATED_STD_FILE_STRUCTURE file = { EMPTY };
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// user selected file?
@@ -22,7 +22,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	//----------------------------------------------------------------------
 
 	// retrieve properties of selected file
-	if( ! std_file( (struct STD_FILE_OLD_STRUCTURE *) &file ) ) return -1;	// file not found
+	if( ! std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file ) ) return -1;	// file not found
 
 	// assign area for file content
 	uint8_t *content = (uint8_t *) malloc( file.length_byte );
@@ -31,7 +31,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	if( ! content ) return -1;	// no
 
 	// load directory content
-	std_file_read( (struct STD_FILE_OLD_STRUCTURE *) &file, (uintptr_t) content );
+	std_file_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file, (uintptr_t) content );
 
 	//----------------------------------------------------------------------
 

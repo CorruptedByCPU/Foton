@@ -9,17 +9,14 @@
 
 	struct KERNEL_EXEC_STRUCTURE_INIT {
 		uint8_t				level;
-		struct STD_FILE_OLD_STRUCTURE	file;
+		struct NEW_KERNEL_VFS_STRUCTURE	*socket;
+		struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES	properties;
 		struct KERNEL_TASK_STRUCTURE	*task;
 		uintptr_t			workbench_address;
 		uintptr_t			base_address;
 		uint64_t			page;
 		uint8_t				*stack;
 		uint64_t			stack_byte;
-				struct KERNEL_VFS_STRUCTURE_PROPERTIES	file_properties;
-				uint8_t				*path;
-		uint64_t			path_length;
-		struct KERNEL_VFS_STRUCTURE	*socket;
 	};
 
 	// returns new process ID or error

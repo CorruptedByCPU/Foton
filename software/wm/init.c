@@ -40,7 +40,7 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// properties of file
-	struct STD_FILE_OLD_STRUCTURE workbench_file = { EMPTY };
+	struct DEPRECATED_STD_FILE_STRUCTURE workbench_file = { EMPTY };
 
 	// properties of image
 	struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = EMPTY;
@@ -50,12 +50,12 @@ uint8_t wm_init( void ) {
 	for( uint64_t i = 0; i < sizeof( wallpaper_path ); i++ ) workbench_file.name[ workbench_file.length++ ] = wallpaper_path[ i ];
 
 	// retrieve information file
-	if( std_file( (struct STD_FILE_OLD_STRUCTURE *) &workbench_file ) ) {
+	if( std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &workbench_file ) ) {
 		// assign area for file
 		workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( workbench_file.length_byte );
 
 		// load file content
-		if( workbench_image ) std_file_read( (struct STD_FILE_OLD_STRUCTURE *) &workbench_file, (uintptr_t) workbench_image );
+		if( workbench_image ) std_file_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &workbench_file, (uintptr_t) workbench_image );
 	}
 
 	// create workbench object
@@ -129,7 +129,7 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// properties of file
-	struct STD_FILE_OLD_STRUCTURE cursor_file = { EMPTY };
+	struct DEPRECATED_STD_FILE_STRUCTURE cursor_file = { EMPTY };
 
 	// properties of image
 	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = EMPTY;
@@ -139,12 +139,12 @@ uint8_t wm_init( void ) {
 	for( uint64_t i = 0; i < sizeof( cursor_path ); i++ ) cursor_file.name[ cursor_file.length++ ] = cursor_path[ i ];
 
 	// retrieve information about module file
-	if( std_file( (struct STD_FILE_OLD_STRUCTURE *) &cursor_file ) ) {
+	if( std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &cursor_file ) ) {
 		// assign area for file
 		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( cursor_file.length_byte );
 
 		// load file content
-		if( cursor_image ) std_file_read( (struct STD_FILE_OLD_STRUCTURE *) &cursor_file, (uintptr_t) cursor_image );
+		if( cursor_image ) std_file_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &cursor_file, (uintptr_t) cursor_image );
 
 		// create cursor object
 		wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
@@ -188,8 +188,9 @@ uint8_t wm_init( void ) {
 	std_thread( (uintptr_t) &wm_release, (uint8_t *) &wm_string_release, sizeof( wm_string_release ) );
 
 	// debug
+	// std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console moko", 12, EMPTY );
-	// std_exec( (uint8_t *) "console moko test.txt", 21, EMPTY );
+	std_exec( (uint8_t *) "console moko test.txt", 21, EMPTY );
 
 	// Window Manager initialized.
 	return TRUE;

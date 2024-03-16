@@ -19,19 +19,16 @@
 		uint8_t		*strtab;
 		struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL	*dynamic_linking;
 		uint64_t	d_entry_count;
-		uint8_t		name_length;
-		uint8_t		name[ LIB_VFS_NAME_limit ];
+		uint16_t	name_length;
+		uint8_t		name[ EXCHANGE_LIB_VFS_NAME_limit ];
 	};
 
 	struct KERNEL_LIBRARY_STRUCTURE_INIT {
 		uint8_t				level;
-		struct STD_FILE_OLD_STRUCTURE	file;
+		struct NEW_KERNEL_VFS_STRUCTURE *socket;
+		struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES	properties;
 		struct KERNEL_LIBRARY_STRUCTURE	*entry;
 		uintptr_t			workbench_address;
-		struct KERNEL_VFS_STRUCTURE_PROPERTIES	file_properties;
-				uint8_t				*path;
-		uint64_t			path_length;
-		struct KERNEL_VFS_STRUCTURE	*socket;
 		uintptr_t			base_address;
 		uint64_t			page;
 	};

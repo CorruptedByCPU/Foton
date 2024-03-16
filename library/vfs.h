@@ -9,20 +9,33 @@
 		#include	"./string.h"
 	#endif
 
-	#define	LIB_VFS_MAGIC			0x53465623	// "#VFS"
-	#define	LIB_VFS_NAME_limit		16
-	#define	LIB_VFS_FILE_default		2
+	#define	NEW_LIB_VFS_magic	0x53465623	// "#VFS"
+	#define	NEW_LIB_VFS_block	STD_PAGE_byte
 
-	#define	LIB_VFS_BLOCK_byte		4096
+	#define	EXCHANGE_LIB_VFS_NAME_limit	255
 
-	struct	LIB_VFS_STRUCTURE {
+	struct EXCHANGE_LIB_VFS_STRUCTURE {
 		uintptr_t	offset;
 		uint64_t	byte;
 		uint8_t		type;
 		uint8_t		name_length;
-		uint8_t		name[ LIB_VFS_NAME_limit ];
+		uint8_t		name[ EXCHANGE_LIB_VFS_NAME_limit ];
+		uint16_t	DEPRECATED_mode;
+		uint16_t	DEPRECATED_uid;
+		uint16_t	DEPRECATED_guid;
 	};
 
-	// returns TRUE if at specified base address is a VFS structure
-	uint8_t lib_vfs_identify( uintptr_t base_address, uint64_t byte );
+// OLD ========================================================================
+
+	#define	DEPRECATED_LIB_VFS_align			16
+	#define	DEPRECATED_LIB_VFS_base			64
+	#define	DEPRECATED_LIB_VFS_length			4
+	#define	DEPRECATED_LIB_VFS_magic			0x53465623	// "#VFS"
+	#define	DEPRECATED_LIB_VFS_shift			6
+	#define	DEPRECATED_LIB_VFS_default			2
+
+	#define	DEPRECATED_LIB_VFS_BLOCK_size		4096
+
+	// returns TRUE if at specified address is VFS structure
+	uint8_t DEPRECATED_lib_vfs_check( uintptr_t address, uint64_t size_byte );
 #endif

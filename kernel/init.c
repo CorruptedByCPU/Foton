@@ -7,7 +7,6 @@
 	//----------------------------------------------------------------------
 	#include	"../library/elf.c"
 	#include	"../library/string.c"
-	#include	"../library/vfs.h"
 	//----------------------------------------------------------------------
 	// drivers
 	//----------------------------------------------------------------------
@@ -26,6 +25,7 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
+	#include	"vfs.h"
 	#include	"time.h"
 	#include	"idt.h"
 	#include	"gdt.h"
@@ -38,11 +38,10 @@
 	#include	"memory.h"
 	#include	"page.h"
 	#include	"task.h"
+	#include	"exec.h"
 	#include	"tss.h"
 	#include	"storage.h"
-	#include	"vfs.h"
 	#include	"library.h"
-	#include	"exec.h"
 	#include	"module.h"
 	#include	"ipc.h"
 	#include	"stream.h"
@@ -148,8 +147,8 @@ void _entry( void ) {
 	// register all available storage devices
 	kernel_init_storage();
 
-	// initialize root filesystem
-	kernel_init_vfs();
+	// initialize VFS storages
+	NEW_kernel_init_vfs();
 
 	// create library management space
 	kernel_init_library();

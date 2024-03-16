@@ -29,35 +29,31 @@ uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf ) {
 	return TRUE;
 }
 
-static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *tmp ) {
+static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *library ) {
 	// undo performed operations depending on cavity
-	switch( tmp -> level ) {
-		case 7: {
+	switch( library -> level ) {
+		case 6: {
 			// cannot foresee an error at this level and above
 		}
-		case 6: {
-			// detach library area from global paging array
-			kernel_page_detach( (uintptr_t *) kernel -> page_base_address, tmp -> base_address, tmp -> page );
-		}
 		case 5: {
-			// release library area
-			kernel_memory_dispose( kernel -> library_map_address, (tmp -> base_address - KERNEL_LIBRARY_base_address) >> STD_SHIFT_PAGE, tmp -> page );
+			// detach library area from global paging array
+			kernel_page_detach( (uintptr_t *) kernel -> page_base_address, library -> base_address, library -> page );
 		}
 		case 4: {
-			// release workbench area
-			kernel_memory_release( tmp -> workbench_address, MACRO_PAGE_ALIGN_UP( tmp -> file.length_byte ) >> STD_SHIFT_PAGE );
+			// release library area
+			kernel_memory_dispose( kernel -> library_map_address, (library -> base_address - KERNEL_LIBRARY_base_address) >> STD_SHIFT_PAGE, library -> page );
 		}
 		case 3: {
-			// close file
-			kernel_vfs_file_close( tmp -> socket );
+			// release workbench area
+			kernel_memory_release( library -> workbench_address, MACRO_PAGE_ALIGN_UP( library -> properties.byte ) >> STD_SHIFT_PAGE );
 		}
 		case 2: {
-			// release path area
-			kernel_memory_release( (uintptr_t) tmp -> path, MACRO_PAGE_ALIGN_UP( tmp -> path_length ) >> STD_SHIFT_PAGE );
+			// close file
+			NEW_kernel_vfs_file_close( library -> socket );
 		}
 		case 1: {
 			// release library entry
-			tmp -> entry -> flags = EMPTY;
+			library -> entry -> flags = EMPTY;
 		}
 	}
 }
@@ -241,48 +237,34 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.level++;
 
 	// default location of libraries
-	uint8_t path_default[ 12 ] = "/system/lib/";
-	library.path_length = length + sizeof( path_default ) + 1;
-
-MACRO_DEBUF();
-
-	// assign area for path to file
 	uint64_t path_length = 0;
-	uint8_t *path = (uint8_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( library.path_length ) >> STD_SHIFT_PAGE );
-
-	// assigned area for file path?
-	if( ! path ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
-
-	// checkpoint reached: allocated memory for path
-	library.level++;
+	uint8_t path_default[ 12 ] = "/system/lib/";
 
 	// set file path name
-	for( uint64_t i = 0; i < sizeof( path_default ); i++ ) path[ path_length++ ] = path_default[ i ];
-	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ]; name[ path_length ] = EMPTY;
+	uint8_t path[ 12 + EXCHANGE_LIB_VFS_NAME_limit ];
+	for( uint64_t i = 0; i < 12; i++ ) path[ path_length++ ] = path_default[ i ];
+	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
 
-	// open file from prepared path
-	library.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length, KERNEL_VFS_MODE_read );
+	// retrieve information about library file
+	library.socket = (struct NEW_KERNEL_VFS_STRUCTURE *) NEW_kernel_vfs_file_open( path, path_length, NEW_KERNEL_VFS_MODE_read );
 
-	// file exist?
+	// if library does not exist
 	if( ! library.socket ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
 
-	// checkpoint reached: file exist
+	// checkpoint reached: file socket opened
 	library.level++;
 
 	// gather information about file
-	library.file_properties = kernel_vfs_file_properties( library.socket );
+	NEW_kernel_vfs_file_properties( library.socket, (struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES *) &library.properties );
 
-	// prepare area for workbench 
-	library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.file_properties.byte ) >> STD_SHIFT_PAGE );
-
-	// workbench area allocated?
-	if( ! library.workbench_address ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
+	// assign area for workbench
+	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
 
 	// checkpoint reached: assigned area for temporary file
 	library.level++;
 
-	// load whole library into workbench area
-	kernel_vfs_file_read( library.socket, (uint8_t *) library.workbench_address, EMPTY, library.file_properties.byte );
+	// load library into workbench space
+	NEW_kernel_vfs_file_read( library.socket, (uint8_t *) library.workbench_address, EMPTY, library.properties.byte );
 
 	//----------------------------------------------------------------------
 
@@ -364,13 +346,7 @@ MACRO_DEBUF();
 	library.entry -> flags |= KERNEL_LIBRARY_FLAG_active;
 
 	// release workbench space
-	kernel_memory_release( library.workbench_address, MACRO_PAGE_ALIGN_UP( library.file.length_byte ) >> STD_SHIFT_PAGE );
-
-	// close file
-	kernel_vfs_file_close( library.socket );
-	
-	// release path area
-	kernel_memory_release( (uintptr_t) library.path, MACRO_PAGE_ALIGN_UP( library.path_length ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( library.workbench_address, MACRO_PAGE_ALIGN_UP( library.properties.byte ) >> STD_SHIFT_PAGE );
 
 	// library loaded
 	return TRUE;
