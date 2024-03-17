@@ -35,6 +35,7 @@ extern	kernel_syscall_ipc_receive_by_type
 extern	kernel_syscall_microtime
 extern	kernel_syscall_time
 extern	kernel_syscall_file_write
+extern	NEW_kernel_syscall_file_open
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -78,6 +79,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_microtime
 	dq	kernel_syscall_time
 	dq	kernel_syscall_file_write
+	dq	NEW_kernel_syscall_file_open
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

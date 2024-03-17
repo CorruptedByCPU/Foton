@@ -64,6 +64,20 @@ void *realloc( void *source, size_t byte ) {
 	return source;
 }
 
+void *calloc( size_t byte ) {
+	// assign place for area of definied size
+	uint8_t *area = (uint8_t *) malloc( byte );
+
+	// area obtained?
+	if( ! area ) return EMPTY;	// no
+	
+	// clean up area
+	for( uint64_t i = 0; i < byte; i++ ) area[ i ] = EMPTY;
+
+	// return allocated area pointer
+	return (void *) area;
+}
+
 void free( void *source ) {
 	// move pointer to metadata area
 	uint64_t *ptr = (uint64_t *) MACRO_PAGE_ALIGN_DOWN( (uintptr_t) source );
@@ -583,4 +597,24 @@ void exit( void ) {
 	// execute leave out routine
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_EXIT) );
 	std_syscall_empty();
+}
+
+struct NEW_STD_FILE_STRUCTURE *fopen( uint8_t *path, uint8_t mode ) {
+	// assign area for file structure
+	struct NEW_STD_FILE_STRUCTURE *file = (struct NEW_STD_FILE_STRUCTURE *) malloc( sizeof( struct NEW_STD_FILE_STRUCTURE ) );
+
+	// open new socket for file
+	file -> socket = NEW_std_file_open( path, lib_string_length( path ), mode );
+
+	// if file doesn't exist
+	if( ! file -> socket ) {
+		// release file pointer
+		free( file );
+
+		// cannot open such file
+		return EMPTY;
+	}
+
+	// return file properties
+	return file;
 }

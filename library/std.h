@@ -119,6 +119,13 @@
 	#define	NEW_STD_FILE_TYPE_directory			0b00000100
 	#define	NEW_STD_FILE_TYPE_link				0b00100000
 
+	#define	NEW_STD_FILE_MODE_reserved			0b00000001
+	#define	NEW_STD_FILE_MODE_read				0b00000010
+
+	struct	NEW_STD_FILE_STRUCTURE {
+		uint64_t	socket;
+	};
+
 	#define	DEPRECATED_STD_FILE_MODE_mask				0b0000000111111111
 	#define	DEPRECATED_STD_FILE_MODE_other_exec			0b0000000000000001
 	#define	DEPRECATED_STD_FILE_MODE_other_write			0b0000000000000010
@@ -335,6 +342,7 @@
 	#define	STD_SYSCALL_MICROTIME				0x1B
 	#define	STD_SYSCALL_TIME				0x1C
 	#define	STD_SYSCALL_FILE_WRITE				0x1D
+	#define	NEW_STD_SYSCALL_FILE_OPEN				0x1E
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -462,6 +470,9 @@
 	// writes new file content
 	int64_t std_file_write( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t target, uint64_t byte );
 
+	// open connection to file
+	int64_t NEW_std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode );
+
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
 			uint64_t	length;
@@ -535,6 +546,7 @@
 
 	void *malloc( size_t byte );
 	void *realloc( void *source, size_t byte );
+	void *calloc( size_t byte );
 	void free( void *source );
 	double strtof( uint8_t *string, uint64_t length );
 	uint64_t abs( int64_t i );
@@ -549,4 +561,5 @@
 	uint64_t pow( uint64_t base, uint64_t exponent );
 	uint16_t getkey( void );
 	void exit( void );
+	struct NEW_STD_FILE_STRUCTURE *fopen( uint8_t *path, uint8_t mode );
 #endif

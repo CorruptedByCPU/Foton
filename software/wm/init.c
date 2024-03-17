@@ -190,7 +190,7 @@ uint8_t wm_init( void ) {
 	// debug
 	// std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console moko", 12, EMPTY );
-	std_exec( (uint8_t *) "console moko test.txt", 21, EMPTY );
+	// std_exec( (uint8_t *) "console moko test.txt", 21, EMPTY );
 
 	// Window Manager initialized.
 	return TRUE;
