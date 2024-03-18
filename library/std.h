@@ -123,7 +123,10 @@
 	#define	NEW_STD_FILE_MODE_read				0b00000010
 
 	struct	NEW_STD_FILE_STRUCTURE {
-		uint64_t	socket;
+		int64_t		socket;
+		uint64_t	byte;
+		uint16_t	name_length;
+		uint8_t		name[ EXCHANGE_LIB_VFS_NAME_limit ];
 	};
 
 	#define	DEPRECATED_STD_FILE_MODE_mask				0b0000000111111111
@@ -343,6 +346,8 @@
 	#define	STD_SYSCALL_TIME				0x1C
 	#define	STD_SYSCALL_FILE_WRITE				0x1D
 	#define	NEW_STD_SYSCALL_FILE_OPEN				0x1E
+	#define	NEW_STD_SYSCALL_FILE_CLOSE			0x1F
+	#define	NEW_STD_SYSCALL_FILE				0x20
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -473,6 +478,12 @@
 	// open connection to file
 	int64_t NEW_std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode );
 
+	// close connection to file
+	void NEW_std_file_close( int64_t socket );
+
+	// retrieve file properties
+	void NEW_std_file( struct NEW_STD_FILE_STRUCTURE *file );
+
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
 			uint64_t	length;
@@ -544,6 +555,8 @@
 	// substitute of libc
 	//------------------------------------------------------------------------------
 
+	typedef struct NEW_STD_FILE_STRUCTURE FILE;
+
 	void *malloc( size_t byte );
 	void *realloc( void *source, size_t byte );
 	void *calloc( size_t byte );
@@ -561,5 +574,6 @@
 	uint64_t pow( uint64_t base, uint64_t exponent );
 	uint16_t getkey( void );
 	void exit( void );
-	struct NEW_STD_FILE_STRUCTURE *fopen( uint8_t *path, uint8_t mode );
+	FILE *fopen( const char *path, uint8_t mode );
+	void fclose( FILE *file );
 #endif

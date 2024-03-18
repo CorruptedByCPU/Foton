@@ -594,6 +594,8 @@ int64_t kernel_syscall_file_write( struct DEPRECATED_STD_FILE_STRUCTURE *file, u
 }
 
 int64_t NEW_kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
+	MACRO_DEBUF();
+
 	// retrieve information about module file
 	struct NEW_KERNEL_VFS_STRUCTURE *socket = (struct NEW_KERNEL_VFS_STRUCTURE *) NEW_kernel_vfs_file_open( path, path_length, mode );
 
@@ -602,4 +604,31 @@ int64_t NEW_kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8
 
 	// return socket ID
 	return ((uintptr_t) socket - (uintptr_t) kernel -> NEW_vfs_base_address) / sizeof( struct NEW_KERNEL_VFS_STRUCTURE );
+}
+
+void NEW_kernel_syscall_file_close( int64_t socket ) {
+	// invalid socket value?
+	if( socket >= NEW_KERNEL_VFS_limit ) return;	// yep, ignore
+
+	// close connection to file
+	NEW_kernel_vfs_file_close( (struct NEW_KERNEL_VFS_STRUCTURE *) &kernel -> NEW_vfs_base_address[ socket ] );
+}
+
+void NEW_kernel_syscall_file( struct NEW_STD_FILE_STRUCTURE *file ) {
+	// by default no properties (eg. invalid socket)
+	struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES properties = { EMPTY };
+
+	// invalid socket value?
+	if( file -> socket >= NEW_KERNEL_VFS_limit ) return;	// yep, ignore
+
+	// retrieve information about file
+	NEW_kernel_vfs_file_properties( (struct NEW_KERNEL_VFS_STRUCTURE *) &kernel -> NEW_vfs_base_address[ file -> socket ], (struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES *) &properties );
+
+	// copy important values
+
+	// file size in Bytes
+	file -> byte = properties.byte;
+
+	// file name
+	for( uint64_t i = 0; i < EXCHANGE_LIB_VFS_NAME_limit; i++ ) file -> name[ file -> name_length++ ] = properties.name[ i ];
 }

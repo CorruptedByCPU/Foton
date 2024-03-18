@@ -36,6 +36,8 @@ extern	kernel_syscall_microtime
 extern	kernel_syscall_time
 extern	kernel_syscall_file_write
 extern	NEW_kernel_syscall_file_open
+extern	NEW_kernel_syscall_file_close
+extern	NEW_kernel_syscall_file
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -80,6 +82,8 @@ kernel_syscall_list:
 	dq	kernel_syscall_time
 	dq	kernel_syscall_file_write
 	dq	NEW_kernel_syscall_file_open
+	dq	NEW_kernel_syscall_file_close
+	dq	NEW_kernel_syscall_file
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

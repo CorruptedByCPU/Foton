@@ -191,6 +191,10 @@ uint8_t wm_init( void ) {
 	// std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console moko", 12, EMPTY );
 	// std_exec( (uint8_t *) "console moko test.txt", 21, EMPTY );
+	// 
+	FILE *file = fopen( "test.txt", NEW_STD_FILE_MODE_read );
+	if( file ) { log( "OK\n" ); fclose( file ); }
+	else log( "FAILED!\n" );
 
 	// Window Manager initialized.
 	return TRUE;

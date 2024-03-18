@@ -599,15 +599,15 @@ void exit( void ) {
 	std_syscall_empty();
 }
 
-struct NEW_STD_FILE_STRUCTURE *fopen( uint8_t *path, uint8_t mode ) {
+FILE *fopen( const char *path, uint8_t mode ) {
 	// assign area for file structure
-	struct NEW_STD_FILE_STRUCTURE *file = (struct NEW_STD_FILE_STRUCTURE *) malloc( sizeof( struct NEW_STD_FILE_STRUCTURE ) );
+	FILE *file = malloc( sizeof( FILE ) );
 
 	// open new socket for file
-	file -> socket = NEW_std_file_open( path, lib_string_length( path ), mode );
+	file -> socket = NEW_std_file_open( (uint8_t *) path, lib_string_length( (uint8_t *) path ), mode );
 
 	// if file doesn't exist
-	if( ! file -> socket ) {
+	if( file -> socket < 0 ) {
 		// release file pointer
 		free( file );
 
@@ -615,6 +615,17 @@ struct NEW_STD_FILE_STRUCTURE *fopen( uint8_t *path, uint8_t mode ) {
 		return EMPTY;
 	}
 
-	// return file properties
+	// retrieve properties of opened file
+	NEW_std_file( file );
+
+	// return all file properties
 	return file;
+}
+
+void fclose( FILE *file ) {
+	// apply all changes and close
+	NEW_std_file_close( file -> socket );
+
+	// release file structure
+	free( file );
 }

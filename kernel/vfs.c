@@ -11,14 +11,25 @@ struct NEW_KERNEL_VFS_STRUCTURE *NEW_kernel_vfs_file_open( uint8_t *path, uint64
 	// remove all "white" characters from path
 	length = lib_string_trim( path, length );
 
+	// properties of current directory
+	struct EXCHANGE_LIB_VFS_STRUCTURE *vfs;
+
+	// start from current directory?
+	if( *path != STD_ASCII_SLASH ) {
+		// properties of task
+		struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	
+		// choose task current directory
+		vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) task -> directory;
+	} else
+		// start from default directory
+		vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) kernel -> DEPRECATED_storage_base_address[ kernel -> NEW_storage_root ].device_block;
+
 	// remove all SLASH characters from end of path
 	while( path[ length - 1 ] == '/' ) length--;
 
 	// if path is empty
 	if( ! length ) return EMPTY;	// file not found
-
-	// start from default directory
-	struct EXCHANGE_LIB_VFS_STRUCTURE *vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) kernel -> DEPRECATED_storage_base_address[ kernel -> NEW_storage_root ].device_block;
 
 	// parse path
 	while( TRUE ) {

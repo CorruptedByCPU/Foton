@@ -292,3 +292,19 @@ int64_t NEW_std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
 	// return value
 	return std_syscall_value();
 }
+
+void NEW_std_file_close( int64_t socket ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (NEW_STD_SYSCALL_FILE_CLOSE), "D" (socket) );
+
+	// return nothing
+	return std_syscall_empty();
+}
+
+void NEW_std_file( struct NEW_STD_FILE_STRUCTURE *file ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (NEW_STD_SYSCALL_FILE), "D" (file) );
+
+	// return nothing
+	return std_syscall_empty();
+}
