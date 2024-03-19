@@ -52,7 +52,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			shell_command_length = lib_string_word_remove( shell_command, shell_command_length, STD_ASCII_SPACE );
 
 			// request change of root directory
-			if( ! std_cd( (uint8_t *) shell_command ) ) printf( "No such directory." );
+			if( ! std_cd( (uint8_t *) shell_command, shell_command_length ) ) printf( "No such directory." );
 
 			// new prompt
 			continue;

@@ -40,22 +40,18 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// properties of file
-	struct DEPRECATED_STD_FILE_STRUCTURE workbench_file = { EMPTY };
+	FILE *workbench_file;
 
 	// properties of image
 	struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = EMPTY;
 
-	// set file path name
-	uint8_t wallpaper_path[ 25 ] = "/system/var/wallpaper.tga";
-	for( uint64_t i = 0; i < sizeof( wallpaper_path ); i++ ) workbench_file.name[ workbench_file.length++ ] = wallpaper_path[ i ];
-
 	// retrieve information file
-	if( std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &workbench_file ) ) {
+	if( (workbench_file = fopen( (uint8_t *) "/system/var/wallpaper.tga", NEW_STD_FILE_MODE_read )) ) {
 		// assign area for file
-		workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( workbench_file.length_byte );
+		workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( workbench_file -> byte );
 
 		// load file content
-		if( workbench_image ) std_file_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &workbench_file, (uintptr_t) workbench_image );
+		if( workbench_image ) fread( workbench_file, (uint8_t *) workbench_image, workbench_file -> byte );
 	}
 
 	// create workbench object
@@ -71,7 +67,7 @@ uint8_t wm_init( void ) {
 	if( workbench_image ) {
 		// convert image to RGBA
 		uint32_t *tmp_workbench_image = (uint32_t *) malloc( wm_object_workbench -> size_byte );
-		lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file.length_byte );
+		lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file -> byte );
 
 		// copy scaled image content to workbench object
 		float x_scale_factor = (float) ((float) workbench_image -> width / (float) wm_object_workbench -> width);
@@ -85,6 +81,9 @@ uint8_t wm_init( void ) {
 
 		// release file content
 		// free( workbench_image );
+
+		// close file
+		// fclose( workbench_file );
 	} else
 		// fill workbench with default color
 		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
@@ -129,22 +128,18 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// properties of file
-	struct DEPRECATED_STD_FILE_STRUCTURE cursor_file = { EMPTY };
+	FILE *cursor_file;
 
 	// properties of image
 	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = EMPTY;
 
-	// set file path name
-	uint8_t cursor_path[ 22 ] = "/system/var/cursor.tga";
-	for( uint64_t i = 0; i < sizeof( cursor_path ); i++ ) cursor_file.name[ cursor_file.length++ ] = cursor_path[ i ];
-
 	// retrieve information about module file
-	if( std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &cursor_file ) ) {
+	if( (cursor_file = fopen( (uint8_t *) "/system/var/cursor.tga", NEW_STD_FILE_MODE_read )) ) {
 		// assign area for file
-		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( cursor_file.length_byte );
+		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( cursor_file -> byte );
 
 		// load file content
-		if( cursor_image ) std_file_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &cursor_file, (uintptr_t) cursor_image );
+		if( cursor_image ) fread( cursor_file, (uint8_t *) cursor_image, cursor_file -> byte );
 
 		// create cursor object
 		wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
@@ -166,10 +161,13 @@ uint8_t wm_init( void ) {
 	// if default cursor file found
 	if( cursor_image ) {
 		// copy image content to cursor object
-		lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file.length_byte );
+		lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file -> byte );
 
 		// release file content
 		// free( cursor_image );
+
+		// close file
+		// fclose( cursor_file );
 	}
 
 	// mark window as cursor, so Window Manager will treat it different than others
@@ -188,13 +186,13 @@ uint8_t wm_init( void ) {
 	std_thread( (uintptr_t) &wm_release, (uint8_t *) &wm_string_release, sizeof( wm_string_release ) );
 
 	// debug
-	// std_exec( (uint8_t *) "console", 7, EMPTY );
+	std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console moko", 12, EMPTY );
 	// std_exec( (uint8_t *) "console moko test.txt", 21, EMPTY );
 	// 
-	FILE *file = fopen( "test.txt", NEW_STD_FILE_MODE_read );
-	if( file ) { log( "OK\n" ); fclose( file ); }
-	else log( "FAILED!\n" );
+	// FILE *file = fopen( "test.txt", NEW_STD_FILE_MODE_read );
+	// if( file ) { log( "OK\n" ); fclose( file ); }
+	// else log( "FAILED!\n" );
 
 	// Window Manager initialized.
 	return TRUE;

@@ -599,7 +599,7 @@ void exit( void ) {
 	std_syscall_empty();
 }
 
-FILE *fopen( const char *path, uint8_t mode ) {
+FILE *fopen( uint8_t *path, uint8_t mode ) {
 	// assign area for file structure
 	FILE *file = malloc( sizeof( FILE ) );
 
@@ -628,4 +628,9 @@ void fclose( FILE *file ) {
 
 	// release file structure
 	free( file );
+}
+
+void fread( FILE *file, uint8_t *cache, uint64_t byte ) {
+	// read N Bytes into provided cache
+	NEW_std_file_read( file, cache, byte );
 }

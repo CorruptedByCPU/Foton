@@ -3,9 +3,22 @@
 ===============================================================================*/
 
 void object_load( void ) {
-	// // count materials
-	uint8_t *line = (uint8_t *) &file_material_start;
-	while( line < (uint8_t *) &file_material_end ) {
+	// open material file
+	FILE *file = fopen( (uint8_t *) "/system/var/3d.mtl", NEW_STD_FILE_MODE_read );
+	
+	// assign area for file content
+	uint8_t *file_material_start = malloc( file -> byte );
+	uint8_t *file_material_end = (uint8_t *) file_material_start + file -> byte;
+
+	// read file
+	fread( file, file_material_start, file -> byte );
+
+	// close file
+	fclose( file );
+
+	// count materials
+	uint8_t *line = file_material_start;
+	while( line < file_material_end ) {
 		// material definition?
 		if( lib_string_compare( line, (uint8_t *) &string_material, sizeof( string_material ) ) ) mc++;
 
@@ -17,8 +30,8 @@ void object_load( void ) {
 	material = (struct LIB_RGL_STRUCTURE_MATERIAL *) malloc( sizeof( struct LIB_RGL_STRUCTURE_MATERIAL ) * mc );
 
 	// register materials
-	line = (uint8_t *) &file_material_start;
-	while( line < (uint8_t *) &file_material_end ) {
+	line = file_material_start;
+	while( line < file_material_end ) {
 		// material definition?
 		if( lib_string_compare( line, (uint8_t *) &string_material, sizeof( string_material ) ) ) {
 			// set string pointer to material name
@@ -69,9 +82,25 @@ void object_load( void ) {
 		line += lib_string_length_line( line ) + 1;	// omit line feed character
 	}
 
+	// release file content
+	free( file_material_start );
+
+	// open object file
+	file = fopen( (uint8_t *) "/system/var/3d.obj", NEW_STD_FILE_MODE_read );
+	
+	// assign area for file content
+	uint8_t *file_object_start = malloc( file -> byte );
+	uint8_t *file_object_end = (uint8_t *) file_object_start + file -> byte;
+
+	// read file
+	fread( file, file_object_start, file -> byte );
+
+	// close file
+	fclose( file );
+
 	// count vectors and faces
-	line = (uint8_t *) &file_object_start;
-	while( line < (uint8_t *) &file_object_end ) {
+	line = file_object_start;
+	while( line < file_object_end ) {
 		// vector?
 		if( line[ 0 ] == 'v' ) vc++;
 
@@ -95,8 +124,8 @@ void object_load( void ) {
 	uint64_t material_id = 0;
 
 	// register vectors and faces
-	line = (uint8_t *) &file_object_start;
-	while( line < (uint8_t *) &file_object_end ) {
+	line = file_object_start;
+	while( line < file_object_end ) {
 		// vector?
 		if( *line == 'v' ) {
 			// set point at first value
@@ -173,4 +202,7 @@ void object_load( void ) {
 		// next line from file
 		line += lib_string_length_line( line ) + 1;	// omit line feed character
 	}
+
+	// release file content
+	// free( file_object_start );
 }

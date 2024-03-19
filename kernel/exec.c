@@ -87,6 +87,9 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// load executable into workbench space
 	NEW_kernel_vfs_file_read( exec.socket, (uint8_t *) exec.workbench_address, EMPTY, exec.properties.byte );
 
+	// close file
+	NEW_kernel_vfs_file_close( exec.socket );
+
 	//----------------------------------------------------------------------
 
 	// file contains proper ELF header?

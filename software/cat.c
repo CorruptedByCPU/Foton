@@ -17,26 +17,23 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	if( argc == 1 ) return 0;	// no
 
 	// open file for read
-	struct NEW_STD_FILE_STRUCTURE *file;
-	if( ! (file = fopen( (const char *) argv[ 1 ], NEW_STD_FILE_MODE_read )) ) return STD_ERROR_file_not_found;
-
-	MACRO_DEBUF();
+	FILE *file;
+	if( ! (file = fopen( argv[ 1 ], NEW_STD_FILE_MODE_read )) ) return STD_ERROR_file_not_found;
 
 	// assign area for file content
-	uint8_t *content = (uint8_t *) malloc( file -> byte );
+	uint8_t *content;
+	if( ! (content = (uint8_t *) malloc( file -> byte )) ) return STD_ERROR_memory_low;
 
-	// area acquired?
-	if( ! content ) return -1;	// no
+	// load file content
+	fread( file, content, file -> byte );
 
-	// load directory content
-	// std_file_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file, (uintptr_t) content );
+	// close file
+	fclose( file );
 
 	//----------------------------------------------------------------------
-
-	// amount of files to show
-	// uint64_t file_limit = EMPTY;
-	// for( uint64_t i = 0; i < file.length_byte; i++ )
-		// putc( content[ i ] );
+	// show content
+	for( uint64_t i = 0; i < file -> byte; i++ )
+		putc( content[ i ] );
 
 	// exit
 	return 0;

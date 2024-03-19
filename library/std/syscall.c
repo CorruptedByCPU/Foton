@@ -229,25 +229,9 @@ uint64_t std_sleep( uint64_t units ) {
 	return std_syscall_value_unsigned();
 }
 
-uint64_t std_file( struct DEPRECATED_STD_FILE_STRUCTURE *file ) {
+uint8_t std_cd( uint8_t *path, uint64_t path_length ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE), "D" (file) );
-
-	// return unsigned value
-	return std_syscall_value_unsigned();
-}
-
-void std_file_read( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t target ) {
-	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_READ), "D" (file), "S" (target) );
-
-	// return nothing
-	return std_syscall_empty();
-}
-
-uint8_t std_cd( uint8_t *path ) {
-	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_CD), "D" (path) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_CD), "D" (path), "S" (path_length) );
 
 	// return TRUE/FALSE
 	return std_syscall_bool();
@@ -277,14 +261,6 @@ uint64_t std_time( void ) {
 	return std_syscall_value_unsigned();
 }
 
-int64_t std_file_write( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t source, uint64_t byte ) {
-	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_WRITE), "D" (file), "S" (source), "d" (byte) );
-
-	// return value
-	return std_syscall_value();
-}
-
 int64_t NEW_std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (NEW_STD_SYSCALL_FILE_OPEN), "D" (path), "S" (path_length), "d" (mode) );
@@ -304,6 +280,14 @@ void NEW_std_file_close( int64_t socket ) {
 void NEW_std_file( struct NEW_STD_FILE_STRUCTURE *file ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (NEW_STD_SYSCALL_FILE), "D" (file) );
+
+	// return nothing
+	return std_syscall_empty();
+}
+
+void NEW_std_file_read( struct NEW_STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (NEW_STD_SYSCALL_FILE_READ), "D" (file), "S" (target), "d" (byte) );
 
 	// return nothing
 	return std_syscall_empty();

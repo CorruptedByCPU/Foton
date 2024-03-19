@@ -116,40 +116,22 @@
 	#define	STD_ERROR_file_not_executable			-4
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 
-	#define	NEW_STD_FILE_TYPE_directory			0b00000100
-	#define	NEW_STD_FILE_TYPE_link				0b00100000
+	#define	NEW_STD_FILE_TYPE_default			0b00000001
+	#define	NEW_STD_FILE_TYPE_directory			0b00000010
+	#define	NEW_STD_FILE_TYPE_link				0b00000100
 
 	#define	NEW_STD_FILE_MODE_reserved			0b00000001
 	#define	NEW_STD_FILE_MODE_read				0b00000010
+	#define	NEW_STD_FILE_MODE_write				0b00000100
+	#define	NEW_STD_FILE_MODE_append			0b00001000
 
 	struct	NEW_STD_FILE_STRUCTURE {
 		int64_t		socket;
 		uint64_t	byte;
+		uint64_t	seek;
 		uint16_t	name_length;
 		uint8_t		name[ EXCHANGE_LIB_VFS_NAME_limit ];
 	};
-
-	#define	DEPRECATED_STD_FILE_MODE_mask				0b0000000111111111
-	#define	DEPRECATED_STD_FILE_MODE_other_exec			0b0000000000000001
-	#define	DEPRECATED_STD_FILE_MODE_other_write			0b0000000000000010
-	#define	DEPRECATED_STD_FILE_MODE_other_read			0b0000000000000100
-	#define	DEPRECATED_STD_FILE_MODE_group_exec			0b0000000000001000
-	#define	DEPRECATED_STD_FILE_MODE_group_write			0b0000000000010000
-	#define	DEPRECATED_STD_FILE_MODE_group_read			0b0000000000100000
-	#define	DEPRECATED_STD_FILE_MODE_user_exec				0b0000000001000000
-	#define	DEPRECATED_STD_FILE_MODE_user_write			0b0000000010000000
-	#define	DEPRECATED_STD_FILE_MODE_user_read				0b0000000100000000
-	#define	DEPRECATED_STD_FILE_MODE_sticky				0b0000001000000000
-	#define	DEPRECATED_STD_FILE_MODE_default_directory			(DEPRECATED_STD_FILE_MODE_user_read | DEPRECATED_STD_FILE_MODE_user_write | DEPRECATED_STD_FILE_MODE_user_exec | DEPRECATED_STD_FILE_MODE_group_read | DEPRECATED_STD_FILE_MODE_group_write | DEPRECATED_STD_FILE_MODE_group_exec | DEPRECATED_STD_FILE_MODE_other_read | DEPRECATED_STD_FILE_MODE_other_exec)
-
-	#define	DEPRECATED_STD_FILE_TYPE_fifo				0b00000001
-	#define	DEPRECATED_STD_FILE_TYPE_character_device			0b00000010
-	#define	DEPRECATED_STD_FILE_TYPE_directory				0b00000100
-	#define	DEPRECATED_STD_FILE_TYPE_block_device			0b00001000
-	#define	DEPRECATED_STD_FILE_TYPE_regular_file			0b00010000
-	#define	DEPRECATED_STD_FILE_TYPE_symbolic_link			0b00100000
-	#define	DEPRECATED_STD_FILE_TYPE_socket				0b01000000
-	#define	DEPRECATED_STD_FILE_TYPE_unknown				0b10000000
 
 	struct	DEPRECATED_STD_FILE_STRUCTURE {
 		uint64_t	id_storage;
@@ -338,16 +320,14 @@
 	#define	STD_SYSCALL_STREAM_GET				0x14
 	#define	STD_SYSCALL_MEMORY				0x15
 	#define	STD_SYSCALL_SLEEP				0x16
-	#define	STD_SYSCALL_FILE				0x17
-	#define	STD_SYSCALL_FILE_READ				0x18
+	#define	NEW_STD_SYSCALL_FILE_OPEN			0x17
+	#define	NEW_STD_SYSCALL_FILE_CLOSE			0x18
 	#define	STD_SYSCALL_CD					0x19
 	#define	STD_SYSCALL_IPC_RECEIVE_BY_TYPE			0x1A
 	#define	STD_SYSCALL_MICROTIME				0x1B
 	#define	STD_SYSCALL_TIME				0x1C
-	#define	STD_SYSCALL_FILE_WRITE				0x1D
-	#define	NEW_STD_SYSCALL_FILE_OPEN				0x1E
-	#define	NEW_STD_SYSCALL_FILE_CLOSE			0x1F
-	#define	NEW_STD_SYSCALL_FILE				0x20
+	#define	NEW_STD_SYSCALL_FILE_READ			0x1D
+	#define	NEW_STD_SYSCALL_FILE				0x1E
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -451,17 +431,11 @@
 	// releases AP rest of time for N units, returns N left units if sleep is broken
 	uint64_t std_sleep( uint64_t units );	// 1 unit ~ 1/1024 of second
 
-	// returns ID of file if found or EMPTY
-	uint64_t std_file( struct DEPRECATED_STD_FILE_STRUCTURE *file );
-
-	// loads file content
-	void std_file_read( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t target );
-
 	// print character
 	void putc( uint8_t character );
 
 	// change root directory of current process
-	uint8_t std_cd( uint8_t *path );
+	uint8_t std_cd( uint8_t *path, uint64_t path_length );
 
 	// check for messages of definied type, return PID of source
 	int64_t std_ipc_receive_by_type( uint8_t *data, uint8_t type );
@@ -472,9 +446,6 @@
 	// returns information about current date and time in format: 0x00wwyymmddHHMMSS
 	uint64_t std_time( void );
 
-	// writes new file content
-	int64_t std_file_write( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t target, uint64_t byte );
-
 	// open connection to file
 	int64_t NEW_std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode );
 
@@ -483,6 +454,9 @@
 
 	// retrieve file properties
 	void NEW_std_file( struct NEW_STD_FILE_STRUCTURE *file );
+
+	// read file content into memory
+	void NEW_std_file_read( struct NEW_STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
@@ -574,6 +548,7 @@
 	uint64_t pow( uint64_t base, uint64_t exponent );
 	uint16_t getkey( void );
 	void exit( void );
-	FILE *fopen( const char *path, uint8_t mode );
+	FILE *fopen( uint8_t *path, uint8_t mode );
 	void fclose( FILE *file );
+	void fread( FILE *file, uint8_t *cache, uint64_t byte );
 #endif

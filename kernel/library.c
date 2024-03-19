@@ -266,6 +266,9 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	// load library into workbench space
 	NEW_kernel_vfs_file_read( library.socket, (uint8_t *) library.workbench_address, EMPTY, library.properties.byte );
 
+	// close file
+	NEW_kernel_vfs_file_close( library.socket );
+
 	//----------------------------------------------------------------------
 
 	// file contains proper ELF header?

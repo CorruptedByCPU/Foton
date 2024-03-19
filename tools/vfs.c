@@ -22,26 +22,9 @@
 
 	#define	EMPTY				0
 
-	#define	DEPRECATED_STD_FILE_MODE_mask		0b0000000111111111
-	#define	DEPRECATED_STD_FILE_MODE_other_exec	0b0000000000000001
-	#define	DEPRECATED_STD_FILE_MODE_other_write	0b0000000000000010
-	#define	DEPRECATED_STD_FILE_MODE_other_read	0b0000000000000100
-	#define	DEPRECATED_STD_FILE_MODE_group_exec	0b0000000000001000
-	#define	DEPRECATED_STD_FILE_MODE_group_write	0b0000000000010000
-	#define	DEPRECATED_STD_FILE_MODE_group_read	0b0000000000100000
-	#define	DEPRECATED_STD_FILE_MODE_user_exec		0b0000000001000000
-	#define	DEPRECATED_STD_FILE_MODE_user_write	0b0000000010000000
-	#define	DEPRECATED_STD_FILE_MODE_user_read		0b0000000100000000
-	#define	DEPRECATED_STD_FILE_MODE_sticky		0b0000001000000000
-	#define	DEPRECATED_STD_FILE_MODE_default_directory	(DEPRECATED_STD_FILE_MODE_user_read | DEPRECATED_STD_FILE_MODE_user_write | DEPRECATED_STD_FILE_MODE_user_exec | DEPRECATED_STD_FILE_MODE_group_read | DEPRECATED_STD_FILE_MODE_group_write | DEPRECATED_STD_FILE_MODE_group_exec | DEPRECATED_STD_FILE_MODE_other_read | DEPRECATED_STD_FILE_MODE_other_exec)
-
-	#define	DEPRECATED_STD_FILE_TYPE_fifo		0b00000001
-	#define	DEPRECATED_STD_FILE_TYPE_character_device	0b00000010
-	#define	DEPRECATED_STD_FILE_TYPE_directory		0b00000100
-	#define	DEPRECATED_STD_FILE_TYPE_block_device	0b00001000
-	#define	DEPRECATED_STD_FILE_TYPE_regular_file	0b00010000
-	#define	DEPRECATED_STD_FILE_TYPE_symbolic_link	0b00100000
-	#define	DEPRECATED_STD_FILE_TYPE_socket		0b01000000
+	#define	NEW_STD_FILE_TYPE_default	0b00000001
+	#define	NEW_STD_FILE_TYPE_directory	0b00000010
+	#define	NEW_STD_FILE_TYPE_link		0b00000100
 
 	#define	STD_PAGE_byte			0x1000
 	#define	STD_PAGE_mask			0xFFFFFFFFFFFFF000
@@ -59,13 +42,11 @@ void vfs_default( struct EXCHANGE_LIB_VFS_STRUCTURE *vfs ) {
 	// prepare default symlinks for root directory
 	vfs[ 0 ].offset = EMPTY;
 	vfs[ 0 ].name_length = 1;
-	vfs[ 0 ].DEPRECATED_mode = DEPRECATED_STD_FILE_MODE_default_directory;
-	vfs[ 0 ].type = DEPRECATED_STD_FILE_TYPE_symbolic_link;
+	vfs[ 0 ].type = NEW_STD_FILE_TYPE_link;
 	strncpy( (char *) &vfs[ 0 ].name, name_symlink, 1 );
 	vfs[ 1 ].offset = EMPTY;
 	vfs[ 1 ].name_length = 2;
-	vfs[ 1 ].DEPRECATED_mode = DEPRECATED_STD_FILE_MODE_default_directory;
-	vfs[ 1 ].type = DEPRECATED_STD_FILE_TYPE_symbolic_link;
+	vfs[ 1 ].type = NEW_STD_FILE_TYPE_link;
 	strncpy( (char *) &vfs[ 1 ].name, name_symlink, 2 );
 }
 
@@ -124,9 +105,6 @@ int main( int argc, char *argv[] ) {
 		stat( (char *) path_local, &finfo );	// get file specification
 		vfs[ files_included ].byte = finfo.st_size;
 
-		// mode
-		vfs[ files_included ].DEPRECATED_mode = finfo.st_mode & DEPRECATED_STD_FILE_MODE_mask;
-
 		// type is directory?
 		if( (isdir = opendir( path_local )) != NULL ) {
 			// prepare directory path
@@ -145,13 +123,13 @@ int main( int argc, char *argv[] ) {
 			stat( (char *) path_insert, &finfo );	// get file specification
 			vfs[ files_included ].byte = finfo.st_size;
 
-			vfs[ files_included++ ].type = DEPRECATED_STD_FILE_TYPE_directory;
+			vfs[ files_included++ ].type = NEW_STD_FILE_TYPE_directory;
 
 			continue;
 		}
 
 		// type
-		vfs[ files_included ].type = DEPRECATED_STD_FILE_TYPE_regular_file;
+		vfs[ files_included ].type = NEW_STD_FILE_TYPE_default;
 
 		// next directory entry
 		files_included++;
@@ -200,7 +178,7 @@ int main( int argc, char *argv[] ) {
 		// align file to offset
 		for( uint64_t j = 0; j < MACRO_PAGE_ALIGN_UP( size ) - size; j++ ) fputc( '\x00', fvfs );
 
-		if( vfs[ i ].type & DEPRECATED_STD_FILE_TYPE_directory ) {
+		if( vfs[ i ].type & NEW_STD_FILE_TYPE_directory ) {
 			// combine path to file
 			char path_insert[ sizeof( path_import ) + EXCHANGE_LIB_VFS_NAME_limit + 1];
 			snprintf( path_insert, sizeof( path_insert ), "%s/%s.vfs", path_import, vfs[ i ].name );

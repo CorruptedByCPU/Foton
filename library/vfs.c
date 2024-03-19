@@ -64,7 +64,7 @@ void DEPRECATED_lib_vfs_file( struct EXCHANGE_LIB_VFS_STRUCTURE *vfs, struct DEP
 		// last file from path is requested one?
 		if( length == filename_length && lib_string_compare( (uint8_t *) &file -> name[ i ], (uint8_t *) vfs -> name, filename_length ) ) {
 			// symbolic link selected?
-			while( vfs -> type & DEPRECATED_STD_FILE_TYPE_symbolic_link ) vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) vfs -> offset;
+			while( vfs -> type & NEW_STD_FILE_TYPE_link ) vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) vfs -> offset;
 
 			// set file properties
 			file -> id = (uint64_t) vfs;		// file identificator / pointer to content
@@ -80,10 +80,10 @@ void DEPRECATED_lib_vfs_file( struct EXCHANGE_LIB_VFS_STRUCTURE *vfs, struct DEP
 		}
 
 		// symbolic link selected?
-		while( vfs -> type & DEPRECATED_STD_FILE_TYPE_symbolic_link ) vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) vfs -> offset;
+		while( vfs -> type & NEW_STD_FILE_TYPE_link ) vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) vfs -> offset;
 
 		// if thats not a directory or symbolic
-		if( ! (vfs -> type & DEPRECATED_STD_FILE_TYPE_directory) ) return;	// failed
+		if( ! (vfs -> type & NEW_STD_FILE_TYPE_directory) ) return;	// failed
 
 		// remove parsed directory from path
 		i += filename_length;

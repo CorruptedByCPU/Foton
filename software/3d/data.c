@@ -33,5 +33,3 @@ vector3f *vp;
 struct LIB_RGL_STRUCTURE_TRIANGLE *face;
 
 MACRO_IMPORT_FILE_AS_ARRAY( interface, "./software/3d/interface.json" );
-MACRO_IMPORT_FILE_AS_ARRAY( object, "./root/system/var/3d.obj" );
-MACRO_IMPORT_FILE_AS_ARRAY( material, "./root/system/var/3d.mtl" );

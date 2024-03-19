@@ -72,8 +72,8 @@ void NEW_kernel_init_vfs( void ) {
 		superblock -> offset = kernel -> NEW_storage_base_address[ i ].device_block;
 
 		// realloc VFS structures regarded of memory location
-		// superblock -> byte = NEW_kernel_init_directory( superblock, superblock );
-		superblock -> byte = STD_PAGE_byte;
+		superblock -> byte = NEW_kernel_init_directory( superblock, superblock );
+		// superblock -> byte = STD_PAGE_byte;
 
 		// set new location of storage root
 		kernel -> NEW_storage_base_address[ i ].device_block = (uint64_t) superblock;
@@ -94,6 +94,9 @@ void NEW_kernel_init_vfs( void ) {
 		struct NEW_KERNEL_VFS_STRUCTURE *socket = NEW_kernel_vfs_file_open( string_file_path, sizeof( string_file_path ) - 1, NEW_KERNEL_VFS_MODE_read );
 		if( ! socket ) continue;	// file not found
 
+		// kernels current directory
+		kernel -> task_base_address -> directory = kernel -> NEW_storage_base_address[ i ].device_block;
+
 		// release
 		NEW_kernel_vfs_file_close( socket );
 
@@ -103,46 +106,4 @@ void NEW_kernel_init_vfs( void ) {
 		// done
 		break;
 	}
-}
-
-// OLD ========================================================================
-
-uint64_t DEPRECATED_kernel_init_vfs( struct EXCHANGE_LIB_VFS_STRUCTURE *vfs, struct EXCHANGE_LIB_VFS_STRUCTURE *previous ) {
-	// size of this directory
-	uint64_t size_byte = EMPTY;
-
-	// directory properties
-	struct EXCHANGE_LIB_VFS_STRUCTURE *knot = (struct EXCHANGE_LIB_VFS_STRUCTURE *) vfs -> offset;
-
-	// for every file
-	do {
-		// default file content address
-		knot -> offset += vfs -> offset;
-
-		// modify offset depending on file type
-		switch( knot -> type ) {
-			// for default symbolic links
-			case DEPRECATED_STD_FILE_TYPE_symbolic_link: {
-				// current?
-				if( knot -> name_length == 1 && knot -> name[ 0 ] == STD_ASCII_DOT ) knot -> offset = (uintptr_t) vfs;
-
-				// previous?
-				if( knot -> name_length == 2 && knot -> name[ 0 ] == STD_ASCII_DOT && knot -> name[ 1 ] == STD_ASCII_DOT ) knot -> offset = (uintptr_t) previous;
-
-				break;
-			}
-
-			// for directories
-			case DEPRECATED_STD_FILE_TYPE_directory: {
-				// parse directory entries
-				DEPRECATED_kernel_init_vfs( (struct EXCHANGE_LIB_VFS_STRUCTURE *) knot, vfs ); break; }
-		}
-
-		// entry parsed
-		size_byte += sizeof( struct EXCHANGE_LIB_VFS_STRUCTURE );
-	// until end of file list
-	} while( (++knot) -> name_length );
-
-	// return directory size in pages
-	return MACRO_PAGE_ALIGN_UP( size_byte );
 }

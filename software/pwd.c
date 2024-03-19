@@ -8,33 +8,30 @@
 	#include	"../library/vfs.h"
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	// path directories count
-	int64_t i = 0;
-
-	// array of files path
-	struct DEPRECATED_STD_FILE_STRUCTURE *dir = malloc( sizeof( struct DEPRECATED_STD_FILE_STRUCTURE ) * (i + 1) );
-
-	// get properties of current directory
-	uint8_t link[ 2 ] = "..";
-	for( uint8_t j = 0; j < sizeof( link ) - 1; j++ ) dir[ i ].name[ dir[ i ].length++ ] = link[ j ];
-	std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &dir[ i ] );
+	// array of directories names
+	uint64_t i = 0;
+	FILE **dir = malloc( TRUE );
 
 	// check previous directory names
-	while( *dir[ i ].name != STD_ASCII_SLASH ) {
+	do {
 		// prepare space for dir properties
-		dir = realloc( dir, sizeof( struct DEPRECATED_STD_FILE_STRUCTURE ) * ++i );
+		dir = (FILE **) realloc( dir, sizeof( FILE ) * (i + 1) );
 
 		// get directory properties
-		for( uint8_t j = 0; j < sizeof( link ); j++ ) dir[ i ].name[ dir[ i ].length++ ] = link[ j ];
-		std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &dir[ i ] );
+		dir[ i ] = fopen( (uint8_t *) ".", NEW_STD_FILE_MODE_read );
 
 		// change directory to previous one
-		std_cd( (uint8_t *) &link );
-	}
+		std_cd( (uint8_t *) "..", 2 );
 
-	// show current directory path
-	if( i ) while( --i >= 0 ) printf( "/%s", dir[ i ].name );
-	else printf( "%s", "/" );
+
+	} while( *dir[ i++ ] -> name != STD_ASCII_SLASH );
+
+	// show current directory path, and close parent directories
+	if( --i ) while( i ) { printf( "/%s", dir[ --i ] -> name ); fclose( dir[ i ] ); }
+	else print( "/" );
+
+	// close current directory
+	fclose( dir[ 0 ] );
 
 	// exit
 	return 0;

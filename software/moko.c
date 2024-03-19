@@ -9,7 +9,7 @@
 	#include	"../library/vfs.h"
 
 	struct STD_STREAM_STRUCTURE_META stream_meta;
-	struct DEPRECATED_STD_FILE_STRUCTURE file = { EMPTY };
+	FILE *file = EMPTY;
 
 	uint8_t *document_name = EMPTY;
 
@@ -176,9 +176,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// ignore any passed options, no support yet
 			if( argv[ i ][ 0 ] == '-' ) continue;
 			else {
-				// set file properties
-				file.length = EMPTY;
-				for( uint8_t j = 0; j < lib_string_length( argv[ i ] ); j++ ) file.name[ file.length++ ] = argv[ i ][ j ];
+				// open selected file
+				file = fopen( argv[ i ], NEW_STD_FILE_MODE_read );
 
 				// ignore other file names, no support yet
 				break;
@@ -186,20 +185,17 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 	}
 
-	// if selected, retrieve properties of file
-	if( file.length ) std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file );
-
 	// if file exist
-	if( file.id ) {
+	if( file ) {
 		// set document name
-		sprintf( "%s", (uint8_t *) document_name, file.name );
+		sprintf( "%s", (uint8_t *) document_name, file -> name );
 
 		// alloc area for file content
-		document_area = malloc( file.length_byte );
-		document_size = file.length_byte;
+		document_area = malloc( file -> byte );
+		document_size = file -> byte;
 
 		// load file content into document area
-		std_file_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file, (uintptr_t) document_area );
+		fread( file, document_area, file -> byte );
 	} else {
 		// prepare new document area
 		document_area = malloc( STD_PAGE_byte + 1 );
@@ -251,46 +247,46 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					// by default file wasn't saved, yet
 					uint8_t saved = FALSE;
 
-					// retrieve file name
-					struct DEPRECATED_STD_FILE_STRUCTURE save_as = { EMPTY };
-					for( uint64_t i = 0; i < file.length; i++ ) save_as.name[ save_as.length++ ] = file.name[ i ];
+					// // retrieve file name
+					// struct DEPRECATED_STD_FILE_STRUCTURE save_as = { EMPTY };
+					// for( uint64_t i = 0; i < file.length; i++ ) save_as.name[ save_as.length++ ] = file.name[ i ];
 			
-					// file saved?
-					while( ! saved ) {
-						// ask about file name
-						printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSave as: %s", 0, stream_meta.height - 2, save_as.name );
+					// // file saved?
+					// while( ! saved ) {
+					// 	// ask about file name
+					// 	printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSave as: %s", 0, stream_meta.height - 2, save_as.name );
 
-						// select current or new file name form user
-						save_as.length = lib_input( (uint8_t *) &save_as.name, stream_meta.width - 9, save_as.length, FALSE );
+					// 	// select current or new file name form user
+					// 	save_as.length = lib_input( (uint8_t *) &save_as.name, stream_meta.width - 9, save_as.length, FALSE );
 
-						// if file name provided, retrieve properties of file if exist
-						if( save_as.length ) std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &save_as );
+					// 	// if file name provided, retrieve properties of file if exist
+					// 	if( save_as.length ) std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &save_as );
 
-						// diffrent exist file selected?
-						if( save_as.id != file.id && save_as.id ) {
-							// ask, can we overwrite it
-							print( "\e[G\e[2KOverwrite? (y/N)" );
-							while( TRUE ) {
-								// recieve key
-								uint16_t key = getkey();
-								if( ! key || key & 0x80 ) continue;
+					// 	// diffrent exist file selected?
+					// 	if( save_as.id != file.id && save_as.id ) {
+					// 		// ask, can we overwrite it
+					// 		print( "\e[G\e[2KOverwrite? (y/N)" );
+					// 		while( TRUE ) {
+					// 			// recieve key
+					// 			uint16_t key = getkey();
+					// 			if( ! key || key & 0x80 ) continue;
 
-								// yes?
-								if( key == 'y' || key == 'Y' ) saved = TRUE;
+					// 			// yes?
+					// 			if( key == 'y' || key == 'Y' ) saved = TRUE;
 
-								// done
-								break;
-							}
-						} else
-							// save
-							saved = TRUE;
+					// 			// done
+					// 			break;
+					// 		}
+					// 	} else
+					// 		// save
+					// 		saved = TRUE;
 
 						// write document content to file
 						// if( saved ) std_file_write( (struct DEPRECATED_STD_FILE_STRUCTURE *) &save_as, (uintptr_t) document_area, document_size );
 
 						// restore cursor properties
-						print( "\e[0m\e[2K\e[u" );
-					}
+						// print( "\e[0m\e[2K\e[u" );
+					// }
 
 					// release key state
 					key_ctrl_semaphore = FALSE;
@@ -298,15 +294,15 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					// document saved
 					document_modified_semaphore = FALSE;
 
-					// update file name
-					file.length = 0;
-					for( uint64_t i = 0; i < save_as.length; i++ ) file.name[ file.length++ ] = save_as.name[ i ]; file.name[ file.length ] = STD_ASCII_TERMINATOR;
+					// // update file name
+					// file -> name_length = 0;
+					// for( uint64_t i = 0; i < save_as.length; i++ ) file.name[ file.length++ ] = save_as.name[ i ]; file.name[ file.length ] = STD_ASCII_TERMINATOR;
 
-					// set document name
-					printf( "\eX%s\e\\", file.name );
+					// // set document name
+					// printf( "\eX%s\e\\", file.name );
 
-					// update menu state
-					draw_menu();
+					// // update menu state
+					// draw_menu();
 
 					// done
 					break;

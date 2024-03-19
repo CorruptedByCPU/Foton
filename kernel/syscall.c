@@ -509,42 +509,36 @@ uint64_t kernel_syscall_sleep( uint64_t units ) {
 	return units;
 }
 
-uint64_t kernel_syscall_file( struct DEPRECATED_STD_FILE_STRUCTURE *file ) {
-	// retrieve information about file
-	file -> id_storage = kernel -> DEPRECATED_storage_root_id;
-	DEPRECATED_kernel_storage_file( file );
+uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
+	// try to open provided path
+	struct NEW_KERNEL_VFS_STRUCTURE *socket = (struct NEW_KERNEL_VFS_STRUCTURE *) NEW_kernel_vfs_file_open( path, path_length, NEW_STD_FILE_MODE_read );
 
-	// return file id or EMPTY if not found
-	return file -> id;
-}
+	// if file doesn't exist
+	if( ! socket ) return FALSE;
 
-void kernel_syscall_file_read( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t target ) {
-	// load file content	
-	DEPRECATED_kernel_storage_read( file, target );
-}
+	// directory change semaphore
+	uint8_t flag = FALSE;
 
-uint8_t kernel_syscall_cd( uint8_t *path ) {
-	// properties of directory at end of path
-	struct DEPRECATED_STD_FILE_STRUCTURE file = { EMPTY };
-
-	// copy path information to file properties
-	for( uint64_t i = 0; i < lib_string_length( path ); i++ ) file.name[ file.length++ ] = path[ i ];
-
-	// retrieve information about file
-	file.id_storage = kernel -> DEPRECATED_storage_root_id;
-	DEPRECATED_kernel_storage_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file );
+	// properties of opened file
+	struct EXCHANGE_LIB_VFS_STRUCTURE *vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) socket -> knot;
 
 	// it is a directory?
-	if( ! (file.type & DEPRECATED_STD_FILE_TYPE_directory) ) return FALSE;	// no
+	if( vfs -> type & NEW_STD_FILE_TYPE_directory ) {
+		// current task properties
+		struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+		// set new root directory of current process
+		task -> directory = socket -> knot;
 
-	// set new root directory of current process
-	task -> directory = file.id;
+		// directory changed
+		flag = TRUE;
+	}
 
-	// directory changed
-	return TRUE;
+	// close file
+	NEW_kernel_vfs_file_close( socket );
+
+	// done
+	return flag;
 }
 
 int64_t kernel_syscall_ipc_receive_by_type( uint8_t *data, uint8_t type ) {
@@ -585,17 +579,7 @@ uint64_t kernel_syscall_time( void ) {
 	return driver_rtc_time();
 }
 
-int64_t kernel_syscall_file_write( struct DEPRECATED_STD_FILE_STRUCTURE *file, uintptr_t target, uint64_t byte ) {
-	// write file content	
-	DEPRECATED_kernel_storage_write( file, target, byte );
-
-	// return EMPTY
-	return EMPTY;
-}
-
 int64_t NEW_kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
-	MACRO_DEBUF();
-
 	// retrieve information about module file
 	struct NEW_KERNEL_VFS_STRUCTURE *socket = (struct NEW_KERNEL_VFS_STRUCTURE *) NEW_kernel_vfs_file_open( path, path_length, mode );
 
@@ -608,7 +592,7 @@ int64_t NEW_kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8
 
 void NEW_kernel_syscall_file_close( int64_t socket ) {
 	// invalid socket value?
-	if( socket >= NEW_KERNEL_VFS_limit ) return;	// yep, ignore
+	if( socket > NEW_KERNEL_VFS_limit ) return;	// yep, ignore
 
 	// close connection to file
 	NEW_kernel_vfs_file_close( (struct NEW_KERNEL_VFS_STRUCTURE *) &kernel -> NEW_vfs_base_address[ socket ] );
@@ -619,7 +603,7 @@ void NEW_kernel_syscall_file( struct NEW_STD_FILE_STRUCTURE *file ) {
 	struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES properties = { EMPTY };
 
 	// invalid socket value?
-	if( file -> socket >= NEW_KERNEL_VFS_limit ) return;	// yep, ignore
+	if( file -> socket > NEW_KERNEL_VFS_limit ) return;	// yep, ignore
 
 	// retrieve information about file
 	NEW_kernel_vfs_file_properties( (struct NEW_KERNEL_VFS_STRUCTURE *) &kernel -> NEW_vfs_base_address[ file -> socket ], (struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES *) &properties );
@@ -631,4 +615,15 @@ void NEW_kernel_syscall_file( struct NEW_STD_FILE_STRUCTURE *file ) {
 
 	// file name
 	for( uint64_t i = 0; i < EXCHANGE_LIB_VFS_NAME_limit; i++ ) file -> name[ file -> name_length++ ] = properties.name[ i ];
+}
+
+void NEW_kernel_syscall_file_read( struct NEW_STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte ) {
+	// invalid socket value?
+	if( file -> socket > NEW_KERNEL_VFS_limit ) return;	// yep, ignore
+
+	// pass file content to process memory
+	NEW_kernel_vfs_file_read( (struct NEW_KERNEL_VFS_STRUCTURE *) &kernel -> NEW_vfs_base_address[ file -> socket ], target, file -> seek, byte );
+
+	// next file Bytes content
+	file -> seek += byte;
 }

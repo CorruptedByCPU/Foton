@@ -19,6 +19,11 @@
 	uint8_t show_hidden	= FALSE;
 	uint8_t	show_properties	= FALSE;
 
+	struct LS_STRUCTURE {
+		FILE		*file;
+		uint64_t	argv;
+	};
+
 uint8_t ls_units[] = { ' ', 'K', 'M', 'G', 'T' };
 
 void ls_format( uint64_t bytes ) {
@@ -32,32 +37,50 @@ void ls_format( uint64_t bytes ) {
 }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	// by default load current directory content
-	uint8_t path[] = ".";
-	for( uint8_t i = 0; i < sizeof( path ) - 1; i++ ) file.name[ file.length++ ] = path[ i ];
+	// array of directories
+	uint64_t i = 0;
+	struct LS_STRUCTURE *dir = malloc( TRUE );
 
 	// some arguments provided?
 	if( argc > 1 ) {	// yes
-		for( uint64_t i = 1; i < argc; i++ ) {	// change behavior
+		for( uint64_t j = 1; j < argc; j++ ) {	// change behavior
 			// option?
-			if( argv[ i ][ 0 ] == '-' ) {
+			if( argv[ j ][ 0 ] == '-' ) {
 				// options
 				uint8_t o = EMPTY;
-				while( argv[ i ][ ++o ] ) {
+				while( argv[ j ][ ++o ] ) {
 					// show hidden?
-					if( argv[ i ][ o ] == 'a' ) show_hidden = TRUE;	// yes
+					if( argv[ j ][ o ] == 'a' ) show_hidden = TRUE;	// yes
 
 					// properties of every file?
-					if( argv[ i ][ o ] == 'l' ) show_properties = TRUE;	// yes
+					if( argv[ j ][ o ] == 'l' ) show_properties = TRUE;	// yes
 				}
-			// then should be path to file/directory
+			// then it should be directory/path
 			} else {
-				// load content of last selected file/directory
-				file.length = EMPTY;
-				for( uint8_t j = 0; j < lib_string_length( argv[ i ] ); j++ ) file.name[ file.length++ ] = argv[ i ][ j ];
+				// prepare space for directory properties
+				dir = (struct LS_STRUCTURE *) realloc( dir, sizeof( struct LS_STRUCTURE ) * (i + 1) );
+
+				// get directory properties
+				if( (dir[ i ].file = fopen( argv[ j ], NEW_STD_FILE_MODE_read )) ) {
+					// assign argv entry to directory entry
+					dir[ i ].argv = j;
+
+					// directory opened
+					i++;
+				}
+				else {
+					// directory not found
+					printf( "Directory '%s' not found.\n", argv[ j ] );
+
+					// end of program
+					return STD_ERROR_file_not_found;
+				}
 			}
 		}
 	}
+
+	// if no directoris selected inside arguments, open current directory
+	if( ! i ) dir[ i++ ].file = fopen( (uint8_t *) ".", NEW_STD_FILE_MODE_read );
 
 	//----------------------------------------------------------------------
 
@@ -66,87 +89,98 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	//----------------------------------------------------------------------
 
-	// retrieve properties of current directory content
-	if( ! std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file ) ) return -1;	// file not found
+	// show content of each directory
+	for( uint64_t j = 0; j < i; j++ ) {
+		// show few directories?
+		if( i > 1 ) printf( "\e[0m%s:\n", argv[ dir[ j ].argv ] );
 
-	// assign area for directory content
-	struct EXCHANGE_LIB_VFS_STRUCTURE *vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) malloc( file.length_byte );
+		// assign area for directory content
+		struct EXCHANGE_LIB_VFS_STRUCTURE *vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) malloc( dir[ j ].file -> byte );
 
-	// area acquired?
-	if( ! vfs ) return -1;	// no
+		// area acquired?
+		if( ! vfs ) return STD_ERROR_memory_low;	// no
 
-	// load directory content
-	std_file_read( (struct DEPRECATED_STD_FILE_STRUCTURE *) &file, (uintptr_t) vfs );
+		// load directory content
+		fread( dir[ j ].file, (uint8_t *) vfs, dir[ j ].file -> byte );
 
-	//----------------------------------------------------------------------
+		//----------------------------------------------------------------------
 
-	uint16_t column = 0;
-	uint16_t column_width = LS_MARGIN;
+		uint16_t column = 0;
+		uint16_t column_width = LS_MARGIN;
 
-	// amount of files to show
-	uint64_t file_limit = EMPTY;
-	while( vfs[ file_limit ].name_length ) {
-		// set longest file name as column width
-		if( column_width <= vfs[ file_limit ].name_length ) column_width = vfs[ file_limit ].name_length + LS_MARGIN;
-
-		// next file
-		file_limit++;
-	}
-
-	// prepare column movement sequence
-	uint8_t column_string[ 8 + 1 ] = { EMPTY };
-	sprintf( "\e[%uC", (uint8_t *) &column_string, column_width );
-
-	// parse each file
-	for( uint64_t i = 0; i < file_limit; i++ ) {
-		// show hidden?
-		if( vfs[ i ].name[ 0 ] == '.' && ! show_hidden ) continue;	// no
-
-		// properties mode?
-		if( show_properties )
-			// size of file
-			ls_format( vfs[ i ].byte );
-
-		// cannot fit name in this column?
-		if( column + vfs[ i ].name_length >= stream_meta.width ) {
-			// start from new line
-			print( "\n" );
-
-			// first column
-			column = 0;
-		} else
-			// move cursor to next column
-			if( column ) printf( "%s", column_string );
-
-		// change color by type
-		switch( vfs[ i ].type ) {
-			case DEPRECATED_STD_FILE_TYPE_regular_file: {
-				// file is executable?
-				if( vfs[ i ].DEPRECATED_mode & DEPRECATED_STD_FILE_MODE_user_exec ) print( "\e[38;5;47m" );	// yes
-				else print( "\e[38;5;253m" );	// no
-				
-				// done
-				break;
-			}
-			case DEPRECATED_STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
-			case DEPRECATED_STD_FILE_TYPE_symbolic_link: { print( "\e[38;5;45m" ); break; }
-		}
-
-		// properties mode?
-		if( show_properties ) {
-			// name of file
-			printf( "%s\n", (uint8_t *) &vfs[ i ].name );
+		// amount of files to show
+		uint64_t file_limit = EMPTY;
+		while( vfs[ file_limit ].name_length ) {
+			// set longest file name as column width
+			if( column_width <= vfs[ file_limit ].name_length ) column_width = vfs[ file_limit ].name_length + LS_MARGIN;
 
 			// next file
-			continue;
+			file_limit++;
 		}
 
-		// show file name
-		printf( "\e[s%s\e[u\e[0m", (uint8_t *) &vfs[ i ].name );
+		// prepare column movement sequence
+		uint8_t column_string[ 8 + 1 ] = { EMPTY };
+		sprintf( "\e[%uC", (uint8_t *) &column_string, column_width );
 
-		// next column position
-		column += column_width;
+		// parse each file
+		for( uint64_t k = 0; k < file_limit; k++ ) {
+			// show hidden?
+			if( vfs[ k ].name[ 0 ] == '.' && ! show_hidden ) continue;	// no
+
+			// properties mode?
+			if( show_properties )
+				// size of file
+				ls_format( vfs[ k ].byte );
+
+			// cannot fit name in this column?
+			if( column + vfs[ k ].name_length >= stream_meta.width ) {
+				// start from new line
+				print( "\n" );
+
+				// first column
+				column = 0;
+			} else
+				// move cursor to next column
+				if( column ) printf( "%s", column_string );
+
+			// change color by type
+			switch( vfs[ k ].type ) {
+				case NEW_STD_FILE_TYPE_default: { print( "\e[38;5;253m" ); break; }
+				case NEW_STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
+				case NEW_STD_FILE_TYPE_link: { print( "\e[38;5;45m" ); break; }
+			}
+
+			// properties mode?
+			if( show_properties ) {
+				// name of file
+				printf( "%s\n", (uint8_t *) &vfs[ k ].name );
+
+				// next file
+				continue;
+			}
+
+			// show file name
+			printf( "\e[s%s\e[u\e[0m", (uint8_t *) &vfs[ k ].name );
+
+			// next column position
+			column += column_width;
+
+			// last file showed somewhere far in column
+			if( k + 1 == file_limit && column ) print( "\n" );
+		}
+
+		// first directory showed?
+		if( i > 1 && j + 1 < i ) print( "\n" );	// yep
+
+		// release directory content
+		free( vfs );
+
+		// close directory
+		fclose( dir[ j ].file );
 	}
+
+	// release directory structure
+	free( dir );
 
 	// exit
 	return 0;
