@@ -4,15 +4,15 @@
 
 void kernel_init_storage( void ) {
 	// allocate space for the list of available storages
-	kernel -> NEW_storage_base_address = (struct NEW_KERNEL_STORAGE_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( NEW_KERNEL_STORAGE_limit  * sizeof( struct NEW_KERNEL_STORAGE_STRUCTURE ) ) >> STD_SHIFT_PAGE );
+	kernel -> storage_base_address = (struct KERNEL_STORAGE_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_STORAGE_limit  * sizeof( struct KERNEL_STORAGE_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 
 	// register modules of Virtual File System as storages
 	for( uint64_t i = 0; i < limine_module_request.response -> module_count; i++ ) {
 		// module type of VFS?
-		if( ! NEW_kernel_vfs_identify( (uintptr_t) limine_module_request.response -> modules[ i ] -> address, limine_module_request.response -> modules[ i ] -> size ) ) continue;	// no
+		if( ! kernel_vfs_identify( (uintptr_t) limine_module_request.response -> modules[ i ] -> address, limine_module_request.response -> modules[ i ] -> size ) ) continue;	// no
 
 		// register device of type VFS
-		struct NEW_KERNEL_STORAGE_STRUCTURE *storage = NEW_kernel_storage_register( NEW_KERNEL_STORAGE_TYPE_vfs );
+		struct KERNEL_STORAGE_STRUCTURE *storage = kernel_storage_register( KERNEL_STORAGE_TYPE_vfs );
 
 		// address of VFS main block location
 		storage -> device_block = (uintptr_t) limine_module_request.response -> modules[ i ] -> address;

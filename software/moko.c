@@ -167,7 +167,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	sprintf( "\e[%u;%uH", (uint8_t *) &string_cursor_at_menu, 0, stream_meta.height - 1 );
 
 	// prepare area for document name
-	document_name = malloc( EXCHANGE_LIB_VFS_NAME_limit + 1 );
+	document_name = malloc( LIB_VFS_NAME_limit + 1 );
 
 	// file selected?
 	if( argc > 1 )	{
@@ -177,7 +177,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			if( argv[ i ][ 0 ] == '-' ) continue;
 			else {
 				// open selected file
-				file = fopen( argv[ i ], NEW_STD_FILE_MODE_read );
+				file = fopen( argv[ i ], STD_FILE_MODE_read );
 
 				// ignore other file names, no support yet
 				break;
@@ -357,7 +357,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				}
 
 				// search for previous line beginning
-				while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_NEW_LINE );
+				while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_LINE );
 
 				// check previous line size
 				document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
@@ -503,7 +503,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			}
 
 			// search for previous line beginning
-			while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_NEW_LINE );
+			while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_LINE );
 
 			// check previous line size
 			document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
@@ -604,7 +604,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					document_line_number--;
 
 				// search for previous line beginning
-				while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_NEW_LINE );
+				while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_LINE );
 
 				// move line pointer one character back
 				document_line_pointer = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
@@ -782,7 +782,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					document_area[ i ] = document_area[ i - 1 ];
 
 			// insert character at end of document
-			document_area[ document_line_location + document_line_pointer ] = STD_ASCII_NEW_LINE;
+			document_area[ document_line_location + document_line_pointer ] = STD_ASCII_LINE;
 
 			// another line in document
 			document_line_count++;

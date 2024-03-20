@@ -9,8 +9,8 @@
 
 	struct KERNEL_EXEC_STRUCTURE_INIT {
 		uint8_t				level;
-		struct NEW_KERNEL_VFS_STRUCTURE	*socket;
-		struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES	properties;
+		struct KERNEL_VFS_STRUCTURE	*socket;
+		struct KERNEL_VFS_STRUCTURE_PROPERTIES	properties;
 		struct KERNEL_TASK_STRUCTURE	*task;
 		uintptr_t			workbench_address;
 		uintptr_t			base_address;

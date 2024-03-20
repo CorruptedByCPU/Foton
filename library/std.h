@@ -30,7 +30,7 @@
 	#define	STD_ASCII_DIFFERENCE_0_A			0x07
 	#define	STD_ASCII_BACKSPACE				0x08
 	#define	STD_ASCII_TAB					0x09
-	#define	STD_ASCII_NEW_LINE				0x0A
+	#define	STD_ASCII_LINE				0x0A
 	#define	STD_ASCII_RETURN				0x0D
 	#define	STD_ASCII_ESC					0x1B
 	#define	STD_ASCII_SPACE					0x20
@@ -116,31 +116,21 @@
 	#define	STD_ERROR_file_not_executable			-4
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 
-	#define	NEW_STD_FILE_TYPE_default			0b00000001
-	#define	NEW_STD_FILE_TYPE_directory			0b00000010
-	#define	NEW_STD_FILE_TYPE_link				0b00000100
+	#define	STD_FILE_TYPE_default			0b00000001
+	#define	STD_FILE_TYPE_directory			0b00000010
+	#define	STD_FILE_TYPE_link				0b00000100
 
-	#define	NEW_STD_FILE_MODE_reserved			0b00000001
-	#define	NEW_STD_FILE_MODE_read				0b00000010
-	#define	NEW_STD_FILE_MODE_write				0b00000100
-	#define	NEW_STD_FILE_MODE_append			0b00001000
+	#define	STD_FILE_MODE_reserved			0b00000001
+	#define	STD_FILE_MODE_read				0b00000010
+	#define	STD_FILE_MODE_write				0b00000100
+	#define	STD_FILE_MODE_append			0b00001000
 
-	struct	NEW_STD_FILE_STRUCTURE {
+	struct	STD_FILE_STRUCTURE {
 		int64_t		socket;
 		uint64_t	byte;
 		uint64_t	seek;
 		uint16_t	name_length;
-		uint8_t		name[ EXCHANGE_LIB_VFS_NAME_limit ];
-	};
-
-	struct	DEPRECATED_STD_FILE_STRUCTURE {
-		uint64_t	id_storage;
-		uint64_t	id;
-		uint64_t	length_byte;
-		uint8_t		type;
-		uint16_t	mode;
-		uint8_t		length;
-		uint8_t		name[ EXCHANGE_LIB_VFS_NAME_limit ];
+		uint8_t		name[ LIB_VFS_NAME_limit ];
 	};
 
 	#define	STD_IPC_SIZE_byte				40
@@ -191,7 +181,7 @@
 
 	#define	STD_KEY_BACKSPACE				0x0008
 	#define	STD_KEY_TAB					0x0009
-	#define	STD_KEY_NEW_LINE				0x000A
+	#define	STD_KEY_LINE				0x000A
 	#define	STD_KEY_ENTER					0x000D
 	#define	STD_KEY_ESC					0x001B
 	#define	STD_KEY_CTRL_LEFT				0x001D
@@ -320,14 +310,14 @@
 	#define	STD_SYSCALL_STREAM_GET				0x14
 	#define	STD_SYSCALL_MEMORY				0x15
 	#define	STD_SYSCALL_SLEEP				0x16
-	#define	NEW_STD_SYSCALL_FILE_OPEN			0x17
-	#define	NEW_STD_SYSCALL_FILE_CLOSE			0x18
+	#define	STD_SYSCALL_FILE_OPEN			0x17
+	#define	STD_SYSCALL_FILE_CLOSE			0x18
 	#define	STD_SYSCALL_CD					0x19
 	#define	STD_SYSCALL_IPC_RECEIVE_BY_TYPE			0x1A
 	#define	STD_SYSCALL_MICROTIME				0x1B
 	#define	STD_SYSCALL_TIME				0x1C
-	#define	NEW_STD_SYSCALL_FILE_READ			0x1D
-	#define	NEW_STD_SYSCALL_FILE				0x1E
+	#define	STD_SYSCALL_FILE_READ			0x1D
+	#define	STD_SYSCALL_FILE				0x1E
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -447,16 +437,16 @@
 	uint64_t std_time( void );
 
 	// open connection to file
-	int64_t NEW_std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode );
+	int64_t std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode );
 
 	// close connection to file
-	void NEW_std_file_close( int64_t socket );
+	void std_file_close( int64_t socket );
 
 	// retrieve file properties
-	void NEW_std_file( struct NEW_STD_FILE_STRUCTURE *file );
+	void std_file( struct STD_FILE_STRUCTURE *file );
 
 	// read file content into memory
-	void NEW_std_file_read( struct NEW_STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte );
+	void std_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
@@ -529,7 +519,7 @@
 	// substitute of libc
 	//------------------------------------------------------------------------------
 
-	typedef struct NEW_STD_FILE_STRUCTURE FILE;
+	typedef struct STD_FILE_STRUCTURE FILE;
 
 	void *malloc( size_t byte );
 	void *realloc( void *source, size_t byte );

@@ -42,7 +42,7 @@ static void kernel_exec_cancel( struct KERNEL_EXEC_STRUCTURE_INIT *exec ) {
 		}
 		case 1: {
 			// close file
-			NEW_kernel_vfs_file_close( exec -> socket );
+			kernel_vfs_file_close( exec -> socket );
 		}
 	}
 }
@@ -52,7 +52,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	struct KERNEL_EXEC_STRUCTURE_INIT exec = { EMPTY };
 
 	// file name length allowed?
-	if( length > (EXCHANGE_LIB_VFS_NAME_limit - length) ) return STD_ERROR_syntax_error;	// no
+	if( length > (LIB_VFS_NAME_limit - length) ) return STD_ERROR_syntax_error;	// no
 
 	// default location of executables
 	uint64_t path_length = 0;
@@ -62,12 +62,12 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	uint64_t exec_length = lib_string_word( name, length );
 
 	// set file path name
-	uint8_t path[ 12 + EXCHANGE_LIB_VFS_NAME_limit ];
+	uint8_t path[ 12 + LIB_VFS_NAME_limit ];
 	for( uint64_t i = 0; i < 12; i++ ) path[ path_length++ ] = path_default[ i ];
 	for( uint64_t i = 0; i < exec_length; i++ ) path[ path_length++ ] = name[ i ];
 
 	// retrieve information about executable file
-	exec.socket = (struct NEW_KERNEL_VFS_STRUCTURE *) NEW_kernel_vfs_file_open( path, path_length, NEW_KERNEL_VFS_MODE_read );
+	exec.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length, KERNEL_VFS_MODE_read );
 
 	// if executable does not exist
 	if( ! exec.socket ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return FALSE; };
@@ -76,7 +76,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	exec.level++;
 
 	// gather information about file
-	NEW_kernel_vfs_file_properties( exec.socket, (struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES *) &exec.properties );
+	kernel_vfs_file_properties( exec.socket, (struct KERNEL_VFS_STRUCTURE_PROPERTIES *) &exec.properties );
 
 	// assign area for workbench
 	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return FALSE; };
@@ -85,10 +85,10 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	exec.level++;
 
 	// load executable into workbench space
-	NEW_kernel_vfs_file_read( exec.socket, (uint8_t *) exec.workbench_address, EMPTY, exec.properties.byte );
+	kernel_vfs_file_read( exec.socket, (uint8_t *) exec.workbench_address, EMPTY, exec.properties.byte );
 
 	// close file
-	NEW_kernel_vfs_file_close( exec.socket );
+	kernel_vfs_file_close( exec.socket );
 
 	//----------------------------------------------------------------------
 

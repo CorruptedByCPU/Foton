@@ -7,10 +7,6 @@
 	//----------------------------------------------------------------------
 	#include	"../library/string.h"
 	#include	"../library/vfs.h"
-	//----------------------------------------------------------------------
-	// variables, routines, procedures
-	//----------------------------------------------------------------------
-	struct DEPRECATED_STD_FILE_STRUCTURE file = { EMPTY };
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// user selected file?
@@ -18,7 +14,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// open file for read
 	FILE *file;
-	if( ! (file = fopen( argv[ 1 ], NEW_STD_FILE_MODE_read )) ) return STD_ERROR_file_not_found;
+	if( ! (file = fopen( argv[ 1 ], STD_FILE_MODE_read )) ) return STD_ERROR_file_not_found;
 
 	// assign area for file content
 	uint8_t *content;

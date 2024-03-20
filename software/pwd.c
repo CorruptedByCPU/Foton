@@ -18,7 +18,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		dir = (FILE **) realloc( dir, sizeof( FILE ) * (i + 1) );
 
 		// get directory properties
-		dir[ i ] = fopen( (uint8_t *) ".", NEW_STD_FILE_MODE_read );
+		dir[ i ] = fopen( (uint8_t *) ".", STD_FILE_MODE_read );
 
 		// change directory to previous one
 		std_cd( (uint8_t *) "..", 2 );

@@ -11,7 +11,6 @@
 	// variables, routines, procedures
 	//----------------------------------------------------------------------
 	struct STD_STREAM_STRUCTURE_META stream_meta;
-	struct DEPRECATED_STD_FILE_STRUCTURE file = { EMPTY };
 
 	#define	LS_MARGIN	2
 
@@ -61,7 +60,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				dir = (struct LS_STRUCTURE *) realloc( dir, sizeof( struct LS_STRUCTURE ) * (i + 1) );
 
 				// get directory properties
-				if( (dir[ i ].file = fopen( argv[ j ], NEW_STD_FILE_MODE_read )) ) {
+				if( (dir[ i ].file = fopen( argv[ j ], STD_FILE_MODE_read )) ) {
 					// assign argv entry to directory entry
 					dir[ i ].argv = j;
 
@@ -80,7 +79,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	}
 
 	// if no directoris selected inside arguments, open current directory
-	if( ! i ) dir[ i++ ].file = fopen( (uint8_t *) ".", NEW_STD_FILE_MODE_read );
+	if( ! i ) dir[ i++ ].file = fopen( (uint8_t *) ".", STD_FILE_MODE_read );
 
 	//----------------------------------------------------------------------
 
@@ -95,7 +94,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( i > 1 ) printf( "\e[0m%s:\n", argv[ dir[ j ].argv ] );
 
 		// assign area for directory content
-		struct EXCHANGE_LIB_VFS_STRUCTURE *vfs = (struct EXCHANGE_LIB_VFS_STRUCTURE *) malloc( dir[ j ].file -> byte );
+		struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) malloc( dir[ j ].file -> byte );
 
 		// area acquired?
 		if( ! vfs ) return STD_ERROR_memory_low;	// no
@@ -145,9 +144,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// change color by type
 			switch( vfs[ k ].type ) {
-				case NEW_STD_FILE_TYPE_default: { print( "\e[38;5;253m" ); break; }
-				case NEW_STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
-				case NEW_STD_FILE_TYPE_link: { print( "\e[38;5;45m" ); break; }
+				case STD_FILE_TYPE_default: { print( "\e[38;5;253m" ); break; }
+				case STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
+				case STD_FILE_TYPE_link: { print( "\e[38;5;45m" ); break; }
 			}
 
 			// properties mode?

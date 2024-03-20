@@ -20,13 +20,13 @@
 		struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL	*dynamic_linking;
 		uint64_t	d_entry_count;
 		uint16_t	name_length;
-		uint8_t		name[ EXCHANGE_LIB_VFS_NAME_limit ];
+		uint8_t		name[ LIB_VFS_NAME_limit ];
 	};
 
 	struct KERNEL_LIBRARY_STRUCTURE_INIT {
 		uint8_t				level;
-		struct NEW_KERNEL_VFS_STRUCTURE *socket;
-		struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES	properties;
+		struct KERNEL_VFS_STRUCTURE *socket;
+		struct KERNEL_VFS_STRUCTURE_PROPERTIES	properties;
 		struct KERNEL_LIBRARY_STRUCTURE	*entry;
 		uintptr_t			workbench_address;
 		uintptr_t			base_address;

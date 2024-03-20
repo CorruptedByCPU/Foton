@@ -28,14 +28,14 @@ extern	kernel_syscall_stream_set
 extern	kernel_syscall_stream_get
 extern	kernel_syscall_memory
 extern	kernel_syscall_sleep
-extern	NEW_kernel_syscall_file_open
-extern	NEW_kernel_syscall_file_close
+extern	kernel_syscall_file_open
+extern	kernel_syscall_file_close
 extern	kernel_syscall_cd
 extern	kernel_syscall_ipc_receive_by_type
 extern	kernel_syscall_microtime
 extern	kernel_syscall_time
-extern	NEW_kernel_syscall_file_read
-extern	NEW_kernel_syscall_file
+extern	kernel_syscall_file_read
+extern	kernel_syscall_file
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -72,14 +72,14 @@ kernel_syscall_list:
 	dq	kernel_syscall_stream_get
 	dq	kernel_syscall_memory
 	dq	kernel_syscall_sleep
-	dq	NEW_kernel_syscall_file_open
-	dq	NEW_kernel_syscall_file_close
+	dq	kernel_syscall_file_open
+	dq	kernel_syscall_file_close
 	dq	kernel_syscall_cd
 	dq	kernel_syscall_ipc_receive_by_type
 	dq	kernel_syscall_microtime
 	dq	kernel_syscall_time
-	dq	NEW_kernel_syscall_file_read
-	dq	NEW_kernel_syscall_file
+	dq	kernel_syscall_file_read
+	dq	kernel_syscall_file
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

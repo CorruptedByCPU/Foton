@@ -261,33 +261,33 @@ uint64_t std_time( void ) {
 	return std_syscall_value_unsigned();
 }
 
-int64_t NEW_std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
+int64_t std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (NEW_STD_SYSCALL_FILE_OPEN), "D" (path), "S" (path_length), "d" (mode) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_OPEN), "D" (path), "S" (path_length), "d" (mode) );
 
 	// return value
 	return std_syscall_value();
 }
 
-void NEW_std_file_close( int64_t socket ) {
+void std_file_close( int64_t socket ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (NEW_STD_SYSCALL_FILE_CLOSE), "D" (socket) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_CLOSE), "D" (socket) );
 
 	// return nothing
 	return std_syscall_empty();
 }
 
-void NEW_std_file( struct NEW_STD_FILE_STRUCTURE *file ) {
+void std_file( struct STD_FILE_STRUCTURE *file ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (NEW_STD_SYSCALL_FILE), "D" (file) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE), "D" (file) );
 
 	// return nothing
 	return std_syscall_empty();
 }
 
-void NEW_std_file_read( struct NEW_STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte ) {
+void std_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (NEW_STD_SYSCALL_FILE_READ), "D" (file), "S" (target), "d" (byte) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_READ), "D" (file), "S" (target), "d" (byte) );
 
 	// return nothing
 	return std_syscall_empty();

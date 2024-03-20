@@ -604,7 +604,7 @@ FILE *fopen( uint8_t *path, uint8_t mode ) {
 	FILE *file = malloc( sizeof( FILE ) );
 
 	// open new socket for file
-	file -> socket = NEW_std_file_open( (uint8_t *) path, lib_string_length( (uint8_t *) path ), mode );
+	file -> socket = std_file_open( (uint8_t *) path, lib_string_length( (uint8_t *) path ), mode );
 
 	// if file doesn't exist
 	if( file -> socket < 0 ) {
@@ -616,7 +616,7 @@ FILE *fopen( uint8_t *path, uint8_t mode ) {
 	}
 
 	// retrieve properties of opened file
-	NEW_std_file( file );
+	std_file( file );
 
 	// return all file properties
 	return file;
@@ -624,7 +624,7 @@ FILE *fopen( uint8_t *path, uint8_t mode ) {
 
 void fclose( FILE *file ) {
 	// apply all changes and close
-	NEW_std_file_close( file -> socket );
+	std_file_close( file -> socket );
 
 	// release file structure
 	free( file );
@@ -632,5 +632,5 @@ void fclose( FILE *file ) {
 
 void fread( FILE *file, uint8_t *cache, uint64_t byte ) {
 	// read N Bytes into provided cache
-	NEW_std_file_read( file, cache, byte );
+	std_file_read( file, cache, byte );
 }

@@ -4,7 +4,7 @@
 
 void object_load( void ) {
 	// open material file
-	FILE *file = fopen( (uint8_t *) "/system/var/3d.mtl", NEW_STD_FILE_MODE_read );
+	FILE *file = fopen( (uint8_t *) "/system/var/3d.mtl", STD_FILE_MODE_read );
 	
 	// assign area for file content
 	uint8_t *file_material_start = malloc( file -> byte );
@@ -86,7 +86,7 @@ void object_load( void ) {
 	free( file_material_start );
 
 	// open object file
-	file = fopen( (uint8_t *) "/system/var/3d.obj", NEW_STD_FILE_MODE_read );
+	file = fopen( (uint8_t *) "/system/var/3d.obj", STD_FILE_MODE_read );
 	
 	// assign area for file content
 	uint8_t *file_object_start = malloc( file -> byte );

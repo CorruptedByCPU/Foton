@@ -49,7 +49,7 @@ static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *library
 		}
 		case 2: {
 			// close file
-			NEW_kernel_vfs_file_close( library -> socket );
+			kernel_vfs_file_close( library -> socket );
 		}
 		case 1: {
 			// release library entry
@@ -241,12 +241,12 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	uint8_t path_default[ 12 ] = "/system/lib/";
 
 	// set file path name
-	uint8_t path[ 12 + EXCHANGE_LIB_VFS_NAME_limit ];
+	uint8_t path[ 12 + LIB_VFS_NAME_limit ];
 	for( uint64_t i = 0; i < 12; i++ ) path[ path_length++ ] = path_default[ i ];
 	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
 
 	// retrieve information about library file
-	library.socket = (struct NEW_KERNEL_VFS_STRUCTURE *) NEW_kernel_vfs_file_open( path, path_length, NEW_KERNEL_VFS_MODE_read );
+	library.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length, KERNEL_VFS_MODE_read );
 
 	// if library does not exist
 	if( ! library.socket ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
@@ -255,7 +255,7 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.level++;
 
 	// gather information about file
-	NEW_kernel_vfs_file_properties( library.socket, (struct NEW_KERNEL_VFS_STRUCTURE_PROPERTIES *) &library.properties );
+	kernel_vfs_file_properties( library.socket, (struct KERNEL_VFS_STRUCTURE_PROPERTIES *) &library.properties );
 
 	// assign area for workbench
 	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; };
@@ -264,10 +264,10 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.level++;
 
 	// load library into workbench space
-	NEW_kernel_vfs_file_read( library.socket, (uint8_t *) library.workbench_address, EMPTY, library.properties.byte );
+	kernel_vfs_file_read( library.socket, (uint8_t *) library.workbench_address, EMPTY, library.properties.byte );
 
 	// close file
-	NEW_kernel_vfs_file_close( library.socket );
+	kernel_vfs_file_close( library.socket );
 
 	//----------------------------------------------------------------------
 
