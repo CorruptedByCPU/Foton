@@ -18,6 +18,8 @@
 	#define	MACRO_STR2( x ) #x
 	#define	MACRO_STR( x ) MACRO_STR2( x )
 
+	#define MACRO_SIZEOF( structure, entry )( sizeof( ((structure *) 0 ) -> entry ))
+
 	#define MACRO_IMPORT_FILE_AS_STRING( name, file ) __asm__( ".section .rodata\n.global " MACRO_STR( name ) "\n.balign 16\n" MACRO_STR( name ) ":\n.incbin \"" file "\"\n.byte 0x00\n" ); \
 		extern const __attribute__( ( aligned( 16 ) ) ) void* name; \
 

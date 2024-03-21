@@ -31,8 +31,24 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// file selected?
 	if( argc > 1 )	{
+		// prepare area for path
+		uint64_t file_path_length = 0;
+		uint8_t *file_path = malloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_FILE_STRUCTURE, name_length ) ) );
+
+		// compose file name with args
+		for( uint64_t i = 1; i < argc; i++ ) {
+			// set file properties
+			for( uint8_t j = 0; j < lib_string_length( argv[ i ] ); j++ ) file_path[ file_path_length++ ] = argv[ i ][ j ];
+
+			// add separator of path
+			file_path[ file_path_length++ ] = STD_ASCII_SPACE;
+		}
+
 		// open in console selected program
-		console_pid_of_shell = std_exec( argv[ 1 ], lib_string_length( argv[ 1 ] ), STD_STREAM_FLOW_out_to_parent_in );
+		console_pid_of_shell = std_exec( file_path, file_path_length, STD_STREAM_FLOW_out_to_parent_in );
+
+		// release path
+		// free( file_path );
 	} else
 		// run Shell program
 		console_pid_of_shell = std_exec( (uint8_t *) "shell", 5, STD_STREAM_FLOW_out_to_parent_in );

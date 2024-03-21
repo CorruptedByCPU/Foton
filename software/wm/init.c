@@ -46,7 +46,7 @@ uint8_t wm_init( void ) {
 	struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = EMPTY;
 
 	// retrieve information file
-	if( (workbench_file = fopen( (uint8_t *) "/system/var/wallpaper.tga", STD_FILE_MODE_read )) ) {
+	if( (workbench_file = fopen( (uint8_t *) "/system/var/wallpaper.tga" )) ) {
 		// assign area for file
 		workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( workbench_file -> byte );
 
@@ -134,7 +134,7 @@ uint8_t wm_init( void ) {
 	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = EMPTY;
 
 	// retrieve information about module file
-	if( (cursor_file = fopen( (uint8_t *) "/system/var/cursor.tga", STD_FILE_MODE_read )) ) {
+	if( (cursor_file = fopen( (uint8_t *) "/system/var/cursor.tga" )) ) {
 		// assign area for file
 		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( cursor_file -> byte );
 
@@ -189,8 +189,9 @@ uint8_t wm_init( void ) {
 	std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console moko", 12, EMPTY );
 	// std_exec( (uint8_t *) "console moko test.txt", 21, EMPTY );
+	// std_exec( (uint8_t *) "console pwd", 11, EMPTY );
 	// 
-	// FILE *file = fopen( "test.txt", STD_FILE_MODE_read );
+	// FILE *file = fopen( "test.txt" );
 	// if( file ) { log( "OK\n" ); fclose( file ); }
 	// else log( "FAILED!\n" );
 

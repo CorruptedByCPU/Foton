@@ -10,4 +10,7 @@
 
 	// converts value to string
 	uint8_t lib_integer_to_string( uint64_t value, uint8_t base, uint8_t *string );
+
+	// return max unsigned value of N Bytes
+	size_t lib_integer_limit_unsigned( uint8_t byte );
 #endif

@@ -511,7 +511,7 @@ uint64_t kernel_syscall_sleep( uint64_t units ) {
 
 uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 	// try to open provided path
-	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length, STD_FILE_MODE_read );
+	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
 
 	// if file doesn't exist
 	if( ! socket ) return FALSE;
@@ -581,7 +581,7 @@ uint64_t kernel_syscall_time( void ) {
 
 int64_t kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
 	// retrieve information about module file
-	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length, mode );
+	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
 
 	// if file doesn't exist
 	if( ! socket ) return STD_ERROR_file_not_found;
@@ -614,7 +614,7 @@ void kernel_syscall_file( struct STD_FILE_STRUCTURE *file ) {
 	file -> byte = properties.byte;
 
 	// file name
-	for( uint64_t i = 0; i < LIB_VFS_NAME_limit; i++ ) file -> name[ file -> name_length++ ] = properties.name[ i ];
+	for( uint64_t i = 0; i < properties.name_length; i++ ) file -> name[ file -> name_length++ ] = properties.name[ i ];
 }
 
 void kernel_syscall_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte ) {

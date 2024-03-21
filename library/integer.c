@@ -62,3 +62,15 @@ uint8_t lib_integer_to_string( uint64_t value, uint8_t base, uint8_t *string ) {
 	// return string length
 	return length;
 }
+
+size_t lib_integer_limit_unsigned( uint8_t byte ) {
+	switch( byte ) {
+		case 2: {
+			// 65 536
+			return UINT16_MAX;
+		}
+	}
+
+	// default for 1 Byte
+	return 256;
+}

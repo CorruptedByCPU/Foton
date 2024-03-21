@@ -4,10 +4,10 @@
 
 void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket ) {
 	// release socket
-	socket -> mode = EMPTY;
+	socket -> flags = EMPTY;
 }
 
-struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length, uint8_t mode ) {
+struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length ) {
 	// remove all "white" characters from path
 	length = lib_string_trim( path, length );
 
@@ -41,9 +41,6 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 
 		// socket opened by process with ID
 		socket -> pid = kernel -> task_pid();
-
-		// type of operation on file
-		socket -> mode = mode;
 
 		// file found
 		return socket;
@@ -83,9 +80,6 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 
 			// socket opened by process with ID
 			socket -> pid = kernel -> task_pid();
-
-			// type of operation on file
-			socket -> mode = mode;
 
 			// file found
 			return socket;
@@ -148,7 +142,7 @@ uint64_t kernel_vfs_socket_add( void ) {
 	uint64_t i = 0;
 
 	// if entry found, secure it
-	for( ; i < KERNEL_VFS_limit; i++ ) if( ! kernel -> vfs_base_address[ i ].mode ) { kernel -> vfs_base_address[ i ].mode = KERNEL_VFS_MODE_reserved; break; }
+	for( ; i < KERNEL_VFS_limit; i++ ) if( ! kernel -> vfs_base_address[ i ].flags ) { kernel -> vfs_base_address[ i ].flags = KERNEL_VFS_FLAG_reserved; break; }
 
 	// unlock access
 	MACRO_UNLOCK( kernel -> vfs_semaphore );

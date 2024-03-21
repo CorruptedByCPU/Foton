@@ -7,14 +7,14 @@
 
 	#define	KERNEL_VFS_limit		(STD_PAGE_byte / sizeof( struct KERNEL_VFS_STRUCTURE ))
 
-	#define	KERNEL_VFS_MODE_reserved	1
-	#define	KERNEL_VFS_MODE_read	2
+	#define	KERNEL_VFS_FLAG_reserved	1
 	
 	struct	KERNEL_VFS_STRUCTURE {
 		uint64_t	storage;
 		uint64_t	knot;
 		int64_t		pid;
-		uint8_t		mode;
+		uint64_t	lock;	// amount of opened instances
+		uint8_t		flags;
 	};
 
 	struct	KERNEL_VFS_STRUCTURE_PROPERTIES {
@@ -25,7 +25,7 @@
 
 	void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket );
 
-	struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length, uint8_t mode );
+	struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length );
 
 	void kernel_vfs_file_properties( struct KERNEL_VFS_STRUCTURE *socket, struct KERNEL_VFS_STRUCTURE_PROPERTIES *properties );
 

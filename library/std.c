@@ -599,12 +599,12 @@ void exit( void ) {
 	std_syscall_empty();
 }
 
-FILE *fopen( uint8_t *path, uint8_t mode ) {
+FILE *fopen( uint8_t *path ) {
 	// assign area for file structure
 	FILE *file = malloc( sizeof( FILE ) );
 
 	// open new socket for file
-	file -> socket = std_file_open( (uint8_t *) path, lib_string_length( (uint8_t *) path ), mode );
+	file -> socket = std_file_open( (uint8_t *) path, lib_string_length( (uint8_t *) path ) );
 
 	// if file doesn't exist
 	if( file -> socket < 0 ) {

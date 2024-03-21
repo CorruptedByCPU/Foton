@@ -6,6 +6,7 @@
 	// required libraries
 	//----------------------------------------------------------------------
 	#include	"../library/input.h"
+	#include	"../library/path.h"
 	#include	"../library/string.h"
 	//----------------------------------------------------------------------
 	// variables, structures, console_stream_indefinitions
@@ -20,11 +21,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// assign area for command prompt
 	shell_command = (uint8_t *) malloc( SHELL_COMMAND_limit + 1 );
 
+	// set header
+	print( "\eXShell\e\\" );
+
+	// open current directory properties
+	dir = fopen( (uint8_t *) "." );
+
 	// new prompt loop
 	while( TRUE ) {
-		// set header
-		print( "\eXShell\e\\" );
-
 		// retrieve stream meta data
 		struct STD_STREAM_STRUCTURE_META stream_meta;
 		while( ! std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT ) );
@@ -33,7 +37,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( stream_meta.x ) print( "\n" );	// no, move cursor to next line
 
 		// show prompt
-		print( "\e[38;5;47m$\e[0m " );
+		printf( "\e[0m\e[38;5;27m%s \e[38;5;47m$\e[0m ", dir -> name );
 
 		// receive command from user
 		uint64_t shell_command_length = lib_input( shell_command, SHELL_COMMAND_limit, EMPTY, TRUE );
@@ -52,7 +56,15 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			shell_command_length = lib_string_word_remove( shell_command, shell_command_length, STD_ASCII_SPACE );
 
 			// request change of root directory
-			if( ! std_cd( (uint8_t *) shell_command, shell_command_length ) ) printf( "No such directory." );
+			if( std_cd( (uint8_t *) shell_command, shell_command_length ) ) {
+				// close old directory properties
+				fclose( dir );
+
+				// open current directory properties
+				fopen( (uint8_t *) "." );
+			} else
+				// error
+				printf( "No such directory." );
 
 			// new prompt
 			continue;
@@ -89,7 +101,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// if requested
-		if( shell_command[ shell_command_length - 1 ] != '&' )
+		if( shell_command[ shell_command_length - 1 ] != '&' ) {
 			// wait for child end
 			while( shell_exec_pid && std_pid_check( shell_exec_pid ) ) {
 				// pass all incomming messages to child
@@ -101,5 +113,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// free up AP time until program execution ends
 				std_sleep( 1 );
 			}
+
+			// restore header
+			print( "\eXShell\e\\" );
+		}
 	}
 }

@@ -116,21 +116,23 @@
 	#define	STD_ERROR_file_not_executable			-4
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 
-	#define	STD_FILE_TYPE_default			0b00000001
-	#define	STD_FILE_TYPE_directory			0b00000010
+	#define	STD_FILE_TYPE_default				0b00000001
+	#define	STD_FILE_TYPE_directory				0b00000010
 	#define	STD_FILE_TYPE_link				0b00000100
 
-	#define	STD_FILE_MODE_reserved			0b00000001
+	#define	STD_FILE_MODE_reserved				0b00000001
 	#define	STD_FILE_MODE_read				0b00000010
 	#define	STD_FILE_MODE_write				0b00000100
-	#define	STD_FILE_MODE_append			0b00001000
+	#define	STD_FILE_MODE_append				0b00001000
+
+	#define	STD_FILE_NAME_limit				LIB_VFS_NAME_limit
 
 	struct	STD_FILE_STRUCTURE {
 		int64_t		socket;
 		uint64_t	byte;
 		uint64_t	seek;
 		uint16_t	name_length;
-		uint8_t		name[ LIB_VFS_NAME_limit ];
+		uint8_t		name[ STD_FILE_NAME_limit ];
 	};
 
 	#define	STD_IPC_SIZE_byte				40
@@ -437,7 +439,7 @@
 	uint64_t std_time( void );
 
 	// open connection to file
-	int64_t std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode );
+	int64_t std_file_open( uint8_t *path, uint64_t path_length );
 
 	// close connection to file
 	void std_file_close( int64_t socket );
@@ -538,7 +540,7 @@
 	uint64_t pow( uint64_t base, uint64_t exponent );
 	uint16_t getkey( void );
 	void exit( void );
-	FILE *fopen( uint8_t *path, uint8_t mode );
+	FILE *fopen( uint8_t *path );
 	void fclose( FILE *file );
 	void fread( FILE *file, uint8_t *cache, uint64_t byte );
 #endif

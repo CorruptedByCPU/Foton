@@ -91,7 +91,7 @@ void kernel_init_vfs( void ) {
 		uint8_t string_file_path[] = "/system/etc/version";
 
 		// retrieve properties of file
-		struct KERNEL_VFS_STRUCTURE *socket = kernel_vfs_file_open( string_file_path, sizeof( string_file_path ) - 1, KERNEL_VFS_MODE_read );
+		struct KERNEL_VFS_STRUCTURE *socket = kernel_vfs_file_open( string_file_path, sizeof( string_file_path ) - 1 );
 		if( ! socket ) continue;	// file not found
 
 		// kernels current directory

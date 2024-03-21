@@ -67,7 +67,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	for( uint64_t i = 0; i < exec_length; i++ ) path[ path_length++ ] = name[ i ];
 
 	// retrieve information about executable file
-	exec.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length, KERNEL_VFS_MODE_read );
+	exec.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
 
 	// if executable does not exist
 	if( ! exec.socket ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return FALSE; };

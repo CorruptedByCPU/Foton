@@ -2,10 +2,9 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint8_t *shell_command;
+#ifndef	LIB_PATH
+	#define	LIB_PATH
 
-uint8_t shell_keyboard_status_alt_left = FALSE;
-uint8_t	shell_keyboard_status_shift_left = FALSE;
-uint8_t	shell_keyboard_status_ctrl_left = FALSE;
-
-FILE *dir;
+	// returns allocated memory with string of current process work directory
+	uint8_t *lib_path( void );
+#endif

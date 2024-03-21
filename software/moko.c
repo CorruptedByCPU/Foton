@@ -5,11 +5,14 @@
 // PROGRAM IN PROGRESS
 
 	#include	"../library/input.h"
+	#include	"../library/integer.h"
 	#include	"../library/string.h"
 	#include	"../library/vfs.h"
 
 	struct STD_STREAM_STRUCTURE_META stream_meta;
 	FILE *file = EMPTY;
+
+	uint8_t *file_path = EMPTY;
 
 	uint8_t *document_name = EMPTY;
 
@@ -166,8 +169,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	sprintf( "\e[%u;%uH", (uint8_t *) &string_cursor_at_interaction, 0, stream_meta.height - 2 );
 	sprintf( "\e[%u;%uH", (uint8_t *) &string_cursor_at_menu, 0, stream_meta.height - 1 );
 
+	// prepare area for file path
+	file_path = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_FILE_STRUCTURE, name_length ) ) );
+
 	// prepare area for document name
-	document_name = malloc( LIB_VFS_NAME_limit + 1 );
+	document_name = malloc( STD_FILE_NAME_limit );
 
 	// file selected?
 	if( argc > 1 )	{
@@ -176,8 +182,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// ignore any passed options, no support yet
 			if( argv[ i ][ 0 ] == '-' ) continue;
 			else {
-				// open selected file
-				file = fopen( argv[ i ], STD_FILE_MODE_read );
+				// set document name
+				sprintf( "%s", file_path, argv[ i ] );
+
+				// open provided file
+				file = fopen( file_path );
 
 				// ignore other file names, no support yet
 				break;
@@ -187,15 +196,18 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// if file exist
 	if( file ) {
-		// set document name
-		sprintf( "%s", (uint8_t *) document_name, file -> name );
-
 		// alloc area for file content
 		document_area = malloc( file -> byte );
 		document_size = file -> byte;
 
 		// load file content into document area
 		fread( file, document_area, file -> byte );
+
+		// set document name
+		sprintf( "%s", (uint8_t *) document_name, file -> name );
+
+		// close access to file
+		fclose( file );
 	} else {
 		// prepare new document area
 		document_area = malloc( STD_PAGE_byte + 1 );
@@ -247,46 +259,67 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					// by default file wasn't saved, yet
 					uint8_t saved = FALSE;
 
-					// // retrieve file name
-					// struct DEPRECATED_STD_FILE_STRUCTURE save_as = { EMPTY };
-					// for( uint64_t i = 0; i < file.length; i++ ) save_as.name[ save_as.length++ ] = file.name[ i ];
+					// alloc path name for file
+					uint64_t save_as_length = 0;
+					uint8_t *save_as = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_FILE_STRUCTURE, name_length ) ) );
+
+					// retrieve file path/name
+					for( uint64_t i = 0; i < lib_string_length( file_path ); i++ ) save_as[ save_as_length++ ] = file_path[ i ];
 			
-					// // file saved?
-					// while( ! saved ) {
-					// 	// ask about file name
-					// 	printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSave as: %s", 0, stream_meta.height - 2, save_as.name );
+					// file saved?
+					while( ! saved ) {
+						// ask about file name
+						printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSave as: %s", 0, stream_meta.height - 2, save_as );
 
-					// 	// select current or new file name form user
-					// 	save_as.length = lib_input( (uint8_t *) &save_as.name, stream_meta.width - 9, save_as.length, FALSE );
+						// select current or new file name form user
+						save_as_length = lib_input( save_as, stream_meta.width - 9, save_as_length, FALSE );
 
-					// 	// if file name provided, retrieve properties of file if exist
-					// 	if( save_as.length ) std_file( (struct DEPRECATED_STD_FILE_STRUCTURE *) &save_as );
+						// if file name provided, retrieve properties of file if exist
+						FILE *file_save_as;
+						if( save_as_length ) file_save_as = fopen( save_as );
 
-					// 	// diffrent exist file selected?
-					// 	if( save_as.id != file.id && save_as.id ) {
-					// 		// ask, can we overwrite it
-					// 		print( "\e[G\e[2KOverwrite? (y/N)" );
-					// 		while( TRUE ) {
-					// 			// recieve key
-					// 			uint16_t key = getkey();
-					// 			if( ! key || key & 0x80 ) continue;
+						// file exist?
+						if( file_save_as ) {
+							// opened for write the same file?
+							if( file_save_as -> socket == file -> socket ) saved = TRUE;
+							else {
+								// new file?
+								if( ! file_save_as -> byte ) saved = TRUE;	// yes
+								else {
+									// ask, can we overwrite it
+									print( "\e[G\e[2KOverwrite? (y/N)" );
+									while( TRUE ) {
+										// recieve key
+										uint16_t key = getkey();
+										if( ! key || key & 0x80 ) continue;
 
-					// 			// yes?
-					// 			if( key == 'y' || key == 'Y' ) saved = TRUE;
+										// yes?
+										if( key == 'y' || key == 'Y' ) {
+											// set new name of document
+											sprintf( "%s", (uint8_t *) document_name, file_save_as -> name );
 
-					// 			// done
-					// 			break;
-					// 		}
-					// 	} else
-					// 		// save
-					// 		saved = TRUE;
+											// allow file save as different name
+											saved = TRUE;
+										}
+
+										// done
+										break;
+									}
+								}
+							}
+						} else {
+							// do something if directory structure of selected path doesn't exist...
+						}
 
 						// write document content to file
-						// if( saved ) std_file_write( (struct DEPRECATED_STD_FILE_STRUCTURE *) &save_as, (uintptr_t) document_area, document_size );
+						if( saved ) {
+							// write content of document into prepared file
+							// fwrite( file_save_as, document_area, document_byte );
+						}
 
 						// restore cursor properties
-						// print( "\e[0m\e[2K\e[u" );
-					// }
+						print( "\e[0m\e[2K\e[u" );
+					}
 
 					// release key state
 					key_ctrl_semaphore = FALSE;
