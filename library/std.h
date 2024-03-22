@@ -312,14 +312,15 @@
 	#define	STD_SYSCALL_STREAM_GET				0x14
 	#define	STD_SYSCALL_MEMORY				0x15
 	#define	STD_SYSCALL_SLEEP				0x16
-	#define	STD_SYSCALL_FILE_OPEN			0x17
-	#define	STD_SYSCALL_FILE_CLOSE			0x18
+	#define	STD_SYSCALL_FILE_OPEN				0x17
+	#define	STD_SYSCALL_FILE_CLOSE				0x18
 	#define	STD_SYSCALL_CD					0x19
 	#define	STD_SYSCALL_IPC_RECEIVE_BY_TYPE			0x1A
 	#define	STD_SYSCALL_MICROTIME				0x1B
 	#define	STD_SYSCALL_TIME				0x1C
-	#define	STD_SYSCALL_FILE_READ			0x1D
+	#define	STD_SYSCALL_FILE_READ				0x1D
 	#define	STD_SYSCALL_FILE				0x1E
+	#define	STD_SYSCALL_FILE_WRITE				0x1F
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -450,6 +451,9 @@
 	// read file content into memory
 	void std_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte );
 
+	// write content of memory into file
+	void std_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t byte );
+
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
 			uint64_t	length;
@@ -543,4 +547,5 @@
 	FILE *fopen( uint8_t *path );
 	void fclose( FILE *file );
 	void fread( FILE *file, uint8_t *cache, uint64_t byte );
+	void fwrite( FILE *file, uint8_t *cache, uint64_t byte );
 #endif

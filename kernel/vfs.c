@@ -3,8 +3,11 @@
 ===============================================================================*/
 
 void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket ) {
+	// can we close file?
+	if( socket -> pid != kernel_task_pid() ) return;	// no! TODO: something nasty
+
 	// release socket
-	socket -> flags = EMPTY;
+	if( socket -> lock ) socket -> lock--;
 }
 
 struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length ) {
@@ -119,8 +122,55 @@ void kernel_vfs_file_read( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *target,
 	if( seek + byte > file -> byte ) return;	// yes, ignore
 
 	// copy content of file to destination
-	uint8_t *source = (uint8_t *) file -> offset;
-	for( uint64_t i = seek; i < seek + byte; i++ ) target[ i ] = source[ i ];
+	uint8_t *source = (uint8_t *) file -> offset + seek;
+	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
+}
+
+void kernel_vfs_file_write( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *source, uint64_t seek, uint64_t byte ) {
+	// lock exclusive access
+	MACRO_LOCK( socket -> semaphore );
+
+	// properties of file
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
+
+	// invalid write request?
+	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> byte ) ) {
+		// prepare new file content area
+		uint8_t *new = (uint8_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
+		uint8_t *old = (uint8_t *) file -> offset;
+
+		// copy current content to new location only if current file content will not be truncated
+		if( ! seek ) for( uint64_t i = 0; i < file -> byte; i++ ) new[ i ] = old[ i ];
+
+		// release old file content
+		kernel -> memory_release( file -> offset, MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
+
+		// update file properties with new content location
+		file -> offset = (uintptr_t) new;
+	}
+
+	// INFO: writing to file from seek == EMPTY, means the same as create new content
+
+	// copy content of memory to file
+	uint8_t *target = (uint8_t *) file -> offset + seek;
+	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
+
+	// truncate file size?
+	if( ! seek && MACRO_PAGE_ALIGN_UP( file -> byte ) > MACRO_PAGE_ALIGN_UP( byte ) ) {
+		// locate amount of file block to truncate
+		uint64_t blocks = (MACRO_PAGE_ALIGN_UP( file -> byte ) - MACRO_PAGE_ALIGN_UP( byte )) >> STD_SHIFT_PAGE;
+
+		// remove unused blocks from file
+		kernel -> memory_release( file -> offset + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
+
+		// new file size
+		file -> byte = byte;
+	} else
+		// file size will change after overwrite?
+		if( seek + byte > file -> byte ) file -> byte = seek + byte;	// yes
+	
+	// unlock access
+	MACRO_UNLOCK( socket -> semaphore );
 }
 
 uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte ) {
@@ -142,7 +192,7 @@ uint64_t kernel_vfs_socket_add( void ) {
 	uint64_t i = 0;
 
 	// if entry found, secure it
-	for( ; i < KERNEL_VFS_limit; i++ ) if( ! kernel -> vfs_base_address[ i ].flags ) { kernel -> vfs_base_address[ i ].flags = KERNEL_VFS_FLAG_reserved; break; }
+	for( ; i < KERNEL_VFS_limit; i++ ) if( ! kernel -> vfs_base_address[ i ].lock ) { kernel -> vfs_base_address[ i ].lock++; break; }
 
 	// unlock access
 	MACRO_UNLOCK( kernel -> vfs_semaphore );

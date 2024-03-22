@@ -37,7 +37,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( stream_meta.x ) print( "\n" );	// no, move cursor to next line
 
 		// show prompt
-		printf( "\e[0m\e[38;5;27m%s \e[38;5;47m$\e[0m ", dir -> name );
+		printf( "\e[0m%s \e[38;5;47m$\e[0m ", dir -> name );
 
 		// receive command from user
 		uint64_t shell_command_length = lib_input( shell_command, SHELL_COMMAND_limit, EMPTY, TRUE );

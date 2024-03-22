@@ -627,3 +627,14 @@ void kernel_syscall_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target,
 	// next file Bytes content
 	file -> seek += byte;
 }
+
+void kernel_syscall_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t byte ) {
+	// invalid socket value?
+	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
+
+	// pass file content to process memory
+	kernel_vfs_file_write( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ file -> socket ], source, file -> seek, byte );
+
+	// next file Bytes content
+	file -> seek += byte;
+}

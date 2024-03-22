@@ -26,10 +26,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// close file
 	fclose( file );
 
-	//----------------------------------------------------------------------
 	// show content
-	for( uint64_t i = 0; i < file -> byte; i++ )
-		putc( content[ i ] );
+	printf( "%s", content );
 
 	// exit
 	return 0;

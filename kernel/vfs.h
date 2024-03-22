@@ -7,14 +7,12 @@
 
 	#define	KERNEL_VFS_limit		(STD_PAGE_byte / sizeof( struct KERNEL_VFS_STRUCTURE ))
 
-	#define	KERNEL_VFS_FLAG_reserved	1
-	
 	struct	KERNEL_VFS_STRUCTURE {
 		uint64_t	storage;
 		uint64_t	knot;
 		int64_t		pid;
 		uint64_t	lock;	// amount of opened instances
-		uint8_t		flags;
+		uint8_t		semaphore;	// set if someone is writing or reallocating file area
 	};
 
 	struct	KERNEL_VFS_STRUCTURE_PROPERTIES {

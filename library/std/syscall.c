@@ -292,3 +292,11 @@ void std_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t b
 	// return nothing
 	return std_syscall_empty();
 }
+
+void std_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t byte ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_WRITE), "D" (file), "S" (source), "d" (byte) );
+
+	// return nothing
+	return std_syscall_empty();
+}

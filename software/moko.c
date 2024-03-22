@@ -13,6 +13,7 @@
 	FILE *file = EMPTY;
 
 	uint8_t *file_path = EMPTY;
+	uint8_t *save_as = EMPTY;
 
 	uint8_t *document_name = EMPTY;
 
@@ -169,8 +170,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	sprintf( "\e[%u;%uH", (uint8_t *) &string_cursor_at_interaction, 0, stream_meta.height - 2 );
 	sprintf( "\e[%u;%uH", (uint8_t *) &string_cursor_at_menu, 0, stream_meta.height - 1 );
 
-	// prepare area for file path
+	// prepare area for current file path and save as too
 	file_path = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_FILE_STRUCTURE, name_length ) ) );
+	save_as = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_FILE_STRUCTURE, name_length ) ) );
 
 	// prepare area for document name
 	document_name = malloc( STD_FILE_NAME_limit );
@@ -259,12 +261,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					// by default file wasn't saved, yet
 					uint8_t saved = FALSE;
 
-					// alloc path name for file
+					// length of save_as path
 					uint64_t save_as_length = 0;
-					uint8_t *save_as = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_FILE_STRUCTURE, name_length ) ) );
 
 					// retrieve file path/name
-					for( uint64_t i = 0; i < lib_string_length( file_path ); i++ ) save_as[ save_as_length++ ] = file_path[ i ];
+					for( uint64_t i = 0; i < lib_string_length( file_path ); i++ ) save_as[ save_as_length++ ] = file_path[ i ]; save_as[ save_as_length ] = STD_ASCII_TERMINATOR;
 			
 					// file saved?
 					while( ! saved ) {
@@ -281,8 +282,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 						// file exist?
 						if( file_save_as ) {
 							// opened for write the same file?
-							if( file_save_as -> socket == file -> socket ) saved = TRUE;
-							else {
+							if( file_save_as -> socket == file -> socket ) {
+								// clsoe file
+								fclose( file_save_as );
+
+								// allow file save as current file name
+								saved = TRUE;
+							} else {
 								// new file?
 								if( ! file_save_as -> byte ) saved = TRUE;	// yes
 								else {
@@ -297,6 +303,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 										if( key == 'y' || key == 'Y' ) {
 											// set new name of document
 											sprintf( "%s", (uint8_t *) document_name, file_save_as -> name );
+
+											// close current connection to file
+											fclose( file );
+
+											// set new connection
+											file = file_save_as;
 
 											// allow file save as different name
 											saved = TRUE;
@@ -314,7 +326,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 						// write document content to file
 						if( saved ) {
 							// write content of document into prepared file
-							// fwrite( file_save_as, document_area, document_byte );
+							fwrite( file, document_area, document_size );
 						}
 
 						// restore cursor properties
@@ -331,11 +343,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					// file -> name_length = 0;
 					// for( uint64_t i = 0; i < save_as.length; i++ ) file.name[ file.length++ ] = save_as.name[ i ]; file.name[ file.length ] = STD_ASCII_TERMINATOR;
 
-					// // set document name
+					// set document name
 					// printf( "\eX%s\e\\", file.name );
 
-					// // update menu state
-					// draw_menu();
+					// update menu state
+					draw_menu();
 
 					// done
 					break;

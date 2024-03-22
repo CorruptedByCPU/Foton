@@ -634,3 +634,8 @@ void fread( FILE *file, uint8_t *cache, uint64_t byte ) {
 	// read N Bytes into provided cache
 	std_file_read( file, cache, byte );
 }
+
+void fwrite( FILE *file, uint8_t *cache, uint64_t byte ) {
+	// write N Bytes from provided cache to file
+	std_file_write( file, cache, byte );
+}
