@@ -24,9 +24,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// set header
 	print( "\eXShell\e\\" );
 
-	// open current directory properties
-	dir = fopen( (uint8_t *) "." );
-
 	// new prompt loop
 	while( TRUE ) {
 		// retrieve stream meta data
@@ -36,8 +33,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// cursor at beginning of line?
 		if( stream_meta.x ) print( "\n" );	// no, move cursor to next line
 
+		// open current directory properties
+		dir = fopen( (uint8_t *) "." );
+
 		// show prompt
 		printf( "\e[0m%s \e[38;5;47m$\e[0m ", dir -> name );
+
+		// close directory
+		fclose( dir );
 
 		// receive command from user
 		uint64_t shell_command_length = lib_input( shell_command, SHELL_COMMAND_limit, EMPTY, TRUE );
@@ -56,13 +59,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			shell_command_length = lib_string_word_remove( shell_command, shell_command_length, STD_ASCII_SPACE );
 
 			// request change of root directory
-			if( std_cd( (uint8_t *) shell_command, shell_command_length ) ) {
-				// close old directory properties
-				fclose( dir );
-
-				// open current directory properties
-				fopen( (uint8_t *) "." );
-			} else
+			if( ! std_cd( (uint8_t *) shell_command, shell_command_length ) )
 				// error
 				printf( "No such directory." );
 

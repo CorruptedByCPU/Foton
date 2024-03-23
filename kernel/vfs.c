@@ -156,12 +156,15 @@ void kernel_vfs_file_write( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *source
 	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
 
 	// truncate file size?
-	if( ! seek && MACRO_PAGE_ALIGN_UP( file -> byte ) > MACRO_PAGE_ALIGN_UP( byte ) ) {
-		// locate amount of file block to truncate
-		uint64_t blocks = (MACRO_PAGE_ALIGN_UP( file -> byte ) - MACRO_PAGE_ALIGN_UP( byte )) >> STD_SHIFT_PAGE;
+	if( ! seek ) {
+		// remove obsolete blocks of file
+		if( MACRO_PAGE_ALIGN_UP( file -> byte ) > MACRO_PAGE_ALIGN_UP( byte ) ) {
+			// locate amount of file blocks to truncate
+			uint64_t blocks = (MACRO_PAGE_ALIGN_UP( file -> byte ) - MACRO_PAGE_ALIGN_UP( byte )) >> STD_SHIFT_PAGE;
 
-		// remove unused blocks from file
-		kernel -> memory_release( file -> offset + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
+			// remove unused blocks from file
+			kernel -> memory_release( file -> offset + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
+		}
 
 		// new file size
 		file -> byte = byte;

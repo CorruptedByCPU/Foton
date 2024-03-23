@@ -207,9 +207,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// set document name
 		sprintf( "%s", (uint8_t *) document_name, file -> name );
-
-		// close access to file
-		fclose( file );
 	} else {
 		// prepare new document area
 		document_area = malloc( STD_PAGE_byte + 1 );
@@ -339,12 +336,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					// document saved
 					document_modified_semaphore = FALSE;
 
-					// // update file name
-					// file -> name_length = 0;
-					// for( uint64_t i = 0; i < save_as.length; i++ ) file.name[ file.length++ ] = save_as.name[ i ]; file.name[ file.length ] = STD_ASCII_TERMINATOR;
+					// update file path
+					for( uint64_t i = 0; i < save_as_length; i++ ) file_path[ i ] = save_as[ i ]; file_path[ save_as_length ] = STD_ASCII_TERMINATOR;
 
 					// set document name
-					// printf( "\eX%s\e\\", file.name );
+					printf( "\eX%s\e\\", file -> name );
 
 					// update menu state
 					draw_menu();
