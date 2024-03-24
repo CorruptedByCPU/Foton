@@ -31,5 +31,5 @@
 
 	uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte );
 
-	uint64_t kernel_vfs_socket_add( void );
+	uint64_t kernel_vfs_socket_add( uint64_t knot );
 #endif

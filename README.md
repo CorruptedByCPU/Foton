@@ -46,13 +46,16 @@ You will be able to create your own system profiles, and we will build your own 
 |cd|change current root directory, *internal command of shell*|
 |colors|shows available color palette for Console/Shell program.|
 |console|build-in terminal.|
+|fm|**File Manager** *{work in progress}*|
 |free|usage of all abailable devices in system.|
 |ls|listing of files in current directory or selected one.|
-|moko|*{work in progress}* **text editor**|
+|moko|Text editor.|
 |pwd|show current path of root directory|
 |shell|default command line interaction with operating system.|
 |soler|*{work in progress}* **calculator**|
+|taris|Tetris alike game.|
 |top|*{work in progress}*|
+|welcome|Welcome screen, with small documentation *{work in progress}*.|
 |wm|windows wanager - display, movement.|
 
 
@@ -62,13 +65,14 @@ You will be able to create your own system profiles, and we will build your own 
 |libelf.so||
 |libfont.so|Bitmap font display.|
 |libimage.so|Privdes support for image files (*tga*)|
+|libinput.so|Receives characters from user, and passing them to application.|
 |libinteger.so|Convert string to value, count digits inside value.|
 |libinterface.so||
-|libinput.so|Receives characters from user, and passing them to application.|
 |libjson.so|Parsing functions of JSON structure.|
 |libmath.so|Trigonometric functions.|
+|libpath.so|Returns absolute path string from current work directory.|
+|librandom.so|Simple PRNG library.|
 |librgl.so|3D object management.|
 |libstd.so|Standard library of Foton OS.|
 |libstring.so|String manipulation library *(compare, length, trim etc.)*|
 |libterminal.so|Text mode display management.|
-|libvfs.so|Virtual File System management functions.|

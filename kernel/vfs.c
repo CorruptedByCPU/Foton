@@ -34,7 +34,7 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 	// if path is empty
 	if( ! length ) {
 		// open socket
-		struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add() ];
+		struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) vfs ) ];
 
 		// file located on definied storage
 		socket -> storage = kernel -> storage_root;
@@ -73,7 +73,7 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 			while( vfs -> type & STD_FILE_TYPE_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
 
 			// open socket
-			struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add() ];
+			struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) vfs ) ];
 
 			// file located on definied storage
 			socket -> storage = kernel -> storage_root;
@@ -187,19 +187,37 @@ uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte ) {
 	return FALSE;
 }
 
-uint64_t kernel_vfs_socket_add( void ) {
+uint64_t kernel_vfs_socket_add( uint64_t knot ) {
 	// lock exclusive access
 	MACRO_LOCK( kernel -> vfs_semaphore );
 
-	// return nereast socket
-	uint64_t i = 0;
+	// socket already opened?
+	for( uint64_t i = 0; i < KERNEL_VFS_limit; i++ ) if( kernel -> vfs_base_address[ i ].knot == knot ) {
+		// increase socket lock level
+		kernel -> vfs_base_address[ i ].lock++;
+
+		// unlock access
+		MACRO_UNLOCK( kernel -> vfs_semaphore );
+
+		// return ID of socket
+		return i;
+	}
 
 	// if entry found, secure it
-	for( ; i < KERNEL_VFS_limit; i++ ) if( ! kernel -> vfs_base_address[ i ].lock ) { kernel -> vfs_base_address[ i ].lock++; break; }
+	for( uint64_t i = 0; i < KERNEL_VFS_limit; i++ ) if( ! kernel -> vfs_base_address[ i ].lock ) {
+		// increase socket lock level
+		kernel -> vfs_base_address[ i ].lock++;
+
+		// unlock access
+		MACRO_UNLOCK( kernel -> vfs_semaphore );
+
+		// return ID of socket
+		return i;
+	}
 
 	// unlock access
 	MACRO_UNLOCK( kernel -> vfs_semaphore );
 
-	// return ID of socket
-	return i;
+	// all sockets reserved
+	return EMPTY;
 }
