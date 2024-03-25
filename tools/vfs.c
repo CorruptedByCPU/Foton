@@ -22,7 +22,7 @@
 
 	#define	EMPTY				0
 
-	#define	STD_FILE_TYPE_default	0b00000001
+	#define	STD_FILE_TYPE_file	0b00000001
 	#define	STD_FILE_TYPE_directory	0b00000010
 	#define	STD_FILE_TYPE_link		0b00000100
 
@@ -129,7 +129,7 @@ int main( int argc, char *argv[] ) {
 		}
 
 		// type
-		vfs[ files_included ].type = STD_FILE_TYPE_default;
+		vfs[ files_included ].type = STD_FILE_TYPE_file;
 
 		// next directory entry
 		files_included++;

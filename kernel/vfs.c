@@ -63,7 +63,13 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_touch( uint8_t *path, uint64_t leng
 	while( path[ length - 1 ] == '/' ) length--;
 
 	// properties of directory from path
-	struct LIB_VFS_STRUCTURE *vfs;
+	struct LIB_VFS_STRUCTURE *directory;
+	if( ! (directory = kernel_vfs_path( path, length, TRUE )) ) return EMPTY;	// path not resolvable
+
+	// content of directory
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) directory -> offset;
+
+	// search for 
 
 	// cannot resolve path before file
 	return EMPTY;
@@ -134,32 +140,35 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length, uint8
 	// remove all "white" characters from path
 	length = lib_string_trim( path, length );
 
-	// properties of current directory
-	struct LIB_VFS_STRUCTURE *vfs;
+	// properties of current file
+	struct LIB_VFS_STRUCTURE *file;
 
-	// start from current directory?
+	// start from current file?
 	if( *path != STD_ASCII_SLASH ) {
 		// properties of task
 		struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 	
-		// choose task current directory
-		vfs = (struct LIB_VFS_STRUCTURE *) task -> directory;
+		// choose task current file
+		file = (struct LIB_VFS_STRUCTURE *) task -> directory;
 	} else
-		// start from default directory
-		vfs = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].device_block;
+		// start from default file
+		file = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].device_block;
 
 	// remove all SLASH characters from end of path
 	while( path[ length - 1 ] == '/' ) length--;
 
 	// if path is empty
 	if( ! length )
-		// acquired VFS root directory
-		return vfs;
+		// acquired VFS root file
+		return file;
+
+	// properties of current directory
+	struct LIB_VFS_STRUCTURE *directory = file;
 
 	// parse path
 	while( TRUE ) {
-		// start from current directory
-		vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+		// start from current file
+		file = (struct LIB_VFS_STRUCTURE *) file -> offset;
 
 		// remove leading '/', if exist
 		while( *path == '/' ) { path++; length--; }
@@ -167,26 +176,36 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length, uint8
 		// select file name from path
 		uint64_t file_length = lib_string_word_end( path, length, '/' );
 
-		// search file inside current directory
-		do { if( file_length == vfs -> name_length && lib_string_compare( path, (uint8_t *) vfs -> name, file_length ) ) break;
-		} while( (++vfs) -> name_length );
+		// search file inside current file
+		do { if( file_length == file -> name_length && lib_string_compare( path, (uint8_t *) file -> name, file_length ) ) break;
+		} while( (++file) -> name_length );
 
-		// file found?
-		if( ! vfs -> name_length ) return EMPTY;	// no
+		// file not found?
+		if( ! file -> name_length ) {
+			// but requested only previous directory
+			if( penultimate ) return directory;
+			else return EMPTY;	// no
+		}
 
 		// last file from path and requested one?
 		if( length == file_length ) {
+			// if requested only previous directory
+			if( penultimate ) return directory;
+
 			// follow symbolic links (if possible)
-			while( vfs -> type & STD_FILE_TYPE_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+			while( file -> type & STD_FILE_TYPE_link ) file = (struct LIB_VFS_STRUCTURE *) file -> offset;
 
 			// acquired file
-			return vfs;
+			return file;
 		}
 
-		// follow symbolic links (if possible)
-		while( vfs -> type & STD_FILE_TYPE_link ) vfs = (struct LIB_VFS_STRUCTURE *) vfs -> offset;
+		// preserve current directory
+		directory = file;
 
-		// remove parsed directory from path
+		// follow symbolic links (if possible)
+		while( file -> type & STD_FILE_TYPE_link ) { directory = file; file = (struct LIB_VFS_STRUCTURE *) file -> offset; }
+
+		// remove parsed file from path
 		path += file_length; length -= file_length;
 	}
 

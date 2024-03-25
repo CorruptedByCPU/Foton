@@ -1,0 +1,8 @@
+/*-----------------------------------------------------------------------------
+Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+-----------------------------------------------------------------------------*/
+
+- hexedit
+- internal debugger
+- input library (alike libreadline from GNU/Linux)
+  history, replenishment, inline edit

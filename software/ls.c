@@ -144,7 +144,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// change color by type
 			switch( vfs[ k ].type ) {
-				case STD_FILE_TYPE_default: { print( "\e[38;5;253m" ); break; }
+				case STD_FILE_TYPE_file: { print( "\e[38;5;253m" ); break; }
 				case STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
 				case STD_FILE_TYPE_link: { print( "\e[38;5;45m" ); break; }
 			}

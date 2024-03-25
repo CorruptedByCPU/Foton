@@ -1,0 +1,25 @@
+/*-----------------------------------------------------------------------------
+Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+-----------------------------------------------------------------------------*/
+
+25.03.2024
+ - moko - bug fix, append to file instead of overwriting
+
+25.03.2024
+ - moko - text editor, almost done - save as new file (in progress)
+
+   already in:
+     arrows {left,right,up,down}, backspace, delete, home, end,
+     scroll up/down, column preserve (try to keep inline cursor Y position),
+     line merge (delete, backspace), line break (enter), page up/down,
+     line highlight, file (update, overwrite)
+
+   optional:
+     line numbers, syntax highlighting, text selection (cut/paste),
+     ctrl + arrows (word/line jump), keyword search, tabulators
+
+   at release:
+     clean up
+
+25.03.2024
+ - create change.log file, inside operating system root directory

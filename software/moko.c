@@ -317,11 +317,20 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 								}
 							}
 						} else {
-							// do something if directory structure of selected path doesn't exist...
+							// TODO, do something if directory structure of selected path doesn't exist...
+
+							// try to create empty file
+							// if( (file_save_as = std_file_touch( save_as, STD_FILE_TOUCH_file )) ) {
+								// allow file save as new file
+								// saved = TRUE;
+							// }
 						}
 
 						// write document content to file
 						if( saved ) {
+							// overwrite current content
+							file -> seek = EMPTY;
+
 							// write content of document into prepared file
 							fwrite( file, document_area, document_size );
 						}

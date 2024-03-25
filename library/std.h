@@ -116,7 +116,7 @@
 	#define	STD_ERROR_file_not_executable			-4
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 
-	#define	STD_FILE_TYPE_default				0b00000001
+	#define	STD_FILE_TYPE_file				0b00000001
 	#define	STD_FILE_TYPE_directory				0b00000010
 	#define	STD_FILE_TYPE_link				0b00000100
 
@@ -126,6 +126,9 @@
 	#define	STD_FILE_MODE_append				0b00001000
 
 	#define	STD_FILE_NAME_limit				LIB_VFS_NAME_limit
+
+	#define	STD_FILE_TOUCH_file				STD_FILE_TYPE_file
+	#define	STD_FILE_TOUCH_directory			STD_FILE_TYPE_directory
 
 	struct	STD_FILE_STRUCTURE {
 		int64_t		socket;
@@ -321,6 +324,7 @@
 	#define	STD_SYSCALL_FILE_READ				0x1D
 	#define	STD_SYSCALL_FILE				0x1E
 	#define	STD_SYSCALL_FILE_WRITE				0x1F
+	#define	STD_SYSCALL_FILE_TOUCH				0x20
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -453,6 +457,9 @@
 
 	// write content of memory into file
 	void std_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t byte );
+
+	// create empty file of definied type
+	int64_t std_file_touch( uint8_t *path, uint8_t type );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
