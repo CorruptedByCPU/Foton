@@ -638,3 +638,14 @@ void kernel_syscall_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source
 	// next file Bytes content
 	file -> seek += byte;
 }
+
+int64_t kernel_syscall_file_touch( uint8_t *path, uint8_t type ) {
+	// retrieve information about module file
+	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_touch( path, type );
+
+	// if file doesn't exist
+	if( ! socket ) return STD_ERROR_file_not_found;
+
+	// return socket ID
+	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_VFS_STRUCTURE );
+}

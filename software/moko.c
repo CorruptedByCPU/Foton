@@ -320,10 +320,19 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 							// TODO, do something if directory structure of selected path doesn't exist...
 
 							// try to create empty file
-							// if( (file_save_as = std_file_touch( save_as, STD_FILE_TOUCH_file )) ) {
-								// allow file save as new file
-								// saved = TRUE;
-							// }
+							if( (file_save_as = touch( save_as, STD_FILE_TOUCH_file )) ) {
+								// set new name of document
+								sprintf( "%s", (uint8_t *) document_name, file_save_as -> name );
+								
+								// close current connection to file if exist
+								if( file ) fclose( file );
+								
+								// set new connection
+								file = file_save_as;
+
+								// allow file save as new
+								saved = TRUE;
+							}
 						}
 
 						// write document content to file

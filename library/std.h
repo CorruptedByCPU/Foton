@@ -120,10 +120,10 @@
 	#define	STD_FILE_TYPE_directory				0b00000010
 	#define	STD_FILE_TYPE_link				0b00000100
 
-	#define	STD_FILE_MODE_reserved				0b00000001
-	#define	STD_FILE_MODE_read				0b00000010
-	#define	STD_FILE_MODE_write				0b00000100
-	#define	STD_FILE_MODE_append				0b00001000
+	// #define	STD_FILE_MODE_reserved				0b00000001
+	// #define	STD_FILE_MODE_read				0b00000010
+	// #define	STD_FILE_MODE_write				0b00000100
+	// #define	STD_FILE_MODE_append				0b00001000
 
 	#define	STD_FILE_NAME_limit				LIB_VFS_NAME_limit
 
@@ -555,4 +555,5 @@
 	void fclose( FILE *file );
 	void fread( FILE *file, uint8_t *cache, uint64_t byte );
 	void fwrite( FILE *file, uint8_t *cache, uint64_t byte );
+	FILE *touch( uint8_t *path, uint8_t type );
 #endif

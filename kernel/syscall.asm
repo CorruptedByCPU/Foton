@@ -37,6 +37,7 @@ extern	kernel_syscall_time
 extern	kernel_syscall_file_read
 extern	kernel_syscall_file
 extern	kernel_syscall_file_write
+extern	kernel_syscall_file_touch
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -50,38 +51,39 @@ section	.rodata
 ; align routine to full address
 align	0x08,	db	0x00
 kernel_syscall_list:
-	dq	kernel_syscall_exit
-	dq	kernel_syscall_framebuffer
-	dq	kernel_syscall_memory_alloc
-	dq	kernel_syscall_memory_release
-	dq	kernel_syscall_uptime
-	dq	kernel_syscall_log
-	dq	kernel_syscall_thread
-	dq	kernel_syscall_pid
-	dq	kernel_syscall_exec
-	dq	kernel_syscall_pid_check
-	dq	kernel_syscall_ipc_send
-	dq	kernel_syscall_ipc_receive
-	dq	kernel_syscall_memory_share
-	dq	kernel_syscall_mouse
-	dq	kernel_syscall_framebuffer_change
-	dq	kernel_syscall_ipc_receive_by_pid
-	dq	kernel_syscall_stream_out
-	dq	kernel_syscall_stream_in
-	dq	kernel_syscall_keyboard
-	dq	kernel_syscall_stream_set
-	dq	kernel_syscall_stream_get
-	dq	kernel_syscall_memory
-	dq	kernel_syscall_sleep
-	dq	kernel_syscall_file_open
-	dq	kernel_syscall_file_close
-	dq	kernel_syscall_cd
-	dq	kernel_syscall_ipc_receive_by_type
-	dq	kernel_syscall_microtime
-	dq	kernel_syscall_time
-	dq	kernel_syscall_file_read
-	dq	kernel_syscall_file
-	dq	kernel_syscall_file_write
+	dq	kernel_syscall_exit			; 0x00
+	dq	kernel_syscall_framebuffer		; 0x01
+	dq	kernel_syscall_memory_alloc		; 0x02
+	dq	kernel_syscall_memory_release		; 0x03
+	dq	kernel_syscall_uptime			; 0x04
+	dq	kernel_syscall_log			; 0x05
+	dq	kernel_syscall_thread			; 0x06
+	dq	kernel_syscall_pid			; 0x07
+	dq	kernel_syscall_exec			; 0x08
+	dq	kernel_syscall_pid_check		; 0x09
+	dq	kernel_syscall_ipc_send			; 0x0A
+	dq	kernel_syscall_ipc_receive		; 0x0B
+	dq	kernel_syscall_memory_share		; 0x0C
+	dq	kernel_syscall_mouse			; 0x0D
+	dq	kernel_syscall_framebuffer_change	; 0x0E
+	dq	kernel_syscall_ipc_receive_by_pid	; 0x0F
+	dq	kernel_syscall_stream_out		; 0x10
+	dq	kernel_syscall_stream_in		; 0x11
+	dq	kernel_syscall_keyboard			; 0x12
+	dq	kernel_syscall_stream_set		; 0x13
+	dq	kernel_syscall_stream_get		; 0x14
+	dq	kernel_syscall_memory			; 0x15
+	dq	kernel_syscall_sleep			; 0x16
+	dq	kernel_syscall_file_open		; 0x17
+	dq	kernel_syscall_file_close		; 0x18
+	dq	kernel_syscall_cd			; 0x19
+	dq	kernel_syscall_ipc_receive_by_type	; 0x1A
+	dq	kernel_syscall_microtime		; 0x1B
+	dq	kernel_syscall_time			; 0x1C
+	dq	kernel_syscall_file_read		; 0x1D
+	dq	kernel_syscall_file			; 0x1E
+	dq	kernel_syscall_file_write		; 0x1F
+	dq	kernel_syscall_file_touch		; 0x20
 kernel_syscall_list_end:
 
 ; 64 bit procedure code
