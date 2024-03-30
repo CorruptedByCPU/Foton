@@ -639,3 +639,26 @@ void fwrite( FILE *file, uint8_t *cache, uint64_t byte ) {
 	// write N Bytes from provided cache to file
 	std_file_write( file, cache, byte );
 }
+
+FILE *touch( uint8_t *path, uint8_t type ) {
+	// assign area for file structure
+	FILE *file = malloc( sizeof( FILE ) );
+
+	// open new socket for file
+	file -> socket = std_file_touch( path, STD_FILE_TOUCH_file );
+
+	// if cannot create file
+	if( file -> socket < 0 ) {
+		// release file pointer
+		free( file );
+
+		// cannot create such file
+		return EMPTY;
+	}
+
+	// retrieve properties of opened file
+	std_file( file );
+
+	// return all file properties
+	return file;
+}

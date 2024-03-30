@@ -2,7 +2,8 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
-- hexedit
+- hexedit - software, show content of files in binary mode (with ASCII overview
 - internal debugger
-- input library (alike libreadline from GNU/Linux)
+- input - library (alike libreadline from GNU/Linux)
   history, replenishment, inline edit
+- vfs - change file/directory data blocks structure

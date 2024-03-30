@@ -9,6 +9,28 @@
 		#include	"./string.h"
 	#endif
 
+uint8_t *lib_string_basename( uint8_t *path ) {
+	// calculate length of provided string
+	uint64_t length = lib_string_length( path );
+
+	// TODO, do we really need that?
+	// library should not care about "wrong" path provided? right?
+	//
+	// remove all SLASH characters from end of path
+	// while( path[ length - 1 ] == '/' ) length--;
+
+	// index of last word in path
+	uint64_t i = 0;
+
+	// search for last word in path
+	for( uint64_t j = 0; j < length; j++ )
+		// SLASH character found?
+		if( path[ j ] == '/' ) i = j + 1;	// mark word beginning
+	
+	// return pointer to last word
+	return (uint8_t *) &path[ i ];
+}
+
 uint8_t lib_string_compare( uint8_t *source, uint8_t *target, uint64_t length ) {
 	// compare both strings
 	for( uint64_t i = 0; i < length; i++ )

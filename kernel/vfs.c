@@ -13,7 +13,7 @@ void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket ) {
 struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length ) {
 	// properties of found file
 	struct LIB_VFS_STRUCTURE *vfs;
-	if( ! (vfs = kernel_vfs_path( path, length, FALSE )) ) return EMPTY;	// file not found
+	if( ! (vfs = kernel_vfs_path( path, length )) ) return EMPTY;	// file not found
 
 	// open socket
 	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) vfs ) ];
@@ -55,23 +55,70 @@ void kernel_vfs_file_read( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *target,
 	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
 }
 
-struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_touch( uint8_t *path, uint64_t length, uint8_t type ) {
-	// remove all "white" characters from path
-	length = lib_string_trim( path, length );
+struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_touch( uint8_t *path, uint8_t type ) {
+	// retrieve path length
+	uint64_t length = lib_string_length( path );
 
-	// remove all SLASH characters from end of path
-	while( path[ length - 1 ] == '/' ) length--;
+	// unsupported length?
+	if( ! length ) return EMPTY;	// cannot resolve path
+
+	// pointer to last file name inside path
+	uint8_t *file_name = lib_string_basename( path );
+
+	// file name length
+	uint64_t file_name_length = length - ((uintptr_t) file_name - (uintptr_t) path);
 
 	// properties of directory from path
 	struct LIB_VFS_STRUCTURE *directory;
-	if( ! (directory = kernel_vfs_path( path, length, TRUE )) ) return EMPTY;	// path not resolvable
+	if( ! (directory = kernel_vfs_path( path, length - file_name_length )) ) return EMPTY;	// path not resolvable
 
 	// content of directory
 	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) directory -> offset;
 
-	// search for 
+	// search for empty entry
+	for( uint64_t i = 0; i < directory -> byte / sizeof( struct LIB_VFS_STRUCTURE ); i++ ) {
+		// found?
+		if( file[ i ].name_length ) continue;	// no
 
-	// cannot resolve path before file
+		// set file name
+		for( uint8_t j = 0; j < file_name_length; j++ ) file[ i ].name[ file[ i ].name_length++ ] = file_name[ j ];
+
+		// set file type
+		file[ i ].type = type;
+
+		// create empty directory if required
+		switch( type ) {
+			case STD_FILE_TOUCH_directory: {
+				// done
+				break;
+			}
+
+			default: {
+				// clean data pointer
+				file[ i ].offset = EMPTY;
+
+				// and file size
+				file[ i ].byte = EMPTY;
+			}
+		}
+
+		// open socket
+		struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) &file[ i ] ) ];
+
+		// file located on definied storage
+		socket -> storage = kernel -> storage_root;
+
+		// file identificator
+		socket -> knot = (uint64_t) &file[ i ];
+
+		// socket opened by process with ID
+		socket -> pid = kernel -> task_pid();
+
+		// file found
+		return socket;
+	}
+
+	// no enought memory
 	return EMPTY;
 }
 
@@ -86,13 +133,16 @@ void kernel_vfs_file_write( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *source
 	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> byte ) ) {
 		// prepare new file content area
 		uint8_t *new = (uint8_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
-		uint8_t *old = (uint8_t *) file -> offset;
 
-		// copy current content to new location only if current file content will not be truncated
-		if( ! seek ) for( uint64_t i = 0; i < file -> byte; i++ ) new[ i ] = old[ i ];
+		// if file content exist
+		if( file -> offset ) {
+			// copy current content to new location only if current file content will not be truncated
+			uint8_t *old = (uint8_t *) file -> offset;
+			if( ! seek ) for( uint64_t i = 0; i < file -> byte; i++ ) new[ i ] = old[ i ];
 
-		// release old file content
-		kernel -> memory_release( file -> offset, MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
+			// release old file content
+			kernel -> memory_release( file -> offset, MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
+		}
 
 		// update file properties with new content location
 		file -> offset = (uintptr_t) new;
@@ -136,10 +186,7 @@ uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte ) {
 	return FALSE;
 }
 
-struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length, uint8_t penultimate ) {
-	// remove all "white" characters from path
-	length = lib_string_trim( path, length );
-
+struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 	// properties of current file
 	struct LIB_VFS_STRUCTURE *file;
 
@@ -153,9 +200,6 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length, uint8
 	} else
 		// start from default file
 		file = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].device_block;
-
-	// remove all SLASH characters from end of path
-	while( path[ length - 1 ] == '/' ) length--;
 
 	// if path is empty
 	if( ! length )
@@ -181,17 +225,10 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length, uint8
 		} while( (++file) -> name_length );
 
 		// file not found?
-		if( ! file -> name_length ) {
-			// but requested only previous directory
-			if( penultimate ) return directory;
-			else return EMPTY;	// no
-		}
+		if( ! file -> name_length ) return EMPTY;
 
 		// last file from path and requested one?
 		if( length == file_length ) {
-			// if requested only previous directory
-			if( penultimate ) return directory;
-
 			// follow symbolic links (if possible)
 			while( file -> type & STD_FILE_TYPE_link ) file = (struct LIB_VFS_STRUCTURE *) file -> offset;
 

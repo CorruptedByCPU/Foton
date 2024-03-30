@@ -300,3 +300,11 @@ void std_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t 
 	// return nothing
 	return std_syscall_empty();
 }
+
+int64_t std_file_touch( uint8_t *path, uint8_t type ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_TOUCH), "D" (path), "S" (type) );
+
+	// return value
+	return std_syscall_value();
+}

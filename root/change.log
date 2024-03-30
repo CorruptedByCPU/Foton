@@ -2,6 +2,10 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+30.03.2024
+- kernel - add vfs file creation (no directory yet),
+- moko - is able to create new file
+
 25.03.2024
  - moko - bug fix, append to file instead of overwriting
 

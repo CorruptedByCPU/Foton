@@ -5,6 +5,9 @@
 #ifndef	LIB_STRING
 	#define	LIB_STRING
 
+	// returns pointer to last word in path
+	uint8_t *lib_string_basename( uint8_t *path );
+
 	// returns TRUE/FALSE depending on whether strings match
 	uint8_t lib_string_compare( uint8_t *source, uint8_t *target, uint64_t length );
 
