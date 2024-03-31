@@ -2,6 +2,10 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+31.03.2024
+- touch - create empty files
+- ls - small fix, align size position and turn off decimals of Bytes
+
 30.03.2024
 - kernel - add vfs file creation (no directory yet),
 - moko - is able to create new file
