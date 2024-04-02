@@ -21,6 +21,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// assign area for command prompt
 	shell_command = (uint8_t *) malloc( SHELL_COMMAND_limit + 1 );
 
+	// assign area for hostname
+	hostname = (uint8_t *) calloc( 63 + 1 );
+
 	// set header
 	print( "\eXShell\e\\" );
 
@@ -36,8 +39,24 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// open current directory properties
 		dir = fopen( (uint8_t *) "." );
 
+		// open hostname file
+		FILE *file = fopen( (uint8_t *) "/system/etc/hostname" );
+		if( file ) {
+			// load file content
+			fread( file, hostname, 63 );
+
+			// close file
+			fclose( file );
+
+			// remove "white" characters from first line
+			lib_string_trim( hostname, lib_string_length( hostname ) );
+
+			// limit to first word
+			hostname[ lib_string_word_of_letters_and_digits( hostname, lib_string_length( hostname ) ) ] = STD_ASCII_TERMINATOR;
+		}
+
 		// show prompt
-		printf( "\e[0m%s \e[38;5;47m$\e[0m ", dir -> name );
+		printf( "\e[38;5;47m%s \e[38;5;15m%s \e[38;5;47m%%\e[0m ", hostname, dir -> name );
 
 		// close directory
 		fclose( dir );

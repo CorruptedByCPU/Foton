@@ -2,6 +2,13 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+02.04.2024
+- hostname - show or update system name
+- make.sh - update, correct processor flags
+- kernel - vfs > read requested more Bytes than available, read up to end of file
+- libstring.so - update, added support function for hostname
+- shell - now reports hostname
+
 31.03.2024
 - touch - create empty files
 - ls - small fix, align size position and turn off decimals of Bytes

@@ -48,7 +48,11 @@ void kernel_vfs_file_read( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *target,
 	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
 
 	// invalid read request?
-	if( seek + byte > file -> byte ) return;	// yes, ignore
+	if( seek + byte > file -> byte ) {
+		// read up to end of file?
+		if( seek < file -> byte ) byte = file -> byte - seek;
+		else return;	// no, ignore
+	}
 
 	// copy content of file to destination
 	uint8_t *source = (uint8_t *) file -> offset + seek;

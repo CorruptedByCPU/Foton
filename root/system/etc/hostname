@@ -1,1 +1,5 @@
 vhost0
+# first word of file will be chosen as hostname (no more than 63 charactes)
+
+# https://www.rfc-editor.org/rfc/rfc1035
+# 2.3.1. Preferred name syntax
