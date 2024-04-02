@@ -7,3 +7,4 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 - input - library (alike libreadline from GNU/Linux)
   history, replenishment, inline edit
 - vfs - change file/directory data blocks structure
+- software: cal, cp, cut, date, df, du, echo, find, grep, halt, head, kill, less/more, ln, mkdir, mv, ping, ps, reboot, rm, sleep, tail, time, top, uname, uptime, wc 
