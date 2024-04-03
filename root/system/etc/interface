@@ -1,2 +1,2 @@
-# shadow around window [Pixel]
-shadow_thickness	8
+# shadow around window [Pixel/s]
+shadow_thickness	4

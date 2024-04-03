@@ -2,6 +2,9 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+03.04.2024
+- vfs - don't allow to create more than 1 file with the same name
+
 02.04.2024
 - hostname - show or update system name
 - make.sh - update, correct processor flags
