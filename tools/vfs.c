@@ -20,14 +20,14 @@
 	#include	"../library/macro.h"
 	//======================================================================
 
-	#define	EMPTY				0
+	#define	EMPTY			0
 
 	#define	STD_FILE_TYPE_file	0b00000001
 	#define	STD_FILE_TYPE_directory	0b00000010
-	#define	STD_FILE_TYPE_link		0b00000100
+	#define	STD_FILE_TYPE_link	0b00000100
 
-	#define	STD_PAGE_byte			0x1000
-	#define	STD_PAGE_mask			0xFFFFFFFFFFFFF000
+	#define	STD_PAGE_byte		0x1000
+	#define	STD_PAGE_mask		0xFFFFFFFFFFFFF000
 
 char path_export[] = "./";
 char file_extension[] = ".vfs";

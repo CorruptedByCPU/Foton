@@ -35,7 +35,7 @@ void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// prepare JSON structure for parsing
 	lib_json_squeeze( interface -> properties );
 
-	// // convert interface properties to a more accessible format
+	// convert interface properties to a more accessible format
 	lib_interface_convert( interface );
 
 	// if dimensions aquired from JSON structure
@@ -237,6 +237,34 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// store new properties pointer
 	interface -> properties = properties;
 };
+
+struct LIB_INTERFACE_STRUCTURE *lib_interface_create( uint16_t width, uint16_t height, uint8_t *name ) {
+	// prepare area for interface window
+	struct LIB_INTERFACE_STRUCTURE *interface = (struct LIB_INTERFACE_STRUCTURE *) calloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
+
+	// set window width and height
+	interface -> width = width + (LIB_INTERFACE_SHADOW_length << STD_SHIFT_2);
+	interface -> height = height + (LIB_INTERFACE_SHADOW_length << STD_SHIFT_2);
+
+	// if window name provided
+	if( name ) {
+		// resize by header
+		interface -> height += LIB_INTERFACE_HEADER_HEIGHT_pixel;
+
+		// set name length
+		interface -> length = lib_string_length( name );
+		if( interface -> length > LIB_INTERFACE_NAME_limit ) interface -> length = LIB_INTERFACE_NAME_limit;
+
+		// set name
+		for( uint64_t i = 0; i < interface -> length; i++ ) interface -> name[ i ] = name[ i ];
+	}
+
+	// properties of new interface
+	interface -> properties = (uint8_t *) calloc( TRUE );	// alloc default area
+
+	// return new interface window properties
+	return interface;
+}
 
 void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// first element properties
@@ -500,9 +528,9 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	//----------------------------------------------------------------------
 
-	// wallpaper window properties
+	// window properties
 	request -> ipc.type = STD_IPC_TYPE_event;
-	request -> x = (kernel_framebuffer.width_pixel >> STD_SHIFT_2) - (interface -> width >> STD_SHIFT_2);	// todo, shadow
+	request -> x = (kernel_framebuffer.width_pixel >> STD_SHIFT_2) - (interface -> width >> STD_SHIFT_2);
 	request -> y = ((kernel_framebuffer.height_pixel - LIB_INTERFACE_HEADER_HEIGHT_pixel) >> STD_SHIFT_2) - (interface -> height >> STD_SHIFT_2);
 	request -> width = interface -> width;
 	request -> height = interface -> height;

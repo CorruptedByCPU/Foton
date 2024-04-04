@@ -32,6 +32,9 @@
 	// returns length of string before separator
 	uint64_t lib_string_word_end( uint8_t *string, uint64_t length, uint8_t separator );
 
+	// returns length of first word made from alphabet or digits
+	uint64_t lib_string_word_of_letters_and_digits( uint8_t *string, uint64_t length );
+
 	// remove from string first word occurence, return new string length (trimmed)
 	uint64_t lib_string_word_remove( uint8_t *string, uint64_t length, uint8_t separator );
 #endif

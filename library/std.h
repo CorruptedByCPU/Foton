@@ -115,6 +115,7 @@
 	#define	STD_ERROR_file_not_elf				-3
 	#define	STD_ERROR_file_not_executable			-4
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
+	#define	STD_ERROR_overflow				-6
 
 	#define	STD_FILE_TYPE_file				0b00000001
 	#define	STD_FILE_TYPE_directory				0b00000010
@@ -345,6 +346,7 @@
 	#define	STD_WINDOW_FLAG_release		0b0000000000010000	// window marked as ready to be removed
 	#define	STD_WINDOW_FLAG_name		0b0000000000100000
 	#define	STD_WINDOW_FLAG_minimize	0b0000000001000000
+	#define	STD_WINDOW_FLAG_unstable	0b0000000010000000
 	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
 	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
 

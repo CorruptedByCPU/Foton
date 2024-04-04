@@ -31,8 +31,8 @@ void ls_format( uint64_t bytes ) {
 	while( pow( 1024, unit ) < bytes ) unit++;
 
 	// show higher units?
-	if( unit ) printf( "\e[0m %4.1f\e[38;5;241m%c ", (float) bytes / (float) pow( 1024, unit - 1 ), ls_units[ unit - 1] );
-	else printf( "%9u ", bytes );	// only Bytes
+	if( bytes > 1023 ) printf( "\e[0m %4.1f\e[38;5;241m%c ", (float) bytes / (float) pow( 1024, unit - 1 ), ls_units[ unit - 1] );
+	else printf( "\e[0m%7u  ", bytes );	// only Bytes
 }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
@@ -144,9 +144,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// change color by type
 			switch( vfs[ k ].type ) {
-				case STD_FILE_TYPE_file: { print( "\e[38;5;253m" ); break; }
 				case STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
 				case STD_FILE_TYPE_link: { print( "\e[38;5;45m" ); break; }
+				default: { print( "\e[38;5;253m" ); }
 			}
 
 			// properties mode?

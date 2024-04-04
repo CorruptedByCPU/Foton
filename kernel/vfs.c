@@ -48,7 +48,11 @@ void kernel_vfs_file_read( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *target,
 	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
 
 	// invalid read request?
-	if( seek + byte > file -> byte ) return;	// yes, ignore
+	if( seek + byte > file -> byte ) {
+		// read up to end of file?
+		if( seek < file -> byte ) byte = file -> byte - seek;
+		else return;	// no, ignore
+	}
 
 	// copy content of file to destination
 	uint8_t *source = (uint8_t *) file -> offset + seek;
@@ -75,51 +79,57 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 	// content of directory
 	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) directory -> offset;
 
+	// empty entry id
+	uint64_t entry = 0;
+
 	// search for empty entry
 	for( uint64_t i = 0; i < directory -> byte / sizeof( struct LIB_VFS_STRUCTURE ); i++ ) {
 		// found?
-		if( file[ i ].name_length ) continue;	// no
+		if( ! entry && ! file[ i ].name_length ) entry = i;
 
-		// set file name
-		for( uint8_t j = 0; j < file_name_length; j++ ) file[ i ].name[ file[ i ].name_length++ ] = file_name[ j ];
-
-		// set file type
-		file[ i ].type = type;
-
-		// create empty directory if required
-		switch( type ) {
-			case STD_FILE_TOUCH_directory: {
-				// done
-				break;
-			}
-
-			default: {
-				// clean data pointer
-				file[ i ].offset = EMPTY;
-
-				// and file size
-				file[ i ].byte = EMPTY;
-			}
-		}
-
-		// open socket
-		struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) &file[ i ] ) ];
-
-		// file located on definied storage
-		socket -> storage = kernel -> storage_root;
-
-		// file identificator
-		socket -> knot = (uint64_t) &file[ i ];
-
-		// socket opened by process with ID
-		socket -> pid = kernel -> task_pid();
-
-		// file found
-		return socket;
+		// file with exact same name found?
+		if( file_name_length == file[ i ].name_length && lib_string_compare( file_name, file[ i ].name, file_name_length ) ) return EMPTY;	// ignore file creation
 	}
 
-	// no enought memory
-	return EMPTY;
+	// if empty entry not found
+	if( ! entry ) return EMPTY;
+
+	// set file name
+	for( uint8_t j = 0; j < file_name_length; j++ ) file[ entry ].name[ file[ entry ].name_length++ ] = file_name[ j ];
+
+	// set file type
+	file[ entry ].type = type;
+
+	// create empty directory if required
+	switch( type ) {
+		case STD_FILE_TOUCH_directory: {
+			// done
+			break;
+		}
+
+		default: {
+			// clean data pointer
+			file[ entry ].offset = EMPTY;
+
+			// and file size
+			file[ entry ].byte = EMPTY;
+		}
+	}
+
+	// open socket
+	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) &file[ entry ] ) ];
+
+	// file located on definied storage
+	socket -> storage = kernel -> storage_root;
+
+	// file identificator
+	socket -> knot = (uint64_t) &file[ entry ];
+
+	// socket opened by process with ID
+	socket -> pid = kernel -> task_pid();
+
+	// file found
+	return socket;
 }
 
 void kernel_vfs_file_write( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *source, uint64_t seek, uint64_t byte ) {

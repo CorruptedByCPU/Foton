@@ -19,14 +19,20 @@ mkdir -p root/system/{bin,lib}
 # copy default filesystem structure
 cp -rf root build
 
+# default optimization
+OPT="${1}"
+if [ -z "${OPT}" ]; then OPT="fast"; fi
+
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 C="clang -include ./library/std.h -g"
 LD="ld.lld"
 ASM="nasm"
 
-# default optimization
-OPT="${1}"
-if [ -z "${OPT}" ]; then OPT="fast"; fi
+# when looking at "Other Settings" tab
+# https://store.steampowered.com/hwsurvey/ (if someone have something better to lookup, please provide)
+# almost everyone have at least Intel Core i3,5,7 or better
+ARCH="nehalem"
+DEFAULT_FLAGS="-march=${ARCH} -mtune=generic -O${OPT} -m64 -ffreestanding -nostdlib -nostartfiles -fno-stack-protector -fno-builtin -mno-red-zone ${DEBUG}"
 
 # build subroutines required by kernel
 EXT=""
@@ -39,8 +45,8 @@ ${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o & EXT="${EXT} build/syscal
 
 # default configuration of clang for kernel making
 if [ ! -z "${2}" ]; then DEBUG="-DDEBUG"; fi
-CFLAGS="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -mno-3dnow ${DEBUG}"
-CFLAGS_SOFTWARE="-O${OPT} -march=x86-64 -mtune=generic -m64 -ffreestanding -nostdlib -nostartfiles -fno-builtin -fno-stack-protector -mno-red-zone ${DEBUG}"
+CFLAGS="${DEFAULT_FLAGS} -mno-mmx -mno-sse -mno-sse2 -mno-3dnow ${DEBUG}"
+CFLAGS_SOFTWARE="${DEFAULT_FLAGS} ${DEBUG}"
 LDFLAGS="-nostdlib -static -no-dynamic-linker"
 
 # build kernel file
