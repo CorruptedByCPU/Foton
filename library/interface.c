@@ -322,18 +322,18 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 	switch( element -> control.type ) {	
 		case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
 			// display minimize window button
-			for( uint64_t x = 6; x <= 16; x++ ) pixel[ (16 * interface -> width) + x ] = 0xFFC0C0C0;
+			for( uint64_t x = 6; x <= 18; x++ ) pixel[ (18 * interface -> width) + x ] = 0xFFC0C0C0;
 
 			// done
 			break;
 		}
 		case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: {
 			// display window maximize button
-			for( uint64_t y = 6; y <= 16; y++ ) {
+			for( uint64_t y = 6; y <= 18; y++ ) {
 				pixel[ (6 * interface -> width) + y ] = 0xFFC0C0C0;
 				pixel[ (y * interface -> width) + 6 ] = 0xFFC0C0C0;
-				pixel[ (y * interface -> width) + 16 ] = 0xFFC0C0C0;
-				pixel[ (16 * interface -> width) + y ] = 0xFFC0C0C0;
+				pixel[ (y * interface -> width) + 18 ] = 0xFFC0C0C0;
+				pixel[ (18 * interface -> width) + y ] = 0xFFC0C0C0;
 			}
 
 			// done
@@ -341,7 +341,7 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 		}
 		case LIB_INTERFACE_ELEMENT_TYPE_control_close: {
 			// display close window button
-			for( uint64_t y = 6; y <= 16; y++ ) {
+			for( uint64_t y = 6; y <= 18; y++ ) {
 				pixel[ (y * interface -> width) + y ] = 0xFFF0F0F0;
 				pixel[ (LIB_INTERFACE_HEADER_HEIGHT_pixel - y) + (y * interface -> width) ] = 0xFFF0F0F0;
 			}
