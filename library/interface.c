@@ -83,12 +83,12 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				// retrieve name value
 				if( lib_json_key( window, (uint8_t *) &lib_interface_string_name ) ) {
 					// set name length
-					interface -> length = window.length;
-					if( window.length > LIB_INTERFACE_NAME_limit ) interface -> length = LIB_INTERFACE_NAME_limit;
+					interface -> name_length = window.length;
+					if( window.length > LIB_INTERFACE_NAME_limit ) interface -> name_length = LIB_INTERFACE_NAME_limit;
 
 					// copy name
 					uint8_t *name = (uint8_t *) window.value;
-					for( uint64_t i = 0; i < interface -> length; i++ ) interface -> name[ i ] = name[ i ];
+					for( uint64_t i = 0; i < interface -> name_length; i++ ) interface -> name[ i ] = name[ i ];
 				}
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &window ) );
@@ -198,26 +198,23 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 				// name
 				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_name ) ) {
-					// set length
-					if( label_or_button.length < LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit )
-						// length if proper
-						element -> length = label_or_button.length;
-					else
-						// limit name length
-						element -> length = LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit;
+					// length if proper
+					element -> name_length = label_or_button.length;
 
-					// calculate name alignment
-					if( label_or_button.length % STD_PTR_byte ) element_name_align = STD_PTR_byte - (label_or_button.length % STD_PTR_byte);
+					// name overflow?
+					if( element -> name_length > LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit )
+						// limit name length
+						element -> name_length = LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit;
 
 					// alloc area for element name
-					properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON ) + label_or_button.length + element_name_align );
+					uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
 
-					// and name
-					uint8_t *name = (uint8_t *) label_or_button.value;
-					for( uint64_t i = 0; i < label_or_button.length; i++ ) element -> name[ i ] = name[ i ];
+					// copy element name
+					uint8_t *name_source = (uint8_t *) label_or_button.value;
+					for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = name_source[ i ];
 
-					// update element size
-					element -> label_or_button.size_byte += element -> length + element_name_align;
+					// update element name pointer
+					element -> name = name_target;
 				}
 
 			// next key
@@ -252,11 +249,11 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_create( uint16_t width, uint16_t h
 		interface -> height += LIB_INTERFACE_HEADER_HEIGHT_pixel;
 
 		// set name length
-		interface -> length = lib_string_length( name );
-		if( interface -> length > LIB_INTERFACE_NAME_limit ) interface -> length = LIB_INTERFACE_NAME_limit;
+		interface -> name_length = lib_string_length( name );
+		if( interface -> name_length > LIB_INTERFACE_NAME_limit ) interface -> name_length = LIB_INTERFACE_NAME_limit;
 
 		// set name
-		for( uint64_t i = 0; i < interface -> length; i++ ) interface -> name[ i ] = name[ i ];
+		for( uint64_t i = 0; i < interface -> name_length; i++ ) interface -> name[ i ] = name[ i ];
 	}
 
 	// properties of new interface
@@ -277,6 +274,7 @@ void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			case LIB_INTERFACE_ELEMENT_TYPE_control_close: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
 			case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
 			case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
+			case LIB_INTERFACE_ELEMENT_TYPE_menu: { lib_interface_element_menu( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) element ); break; }
 		}
 	
 		// next element properties
@@ -354,7 +352,7 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 
 void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
 	// limit string length to element width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> length ) > element -> label_or_button.width ) if( ! --element -> length ) return;
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> label_or_button.width ) if( ! --element -> name_length ) return;
 
 	// compute absolute address of first pixel of element space
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
@@ -372,7 +370,38 @@ void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, str
 	if( element -> label_or_button.flags & LIB_FONT_ALIGN_right ) pixel += element -> label_or_button.width;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, element -> label_or_button.flags );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, element -> label_or_button.flags );
+}
+
+void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element ) {
+	// limit string length to element width
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> menu.width ) if( ! --element -> name_length ) return;
+
+	// compute absolute address of first pixel of element space
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (element -> menu.y * interface -> width) + element -> menu.x;
+
+	// choose background color
+	uint32_t background_color = LIB_INTERFACE_COLOR_background;
+	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) background_color = LIB_INTERFACE_COLOR_background_light;
+
+	// fill element with background color
+	for( uint16_t y = 0; y < element -> menu.height; y++ )
+		for( uint16_t x = 0; x < element -> menu.width; x++ )
+			pixel[ (y * interface -> width) + x ] = background_color;
+
+	// horizontal align of element content
+	if( element -> menu.flags & LIB_FONT_ALIGN_center ) pixel += element -> menu.width >> STD_SHIFT_2;
+	if( element -> menu.flags & LIB_FONT_ALIGN_right ) pixel += element -> menu.width;
+
+	// display the content of element
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 16 + 4, interface -> width, element -> menu.flags );
+
+	// icon provided?
+	if( element -> icon )
+		// load icon to element area
+		for( uint16_t y = 0; y < 16; y++ )
+			for( uint16_t x = 0; x < 16; x++ )
+				pixel[ (y * interface -> width) + x ] = element -> icon[ (y * 16) + x ];
 }
 
 void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -459,6 +488,7 @@ void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				case LIB_INTERFACE_ELEMENT_TYPE_control_close: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
 				case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
 				case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
+				case LIB_INTERFACE_ELEMENT_TYPE_menu: { lib_interface_element_menu( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) &element[ e ] ); break; }
 			}
 
 			// update window content on screen
@@ -472,10 +502,10 @@ void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// window name set?
-	if( ! interface -> length ) return;	// no
+	if( ! interface -> name_length ) return;	// no
 
 	// limit name length to header width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> length ) > interface -> width - ((interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) + interface -> descriptor -> offset) ) if( ! --interface -> length ) return;
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> name_length ) > interface -> width - ((interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) + interface -> descriptor -> offset) ) if( ! --interface -> name_length ) return;
 
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
@@ -485,11 +515,11 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 
 	// print new header
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> length, STD_COLOR_WHITE, pixel + ((4 + interface -> descriptor -> offset) * interface -> width) + 4 + interface -> descriptor -> offset, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> name_length, STD_COLOR_WHITE, pixel + ((4 + interface -> descriptor -> offset) * interface -> width) + 4 + interface -> descriptor -> offset, interface -> width, LIB_FONT_ALIGN_left );
 
 	// synchronize header name with window
-	interface -> descriptor -> length = interface -> length;
-	for( uint8_t i = 0; i < interface -> length; i++ ) interface -> descriptor -> name[ i ] = interface -> name[ i ];
+	interface -> descriptor -> name_length = interface -> name_length;
+	for( uint8_t i = 0; i < interface -> name_length; i++ ) interface -> descriptor -> name[ i ] = interface -> name[ i ];
 
 	// inform Window Manager about new window name
 	interface -> descriptor -> flags |= STD_WINDOW_FLAG_name;

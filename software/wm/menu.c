@@ -18,8 +18,8 @@ void wm_menu( void ) {
 	}
 
 	// allocate area for file content
-	uint8_t *menu = (uint8_t *) calloc( file -> byte + 1 );
-	if( ! menu ) {
+	uint8_t *file_content = (uint8_t *) calloc( file -> byte + 1 );
+	if( ! file_content ) {
 		// cannot allocate enough memory
 		fclose( file );
 
@@ -28,7 +28,7 @@ void wm_menu( void ) {
 	}
 
 	// load file content into memory
-	fread( file, menu, file -> byte );
+	fread( file, file_content, file -> byte );
 
 	// close menu file, we doesn't care anymore
 	fclose( file );
@@ -38,12 +38,12 @@ void wm_menu( void ) {
 	uint64_t height_pixel = 0;
 
 	// until end of menu file
-	uint8_t *search = menu; while( *search ) {
+	uint8_t *search = file_content; while( *search ) {
 		// line length
 		uint64_t line_length = lib_string_length_line( search );
 
 		// entry width in characters
-		uint64_t width_current = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, search, lib_string_word( search, line_length ) );
+		uint64_t width_current = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, search, lib_string_word_end( search, line_length, STD_ASCII_COMMA ) );
 
 		// wider than others?
 		if( width_current > width_pixel ) width_pixel = width_current;
@@ -56,7 +56,7 @@ void wm_menu( void ) {
 	}
 
 	// test
-	width_pixel += 4 + 4 + 16;
+	width_pixel += 4 + 4 + 16 + 0 + 4;	// 0 > label position of menu element
 
 	// prepare empty menu window
 	interface_menu = lib_interface_create( width_pixel + (LIB_INTERFACE_BORDER_pixel << STD_SHIFT_2), height_pixel + LIB_INTERFACE_BORDER_pixel, (uint8_t *) "Menu" );
@@ -72,53 +72,104 @@ void wm_menu( void ) {
 
 	// add elements to interface from menu file
 	uint64_t properties_length = 0; uint64_t elements = 0; uint64_t properties_index = 0;
-	while( *menu ) {
-			MACRO_DEBUF();
-		
+	while( *file_content ) {
 		// line length
-		uint64_t line_length = lib_string_length_line( menu );
+		uint64_t line_length = lib_string_length_line( file_content );
+
+		// ignore entries without command
+		if( ! lib_string_count( file_content, line_length, STD_ASCII_COMMA ) ) {
+			// move to next line
+			file_content += line_length + 1;
+
+			// next
+			continue;
+		}
 
 		// alloc space for element
-		properties_length += sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON );
+		properties_length += sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU );
 		interface_menu -> properties = (uint8_t *) realloc( interface_menu -> properties, properties_length );
+
+		//-------------------------------------------------------------
 
 		// element structure position
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) &interface_menu -> properties[ properties_index ];
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) &interface_menu -> properties[ properties_index ];
 
 		// default properties of label and button
-		element -> label_or_button.type = LIB_INTERFACE_ELEMENT_TYPE_label;
-		element -> label_or_button.flags = LIB_FONT_ALIGN_left;
-		element -> label_or_button.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON );
+		element -> menu.type = LIB_INTERFACE_ELEMENT_TYPE_menu;
+		element -> menu.flags = EMPTY;
+		element -> menu.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU );
 
 		// position and size
-		element -> label_or_button.x = LIB_INTERFACE_SHADOW_length + interface_menu -> descriptor -> offset + 4 + 16;
-		element -> label_or_button.y = LIB_INTERFACE_HEADER_HEIGHT_pixel + (elements * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) + interface_menu -> descriptor -> offset;
-		element -> label_or_button.width = width_pixel;
-		element -> label_or_button.height = LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
+		element -> menu.x = interface_menu -> descriptor -> offset + 4;
+		element -> menu.y = LIB_INTERFACE_HEADER_HEIGHT_pixel + (elements * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) + interface_menu -> descriptor -> offset;
+		element -> menu.width = width_pixel - 8;
+		element -> menu.height = LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
 
-		// element name alignment
-		uint16_t element_name_align = EMPTY;
+		// length if proper
+		element -> name_length = lib_string_word_end( file_content, line_length, STD_ASCII_COMMA );
 
-		// calculate name alignment
-		if( lib_string_word( menu, line_length ) % STD_PTR_byte ) element_name_align = STD_PTR_byte - (lib_string_word( menu, line_length ) % STD_PTR_byte);
+		// name overflow?
+		if( element -> name_length > LIB_INTERFACE_GLOBAL_NAME_limit )
+			// limit name length
+			element -> name_length = LIB_INTERFACE_GLOBAL_NAME_limit;
+
 
 		// alloc area for element name
-		properties_length += lib_string_word( menu, line_length ) + element_name_align;
-		interface_menu -> properties = (uint8_t *) realloc( interface_menu -> properties, properties_length );
+		uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
 
-		// and name
-		for( uint64_t i = 0; i < lib_string_word( menu, line_length ); i++ ) element -> name[ element -> length++ ] = menu[ i ];
+		// copy element name
+		for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = file_content[ i ];
 
-		// update element size
-		element -> label_or_button.size_byte += element -> length + element_name_align;
+		// update element name pointer
+		element -> name = name_target;
+
+		//-------------------------------------------------------------
+
+		// search for command properties
+		uint8_t *string_command = file_content + element -> name_length + 1;
+		uint64_t string_command_length = lib_string_word_end( string_command, lib_string_length_line( string_command ), STD_ASCII_COMMA );
+
+		// icon available?
+		if( lib_string_count( file_content, line_length, STD_ASCII_COMMA ) == 2 ) {
+			//search for icon properties
+			uint8_t *string_icon = string_command + string_command_length + 1;
+			uint64_t string_icon_length = lib_string_word_end( string_icon, lib_string_length_line( string_icon ), STD_ASCII_COMMA ); string_icon[ string_icon_length ] = STD_ASCII_TERMINATOR;
+
+			// properties of file
+			FILE *icon_file;
+
+			// properties of image
+			struct LIB_IMAGE_TGA_STRUCTURE *icon_image = EMPTY;
+
+			// retrieve information about module file
+			if( (icon_file = fopen( (uint8_t *) string_icon )) ) {
+				// assign area for file
+				icon_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( icon_file -> byte );
+
+				// load file content
+				fread( icon_file, (uint8_t *) icon_image, icon_file -> byte );
+
+				// copy image content to cursor object
+				element -> icon = (uint32_t *) malloc( icon_image -> width * icon_image -> height * STD_VIDEO_DEPTH_byte );
+				lib_image_tga_parse( (uint8_t *) icon_image, element -> icon, icon_file -> byte );
+
+				// release file content
+				// free( icon_image );
+
+				// close file
+				// fclose( icon_file );
+			}
+		}
+
+		//-------------------------------------------------------------
 
 		// move to next line
-		menu += line_length + 1;
+		file_content += line_length + 1;
 
 		// amount of elements
 		elements++;
 
-		properties_index += element -> label_or_button.size_byte;
+		properties_index += element -> menu.size_byte;
 	}
 
 
@@ -134,7 +185,7 @@ void wm_menu( void ) {
 	// 		menu_pixel[ (y * wm_object_menu -> width) + x ] = STD_COLOR_RED;
 
 	// prepare shadow of window
-	// lib_interface_shadow( interface_menu );
+	lib_interface_shadow( interface_menu );
 
 	// clear window content
 	lib_interface_clear( interface_menu );
@@ -149,5 +200,5 @@ void wm_menu( void ) {
 	wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_unstable | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
 	// release file content
-	free( menu );
+	free( file_content );
 }

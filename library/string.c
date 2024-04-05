@@ -41,6 +41,17 @@ uint8_t lib_string_compare( uint8_t *source, uint8_t *target, uint64_t length ) 
 	return TRUE;
 }
 
+uint64_t lib_string_count( uint8_t *string, uint64_t length, uint8_t character ) {
+	// found
+	uint64_t counter = 0;
+
+	// search from the beginning
+	for( uint64_t i = 0; i < length; i++ ) if( string[ i ] == character ) counter++;
+	
+	// return amount of specified characters
+	return counter;
+}
+
 uint64_t lib_string_length( uint8_t *string ) {
 	// length of string
 	uint64_t length = 0;
