@@ -382,26 +382,33 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 
 	// choose background color
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
-	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) background_color = LIB_INTERFACE_COLOR_background_light;
+	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) background_color = LIB_INTERFACE_COLOR_MENU_background_hover;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> menu.height; y++ )
 		for( uint16_t x = 0; x < element -> menu.width; x++ )
 			pixel[ (y * interface -> width) + x ] = background_color;
 
-	// horizontal align of element content
-	if( element -> menu.flags & LIB_FONT_ALIGN_center ) pixel += element -> menu.width >> STD_SHIFT_2;
-	if( element -> menu.flags & LIB_FONT_ALIGN_right ) pixel += element -> menu.width;
+	// if hovered
+	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) {
+		// add some fancy :)
+		for( uint16_t x = 0; x < element -> menu.width; x++ ) pixel[ x ] = LIB_INTERFACE_COLOR_MENU_background_hover - 0x00040404;
+		for( uint16_t x = 0; x < element -> menu.width; x++ ) pixel[ x + ((element -> menu.height - 1) * interface -> width) ] = LIB_INTERFACE_COLOR_MENU_background_hover + 0x00101010;
+	}
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 16 + 4, interface -> width, element -> menu.flags );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4 + 16 + 2 + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width), interface -> width, element -> menu.flags );
 
 	// icon provided?
-	if( element -> icon )
+	if( element -> icon ) {
+		// compute absolute address of first pixel of icon
+		uint32_t *icon = (uint32_t *) pixel + 4 + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width);
+
 		// load icon to element area
 		for( uint16_t y = 0; y < 16; y++ )
 			for( uint16_t x = 0; x < 16; x++ )
-				pixel[ (y * interface -> width) + x ] = element -> icon[ (y * 16) + x ];
+				icon[ (y * interface -> width) + x ] = lib_color_blend( icon[ (y * interface -> width) + x ], element -> icon[ (y * 16) + x ] );
+	}
 }
 
 void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {

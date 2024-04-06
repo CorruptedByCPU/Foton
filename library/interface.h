@@ -21,6 +21,7 @@
 	#define	LIB_INTERFACE_GLOBAL_NAME_limit		64
 
 	#define	LIB_INTERFACE_HEADER_HEIGHT_pixel	(LIB_FONT_HEIGHT_pixel + 8)	// 4 pixels from above and under
+	#define	LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel	LIB_INTERFACE_HEADER_HEIGHT_pixel
 
 	#define	LIB_INTERFACE_ELEMENT_TYPE_null			0x00
 	#define	LIB_INTERFACE_ELEMENT_TYPE_label		0x01
@@ -38,6 +39,8 @@
 	#define	LIB_INTERFACE_COLOR_foreground		0xFFF0F0F0
 	#define	LIB_INTERFACE_COLOR_background_light	0xFF282828
 	#define	LIB_INTERFACE_COLOR_background_hover	0xFF208020
+
+	#define	LIB_INTERFACE_COLOR_MENU_background_hover	0xFF0C0C0C
 
 	#define	LIB_INTERFACE_NAME_limit		LIB_INTERFACE_GLOBAL_NAME_limit
 

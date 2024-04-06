@@ -66,4 +66,4 @@
 	void wm_object_move( int16_t x, int16_t y );
 	void wm_object_remove( uint16_t i );
 	void wm_object_active_new( void );
-	void wm_menu( void );
+	int64_t wm_menu( void );

@@ -121,6 +121,12 @@ uint8_t wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
+	// execute menu function as thread
+	uint8_t wm_string_menu[] = "{wm: menu}";
+	std_thread( (uintptr_t) &wm_menu, (uint8_t *) &wm_string_menu, sizeof( wm_string_menu ) );
+
+	//----------------------------------------------------------------------
+
 	// execute clock function as thread
 	uint8_t wm_string_clock[] = "{wm: clock}";
 	std_thread( (uintptr_t) &wm_clock, (uint8_t *) &wm_string_clock, sizeof( wm_string_clock ) );
@@ -186,7 +192,7 @@ uint8_t wm_init( void ) {
 	std_thread( (uintptr_t) &wm_release, (uint8_t *) &wm_string_release, sizeof( wm_string_release ) );
 
 	// debug
-	std_exec( (uint8_t *) "console", 7, EMPTY );
+	// std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console moko", 12, EMPTY );
 	// std_exec( (uint8_t *) "console moko change.log", 23, EMPTY );
 	// std_exec( (uint8_t *) "console moko LICENSE.txt", 24, EMPTY );

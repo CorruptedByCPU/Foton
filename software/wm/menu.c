@@ -2,9 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#define	LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel	(LIB_FONT_HEIGHT_pixel + 8)
-
-void wm_menu( void ) {
+int64_t wm_menu( void ) {
 	// open menu file
 	FILE *file = fopen( (uint8_t *) "/system/etc/menu" );
 
@@ -14,7 +12,7 @@ void wm_menu( void ) {
 		std_exec( (uint8_t *) "console", 7, EMPTY );
 
 		// done
-		return;
+		return EMPTY;
 	}
 
 	// allocate area for file content
@@ -24,7 +22,7 @@ void wm_menu( void ) {
 		fclose( file );
 
 		// done
-		return;
+		return EMPTY;
 	}
 
 	// load file content into memory
@@ -56,10 +54,10 @@ void wm_menu( void ) {
 	}
 
 	// test
-	width_pixel += 4 + 4 + 16 + 0 + 4;	// 0 > label position of menu element
+	width_pixel += 4 + 16 + 2 + 0 + 6;	// 0 > label position of menu element
 
 	// prepare empty menu window
-	interface_menu = lib_interface_create( width_pixel + (LIB_INTERFACE_BORDER_pixel << STD_SHIFT_2), height_pixel + LIB_INTERFACE_BORDER_pixel, (uint8_t *) "Menu" );
+	interface_menu = lib_interface_create( width_pixel, height_pixel, (uint8_t *) "Menu" );
 
 	// create menu object
 	wm_object_menu = wm_object_create( -LIB_INTERFACE_SHADOW_length, wm_object_taskbar -> y - (interface_menu -> height - LIB_INTERFACE_SHADOW_length), interface_menu -> width, interface_menu -> height );
@@ -100,9 +98,9 @@ void wm_menu( void ) {
 		element -> menu.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU );
 
 		// position and size
-		element -> menu.x = interface_menu -> descriptor -> offset + 4;
+		element -> menu.x = interface_menu -> descriptor -> offset;
 		element -> menu.y = LIB_INTERFACE_HEADER_HEIGHT_pixel + (elements * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) + interface_menu -> descriptor -> offset;
-		element -> menu.width = width_pixel - 8;
+		element -> menu.width = width_pixel;
 		element -> menu.height = LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
 
 		// length if proper
@@ -172,17 +170,8 @@ void wm_menu( void ) {
 		properties_index += element -> menu.size_byte;
 	}
 
-
-
-
-
 	// mark it as own
 	wm_object_menu -> pid = wm_pid;
-
-	// uint32_t *menu_pixel = (uint32_t *) ((uintptr_t) wm_object_menu -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	// for( uint16_t y = 0; y < wm_object_menu -> height; y++ )
-	// 	for( uint16_t x = 0; x < wm_object_menu -> width; x++ )
-	// 		menu_pixel[ (y * wm_object_menu -> width) + x ] = STD_COLOR_RED;
 
 	// prepare shadow of window
 	lib_interface_shadow( interface_menu );
@@ -201,4 +190,13 @@ void wm_menu( void ) {
 
 	// release file content
 	free( file_content );
+
+	// main loop
+	while( TRUE ) {
+		// check incomming interface events
+		lib_interface_event( interface_menu );
+	}
+
+	// dummy
+	return EMPTY;
 }
