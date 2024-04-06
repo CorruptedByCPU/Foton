@@ -163,6 +163,10 @@ void wm_event( void ) {
 
 	//--------------------------------------------------------------------------
 
+
+
+	//--------------------------------------------------------------------------
+
 	// left mouse button pressed?
 	if( mouse.status & STD_MOUSE_BUTTON_left ) {
 		// isn't holded down?
@@ -208,6 +212,18 @@ void wm_event( void ) {
 
 				// update taskbar status
 				wm_taskbar_modified = TRUE;
+
+				// hide unstable objects
+				for( uint64_t i = 0; i < wm_list_limit; i++ ) {
+					// unstable object?
+					if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_unstable) ) continue;	// no
+					
+					// don't show anymore
+					wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
+
+					// and redraw area behind
+					wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+				}
 			}
 
 			// substitute of menu
@@ -217,7 +233,7 @@ void wm_event( void ) {
 				// menu button click?
 				if( mouse.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse.y >= wm_object_taskbar -> y )
 					// generate and show menu window
-					wm_menu();
+					wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 					
 					// execute console application
 					// std_exec( (uint8_t *) "console", 7, EMPTY );
