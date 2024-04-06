@@ -22,15 +22,15 @@
 
 void taris_statistics( uint64_t points, uint64_t lines, uint64_t level ) {
 	// points
-	taris_points -> length = lib_integer_to_string( points, 10, (uint8_t *) &taris_points -> name[ 0 ] );
+	taris_points -> name_length = lib_integer_to_string( points, 10, (uint8_t *) &taris_points -> name[ 0 ] );
 	lib_interface_element_label( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, taris_points );
 
 	// lines
-	taris_lines -> length = lib_integer_to_string( lines, 10, (uint8_t *) &taris_lines -> name[ 0 ] );
+	taris_lines -> name_length = lib_integer_to_string( lines, 10, (uint8_t *) &taris_lines -> name[ 0 ] );
 	lib_interface_element_label( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, taris_lines );
 
 	// level
-	taris_level -> length = lib_integer_to_string( level, 10, (uint8_t *) &taris_level -> name[ 0 ] );
+	taris_level -> name_length = lib_integer_to_string( level, 10, (uint8_t *) &taris_level -> name[ 0 ] );
 	lib_interface_element_label( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, taris_level );
 }
 

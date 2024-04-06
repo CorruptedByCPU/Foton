@@ -6,11 +6,11 @@
 	},
 	"control": {
 		"id": 0,
-		"x": 314,
+		"x": 312,
 		"type": "close"
 	},
 	"control": {
-		"x": 292,
+		"x": 288,
 		"type": "minimize"
 	}
 }

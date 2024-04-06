@@ -58,7 +58,7 @@ void wm_taskbar_list_entry( struct WM_STRUCTURE_OBJECT *object, uint16_t x, uint
 				entry_pixel[ (row * wm_object_taskbar -> width) + col ] = lib_color( 40 );
 
 	// set entry name
-	lib_font( LIB_FONT_FAMILY_ROBOTO, object -> descriptor -> name, object -> descriptor -> length, 0xFFFFFFFF, entry_pixel + (4 * wm_object_taskbar -> width) + 4, wm_object_taskbar -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, object -> descriptor -> name, object -> descriptor -> name_length, 0xFFFFFFFF, entry_pixel + (4 * wm_object_taskbar -> width) + 4, wm_object_taskbar -> width, LIB_FONT_ALIGN_left );
 }
 
 void wm_taskbar_list( void ) {

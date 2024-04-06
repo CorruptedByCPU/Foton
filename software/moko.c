@@ -416,7 +416,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				}
 
 				// search for previous line beginning
-				while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_LINE );
+				while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_NEW_LINE );
 
 				// check previous line size
 				document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
@@ -562,7 +562,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			}
 
 			// search for previous line beginning
-			while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_LINE );
+			while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_NEW_LINE );
 
 			// check previous line size
 			document_line_size = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
@@ -663,7 +663,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					document_line_number--;
 
 				// search for previous line beginning
-				while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_LINE );
+				while( document_line_location && document_area[ --document_line_location - 1 ] != STD_ASCII_NEW_LINE );
 
 				// move line pointer one character back
 				document_line_pointer = lib_string_length_line( (uint8_t *) &document_area[ document_line_location ] );
@@ -841,7 +841,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					document_area[ i ] = document_area[ i - 1 ];
 
 			// insert character at end of document
-			document_area[ document_line_location + document_line_pointer ] = STD_ASCII_LINE;
+			document_area[ document_line_location + document_line_pointer ] = STD_ASCII_NEW_LINE;
 
 			// another line in document
 			document_line_count++;

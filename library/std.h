@@ -30,7 +30,7 @@
 	#define	STD_ASCII_DIFFERENCE_0_A			0x07
 	#define	STD_ASCII_BACKSPACE				0x08
 	#define	STD_ASCII_TAB					0x09
-	#define	STD_ASCII_LINE				0x0A
+	#define	STD_ASCII_NEW_LINE				0x0A
 	#define	STD_ASCII_RETURN				0x0D
 	#define	STD_ASCII_ESC					0x1B
 	#define	STD_ASCII_SPACE					0x20
@@ -346,6 +346,7 @@
 	#define	STD_WINDOW_FLAG_release		0b0000000000010000	// window marked as ready to be removed
 	#define	STD_WINDOW_FLAG_name		0b0000000000100000
 	#define	STD_WINDOW_FLAG_minimize	0b0000000001000000
+	#define	STD_WINDOW_FLAG_unstable	0b0000000010000000
 	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
 	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
 
@@ -362,7 +363,7 @@
 		uint16_t	y;
 		uint8_t		offset;
 		// window name, it will appear at header and taskbar
-		uint8_t		length;
+		uint8_t		name_length;
 		uint8_t		name[ 64 ];
 	};
 

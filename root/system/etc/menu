@@ -1,2 +1,4 @@
-Menu
-Console	"console"
+Console,console,/system/var/gfx/icons/console.tga
+Moko,console moko,/system/var/gfx/icons/moko.tga
+Taris,taris,/system/var/gfx/icons/taris.tga
+3D Viewer,3d,/system/var/gfx/icons/3d.tga

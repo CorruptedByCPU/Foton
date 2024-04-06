@@ -349,11 +349,11 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 					if( string_length == length - 2 ) break;	// ERROR
 
 					// set name length
-					console_interface.length = string_length - 1;
-					if( console_interface.length > LIB_INTERFACE_NAME_limit ) console_interface.length = LIB_INTERFACE_NAME_limit;
+					console_interface.name_length = string_length - 1;
+					if( console_interface.name_length > LIB_INTERFACE_NAME_limit ) console_interface.name_length = LIB_INTERFACE_NAME_limit;
 
 					// copy name
-					for( uint64_t i = 0; i < console_interface.length; i++ ) console_interface.name[ i ] = string[ i ];
+					for( uint64_t i = 0; i < console_interface.name_length; i++ ) console_interface.name[ i ] = string[ i ];
 
 					// inform Window Manager of new window name
 					lib_interface_name( (struct LIB_INTERFACE_STRUCTURE *) &console_interface );

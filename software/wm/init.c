@@ -46,7 +46,7 @@ uint8_t wm_init( void ) {
 	struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = EMPTY;
 
 	// retrieve information file
-	if( (workbench_file = fopen( (uint8_t *) "/system/var/wallpaper.tga" )) ) {
+	if( (workbench_file = fopen( (uint8_t *) "/system/var/gfx/wallpapers/default.tga" )) ) {
 		// assign area for file
 		workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( workbench_file -> byte );
 
@@ -121,6 +121,12 @@ uint8_t wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
+	// execute menu function as thread
+	uint8_t wm_string_menu[] = "{wm: menu}";
+	std_thread( (uintptr_t) &wm_menu, (uint8_t *) &wm_string_menu, sizeof( wm_string_menu ) );
+
+	//----------------------------------------------------------------------
+
 	// execute clock function as thread
 	uint8_t wm_string_clock[] = "{wm: clock}";
 	std_thread( (uintptr_t) &wm_clock, (uint8_t *) &wm_string_clock, sizeof( wm_string_clock ) );
@@ -134,7 +140,7 @@ uint8_t wm_init( void ) {
 	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = EMPTY;
 
 	// retrieve information about module file
-	if( (cursor_file = fopen( (uint8_t *) "/system/var/cursor.tga" )) ) {
+	if( (cursor_file = fopen( (uint8_t *) "/system/var/gfx/cursors/default.tga" )) ) {
 		// assign area for file
 		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( cursor_file -> byte );
 

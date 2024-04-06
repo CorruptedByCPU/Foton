@@ -26,6 +26,7 @@ struct WM_STRUCTURE_OBJECT wm_object_cache = { EMPTY };
 struct WM_STRUCTURE_OBJECT *wm_object_workbench = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_taskbar = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_cursor = EMPTY;
+struct WM_STRUCTURE_OBJECT *wm_object_menu = EMPTY;
 
 struct WM_STRUCTURE_OBJECT *wm_object_selected = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_active = EMPTY;
@@ -49,3 +50,5 @@ uint8_t wm_taskbar_modified = FALSE;
 uint16_t wm_taskbar_entry_width = EMPTY;
 
 uint64_t wm_taskbar_clock_time = EMPTY;
+
+struct LIB_INTERFACE_STRUCTURE *interface_menu;
