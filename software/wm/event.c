@@ -194,6 +194,12 @@ void wm_event( void ) {
 
 			// if left ALT key is not holded
 			if( ! wm_keyboard_status_alt_left ) {
+				// selected object is menu?
+				if( wm_object_selected == wm_object_menu ) {
+					// check incomming interface events
+					lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface, TRUE );
+				}
+
 				// make object as active if not a taskbar
 				if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_taskbar) ) wm_object_active = wm_object_selected;
 
@@ -234,9 +240,6 @@ void wm_event( void ) {
 				if( mouse.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse.y >= wm_object_taskbar -> y )
 					// generate and show menu window
 					wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
-					
-					// execute console application
-					// std_exec( (uint8_t *) "console", 7, EMPTY );
 		}
 	} else {
 		// left mouse button was held?

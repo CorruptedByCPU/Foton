@@ -30,6 +30,9 @@ const uint8_t lib_interface_string_control[] = "control";
 const uint8_t lib_interface_string_close[] = "close";
 const uint8_t lib_interface_string_minimize[] = "minimize";
 const uint8_t lib_interface_string_maximize[] = "maximize";
+const uint8_t lib_interface_string_menu[] = "menu";
+const uint8_t lib_interface_string_command[] = "command";
+const uint8_t lib_interface_string_icon[] = "icon";
 
 void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// prepare JSON structure for parsing
@@ -201,11 +204,6 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 					// length if proper
 					element -> name_length = label_or_button.length;
 
-					// name overflow?
-					if( element -> name_length > LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit )
-						// limit name length
-						element -> name_length = LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit;
-
 					// alloc area for element name
 					uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
 
@@ -222,6 +220,103 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 			// change interface structure index
 			i += element -> label_or_button.size_byte;
+		}
+
+		// menu?
+		if( lib_json_key( json, (uint8_t *) &lib_interface_string_menu ) ) {
+			// alloc space for element
+			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU ) );
+
+			// element structure position
+			struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) &properties[ i ];
+	
+			// control properties
+			struct LIB_JSON_STRUCTURE menu = lib_json( (uint8_t *) json.value );
+
+			// default properties of menu entry
+			element -> menu.type = LIB_INTERFACE_ELEMENT_TYPE_menu;
+			element -> menu.flags = EMPTY;
+			element -> menu.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU );
+
+			// parse all keys
+			do {
+				// id
+				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_id ) ) element -> menu.id = menu.value;
+
+				// x
+				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_x ) ) element -> menu.x = menu.value + LIB_INTERFACE_SHADOW_length;
+
+				// y
+				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_y ) ) element -> menu.y = menu.value + LIB_INTERFACE_SHADOW_length;
+
+				// width
+				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_width ) ) element -> menu.width = menu.value;
+
+				// height
+				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_height ) ) element -> menu.height = menu.value;
+
+				// name
+				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_name ) ) {
+					// length if proper
+					element -> name_length = menu.length;
+
+					// alloc area for element name
+					uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
+
+					// copy element name
+					uint8_t *name_source = (uint8_t *) menu.value;
+					for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = name_source[ i ];
+
+					// update element name pointer
+					element -> name = name_target;
+				}
+
+				// command
+				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_command ) ) {
+					// alloc area for element name
+					uint8_t *command_target = (uint8_t *) calloc( menu.length + 1 );
+
+					// copy element name
+					uint8_t *command_source = (uint8_t *) menu.value;
+					for( uint64_t i = 0; i < menu.length; i++ ) command_target[ i ] = command_source[ i ];
+
+					// update element command pointer
+					element -> command = command_target;
+				}
+
+				// icon
+				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_icon ) ) {
+					// properties of file
+					FILE *icon_file;
+
+					// properties of image
+					struct LIB_IMAGE_TGA_STRUCTURE *icon_image = EMPTY;
+
+					// retrieve information about module file
+					uint8_t *icon_file_string = (uint8_t *) menu.value; icon_file_string[ menu.length ] = STD_ASCII_TERMINATOR;
+					if( (icon_file = fopen( (uint8_t *) menu.value )) ) {
+						// assign area for file
+						icon_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( icon_file -> byte );
+
+						// load file content
+						fread( icon_file, (uint8_t *) icon_image, icon_file -> byte );
+
+						// copy image content to cursor object
+						element -> icon = (uint32_t *) malloc( icon_image -> width * icon_image -> height * STD_VIDEO_DEPTH_byte );
+						lib_image_tga_parse( (uint8_t *) icon_image, element -> icon, icon_file -> byte );
+
+						// release file content
+						// free( icon_image );
+
+						// close file
+						// fclose( icon_file );
+					}
+				}
+			// next key
+			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &menu ) );
+
+			// change interface structure index
+			i += element -> menu.size_byte;
 		}
 
 	// until no more elements
@@ -411,17 +506,17 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	}
 }
 
-void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
+void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface, uint8_t force ) {
 	// incomming message
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
 
 	// receive pending messages
-	if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
+	if( force || std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
 		// message properties
 		struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &ipc_data;
 
 		// released left mouse button?
-		if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) {
+		if( force || mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) {
 			// check which element is under cursor position
 			uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
 			while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
@@ -446,6 +541,17 @@ void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
 						case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
 							// minimize window
 							interface -> descriptor -> flags |= STD_WINDOW_FLAG_minimize | STD_WINDOW_FLAG_flush;
+
+							// done
+							break;
+						}
+
+						case LIB_INTERFACE_ELEMENT_TYPE_menu: {
+							// properties of control
+							struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) properties;
+
+							// if event function exist, do it
+							if( menu -> event ) menu -> event( menu );
 
 							// done
 							break;

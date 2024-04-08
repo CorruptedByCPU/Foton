@@ -44,10 +44,8 @@
 
 	#define	LIB_INTERFACE_NAME_limit		LIB_INTERFACE_GLOBAL_NAME_limit
 
-	#define	LIB_INTERFACE_SHADOW_length		4
+	#define	LIB_INTERFACE_SHADOW_length		0
 	#define	LIB_INTERFACE_SHADOW_color		0x40000000
-
-	#define	LIB_INTERFACE_ELEMENT_LABEL_OR_BUTTON_NAME_limit	0xFFFF
 
 	struct LIB_INTERFACE_STRUCTURE {
 		struct STD_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
@@ -84,8 +82,10 @@
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	menu;
+		void		(*event)( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu );
 		uint16_t	name_length;
 		uint8_t		*name;
+		uint8_t		*command;
 		uint32_t	*icon;
 	};
 
@@ -117,7 +117,7 @@
 	void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element );
 
 	// check incomming events
-	void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface );
+	void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface, uint8_t force );
 
 	// change status of elements of interface
 	void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface );
