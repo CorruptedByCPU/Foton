@@ -194,7 +194,7 @@ uint8_t wm_init( void ) {
 	// debug
 	// std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console moko", 12, EMPTY );
-	std_exec( (uint8_t *) "console moko change.log", 23, EMPTY );
+	// std_exec( (uint8_t *) "console moko change.log ", 23, EMPTY );
 	// std_exec( (uint8_t *) "console moko LICENSE.txt", 24, EMPTY );
 	// std_exec( (uint8_t *) "console pwd", 11, EMPTY );
 	// 

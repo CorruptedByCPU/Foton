@@ -482,6 +482,9 @@
 			// sad hack :|
 			__asm__ volatile( "testw $0x08, %sp\nje .+4\npushq $0x00" );
 
+			// remove "white" characters from beginning and end of string
+			entry.length = lib_string_trim( entry.string, entry.length );
+
 			// amount of args inside string
 			uint64_t argc = 1;	// command itself is always an argument
 			for( uint64_t i = 0; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) { argc++; for( ; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) break; }

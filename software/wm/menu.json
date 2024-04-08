@@ -1,0 +1,47 @@
+{
+	"window": {
+		"width": 100,
+		"height": 120,
+		"name": "Menu"
+	},
+	"menu": {
+		"id": 0,
+		"x": 0,
+		"y": 24,
+		"width": 100,
+		"height": 24,
+		"name": "Console",
+		"command": "console",
+		"icon": "/system/var/gfx/icons/console.tga"
+	},
+	"menu": {
+		"id": 1,
+		"x": 0,
+		"y": 48,
+		"width": 100,
+		"height": 24,
+		"name": "Moko",
+		"command": "console moko",
+		"icon": "/system/var/gfx/icons/moko.tga"
+	},
+	"menu": {
+		"id": 2,
+		"x": 0,
+		"y": 72,
+		"width": 100,
+		"height": 24,
+		"name": "Taris",
+		"command": "taris",
+		"icon": "/system/var/gfx/icons/taris.tga"
+	},
+	"menu": {
+		"id": 3,
+		"x": 0,
+		"y": 96,
+		"width": 100,
+		"height": 24,
+		"name": "3D Viewer",
+		"command": "3d",
+		"icon": "/system/var/gfx/icons/3d.tga"
+	}
+}

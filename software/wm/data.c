@@ -51,4 +51,6 @@ uint16_t wm_taskbar_entry_width = EMPTY;
 
 uint64_t wm_taskbar_clock_time = EMPTY;
 
-struct LIB_INTERFACE_STRUCTURE *interface_menu;
+struct LIB_INTERFACE_STRUCTURE menu_interface;
+
+MACRO_IMPORT_FILE_AS_ARRAY( menu_json, "./software/wm/menu.json" );
