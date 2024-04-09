@@ -346,7 +346,8 @@
 	#define	STD_WINDOW_FLAG_release		0b0000000000010000	// window marked as ready to be removed
 	#define	STD_WINDOW_FLAG_name		0b0000000000100000
 	#define	STD_WINDOW_FLAG_minimize	0b0000000001000000
-	#define	STD_WINDOW_FLAG_unstable	0b0000000010000000
+	#define	STD_WINDOW_FLAG_unstable	0b0000000010000000	// hide window on any mouse button press
+	#define	STD_WINDOW_FLAG_resizable	0b0000000100000000
 	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
 	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
 

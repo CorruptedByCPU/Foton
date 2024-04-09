@@ -3,9 +3,7 @@
 // ===============================================================================*/
 
 void wm_menu_exec( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu ) {
-	MACRO_DEBUF();
-
-	// execute command proviede with menu entry
+	// execute command provieded with menu entry
 	std_exec( menu -> command, lib_string_length( menu -> command ), EMPTY );
 }
 
@@ -42,6 +40,9 @@ int64_t wm_menu( void ) {
 	// mark it as own
 	wm_object_menu -> pid = wm_pid;
 
+	// special flag for menu window
+	wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_unstable;
+
 	// update menu interface descriptor
 	menu_interface.descriptor = wm_object_menu -> descriptor;
 
@@ -59,9 +60,6 @@ int64_t wm_menu( void ) {
 
 	// show interface elements
 	lib_interface_draw( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
-
-	// debug
-	wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_unstable;
 
 	// main loop
 	while( TRUE ) {

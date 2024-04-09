@@ -330,34 +330,6 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	interface -> properties = properties;
 };
 
-struct LIB_INTERFACE_STRUCTURE *lib_interface_create( uint16_t width, uint16_t height, uint8_t *name ) {
-	// prepare area for interface window
-	struct LIB_INTERFACE_STRUCTURE *interface = (struct LIB_INTERFACE_STRUCTURE *) calloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
-
-	// set window width and height
-	interface -> width = width + (LIB_INTERFACE_SHADOW_length << STD_SHIFT_2);
-	interface -> height = height + (LIB_INTERFACE_SHADOW_length << STD_SHIFT_2);
-
-	// if window name provided
-	if( name ) {
-		// resize by header
-		interface -> height += LIB_INTERFACE_HEADER_HEIGHT_pixel;
-
-		// set name length
-		interface -> name_length = lib_string_length( name );
-		if( interface -> name_length > LIB_INTERFACE_NAME_limit ) interface -> name_length = LIB_INTERFACE_NAME_limit;
-
-		// set name
-		for( uint64_t i = 0; i < interface -> name_length; i++ ) interface -> name[ i ] = name[ i ];
-	}
-
-	// properties of new interface
-	interface -> properties = (uint8_t *) calloc( TRUE );	// alloc default area
-
-	// return new interface window properties
-	return interface;
-}
-
 void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// first element properties
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;

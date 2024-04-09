@@ -28,7 +28,7 @@
 	#define	WM_OBJECT_CURSOR_width		32
 	#define	WM_OBJECT_CURSOR_height		32
 
-	#define	WM_OBJECT_TASKBAR_HEIGHT_pixel	22
+	#define	WM_OBJECT_TASKBAR_HEIGHT_pixel	LIB_INTERFACE_HEADER_HEIGHT_pixel
 	#define	WM_OBJECT_TASKBAR_ENTRY_pixel	(255 + 1)
 
 	#define	WM_OBJECT_TASKBAR_CLOCK_pixel	50
@@ -40,8 +40,8 @@
 	struct	WM_STRUCTURE_OBJECT {
 		int16_t		x;
 		int16_t		y;
-		uint16_t	width;
-		uint16_t	height;
+		int16_t		width;
+		int16_t		height;
 		int64_t		pid;
 		uint64_t	size_byte;
 		struct STD_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
@@ -50,8 +50,8 @@
 	struct	WM_STRUCTURE_ZONE {
 		int16_t		x;
 		int16_t		y;
-		uint16_t	width;
-		uint16_t	height;
+		int16_t		width;
+		int16_t		height;
 		struct WM_STRUCTURE_OBJECT *object;
 	};
 

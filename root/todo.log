@@ -3,6 +3,7 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
 started:
+- window resize (and pass redraw window content to libinterface.so)
 
 yet to be done:
 - hexedit software, show content of files in binary mode (with ASCII overview)
@@ -13,5 +14,3 @@ yet to be done:
 - software: cal, cp, cut, date, df, du, echo, find, grep, halt, head, kill,
   less/more, ln, mkdir, mv, ping, ps, reboot, rm, sleep, tail, time, top,
   uname, uptime, wc
-- window resize (and pass redraw window content to libinterface.so)
-- menu window

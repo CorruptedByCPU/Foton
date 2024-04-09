@@ -45,7 +45,7 @@ void console_init( void ) {
 		lib_terminal( (struct LIB_TERMINAL_STRUCTURE *) &console_terminal );
 
 		// update window content on screen
-		console_interface.descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+		console_interface.descriptor -> flags |= STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 	}
 
 	// default meta properties of stream

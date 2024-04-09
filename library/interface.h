@@ -98,9 +98,6 @@
 	// changes JSON format to internal Interface format
 	void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface );
 
-	// prepare empty window properties
-	struct LIB_INTERFACE_STRUCTURE *lib_interface_create( uint16_t width, uint16_t height, uint8_t *name );
-
 	// parse all elements of interface and show them
 	void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface );
 

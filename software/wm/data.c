@@ -27,9 +27,13 @@ struct WM_STRUCTURE_OBJECT *wm_object_workbench = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_taskbar = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_cursor = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_menu = EMPTY;
+struct WM_STRUCTURE_OBJECT *wm_object_hover = EMPTY;
 
 struct WM_STRUCTURE_OBJECT *wm_object_selected = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_active = EMPTY;
+struct WM_STRUCTURE_OBJECT *wm_object_modify = EMPTY;
+
+struct WM_STRUCTURE_ZONE wm_zone_modify = { EMPTY };
 
 int64_t wm_mouse_x = EMPTY;
 int64_t wm_mouse_y = EMPTY;
@@ -38,6 +42,7 @@ uint8_t	wm_mouse_button_right_semaphore		= FALSE;
 uint8_t	wm_mouse_button_middle_semaphore	= FALSE;
 
 uint8_t wm_object_drag_semaphore		= FALSE;
+uint8_t wm_object_hover_semaphore		= FALSE;
 
 uint8_t wm_keyboard_status_alt_left	= FALSE;
 uint8_t	wm_keyboard_status_shift_left	= FALSE;

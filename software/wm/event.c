@@ -163,10 +163,6 @@ void wm_event( void ) {
 
 	//--------------------------------------------------------------------------
 
-
-
-	//--------------------------------------------------------------------------
-
 	// left mouse button pressed?
 	if( mouse.status & STD_MOUSE_BUTTON_left ) {
 		// isn't holded down?
@@ -266,6 +262,66 @@ void wm_event( void ) {
 	}
 
 	//--------------------------------------------------------------------------
+
+	// right mouse button pressed?
+	if( mouse.status & STD_IPC_MOUSE_BUTTON_right ) {
+		// left ALT key is in hold
+		if( ! wm_object_hover_semaphore ) {
+			// first initialization executed
+			wm_object_hover_semaphore = TRUE;
+
+			// find object under cursor position
+			struct WM_STRUCTURE_OBJECT *wm_object_modify = wm_object_find( mouse.x, mouse.y, FALSE );
+
+			// object resizable?
+			if( wm_object_modify -> descriptor -> flags & STD_WINDOW_FLAG_resizable ) {
+				// select zone modification
+
+				// by default
+				wm_zone_modify.width = TRUE;
+				wm_zone_modify.height = TRUE;
+
+				// X axis
+				if( wm_object_modify -> descriptor -> x < (wm_object_modify -> width >> STD_SHIFT_2) ) wm_zone_modify.x = TRUE;	// yes
+				else wm_zone_modify.x = FALSE;	// no
+
+				// Y axis
+				if( wm_object_modify -> descriptor -> y < (wm_object_modify -> height >> STD_SHIFT_2) ) wm_zone_modify.y = TRUE;	// yes
+				else wm_zone_modify.y = FALSE;	// no
+
+				// initialize hover object
+
+				// create initial resize object
+				wm_object_hover = wm_object_create( wm_object_modify -> x, wm_object_modify -> y, wm_object_modify -> width, wm_object_modify -> height );
+
+				// mark it as our
+				wm_object_hover -> pid = wm_pid;
+
+				// fill object with default pattern/color
+				uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+				for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
+					for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
+						hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x20008000;
+
+				// show object
+				wm_object_hover -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+			}
+		}
+	} else {
+		// stop hover phase
+		wm_object_hover_semaphore = FALSE;
+
+		// if enabled
+		if( wm_object_hover && wm_object_hover -> descriptor ) {
+			// remove object
+			wm_object_hover -> descriptor -> flags = STD_WINDOW_FLAG_release;
+
+			// relese pointer
+			wm_object_hover = EMPTY;
+		}
+	}
+
+	//--------------------------------------------------------------------------
 	// if cursor pointer movement occurs
 	if( delta_x || delta_y ) {
 		// remove current cursor position from workbench
@@ -282,5 +338,63 @@ void wm_event( void ) {
 		if( wm_object_drag_semaphore || (wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_alt_left) )
 			// move object along with cursor pointer
 			wm_object_move( delta_x, delta_y );
+
+		// if hover object is created
+		if( wm_object_hover_semaphore && wm_object_hover ) {
+			// remove old instance from cache
+			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_hover, FALSE );
+
+			// block access to object array
+			MACRO_LOCK( wm_list_semaphore );
+
+			// block access to object array
+			MACRO_LOCK( wm_object_semaphore );
+
+			// left zone?
+			if( wm_zone_modify.x && wm_zone_modify.width ) {
+				// do not move hover zone
+				if( wm_object_hover -> x + delta_x < wm_object_hover -> x + wm_object_hover -> width ) {
+					wm_object_hover -> x += delta_x;
+					wm_object_hover -> width -= delta_x;
+				}
+			} else wm_object_hover -> width += delta_x;	// right
+
+			// up zone?
+			if( wm_zone_modify.y && wm_zone_modify.height ) {
+				// do not move hover zone
+				if( wm_object_hover -> y + delta_y < wm_object_hover -> y + wm_object_hover -> height ) {
+					wm_object_hover -> y += delta_y;
+					wm_object_hover -> height -= delta_y;
+				}
+			} else wm_object_hover -> height += delta_y;	// down
+
+			// do not allow object width/height less than 1 pixel
+			if( wm_object_hover -> width < TRUE ) wm_object_hover -> width = TRUE;
+			if( wm_object_hover -> height < TRUE ) wm_object_hover -> height = TRUE;
+
+			// release old object area
+			std_memory_release( (uintptr_t) wm_object_hover -> descriptor, MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
+
+			// calculate new object area size in Bytes
+			wm_object_hover -> size_byte = ( wm_object_hover -> width * wm_object_hover -> height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR );
+
+			// assign new area for object
+			wm_object_hover -> descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
+
+			// fill object with default pattern/color
+			uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+			for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
+				for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
+					hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x20008000;
+
+			// release access to object array
+			MACRO_UNLOCK( wm_object_semaphore );
+
+			// release access to object array
+			MACRO_UNLOCK( wm_list_semaphore );
+
+			// show object
+			wm_object_hover -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+		}
 	}
 }
