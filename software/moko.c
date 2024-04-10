@@ -21,6 +21,7 @@
 	#include	"moko/interface.c"
 	#include	"moko/document.c"
 	#include	"moko/key.c"
+	#include	"moko/event.c"
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize document
@@ -28,6 +29,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// main loop
 	while( TRUE ) {
+		// release cpu time
+		std_sleep( TRUE );
+
+		// check incomming events
+		moko_event();
+
 		//-------------------------------------------------------------
 
 		// recieve key

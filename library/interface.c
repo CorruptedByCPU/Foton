@@ -77,6 +77,12 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 			// parse all keys of this object
 			do {
+				// retrieve x value
+				if( lib_json_key( window, (uint8_t *) &lib_interface_string_x ) ) interface -> x = window.value - LIB_INTERFACE_SHADOW_length;
+	
+				// retrieve y value
+				if( lib_json_key( window, (uint8_t *) &lib_interface_string_y ) ) interface -> y = window.value - LIB_INTERFACE_SHADOW_length;
+
 				// retrieve width value
 				if( lib_json_key( window, (uint8_t *) &lib_interface_string_width ) ) interface -> width = window.value + (LIB_INTERFACE_SHADOW_length << STD_SHIFT_2);
 	
@@ -109,6 +115,7 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			struct LIB_JSON_STRUCTURE control = lib_json( (uint8_t *) json.value );
 
 			// default properties of control
+			element -> control.x = interface -> controls;	// order from right, not position
 			element -> control.y = LIB_INTERFACE_SHADOW_length;
 			element -> control.width = LIB_INTERFACE_HEADER_HEIGHT_pixel;
 			element -> control.height = LIB_INTERFACE_HEADER_HEIGHT_pixel;
@@ -119,9 +126,6 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			do {
 				// id
 				if( lib_json_key( control, (uint8_t *) &lib_interface_string_id ) ) element -> control.id = control.value;
-
-				// x
-				if( lib_json_key( control, (uint8_t *) &lib_interface_string_x ) ) element -> control.x = control.value + LIB_INTERFACE_SHADOW_length;
 
 				// type
 				if( lib_json_key( control, (uint8_t *) &lib_interface_string_type ) ) {
@@ -369,7 +373,7 @@ uintptr_t lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface
 
 void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *element ) {
 	// properties of control buttons of window
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (interface -> descriptor -> offset * interface -> width) + element -> control.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (interface -> descriptor -> offset * interface -> width) + (interface -> width - LIB_INTERFACE_SHADOW_length) - LIB_INTERFACE_HEADER_HEIGHT_pixel - (element -> control.x * LIB_INTERFACE_HEADER_HEIGHT_pixel);
 
 	// choose background color
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
@@ -478,69 +482,125 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	}
 }
 
-void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface, uint8_t force ) {
+struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// incomming message
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
 
 	// receive pending messages
-	if( force || std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
+	if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
 		// message properties
 		struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &ipc_data;
 
 		// released left mouse button?
-		if( force || mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) {
-			// check which element is under cursor position
-			uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
-			while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
-				// element properties
-				struct LIB_INTERFACE_STRUCTURE_ELEMENT *properties = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) &element[ e ];
-
-				// cursor overlaps this element? (check only if object is located under cursor)
-				if( interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height ) {
-					// execute event of element
-					switch( properties -> type ) {
-						case LIB_INTERFACE_ELEMENT_TYPE_control_close: {
-							// properties of control
-							struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) properties;
-
-							// if event function exist, do it
-							if( control -> event ) control -> event();
-
-							// done
-							break;
-						}
-
-						case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
-							// minimize window
-							interface -> descriptor -> flags |= STD_WINDOW_FLAG_minimize | STD_WINDOW_FLAG_flush;
-
-							// done
-							break;
-						}
-
-						case LIB_INTERFACE_ELEMENT_TYPE_menu: {
-							// properties of control
-							struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) properties;
-
-							// if event function exist, do it
-							if( menu -> event ) menu -> event( menu );
-
-							// done
-							break;
-						}
-					}
-				}
-
-				// next element from list
-				e += properties -> size_byte;
-			}
-		}
+		if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) lib_interface_event_handler( interface );
 	}
 
 	//--------------------------------------------------------------------------------
 	// "hover over elements"
 	//--------------------------------------------------------------------------------
 	lib_interface_hover( interface );
+
+	// acquired new window properties?
+	if( interface -> descriptor -> flags & STD_WINDOW_FLAG_properties ) {
+		// disable flag
+		interface -> descriptor -> flags ^= STD_WINDOW_FLAG_properties;
+
+		// minimal dimesions are preserved?
+		if( interface -> min_width > interface -> descriptor -> new_width ) interface -> descriptor -> new_width = interface -> min_width;	// no, set correction
+		if( interface -> min_height > interface -> descriptor -> new_height ) interface -> descriptor -> new_height = interface -> min_height;	// no, set correction
+
+		// alloc area for new interface properties
+		struct LIB_INTERFACE_STRUCTURE *new_interface = (struct LIB_INTERFACE_STRUCTURE *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
+
+		// copy required interface properties from old one
+		new_interface -> properties	= interface -> properties;
+		new_interface -> controls	= interface -> controls;
+		new_interface -> min_width	= interface -> min_width;
+		new_interface -> min_height	= interface -> min_height;
+
+		// set new location and dimension
+		new_interface -> x	= interface -> descriptor -> new_x;
+		new_interface -> y	= interface -> descriptor -> new_y;
+		new_interface -> width	= interface -> descriptor -> new_width;
+		new_interface -> height	= interface -> descriptor -> new_height;
+
+		// copy window name
+		for( uint64_t i = 0; i < interface -> name_length; i++ ) new_interface -> name[ new_interface -> name_length++ ] = interface -> name[ i ];
+
+		// create new window
+		lib_interface_window( new_interface );
+
+		// show interface elements
+		lib_interface_draw( new_interface );
+
+		// release old interface window
+		interface -> descriptor -> flags |= STD_WINDOW_FLAG_release;
+	
+		// release old interface area
+		// free( interface );
+
+		// new window created
+		return new_interface;
+	}
+
+	// nothing to do
+	return EMPTY;
+}
+
+void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// check which element is under cursor position
+	uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
+	while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
+		// element properties
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT *properties = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) &element[ e ];
+
+		// cursor overlaps this element? (check only if object is located under cursor)
+		if( ((properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_close || properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_maximize || properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_minimize) && (interface -> descriptor -> x >= interface -> width - (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel + (properties -> x * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) && interface -> descriptor -> x < ((interface -> width - (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel + (properties -> x * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)))) + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height)) || interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height ) {
+			// execute event of element
+			switch( properties -> type ) {
+				case LIB_INTERFACE_ELEMENT_TYPE_control_close: {
+					// properties of control
+					struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) properties;
+
+					// if event function exist, do it
+					if( control -> event ) control -> event();
+
+					// done
+					break;
+				}
+
+				case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: {
+					// minimize window
+					interface -> descriptor -> flags |= STD_WINDOW_FLAG_maximize;
+
+					// done
+					break;
+				}
+
+				case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
+					// minimize window
+					interface -> descriptor -> flags |= STD_WINDOW_FLAG_minimize;
+
+					// done
+					break;
+				}
+
+				case LIB_INTERFACE_ELEMENT_TYPE_menu: {
+					// properties of control
+					struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) properties;
+
+					// if event function exist, do it
+					if( menu -> event ) menu -> event( menu );
+
+					// done
+					break;
+				}
+			}
+		}
+
+		// next element from list
+		e += properties -> size_byte;
+	}
 }
 
 void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -558,13 +618,23 @@ void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
 		// last event
 		uint8_t previous = properties -> flags;
 
-		// cursor overlaps this element? (check only if object is located under cursor)
-		if( interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height )
-			// mark as hovered
-			properties -> flags |= LIB_INTERFACE_ELEMENT_FLAG_hover;
-		else
-			// mark as not hovered
-			properties -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_hover;
+		// control element?
+		if( properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_close || properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_maximize || properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_minimize ) {
+			// cursor overlaps this element? (check only if object is located under cursor)
+			if( interface -> descriptor -> x >= interface -> width - (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel + (properties -> x * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) && interface -> descriptor -> x < ((interface -> width - (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel + (properties -> x * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)))) + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height )
+				// mark as hovered
+				properties -> flags |= LIB_INTERFACE_ELEMENT_FLAG_hover;
+			else
+				// mark as not hovered
+				properties -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_hover;
+		} else
+			// cursor overlaps this element? (check only if object is located under cursor)
+			if( interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height )
+				// mark as hovered
+				properties -> flags |= LIB_INTERFACE_ELEMENT_FLAG_hover;
+			else
+				// mark as not hovered
+				properties -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_hover;
 
 		// if "event" changed
 		if( properties -> flags != previous ) {
@@ -589,18 +659,18 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// window name set?
 	if( ! interface -> name_length ) return;	// no
 
-	// limit name length to header width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> name_length ) > interface -> width - ((interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) + interface -> descriptor -> offset) ) if( ! --interface -> name_length ) return;
-
 	// clear window header with default background
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t y = interface -> descriptor -> offset; y < LIB_INTERFACE_HEADER_HEIGHT_pixel + interface -> descriptor -> offset; y++ )
-		for( uint16_t x = interface -> descriptor -> offset; x < interface -> width - ((interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) + interface -> descriptor -> offset); x++ )
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + interface -> descriptor -> offset + (interface -> descriptor -> offset * interface -> width);
+	for( uint16_t y = 0; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
+		for( uint16_t x = 0; x < interface -> width - interface -> descriptor -> offset - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel); x++ )
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 
+	// limit name length to header width
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> name_length ) > interface -> width - ((interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) + interface -> descriptor -> offset) ) if( ! --interface -> name_length ) return;
+
 	// print new header
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> name_length, STD_COLOR_WHITE, pixel + ((4 + interface -> descriptor -> offset) * interface -> width) + 4 + interface -> descriptor -> offset, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> name_length, STD_COLOR_WHITE, pixel + (4 * interface -> width) + 4, interface -> width, LIB_FONT_ALIGN_left );
 
 	// synchronize header name with window
 	interface -> descriptor -> name_length = interface -> name_length;
@@ -645,16 +715,25 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// window properties
 	request -> ipc.type = STD_IPC_TYPE_event;
-	request -> x = (kernel_framebuffer.width_pixel >> STD_SHIFT_2) - (interface -> width >> STD_SHIFT_2);
-	request -> y = ((kernel_framebuffer.height_pixel - LIB_INTERFACE_HEADER_HEIGHT_pixel) >> STD_SHIFT_2) - (interface -> height >> STD_SHIFT_2);
 	request -> width = interface -> width;
 	request -> height = interface -> height;
+
+	// center window?
+	if( interface -> x == STD_MAX_unsigned && interface -> y == STD_MAX_unsigned ) {
+		// yes
+		request -> x = (kernel_framebuffer.width_pixel >> STD_SHIFT_2) - (interface -> width >> STD_SHIFT_2);
+		request -> y = ((kernel_framebuffer.height_pixel - LIB_INTERFACE_HEADER_HEIGHT_pixel) >> STD_SHIFT_2) - (interface -> height >> STD_SHIFT_2);
+	} else {
+		// no
+		request -> x = interface -> x;
+		request -> y = interface -> y;
+	}
 
 	// send request to Window Manager
 	std_ipc_send( wm_pid, (uint8_t *) request );
 
 	// wait for answer
-	uint64_t timeout = std_microtime() + 1024;	// wait no more than ~1 second
+	uint64_t timeout = std_microtime() + 1024;	// TODO, HPET, RTC...
 	while( ! std_ipc_receive( (uint8_t *) wm_data ) ) if( timeout < std_microtime() ) {
 		// show error
 		print( "Could not connect to Window Manager." );

@@ -10,3 +10,4 @@ void moko_document_line_restore( void );
 void moko_document_parse( void );
 uint8_t moko_key_ctrl( uint16_t key );
 uint8_t moko_key( uint16_t key );
+void moko_event( void );

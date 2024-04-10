@@ -50,8 +50,15 @@
 	struct LIB_INTERFACE_STRUCTURE {
 		struct STD_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
 		uint8_t		*properties;
+		//--------------------------------------------------
+		int16_t		x;
+		int16_t		y;
 		uint16_t	width;
 		uint16_t	height;
+		//--------------------------------------------------
+		uint16_t	min_width;
+		uint16_t	min_height;
+		//--------------------------------------------------
 		uint8_t		controls;
 		uint8_t		name_length;
 		uint8_t		name[ LIB_INTERFACE_NAME_limit ];
@@ -114,7 +121,9 @@
 	void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element );
 
 	// check incomming events
-	void lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface, uint8_t force );
+	struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface );
+	// support function of lib_interface_event, performed exclusively by WM
+	void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// change status of elements of interface
 	void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface );

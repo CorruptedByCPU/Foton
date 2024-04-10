@@ -13,12 +13,12 @@ uint8_t *document_name = EMPTY;
 uint8_t *document_area = EMPTY;
 uint64_t document_size = 0;
 
-uint64_t document_line_location = 0;
-uint64_t document_line_pointer = 0;
+uint64_t document_line_location = 0;		// index: line beginning inside document
+uint64_t document_line_pointer = 0;		// index: current character inside line
 uint64_t document_line_pointer_saved = 0;
-uint64_t document_line_indicator = 0;
+uint64_t document_line_indicator = 0;		// index: show line from selected character
 uint64_t document_line_indicator_saved = 0;
-uint64_t document_line_number = 0;
+uint64_t document_line_number = 0;		// show document from this line number
 uint64_t document_line_count = 0;
 uint64_t document_line_size = 0;
 

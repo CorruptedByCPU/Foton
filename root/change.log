@@ -2,6 +2,11 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+10.04.2024
+- window resize enabled (enabled for console [moko fix, applied])
+  hold left ALT, and choose new dimension with Right Mouse Button
+- Text-Mode enabled at boot menu.
+
 09.04.2024
 - moko - text editor - clean up, stable release
 

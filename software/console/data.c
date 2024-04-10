@@ -4,8 +4,8 @@
 
 struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
 
-struct LIB_TERMINAL_STRUCTURE	console_terminal;
-struct LIB_INTERFACE_STRUCTURE	console_interface;
+struct LIB_TERMINAL_STRUCTURE	*console_terminal;
+struct LIB_INTERFACE_STRUCTURE	*console_interface;
 
 MACRO_IMPORT_FILE_AS_ARRAY( interface, "./software/console/interface.json" );
 

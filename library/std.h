@@ -187,7 +187,7 @@
 
 	#define	STD_KEY_BACKSPACE				0x0008
 	#define	STD_KEY_TAB					0x0009
-	#define	STD_KEY_LINE				0x000A
+	#define	STD_KEY_LINE					0x000A
 	#define	STD_KEY_ENTER					0x000D
 	#define	STD_KEY_ESC					0x001B
 	#define	STD_KEY_CTRL_LEFT				0x001D
@@ -245,6 +245,8 @@
 		uint64_t	total;
 		uint64_t	available;
 	};
+
+	#define	STD_MAX_unsigned				-1
 
 	#define	STD_MOUSE_BUTTON_left				0b00000001
 	#define	STD_MOUSE_BUTTON_right				0b00000010
@@ -348,6 +350,8 @@
 	#define	STD_WINDOW_FLAG_minimize	0b0000000001000000
 	#define	STD_WINDOW_FLAG_unstable	0b0000000010000000	// hide window on any mouse button press
 	#define	STD_WINDOW_FLAG_resizable	0b0000000100000000
+	#define	STD_WINDOW_FLAG_properties	0b0000001000000000	// Window Manager proposed new window properties
+	#define	STD_WINDOW_FLAG_maximize	0b0000010000000000
 	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
 	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
 
@@ -362,6 +366,12 @@
 		// pointer position inside window
 		uint16_t	x;
 		uint16_t	y;
+		// proposed window properties
+		int16_t		new_x;
+		int16_t		new_y;
+		uint16_t	new_width;
+		uint16_t	new_height;
+		// TODO, shadow length, still thinking about removing it
 		uint8_t		offset;
 		// window name, it will appear at header and taskbar
 		uint8_t		name_length;

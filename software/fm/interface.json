@@ -1,16 +1,16 @@
 {
 	"window": {
+		"x": -1,
+		"y": -1,
 		"width": 336,
 		"height": 316,
 		"name": "File Manager"
 	},
 	"control": {
 		"id": 0,
-		"x": 312,
 		"type": "close"
 	},
 	"control": {
-		"x": 288,
 		"type": "minimize"
 	}
 }

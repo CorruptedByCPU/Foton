@@ -9,6 +9,30 @@
 		#include	"./terminal.h"
 	#endif
 
+void lib_terminal_reload( struct LIB_TERMINAL_STRUCTURE *terminal ) {
+	// convert terminal height and width to characters
+	terminal -> width_char = terminal -> width / LIB_FONT_WIDTH_pixel;
+	terminal -> height_char = terminal -> height / LIB_FONT_HEIGHT_pixel;
+
+	// set scanline in characters
+	terminal -> scanline_char = terminal -> width / terminal -> width_char;
+	terminal -> scanline_line = terminal -> scanline_pixel * LIB_FONT_HEIGHT_pixel;
+
+	// by default, clear area before drawing character
+	terminal -> flags = LIB_TERMINAL_FLAG_clean;
+
+	// turn of cursor
+	lib_terminal_cursor_disable( terminal );
+
+	// fill terminal area with solid color
+	for( uint64_t y = 0; y < terminal -> height; y++ )
+		for( uint64_t x = 0; x < terminal -> width; x++ )
+			terminal -> base_address[ (terminal -> scanline_pixel * y) + x ] = terminal -> color_background - (terminal -> alpha << 24);
+
+	// turn on cursor
+	lib_terminal_cursor_enable( terminal );
+}
+
 void lib_terminal( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// convert terminal height and width to characters
 	terminal -> width_char = terminal -> width / LIB_FONT_WIDTH_pixel;

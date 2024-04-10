@@ -64,6 +64,9 @@
 	// main printing function
 	void lib_terminal_printf( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *string, ... );
 
+	// reinitialize standard values
+	void lib_terminal_reload( struct LIB_TERMINAL_STRUCTURE *terminal );
+
 	// move all lines up of terminal by one line
 	void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal );
 

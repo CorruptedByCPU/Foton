@@ -42,6 +42,12 @@
 		int16_t		y;
 		int16_t		width;
 		int16_t		height;
+		//--------------------------------------------------
+		int16_t		previous_x;
+		int16_t		previous_y;
+		int16_t		previous_width;
+		int16_t		previous_height;
+		//--------------------------------------------------
 		int64_t		pid;
 		uint64_t	size_byte;
 		struct STD_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;

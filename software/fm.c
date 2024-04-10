@@ -37,7 +37,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		std_sleep( TRUE );
 
 		// check events from interface
-		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &fm_interface, FALSE );
+		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &fm_interface );
 	}
 
 	// end of execution

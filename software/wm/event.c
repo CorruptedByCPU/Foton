@@ -191,10 +191,9 @@ void wm_event( void ) {
 			// if left ALT key is not holded
 			if( ! wm_keyboard_status_alt_left ) {
 				// selected object is menu?
-				if( wm_object_selected == wm_object_menu ) {
+				if( wm_object_selected == wm_object_menu )
 					// check incomming interface events
-					lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface, TRUE );
-				}
+					lib_interface_event_handler( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 
 				// make object as active if not a taskbar
 				if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_taskbar) ) wm_object_active = wm_object_selected;
@@ -266,12 +265,12 @@ void wm_event( void ) {
 	// right mouse button pressed?
 	if( mouse.status & STD_IPC_MOUSE_BUTTON_right ) {
 		// left ALT key is in hold
-		if( ! wm_object_hover_semaphore ) {
+		if( wm_keyboard_status_alt_left && ! wm_object_hover_semaphore ) {
 			// first initialization executed
 			wm_object_hover_semaphore = TRUE;
 
 			// find object under cursor position
-			struct WM_STRUCTURE_OBJECT *wm_object_modify = wm_object_find( mouse.x, mouse.y, FALSE );
+			wm_object_modify = wm_object_find( mouse.x, mouse.y, FALSE );
 
 			// object resizable?
 			if( wm_object_modify -> descriptor -> flags & STD_WINDOW_FLAG_resizable ) {
@@ -313,7 +312,22 @@ void wm_event( void ) {
 
 		// if enabled
 		if( wm_object_hover && wm_object_hover -> descriptor ) {
-			// remove object
+			// reset old values
+			wm_object_modify -> previous_x		= EMPTY;
+			wm_object_modify -> previous_y		= EMPTY;
+			wm_object_modify -> previous_width	= EMPTY;
+			wm_object_modify -> previous_height	= EMPTY;
+
+			// copy hover object properties to selected object
+			wm_object_modify -> descriptor -> new_x		= wm_object_hover -> x;
+			wm_object_modify -> descriptor -> new_y		= wm_object_hover -> y;
+			wm_object_modify -> descriptor -> new_width	= wm_object_hover -> width;
+			wm_object_modify -> descriptor -> new_height	= wm_object_hover -> height;
+
+			// inform application interface about requested properties
+			wm_object_modify -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
+
+			// remove hover object
 			wm_object_hover -> descriptor -> flags = STD_WINDOW_FLAG_release;
 
 			// relese pointer

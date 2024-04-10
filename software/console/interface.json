@@ -1,16 +1,19 @@
 {
 	"window": {
+		"x": -1,
+		"y": -1,
 		"width": 642,
 		"height": 425,
 		"name": "Console"
 	},
 	"control": {
 		"id": 0,
-		"x": 618,
 		"type": "close"
 	},
 	"control": {
-		"x": 594,
+		"type": "maximize"
+	},
+	"control": {
 		"type": "minimize"
 	}
 }
