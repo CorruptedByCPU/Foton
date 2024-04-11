@@ -12,7 +12,7 @@
 		#include	"./string.h"
 	#endif
 
-uint64_t lib_input( uint8_t *cache, uint64_t length_max, uint64_t length_current, uint8_t wrapable ) {
+uint64_t lib_input( uint8_t *cache, uint64_t length_max, uint64_t length_current, uint8_t wrapable, uint8_t *ctrl_semaphore ) {
 	// prepare area for stream meta data
 	// struct STD_STREAM_STRUCTURE_META stream_meta;
 
@@ -29,6 +29,11 @@ uint64_t lib_input( uint8_t *cache, uint64_t length_max, uint64_t length_current
 
 			// properties of Keyboard message
 			struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &ipc_data;
+
+			// left CTRL pressed?
+			if( keyboard -> key == STD_KEY_CTRL_LEFT ) *ctrl_semaphore = TRUE;
+			// or released?
+			if( keyboard -> key == (STD_KEY_CTRL_LEFT | STD_KEY_RELEASE) ) *ctrl_semaphore = FALSE;
 
 			// if end of input
 			if( keyboard -> key == STD_ASCII_RETURN ) {
@@ -56,6 +61,9 @@ uint64_t lib_input( uint8_t *cache, uint64_t length_max, uint64_t length_current
 				// done
 				continue;
 			}
+
+			// cancel operation?
+			if( keyboard -> key == 'c' && *ctrl_semaphore ) return EMPTY;	// yes
 
 			// if key is not printable
 			if( keyboard -> key < STD_ASCII_SPACE || keyboard -> key > STD_ASCII_TILDE ) continue;	// ignore

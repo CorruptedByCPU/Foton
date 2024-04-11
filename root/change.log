@@ -2,6 +2,9 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+11.04.2024
+- window maximize (and back to previous dimensions/location), functional
+
 10.04.2024
 - window resize enabled (enabled for console [moko fix, applied])
   hold left ALT, and choose new dimension with Right Mouse Button

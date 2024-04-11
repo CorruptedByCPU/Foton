@@ -11,3 +11,5 @@ uint8_t	shell_keyboard_status_ctrl_left = FALSE;
 FILE *dir;
 
 uint8_t *hostname;
+
+uint8_t shell_key_ctrl_left_semaphore = FALSE;

@@ -52,12 +52,16 @@ void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 }
 
 void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// by default, color
+	uint32_t background_color = LIB_INTERFACE_COLOR_background;
+	if( interface -> background_color ) background_color = interface -> background_color;	// change to choosen one
+
 	// fill window with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (interface -> descriptor -> offset * interface -> width) + interface -> descriptor -> offset;
 	for( uint16_t y = 0; y < interface -> height - (interface -> descriptor -> offset << STD_SHIFT_2); y++ )
 		for( uint16_t x = 0; x < interface -> width - (interface -> descriptor -> offset << STD_SHIFT_2); x++ )
 			// draw pixel
-			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
+			pixel[ (y * interface -> width) + x ] = background_color;
 }
 
 void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -513,10 +517,20 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		struct LIB_INTERFACE_STRUCTURE *new_interface = (struct LIB_INTERFACE_STRUCTURE *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
 
 		// copy required interface properties from old one
-		new_interface -> properties	= interface -> properties;
-		new_interface -> controls	= interface -> controls;
-		new_interface -> min_width	= interface -> min_width;
-		new_interface -> min_height	= interface -> min_height;
+		//----------------------------------------------------------------------
+		new_interface -> properties		= interface -> properties;
+		//----------------------------------------------------------------------
+		new_interface -> previous_x		= interface -> previous_x;
+		new_interface -> previous_y		= interface -> previous_y;
+		new_interface -> previous_width		= interface -> previous_width;
+		new_interface -> previous_height	= interface -> previous_height;
+		//----------------------------------------------------------------------
+		new_interface -> min_width		= interface -> min_width;
+		new_interface -> min_height		= interface -> min_height;
+		//----------------------------------------------------------------------
+		new_interface -> controls		= interface -> controls;
+		new_interface -> background_color	= interface -> background_color;
+		//----------------------------------------------------------------------
 
 		// set new location and dimension
 		new_interface -> x	= interface -> descriptor -> new_x;
@@ -532,6 +546,17 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 
 		// show interface elements
 		lib_interface_draw( new_interface );
+
+		// copy old interface content to new
+		uint64_t width = interface -> width; if( width > new_interface -> width ) width = new_interface -> width;
+		uint64_t height = interface -> height; if( height > new_interface -> height ) height = new_interface -> height;
+		uint32_t *pixel_old = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + ((LIB_INTERFACE_HEADER_HEIGHT_pixel + interface -> descriptor -> offset) * interface -> width);
+		uint32_t *pixel_new = (uint32_t *) ((uintptr_t) new_interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + ((LIB_INTERFACE_HEADER_HEIGHT_pixel + new_interface -> descriptor -> offset) * new_interface -> width);
+
+		// only the visible part
+		for( uint16_t y = 0; y < height - LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
+			for( uint16_t x = 0; x < width; x++ )
+				pixel_new[ (y * new_interface -> width) + x ] = pixel_old[ (y * interface -> width) + x ];
 
 		// release old interface window
 		interface -> descriptor -> flags |= STD_WINDOW_FLAG_release;
@@ -570,8 +595,32 @@ void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				}
 
 				case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: {
-					// minimize window
-					interface -> descriptor -> flags |= STD_WINDOW_FLAG_maximize;
+					// window already maximized?
+					if( interface -> previous_x || interface -> previous_y || interface -> previous_width || interface -> previous_height ) {
+						// request old window properties
+						interface -> descriptor -> new_x = interface -> previous_x;
+						interface -> descriptor -> new_y = interface -> previous_y;
+						interface -> descriptor -> new_width = interface -> previous_width;
+						interface -> descriptor -> new_height = interface -> previous_height;
+
+						// reset previous properties
+						interface -> previous_x		= EMPTY;
+						interface -> previous_y		= EMPTY;
+						interface -> previous_width	= EMPTY;
+						interface -> previous_height	= EMPTY;
+
+						// inform interface library about request
+						interface -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
+					} else {
+						// preserve current window properties
+						interface -> previous_x		= interface -> x;
+						interface -> previous_y		= interface -> y;
+						interface -> previous_width	= interface -> width;
+						interface -> previous_height	= interface -> height;
+
+						// maximize window
+						interface -> descriptor -> flags |= STD_WINDOW_FLAG_maximize;
+					}
 
 					// done
 					break;

@@ -12,7 +12,7 @@ void wm_object( void ) {
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
 
 		// object minimized or visible and requested flush?
-		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_maximize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse whole object area
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
 
@@ -36,38 +36,17 @@ void wm_object( void ) {
 
 			// remove maximize flag (if set)
 			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_maximize ) {
-				// // remove maximize flag
-				// wm_list_base_address[ i ] -> descriptor -> flags  &= ~STD_WINDOW_FLAG_maximize;
+				// remove maximize flag
+				wm_list_base_address[ i ] -> descriptor -> flags  &= ~STD_WINDOW_FLAG_maximize;
 
-				// // already maximized?
-				// if( wm_list_base_address[ i ] -> previous_x || wm_list_base_address[ i ] -> previous_y || wm_list_base_address[ i ] -> previous_width | wm_list_base_address[ i ] -> previous_height ) {
-				// 	// propose old properties of object
-				// 	wm_list_base_address[ i ] -> descriptor -> new_x	= wm_list_base_address[ i ] -> previous_x;
-				// 	wm_list_base_address[ i ] -> descriptor -> new_y	= wm_list_base_address[ i ] -> previous_y;
-				// 	wm_list_base_address[ i ] -> descriptor -> new_width	= wm_list_base_address[ i ] -> previous_width;
-				// 	wm_list_base_address[ i ] -> descriptor -> new_height	= wm_list_base_address[ i ] -> previous_height;
+				// propose new properties of object
+				wm_list_base_address[ i ] -> descriptor -> new_x	= 0;
+				wm_list_base_address[ i ] -> descriptor -> new_y	= 0;
+				wm_list_base_address[ i ] -> descriptor -> new_width	= wm_object_workbench -> width;
+				wm_list_base_address[ i ] -> descriptor -> new_height	= wm_object_workbench -> height - wm_object_taskbar -> height;
 
-				// 	// reset old values
-				// 	wm_list_base_address[ i ] -> previous_x		= EMPTY;
-				// 	wm_list_base_address[ i ] -> previous_y		= EMPTY;
-				// 	wm_list_base_address[ i ] -> previous_width	= EMPTY;
-				// 	wm_list_base_address[ i ] -> previous_height	= EMPTY;
-				// } else {
-				// 	// preserve old values
-				// 	wm_list_base_address[ i ] -> previous_x		= wm_list_base_address[ i ] -> x;
-				// 	wm_list_base_address[ i ] -> previous_y		= wm_list_base_address[ i ] -> y;
-				// 	wm_list_base_address[ i ] -> previous_width	= wm_list_base_address[ i ] -> width;
-				// 	wm_list_base_address[ i ] -> previous_height	= wm_list_base_address[ i ] -> height;
-
-				// 	// propose new properties of object
-				// 	wm_list_base_address[ i ] -> descriptor -> new_x	= 0;
-				// 	wm_list_base_address[ i ] -> descriptor -> new_y	= 0;
-				// 	wm_list_base_address[ i ] -> descriptor -> new_width	= wm_object_workbench -> width;
-				// 	wm_list_base_address[ i ] -> descriptor -> new_height	= wm_object_workbench -> height - wm_object_taskbar -> height;
-				// }
-
-				// // inform application interface about requested properties
-				// wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
+				// inform application interface about requested properties
+				wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
 			}
 
 			// redraw cursor too

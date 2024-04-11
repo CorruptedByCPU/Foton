@@ -56,10 +56,17 @@
 		uint16_t	width;
 		uint16_t	height;
 		//--------------------------------------------------
+		int16_t		previous_x;
+		int16_t		previous_y;
+		uint16_t	previous_width;
+		uint16_t	previous_height;
+		//--------------------------------------------------
 		uint16_t	min_width;
 		uint16_t	min_height;
 		//--------------------------------------------------
 		uint8_t		controls;
+		uint32_t	background_color;	// if set (alpha channel set), choose as background color
+		//--------------------------------------------------
 		uint8_t		name_length;
 		uint8_t		name[ LIB_INTERFACE_NAME_limit ];
 	};

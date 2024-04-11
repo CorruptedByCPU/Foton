@@ -62,7 +62,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		fclose( dir );
 
 		// receive command from user
-		uint64_t shell_command_length = lib_input( shell_command, SHELL_COMMAND_limit, EMPTY, TRUE );
+		uint64_t shell_command_length = lib_input( shell_command, SHELL_COMMAND_limit, EMPTY, TRUE, (uint8_t *) &shell_key_ctrl_left_semaphore );
 
 		// empty command line?
 		if( ! shell_command_length ) continue;	// yep, show new prompt

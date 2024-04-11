@@ -12,7 +12,7 @@ A system that is detached from reality. Fully resident in memory. (Yep, no insta
 
 In near future, a website will be created that will be responsible for configuring system just for you.
 
-You will be able to create your own system profiles, and we will build your own compilation of a set of programs, appearances, etc. as an easy-to-use ISO image.
+You will be able to create your own system profiles, and build your own compilation of a set of programs, appearances, etc. as an easy-to-use ISO image.
 
 #### Already reimplemented:
 
@@ -48,6 +48,7 @@ You will be able to create your own system profiles, and we will build your own 
 |console|build-in terminal.|
 |fm|**File Manager** *{work in progress}*|
 |free|usage of all abailable devices in system.|
+|hostname|show or set host name.|
 |ls|listing of files in current directory or selected one.|
 |moko|Text editor.|
 |pwd|show current path of root directory|
@@ -55,6 +56,7 @@ You will be able to create your own system profiles, and we will build your own 
 |soler|*{work in progress}* **calculator**|
 |taris|Tetris alike game.|
 |top|*{work in progress}*|
+|touch|Create empty files.|
 |welcome|Welcome screen, with small documentation *{work in progress}*.|
 |wm|windows wanager - display, movement.|
 
@@ -62,12 +64,12 @@ You will be able to create your own system profiles, and we will build your own 
 |Libraries|Description|
 |-|-|
 |libcolor.so|Contains color palette for various applications.|
-|libelf.so||
+|libelf.so|A little bit of check functions.|
 |libfont.so|Bitmap font display.|
 |libimage.so|Privdes support for image files (*tga*)|
 |libinput.so|Receives characters from user, and passing them to application.|
 |libinteger.so|Convert string to value, count digits inside value.|
-|libinterface.so||
+|libinterface.so|Graphical User Interface manager (button/label/form/radio/list/menu... etc.)|
 |libjson.so|Parsing functions of JSON structure.|
 |libmath.so|Trigonometric functions.|
 |libpath.so|Returns absolute path string from current work directory.|

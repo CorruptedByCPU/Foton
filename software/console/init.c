@@ -36,6 +36,7 @@ void console_init( void ) {
 
 		// initialize interface library
 		console_interface -> properties = (uint8_t *) &file_interface_start;
+		console_interface -> background_color = lib_color( 232 );
 		lib_interface( console_interface );
 
 		// find control element of type: close

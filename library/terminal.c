@@ -21,16 +21,21 @@ void lib_terminal_reload( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// by default, clear area before drawing character
 	terminal -> flags = LIB_TERMINAL_FLAG_clean;
 
-	// turn of cursor
-	lib_terminal_cursor_disable( terminal );
+	// cursor locked by default
+	terminal -> cursor_lock = UNLOCK;
 
-	// fill terminal area with solid color
-	for( uint64_t y = 0; y < terminal -> height; y++ )
-		for( uint64_t x = 0; x < terminal -> width; x++ )
-			terminal -> base_address[ (terminal -> scanline_pixel * y) + x ] = terminal -> color_background - (terminal -> alpha << 24);
+	// cursor behind terminal area?
+	if( terminal -> cursor_x > terminal -> width_char || terminal -> cursor_y > terminal -> height_char ) {
+		// set cursor initial position
+		terminal -> cursor_x = EMPTY;
+		terminal -> cursor_y = EMPTY;
 
-	// turn on cursor
-	lib_terminal_cursor_enable( terminal );
+		// set cursor pointer at the beginning of terminal data
+		terminal -> pointer = terminal -> base_address;
+	}
+
+	// set proper terminal pointer
+	terminal -> pointer = terminal -> base_address + ((terminal -> cursor_y * (terminal -> scanline_pixel * LIB_FONT_HEIGHT_pixel)) + (terminal -> cursor_x * terminal -> scanline_char));
 }
 
 void lib_terminal( struct LIB_TERMINAL_STRUCTURE *terminal ) {

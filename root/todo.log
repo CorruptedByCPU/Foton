@@ -3,7 +3,6 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
 started:
-- window resize (and pass redraw window content to libinterface.so)
 
 yet to be done:
 - hexedit software, show content of files in binary mode (with ASCII overview)

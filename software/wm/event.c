@@ -312,12 +312,6 @@ void wm_event( void ) {
 
 		// if enabled
 		if( wm_object_hover && wm_object_hover -> descriptor ) {
-			// reset old values
-			wm_object_modify -> previous_x		= EMPTY;
-			wm_object_modify -> previous_y		= EMPTY;
-			wm_object_modify -> previous_width	= EMPTY;
-			wm_object_modify -> previous_height	= EMPTY;
-
 			// copy hover object properties to selected object
 			wm_object_modify -> descriptor -> new_x		= wm_object_hover -> x;
 			wm_object_modify -> descriptor -> new_y		= wm_object_hover -> y;

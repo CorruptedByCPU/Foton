@@ -6,5 +6,5 @@
 	#define	LIB_INPUT
 
 	//
-	uint64_t lib_input( uint8_t *cache, uint64_t length_max, uint64_t length_current, uint8_t wrapable );
+	uint64_t lib_input( uint8_t *cache, uint64_t length_max, uint64_t length_current, uint8_t wrapable, uint8_t *ctrl_semaphore );
 #endif
