@@ -328,6 +328,8 @@
 	#define	STD_SYSCALL_FILE				0x1E
 	#define	STD_SYSCALL_FILE_WRITE				0x1F
 	#define	STD_SYSCALL_FILE_TOUCH				0x20
+	#define	STD_SYSCALL_TASK				0x21
+	#define	STD_SYSCALL_KILL				0x22
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -335,6 +337,24 @@
 		uint16_t	height_pixel;
 		uint64_t	pitch_byte;
 		int64_t		pid;
+	};
+
+	#define	STD_TASK_FLAG_active				0b0000000000000001
+	#define	STD_TASK_FLAG_exec				0b0000000000000010
+	#define	STD_TASK_FLAG_close				0b0000000000000100
+	#define	STD_TASK_FLAG_module				0b0000000000001000
+	#define	STD_TASK_FLAG_thread				0b0000000000010000
+	#define	STD_TASK_FLAG_sleep				0b0000000000100000
+	#define	STD_TASK_FLAG_init				0b0100000000000000
+	#define	STD_TASK_FLAG_secured				0b1000000000000000
+
+	struct STD_SYSCALL_STRUCTURE_TASK {
+		int64_t		pid;
+		uint64_t	page;
+		uint64_t	stack;
+		uint8_t		flags;
+		uint8_t		name_length;
+		uint8_t		name[ 255 ];
 	};
 
 	#define	STD_VIDEO_DEPTH_shift				2
@@ -473,6 +493,12 @@
 
 	// create empty file of definied type
 	int64_t std_file_touch( uint8_t *path, uint8_t type );
+
+	// returns structure of currently running tasks
+	uintptr_t std_task( void );
+
+	// close process with selected PID
+	void std_kill( int64_t pid );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

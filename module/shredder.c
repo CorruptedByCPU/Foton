@@ -29,13 +29,13 @@ void sheet( int64_t pid ) {
 			sheet( kernel -> task_base_address[ i ].pid );
 
 			// mark child as not active anymore
-			kernel -> task_base_address[ i ].flags &= ~KERNEL_TASK_FLAG_active;
+			kernel -> task_base_address[ i ].flags &= ~STD_TASK_FLAG_active;
 
 			// wait for release by any AP
-			while( kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_exec );
+			while( kernel -> task_base_address[ i ].flags & STD_TASK_FLAG_exec );
 
 			// mark child as closed
-			kernel -> task_base_address[ i ].flags |= KERNEL_TASK_FLAG_close;
+			kernel -> task_base_address[ i ].flags |= STD_TASK_FLAG_close;
 		}
 	}
 }
@@ -49,7 +49,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		// parse tasks table
 		for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
 			// task closed?
-			if( kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_close ) {	// yes
+			if( kernel -> task_base_address[ i ].flags & STD_TASK_FLAG_close ) {	// yes
 				// close all childs of this task
 				sheet( kernel -> task_base_address[ i ].pid );
 
@@ -58,7 +58,7 @@ void _entry( uintptr_t kernel_ptr ) {
 				kernel -> stream_release( kernel -> task_base_address[ i ].stream_out );
 
 				// prepare thread for decomission?
-				if( kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_thread ) {	// yes
+				if( kernel -> task_base_address[ i ].flags & STD_TASK_FLAG_thread ) {	// yes
 					// thread is owning only stacks areas
 
 					// Paging Table properties

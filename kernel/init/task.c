@@ -25,7 +25,7 @@ void kernel_init_task( void ) {
 	// so it MUST exist
 
 	// mark first entry of task queue as secured (in use)
-	kernel -> task_base_address -> flags = KERNEL_TASK_FLAG_secured;
+	kernel -> task_base_address -> flags = STD_TASK_FLAG_secured;
 
 	// register memory map of kernel and unlock access
 	kernel -> task_base_address -> memory_map = kernel -> memory_base_address;

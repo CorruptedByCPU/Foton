@@ -116,19 +116,19 @@ uint8_t wm_init( void ) {
 	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), 0xFFFFFFFF, taskbar_pixel + (((WM_OBJECT_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) * wm_object_taskbar -> width) + (22 >> STD_SHIFT_2), wm_object_taskbar -> width, LIB_FONT_ALIGN_center );
 
 	// execute taskbar function as thread
-	uint8_t wm_string_taskbar[] = "{wm: taskbar}";
+	uint8_t wm_string_taskbar[] = "wm taskbar";
 	wm_object_taskbar -> pid = std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
 
 	//----------------------------------------------------------------------
 
 	// execute menu function as thread
-	uint8_t wm_string_menu[] = "{wm: menu}";
+	uint8_t wm_string_menu[] = "wm menu";
 	std_thread( (uintptr_t) &wm_menu, (uint8_t *) &wm_string_menu, sizeof( wm_string_menu ) );
 
 	//----------------------------------------------------------------------
 
 	// execute clock function as thread
-	uint8_t wm_string_clock[] = "{wm: clock}";
+	uint8_t wm_string_clock[] = "wm clock";
 	std_thread( (uintptr_t) &wm_clock, (uint8_t *) &wm_string_clock, sizeof( wm_string_clock ) );
 
 	//----------------------------------------------------------------------
@@ -188,7 +188,7 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// execute taskbar function as thread
-	uint8_t wm_string_release[] = "{wm: release}";
+	uint8_t wm_string_release[] = "wm release";
 	std_thread( (uintptr_t) &wm_release, (uint8_t *) &wm_string_release, sizeof( wm_string_release ) );
 
 	// debug
@@ -197,6 +197,7 @@ uint8_t wm_init( void ) {
 	// std_exec( (uint8_t *) "console moko change.log ", 23, EMPTY );
 	// std_exec( (uint8_t *) "console moko LICENSE.txt", 24, EMPTY );
 	// std_exec( (uint8_t *) "console pwd", 11, EMPTY );
+	std_exec( (uint8_t *) "console tm", 10, EMPTY );
 	// 
 	// FILE *file = fopen( "test.txt" );
 	// if( file ) { log( "OK\n" ); fclose( file ); }

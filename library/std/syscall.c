@@ -308,3 +308,19 @@ int64_t std_file_touch( uint8_t *path, uint8_t type ) {
 	// return value
 	return std_syscall_value();
 }
+
+uintptr_t std_task( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_TASK) );
+
+	// return pointer
+	return std_syscall_pointer();
+}
+
+void std_kill( int64_t pid ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_KILL), "D" (pid) );
+
+	// return nothing
+	return std_syscall_empty();
+}

@@ -47,7 +47,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	struct KERNEL_TASK_STRUCTURE *module = kernel_task_add( name, length );
 
 	// mark task as module
-	module -> flags |= KERNEL_TASK_FLAG_module;
+	module -> flags |= STD_TASK_FLAG_module;
 
 	//----------------------------------------------------------------------
 
@@ -142,5 +142,5 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) module -> cr3 );
 
 	// module ready to run
-	module -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
+	module -> flags |= STD_TASK_FLAG_active | STD_TASK_FLAG_init;
 }

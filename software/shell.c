@@ -56,7 +56,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// show prompt
-		printf( "\e[38;5;47m%s \e[38;5;15m%s \e[38;5;47m%%\e[0m ", hostname, dir -> name );
+		printf( "\e[0m\e[P\e[38;5;47m%s \e[38;5;15m%s \e[38;5;47m%%\e[0m ", hostname, dir -> name );
 
 		// close directory
 		fclose( dir );
