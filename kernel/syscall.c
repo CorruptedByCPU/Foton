@@ -496,6 +496,12 @@ void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 
 	// and currently free
 	memory -> available = kernel -> page_available << STD_SHIFT_PAGE;
+
+	// used by paging
+	memory -> paging = kernel -> page_structure << STD_SHIFT_PAGE;
+
+	// shared between processes (only parent process will have it counted in memory use)
+	memory -> shared = kernel -> page_shared << STD_SHIFT_PAGE;
 }
 
 uint64_t kernel_syscall_sleep( uint64_t units ) {

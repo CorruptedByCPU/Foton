@@ -5,8 +5,6 @@
 #ifndef	KERNEL_MODULE
 	#define	KERNEL_MODULE
 
-	#define	KERNEL_MODULE_MEMORY_MAP_page	1
-
 	#define	KERNEL_MODULE_base_address	0xFFFFFFFF90000000
 
 	// loads pointed module

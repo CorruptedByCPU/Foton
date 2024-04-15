@@ -84,7 +84,7 @@ uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uin
 					// empty entry?
 					if( ! pml1[ p1 ] ) {
 						// yes, allocate page to a logical address
-						pml1[ p1 ] = kernel_memory_alloc_page();
+						pml1[ p1 ] = kernel_memory_alloc( TRUE ) & ~KERNEL_PAGE_logical;
 
 						// if failed to allocate page for logical address
 						if( ! pml1[ p1 ] ) return FALSE;
@@ -250,7 +250,7 @@ void kernel_page_deconstruct( uintptr_t *pml4 ) {
 					if( ! (pml1[ p1 ] & KERNEL_PAGE_FLAG_process) || pml1[ p1 ] & KERNEL_PAGE_FLAG_shared ) continue;	// nope
 				
 					// release page from array
-					kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) );
+					kernel_memory_release( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) | KERNEL_PAGE_logical, TRUE );
 
 					// remove entry from PML1 array
 					pml1[ p1 ] = EMPTY;
@@ -287,7 +287,7 @@ void kernel_page_deconstruct( uintptr_t *pml4 ) {
 	}
 
 	// release
-	kernel_memory_release_page( (uintptr_t) pml4 );
+	kernel_memory_release_page( (uintptr_t) pml4 & ~KERNEL_PAGE_logical );
 }
 
 void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages ) {

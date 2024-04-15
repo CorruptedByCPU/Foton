@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"250"
+#define	KERNEL_revision		"247"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -96,13 +96,15 @@ struct KERNEL {
 	void							(*memory_release_page)( uintptr_t address );
 
 	// variables of Modules functions
-	uint32_t	*module_base_address;
+	uint32_t	*module_map_address;
 
 	// variables of Page management functions
 	uint64_t	*page_base_address;
 	uint64_t	page_total;
 	uint64_t	page_available;
 	uint64_t	page_limit;
+	uint64_t	page_structure;
+	uint64_t	page_shared;
 	// functions of Page management
 	void							(*page_clean)( uintptr_t address, uint64_t n );
 	void							(*page_deconstruct)( uintptr_t *pml4 );

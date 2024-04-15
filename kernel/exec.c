@@ -70,7 +70,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	exec.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
 
 	// if executable does not exist
-	if( ! exec.socket ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return FALSE; };
+	if( ! exec.socket ) return STD_ERROR_file_not_found;
 
 	// checkpoint reached: file socket opened
 	exec.level++;
@@ -79,7 +79,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	kernel_vfs_file_properties( exec.socket, (struct KERNEL_VFS_STRUCTURE_PROPERTIES *) &exec.properties );
 
 	// assign area for workbench
-	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return FALSE; };
+	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; };
 
 	// checkpoint reached: assigned area for temporary file
 	exec.level++;
@@ -93,7 +93,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// file contains proper ELF header?
-	if( ! lib_elf_identify( exec.workbench_address ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_file_not_elf; }	// no
+	if( ! lib_elf_identify( exec.workbench_address ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_file_unknown; }	// no
 
 	// ELF structure properties
 	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) exec.workbench_address;
@@ -101,13 +101,20 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// it's an executable file?
 	if( elf -> type != LIB_ELF_TYPE_executable ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_file_not_executable; }	// no
 
-	// load libraries required by file or low memory occured
-	if( ! kernel_library( elf ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	// load libraries required by file
+	int64_t result;
+	if( (result = kernel_library( elf ) ) ) {
+		// cancel execution
+		kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec );
+		
+		// return last error
+		return result;
+	}
 
 	//----------------------------------------------------------------------
 
-	// create a new job in task queue or low memory occured
-	if( ! (exec.task = kernel_task_add( name, length )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	// create a new job in task queue
+	if( ! (exec.task = kernel_task_add( name, length )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_task_limit; }
 
 	// checkpoint reached: prepared task entry for new process
 	exec.level++;
@@ -294,7 +301,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// process ready to run
-	exec.task -> flags |= STD_TASK_FLAG_active | STD_TASK_FLAG_init;
+	exec.task -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
 
 	// return PID of created job
 	return exec.task -> pid;

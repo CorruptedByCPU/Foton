@@ -110,7 +110,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			shell_command[ lib_string_word( shell_command, shell_command_length ) ] = STD_ASCII_TERMINATOR;
 			
 			// show information
-			printf( "Command \e[38;5;196m%s\e[0m not found.", shell_command );
+			printf( "Command \e[38;5;250m%s\e[0m not found.", shell_command );
 
 			// new prompt
 			continue;

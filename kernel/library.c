@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf ) {
+int64_t kernel_library( struct LIB_ELF_STRUCTURE *elf ) {
 	// ELF section properties
 	struct LIB_ELF_STRUCTURE_SECTION *elf_s = (struct LIB_ELF_STRUCTURE_SECTION *) ((uintptr_t) elf + elf -> sections_offset);
 
@@ -20,13 +20,13 @@ uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf ) {
 	}
 
 	// if dynamic section doesn't exist
-	if( ! s_dynamic ) return TRUE;	// end of routine
+	if( ! s_dynamic ) return EMPTY;	// end of routine
 
 	// load required libraries
 	while( s_dynamic -> type == LIB_ELF_SECTION_DYNAMIC_TYPE_needed ) { if( ! kernel_library_load( (uint8_t *) &s_strtab[ s_dynamic -> name_offset ], lib_string_length( (uint8_t *) &s_strtab[ s_dynamic -> name_offset ] ) ) ) return FALSE; s_dynamic++; }
 
 	// libraries parsed
-	return TRUE;
+	return EMPTY;
 }
 
 static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *library ) {
@@ -280,8 +280,15 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	// it's an executable file?
 	if( elf -> type != LIB_ELF_TYPE_shared_object ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; }	// no
 
-	// load libraries required by file or low memory occured
-	if( ! kernel_library( elf ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return FALSE; }
+	// load libraries required by file
+	int64_t result;
+	if( (result = kernel_library( elf ) ) ) {
+		// cancel load
+		kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library );
+
+		// return last error
+		return result;
+	}
 
 	//----------------------------------------------------------------------
 

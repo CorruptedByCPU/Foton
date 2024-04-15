@@ -112,10 +112,12 @@
 
 	#define	STD_ERROR_file_not_found			-1
 	#define	STD_ERROR_memory_low				-2
-	#define	STD_ERROR_file_not_elf				-3
+	#define	STD_ERROR_file_unknown				-3
 	#define	STD_ERROR_file_not_executable			-4
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 	#define	STD_ERROR_overflow				-6
+	#define	STD_ERROR_file_dependence			-7
+	#define	STD_ERROR_task_limit				-8
 
 	#define	STD_FILE_TYPE_file				0b00000001
 	#define	STD_FILE_TYPE_directory				0b00000010
@@ -244,6 +246,8 @@
 	struct	STD_SYSCALL_STRUCTURE_MEMORY {
 		uint64_t	total;
 		uint64_t	available;
+		uint64_t	paging;
+		uint64_t	shared;
 	};
 
 	#define	STD_MAX_unsigned				-1

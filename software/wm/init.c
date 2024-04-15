@@ -197,7 +197,7 @@ uint8_t wm_init( void ) {
 	// std_exec( (uint8_t *) "console moko change.log ", 23, EMPTY );
 	// std_exec( (uint8_t *) "console moko LICENSE.txt", 24, EMPTY );
 	// std_exec( (uint8_t *) "console pwd", 11, EMPTY );
-	std_exec( (uint8_t *) "console tm", 10, EMPTY );
+	// std_exec( (uint8_t *) "console tm", 10, EMPTY );
 	// 
 	// FILE *file = fopen( "test.txt" );
 	// if( file ) { log( "OK\n" ); fclose( file ); }

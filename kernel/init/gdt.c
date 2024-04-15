@@ -4,7 +4,7 @@
 
 void kernel_init_gdt( void ) {
 	// prepare area for Global Descriptor Table
-	kernel -> gdt_header.base_address = (struct KERNEL_GDT_STRUCTURE_ENTRY *) kernel_memory_alloc( 1 );
+	kernel -> gdt_header.base_address = (struct KERNEL_GDT_STRUCTURE_ENTRY *) kernel_memory_alloc( TRUE );
 
 	// create code descriptor ring0 (CS)
 	kernel -> gdt_header.base_address[ 1 ].access = 0x98;

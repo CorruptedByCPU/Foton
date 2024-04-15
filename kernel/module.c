@@ -52,7 +52,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	//----------------------------------------------------------------------
 
 	// prepare Paging table for new process
-	module -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_logical;
+	module -> cr3 = kernel_memory_alloc( TRUE );
 
 	//----------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	}
 
 	// map module space to paging array
-	uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_base_address, module_page ) << STD_SHIFT_PAGE);
+	uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_map_address, module_page ) << STD_SHIFT_PAGE);
 	kernel_page_map( (uintptr_t *) module -> cr3, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_external );
 
 	// map module space to kernel space
@@ -142,5 +142,5 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) module -> cr3 );
 
 	// module ready to run
-	module -> flags |= STD_TASK_FLAG_active | STD_TASK_FLAG_init;
+	module -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
 }

@@ -3,8 +3,14 @@
 ===============================================================================*/
 
 uintptr_t kernel_memory_alloc_page( void ) {
-	// alloc only 1 page
-	return kernel_memory_alloc( 1 ) & ~KERNEL_PAGE_logical;	// each operation on "pages" is performed on their physical addresses
+	// acquire single physical page
+	uintptr_t page = kernel_memory_alloc( TRUE ) & ~KERNEL_PAGE_logical;
+
+	// page used for structure
+	kernel -> page_structure++;
+
+	// return physical address
+	return page;
 }
 
 uintptr_t kernel_memory_alloc( uint64_t N ) {
@@ -12,7 +18,7 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	uintptr_t p = EMPTY;
 
 	// search for requested length of area
-	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N )) ) return EMPTY;
+	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N )) ) return p;
 
 	// less available pages
 	kernel -> page_available -= N;
@@ -131,9 +137,12 @@ void kernel_memory_release( uintptr_t address, uint64_t N ) {
 	kernel -> page_available += N;
 }
 
-void kernel_memory_release_page( uintptr_t address ) {
-	// release page from binary memory map
-	kernel_memory_release( address | KERNEL_PAGE_logical, 1 );
+void kernel_memory_release_page( uintptr_t page ) {
+	// release single physical page
+	kernel_memory_release( page | KERNEL_PAGE_logical, TRUE );
+
+	// page released from structure
+	kernel -> page_structure--;
 }
 
 uintptr_t kernel_memory_share( uintptr_t address, uint64_t page ) {
@@ -145,6 +154,9 @@ uintptr_t kernel_memory_share( uintptr_t address, uint64_t page ) {
 	if( (allocated = kernel_memory_acquire_secured( task, page )) ) {
 		// map memory area to process
 		kernel_page_map( (uintptr_t *) task -> cr3, address, (uintptr_t) (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_shared );
+
+		// shared pages
+		kernel -> page_shared += page;
 
 		// return the address of the first page in the collection
 		return (allocated << STD_SHIFT_PAGE);

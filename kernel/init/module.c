@@ -12,10 +12,10 @@ uint8_t *module_list[ KERNEL_INIT_MODULE_count ] = {
 
 void kernel_init_module( void ) {
 	// alloc memory map space for modules
-	kernel -> module_base_address = (uint32_t *) kernel_memory_alloc( KERNEL_MODULE_MEMORY_MAP_page );
+	kernel -> module_map_address = (uint32_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + 1 ) >> STD_SHIFT_PAGE );
 
-	// mark whole memory map as available for use
-	kernel_memory_dispose( kernel -> module_base_address, EMPTY, (KERNEL_MODULE_MEMORY_MAP_page << STD_SHIFT_PAGE) << STD_SHIFT_8 );
+	// initialize memory map
+	kernel_memory_dispose( kernel -> module_map_address, EMPTY, kernel -> page_limit );
 
 	// for every required module
 	for( uint64_t i = 0; i < KERNEL_INIT_MODULE_count; i++ )

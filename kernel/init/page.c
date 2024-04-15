@@ -7,7 +7,7 @@ void kernel_init_page( void ) {
 	__asm__ volatile( "movq %cr0, %rax\nandq $~(1 << 16), %rax\nmovq %rax, %cr0" );
 
 	// alloc 1 page for PML4 kernel environment array
-	kernel -> page_base_address = (uint64_t *) kernel_memory_alloc( 1 );
+	kernel -> page_base_address = (uint64_t *) (kernel_memory_alloc_page() | KERNEL_PAGE_logical);
 
 	// map all memory areas marked as USABLE, KERNEL_AND_MODULES, FRAMEBUFFER, BOOTLOADER_RECLAIMABLE, ACPI_RECLAIMABLE
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ )

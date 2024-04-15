@@ -4,7 +4,7 @@
 
 void kernel_init_idt( void ) {
 	// prepare area for Interrupt Descriptor Table
-	kernel -> idt_header.base_address = (struct KERNEL_IDT_STRUCTURE_ENTRY *) kernel_memory_alloc( 1 );
+	kernel -> idt_header.base_address = (struct KERNEL_IDT_STRUCTURE_ENTRY *) kernel_memory_alloc( TRUE );
 
 	// attach CPU exception handlers
 	kernel_idt_mount( 0, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) &kernel_idt_exception_divide_by_zero );

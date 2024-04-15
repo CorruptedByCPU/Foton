@@ -5,9 +5,8 @@
 void kernel_init_memory( void ) {
 	// limine shared with us a memory map?
 	if( limine_memmap_request.response == NULL || ! limine_memmap_request.response -> entry_count ) {	// no
-		#ifdef	DEBUG
-			kernel -> log( (uint8_t *) "Houston, we have a problem.\n" );
-		#endif
+		// Houston, we have a problem.
+		kernel -> log( (uint8_t *) "Houston, we have a problem.\n" );
 
 		// hold the door
 		while( TRUE );
@@ -16,23 +15,8 @@ void kernel_init_memory( void ) {
 	// find largest available area
 	uint64_t local_largest_byte = EMPTY;
 
-	// kernel -> log( (uint8_t *) "Memory map:\n" );
-
 	// all available memory areas should be clean at kernel initialization
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
-			// kernel -> log( (uint8_t *) " %16X - %16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );
-			// switch( limine_memmap_request.response -> entries[ i ] -> type ) {
-			// 	case LIMINE_MEMMAP_USABLE:			{ kernel -> log( (uint8_t *) "Usable\n" ); break; }
-			// 	case LIMINE_MEMMAP_RESERVED:			{ kernel -> log( (uint8_t *) "Reserved\n" ); break; }
-			// 	case LIMINE_MEMMAP_ACPI_RECLAIMABLE:		{ kernel -> log( (uint8_t *) "ACPI Reclaimable\n" ); break; }
-			// 	case LIMINE_MEMMAP_ACPI_NVS:			{ kernel -> log( (uint8_t *) "ACPI NVS\n" ); break; }
-			// 	case LIMINE_MEMMAP_BAD_MEMORY:			{ kernel -> log( (uint8_t *) "Corrupted Memory\n" ); break; }
-			// 	case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:	{ kernel -> log( (uint8_t *) "Bootloader Reclaimable\n" ); break; }
-			// 	case LIMINE_MEMMAP_KERNEL_AND_MODULES:		{ kernel -> log( (uint8_t *) "Kernel or Modules\n" ); break; }
-			// 	case LIMINE_MEMMAP_FRAMEBUFFER:			{ kernel -> log( (uint8_t *) "Framebuffer\n" ); break; }
-			// 	default:					{ kernel -> log( (uint8_t *) "{unknown}\n" ); }
-			// }
-
 		// USABLE memory area?
 		if( limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_USABLE ) {
 			// inside largest continous memory area we will create kernel environment metadata and a binary memory map next to it
@@ -84,6 +68,4 @@ void kernel_init_memory( void ) {
 		// available pages
 		kernel -> page_available--;
 	}
-
-	// kernel -> log( (uint8_t *) "Memory size: %u KiB (%u KiB free)\n", kernel -> page_total << STD_SHIFT_4, kernel -> page_available << STD_SHIFT_4 );
 }

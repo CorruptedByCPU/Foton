@@ -34,7 +34,7 @@
 	};
 
 	// loads libraries required by executable
-	uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf );
+	int64_t kernel_library( struct LIB_ELF_STRUCTURE *elf );
 
 	// configure and initialize library
 	uint8_t kernel_library_load( uint8_t *name, uint64_t length );

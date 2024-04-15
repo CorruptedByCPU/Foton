@@ -30,9 +30,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// set window header, clear and disable cursor
 	print( "\eXTask Manager\e\\\e[N" );
 
-	// show interface
-	printf( "%s", top_string_interface );
-
 	// main loop
 	while( TRUE ) {
 		// retrieve list of running tasts
@@ -44,11 +41,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// retrieve stream meta data
 		std_stream_get( (uint8_t *) &top_stream_meta, STD_STREAM_OUT );
 
-		// nothing changed?
-		if( meta.width != top_stream_meta.width || meta.height != top_stream_meta.height ) {
-			// show again interface
-			printf( "\e[0m\e[2J%s", top_string_interface );
-		};
+		// show interface
+		printf( "\e[0m\e[2J%s", top_string_interface );
 
 		// entry number
 		uint64_t entry = 0;
@@ -75,7 +69,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				print( "\e[0m" );
 
 				// mark thread entry
-				if( task[ entry ].flags & STD_TASK_FLAG_thread ) print( "\e[38;5;244m" );
+				if( task[ entry ].flags & STD_TASK_FLAG_thread ) print( "\e[48;5;233m\e[38;5;244m" );
 			
 				// mark module entry
 				if( task[ entry ].flags & STD_TASK_FLAG_module ) print( "\e[38;5;1m" );
@@ -121,7 +115,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			if( key == STD_KEY_ARROW_UP && top_line_selected ) { top_line_selected--; break; }
 
 			// kill selected process?
-			if( key == 'k' ) { std_kill( task[ entry_selected ].pid ); break; }
+			if( key == 'k' ) { std_kill( task[ entry_selected ].pid ); top_line_selected = 0; break; }
 		}
 
 		// set next update
