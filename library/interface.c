@@ -314,10 +314,10 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 						lib_image_tga_parse( (uint8_t *) icon_image, element -> icon, icon_file -> byte );
 
 						// release file content
-						// free( icon_image );
+						free( icon_image );
 
 						// close file
-						// fclose( icon_file );
+						fclose( icon_file );
 					}
 				}
 			// next key
@@ -562,7 +562,7 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		interface -> descriptor -> flags |= STD_WINDOW_FLAG_release;
 	
 		// release old interface area
-		// free( interface );
+		free( interface );
 
 		// new window created
 		return new_interface;

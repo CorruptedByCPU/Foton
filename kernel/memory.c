@@ -2,15 +2,52 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uintptr_t kernel_memory_alloc_page( void ) {
-	// acquire single physical page
-	uintptr_t page = kernel_memory_alloc( TRUE ) & ~KERNEL_PAGE_logical;
+uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N ) {
+	// define memory semaphore location
+	uint8_t *semaphore = (uint8_t *) memory_map + MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) - STD_SIZE_BYTE_byte;
 
-	// page used for structure
-	kernel -> page_structure++;
+	// block access to binary memory map (only one at a time)
+	MACRO_LOCK( *semaphore );
 
-	// return physical address
-	return page;
+	// search binary memory map for N continuous (p)ages
+	for( uint64_t p = 0; p < kernel -> page_limit; p++ ) {
+		// by default we found N enabled bits
+		uint8_t found = TRUE;
+
+		// check N (c)onsecutive pages
+		for( uint64_t c = p; c < p + N; c++ ) {
+			// broken continous?
+			if( ! (memory_map[ c >> STD_SHIFT_32 ] & 1 << (c & 0b0011111)) ) {
+				// one of the bits is disabled
+				found = FALSE;
+
+				// start looking from next position
+				p = c;
+
+				// restart
+				break;
+			}
+		}
+
+		// if N consecutive pages have been found
+		if( found ) {
+			// mark pages as (r)eserved
+			for( uint64_t r = p; r < p + N; r++ )
+				memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b0011111) );
+
+			// unlock access to binary memory map
+			MACRO_UNLOCK( *semaphore );
+
+			// return address of acquired memory area
+			return p;
+		}
+	}
+
+	// unlock access to binary memory map
+	MACRO_UNLOCK( *semaphore );
+
+	// no available memory area
+	return EMPTY;
 }
 
 uintptr_t kernel_memory_alloc( uint64_t N ) {
@@ -27,100 +64,26 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	p = (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;
 
 	// we need to guarantee clean memory area before use
-	kernel_page_clean( (uintptr_t) p, N );
+	kernel_memory_clean( (uint64_t *) p, N );
 
 	// convert page ID to logical address
 	return (uintptr_t) p;
 }
 
-uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N ) {
-	// block access to binary memory map (only one at a time)
-	MACRO_LOCK( kernel -> memory_semaphore );
+uintptr_t kernel_memory_alloc_page( void ) {
+	// acquire single physical page
+	uintptr_t page = kernel_memory_alloc( TRUE ) & ~KERNEL_PAGE_logical;
 
-	// search binary memory map for N continuous (p)ages
-	for( uint64_t p = 0; p < kernel -> page_limit; p++ ) {
-		// by default we found N enabled bits
-		uint8_t found = TRUE;
+	// page used for structure
+	kernel -> page_structure++;
 
-		// check N (c)onsecutive pages
-		for( uint64_t c = p; c < p + N; c++ ) {
-			// broken continous?
-			if( ! (memory[ c >> STD_SHIFT_32 ] & 1 << (c & 0b0011111)) ) {
-				// one of the bits is disabled
-				found = FALSE;
-
-				// start looking from next position
-				p = c;
-
-				// restart
-				break;
-			}
-		}
-
-		// if N consecutive pages have been found
-		if( found ) {
-			// mark pages as (r)eserved
-			for( uint64_t r = p; r < p + N; r++ )
-				memory[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b0011111) );
-
-			// unlock access to binary memory map
-			MACRO_UNLOCK( kernel -> memory_semaphore );
-
-			// return address of acquired memory area
-			return p;
-		}
-	}
-
-	// unlock access to binary memory map
-	MACRO_UNLOCK( kernel -> memory_semaphore );
-
-	// no available memory area
-	return EMPTY;
+	// return physical address
+	return page;
 }
 
-uint64_t kernel_memory_acquire_secured( struct KERNEL_TASK_STRUCTURE *task, uint64_t N ) {
-	// block access to binary memory map (only one at a time)
-	MACRO_LOCK( task -> memory_semaphore );
-
-	// search binary memory map for N continuous (p)ages
-	for( uint64_t p = 0; p < kernel -> page_limit; p++ ) {
-		// by default we found N enabled bits
-		uint8_t found = TRUE;
-
-		// check N (c)onsecutive pages
-		for( uint64_t c = p; c < p + N; c++ ) {
-			// broken continous?
-			if( ! (task -> memory_map[ c >> STD_SHIFT_32 ] & 1 << (c & 0b0011111)) ) {
-				// one of the bits is disabled
-				found = FALSE;
-
-				// start looking from next position
-				p = c;
-
-				// restart
-				break;
-			}
-		}
-
-		// if N consecutive pages have been found
-		if( found ) {
-			// mark pages as (r)eserved
-			for( uint64_t r = p; r < p + N; r++ )
-				task -> memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b0011111) );
-
-			// unlock access to binary memory map
-			MACRO_UNLOCK( task -> memory_semaphore );
-
-			// return address of acquired memory area
-			return p;
-		}
-	}
-
-	// unlock access to binary memory map
-	MACRO_UNLOCK( task -> memory_semaphore );
-
-	// no available memory area
-	return EMPTY;
+void kernel_memory_clean( uint64_t *address, uint64_t n ) {
+	// clear every 64 bit value inside N pages
+	for( uint64_t i = 0; i < n << STD_SHIFT_512; i++ ) address[ i ] = EMPTY;
 }
 
 void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
@@ -151,7 +114,7 @@ uintptr_t kernel_memory_share( uintptr_t address, uint64_t page ) {
 
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
-	if( (allocated = kernel_memory_acquire_secured( task, page )) ) {
+	if( (allocated = kernel_memory_acquire( task -> memory_map, page )) ) {
 		// map memory area to process
 		kernel_page_map( (uintptr_t *) task -> cr3, address, (uintptr_t) (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_shared );
 

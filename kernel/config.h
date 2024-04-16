@@ -88,10 +88,10 @@ struct KERNEL {
 
 	// variables of Memory management functions
 	uint32_t	*memory_base_address;
-	uint8_t		memory_semaphore;
 	// functions of Memory management
 	uintptr_t						(*memory_alloc)( uint64_t N );
 	uintptr_t						(*memory_alloc_page)( void );
+	void							(*memory_clean)( uint64_t *address, uint64_t n );
 	void							(*memory_release)( uintptr_t address, uint64_t N );
 	void							(*memory_release_page)( uintptr_t address );
 
@@ -106,7 +106,6 @@ struct KERNEL {
 	uint64_t	page_structure;
 	uint64_t	page_shared;
 	// functions of Page management
-	void							(*page_clean)( uintptr_t address, uint64_t n );
 	void							(*page_deconstruct)( uintptr_t *pml4 );
 
 	// variables of Storage management functions

@@ -77,13 +77,13 @@ uint8_t wm_init( void ) {
 				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
 
 		// release temporary image
-		// free( tmp_workbench_image );
+		free( tmp_workbench_image );
 
 		// release file content
-		// free( workbench_image );
+		free( workbench_image );
 
 		// close file
-		// fclose( workbench_file );
+		fclose( workbench_file );
 	} else
 		// fill workbench with default color
 		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
@@ -170,10 +170,10 @@ uint8_t wm_init( void ) {
 		lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file -> byte );
 
 		// release file content
-		// free( cursor_image );
+		free( cursor_image );
 
 		// close file
-		// fclose( cursor_file );
+		fclose( cursor_file );
 	}
 
 	// mark window as cursor, so Window Manager will treat it different than others

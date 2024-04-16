@@ -48,7 +48,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		console_pid_of_shell = std_exec( file_path, file_path_length, STD_STREAM_FLOW_out_to_parent_in );
 
 		// release path
-		// free( file_path );
+		free( file_path );
 	} else
 		// run Shell program
 		console_pid_of_shell = std_exec( (uint8_t *) "shell", 5, STD_STREAM_FLOW_out_to_parent_in );

@@ -36,15 +36,18 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
-	if( (allocated = kernel_memory_acquire_secured( task, page )) ) {
+	if( (allocated = kernel_memory_acquire( task -> memory_map, page )) ) {
 		// allocate space inside process paging area
 		kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
+
+		// debug
+		// kernel -> log( (uint8_t *) "(alloc) 0x%X:0x%X [%s]\n", allocated << STD_SHIFT_PAGE, ((allocated + page) << STD_SHIFT_PAGE) - 1, task -> name );
 
 		// process memory usage
 		task -> page += page;
 
 		// clean up acquired space
-		kernel_page_clean( allocated << STD_SHIFT_PAGE, page );
+		kernel_memory_clean( (uint64_t *) (allocated << STD_SHIFT_PAGE), page );
 
 		// return the address of the first page in the collection
 		return allocated << STD_SHIFT_PAGE;
@@ -57,27 +60,21 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	return EMPTY;
 }
 
-void kernel_syscall_memory_release( uintptr_t source, uint64_t page ) {
+void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-	// release occupied pages
-	for( uint64_t i = source >> STD_SHIFT_PAGE; i < (source >> STD_SHIFT_PAGE) + page; i++ ) {
-		// remove page from paging structure
-		uintptr_t p = kernel_page_remove( (uint64_t *) task -> cr3, i << STD_SHIFT_PAGE );
+	// debug
+	// kernel -> log( (uint8_t *) "(release) 0x%X:0x%X [%s]\n", target, target + (page << STD_SHIFT_PAGE) - 1, task -> name );
 
-		// if released
-		if( p ) {
-			// return page back to stack
-			kernel_memory_release_page( p );
+	// remove page from paging structure
+	kernel_page_release( (uint64_t *) task -> cr3, target, page );
 
-			// process memory usage
-			task -> page--;
-		}
+	// release page in binary memory map of process
+	kernel_memory_dispose( task -> memory_map, target >> STD_SHIFT_PAGE, page );
 
-		// release page in binary memory map of process
-		kernel_memory_dispose( task -> memory_map, i, 1 );
-	}
+	// process memory usage
+	task -> page -= page;
 }
 
 uint64_t kernel_syscall_uptime( void ) {
@@ -263,7 +260,7 @@ uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t p
 	struct KERNEL_TASK_STRUCTURE *target = (struct KERNEL_TASK_STRUCTURE *) kernel_task_by_id( pid );
 
 	// acquire space from target task
-	uintptr_t target_pointer = kernel_memory_acquire_secured( target, pages ) << STD_SHIFT_PAGE;
+	uintptr_t target_pointer = kernel_memory_acquire( target -> memory_map, pages ) << STD_SHIFT_PAGE;
 
 	// connect memory space of parent process with child
 	kernel_page_clang( (uintptr_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process | KERNEL_PAGE_FLAG_shared );

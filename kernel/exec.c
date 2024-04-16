@@ -5,24 +5,16 @@
 static void kernel_exec_cancel( struct KERNEL_EXEC_STRUCTURE_INIT *exec ) {
 	// undo performed operations depending on cavity
 	switch( exec -> level ) {
-		case 10: {
+		case 8: {
 			// cannot foresee an error at this level and above
 		}
-		case 9: {
+		case 7: {
 			// release memory map from task entry
 			kernel_memory_release( (uintptr_t) exec -> task -> memory_map, MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) >> STD_SHIFT_PAGE );
 		}
-		case 8: {
-			// detach process area from paging structure
-			kernel_page_detach( (uintptr_t *) exec -> task -> cr3, KERNEL_EXEC_base_address, exec -> page );
-		}
-		case 7: {
+		case 6: {
 			// release process area
 			kernel_memory_release( (uintptr_t) exec -> base_address, exec -> page );
-		}
-		case 6: {
-			// detach stack from paging structure
-			kernel_page_detach( (uintptr_t *) exec -> task -> cr3, MACRO_PAGE_ALIGN_DOWN( KERNEL_TASK_STACK_pointer - exec -> stack_byte ), MACRO_PAGE_ALIGN_UP( exec -> stack_byte ) >> STD_SHIFT_PAGE );
 		}
 		case 5: {
 			// release stack area
@@ -175,12 +167,6 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// map stack space to process paging array
 	if( ! kernel_page_map( (uintptr_t *) exec.task -> cr3, (uintptr_t) exec.stack, MACRO_PAGE_ALIGN_DOWN( context -> rsp ), MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
 
-	// checkpoint reached: stack attached to process paging
-	exec.level++;
-
-	// process memory usage
-	exec.task -> page += MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE;
-
 	// process stack size
 	exec.task -> stack += MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE;
 
@@ -222,9 +208,6 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// map executable space to paging array
 	if( ! kernel_page_map( (uintptr_t *) exec.task -> cr3, exec.base_address, KERNEL_EXEC_base_address, exec.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
 
-	// checkpoint reached: process area attached to paging
-	exec.level++;
-
 	// process memory usage
 	exec.task -> page += exec.page;
 
@@ -240,7 +223,13 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	for( uint64_t i = (MACRO_PAGE_ALIGN_DOWN( KERNEL_EXEC_base_address ) >> STD_SHIFT_PAGE) >> STD_SHIFT_32; i < kernel -> page_limit >> STD_SHIFT_32; i++ ) exec.task -> memory_map[ i ] = -1;
 
 	// mark as occupied pages used by the executable
-	kernel_memory_acquire_secured( exec.task, exec.page );
+	kernel_memory_acquire( exec.task -> memory_map, exec.page );
+
+	// define memory semaphore location
+	uint8_t *semaphore = (uint8_t *) exec.task -> memory_map + MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) - STD_SIZE_BYTE_byte;
+
+	// unlock access to binary memory map
+	MACRO_UNLOCK( *semaphore );
 
 	//----------------------------------------------------------------------
 
@@ -287,11 +276,11 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 
 	//----------------------------------------------------------------------
 
-	// release workbench
-	kernel_memory_release( exec.workbench_address, MACRO_PAGE_ALIGN_UP( exec.properties.byte ) >> STD_SHIFT_PAGE );
-
 	// map kernel space to process
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) exec.task -> cr3 );
+
+	// release workbench
+	kernel_memory_release( exec.workbench_address, MACRO_PAGE_ALIGN_UP( exec.properties.byte ) >> STD_SHIFT_PAGE );
 
 	//----------------------------------------------------------------------
 

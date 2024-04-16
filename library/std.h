@@ -282,6 +282,9 @@
 	#define	STD_SHIFT_4096					12
 	#define	STD_SHIFT_PAGE					STD_SHIFT_4096
 
+	#define	STD_SIZE_BYTE_byte				1
+	#define	STD_SIZE_BYTE_bit				8
+
 	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STREAM_STRUCTURE
 
 	#define	STD_STREAM_FLOW_out_to_parent_in		0b00000001
@@ -418,7 +421,7 @@
 	uintptr_t std_memory_alloc( uint64_t page );
 
 	// releases memory area of N pages
-	void std_memory_release( uintptr_t source, uint64_t page );
+	void std_memory_release( uintptr_t target, uint64_t page );
 
 	// returns ID of newly executed process
 	int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow );
