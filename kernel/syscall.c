@@ -46,9 +46,6 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 		// process memory usage
 		task -> page += page;
 
-		// clean up acquired space
-		kernel_memory_clean( (uint64_t *) (allocated << STD_SHIFT_PAGE), page );
-
 		// return the address of the first page in the collection
 		return allocated << STD_SHIFT_PAGE;
 	}
@@ -99,16 +96,10 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	// prepare Paging table for new process
 	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_logical;
 
-	// page used
-	thread -> page++;
-
 	//----------------------------------------------------------------------
 
 	// describe space under thread context stack
 	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
-
-	// pages used
-	thread -> page += KERNEL_STACK_page;
 
 	// set initial startup configuration for new process
 	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
@@ -670,7 +661,7 @@ uintptr_t kernel_syscall_task( void ) {
 	for( uint64_t i = 1; i < KERNEL_TASK_limit; i++ ) if( kernel -> task_base_address[ i ].flags ) count++;
 
 	// alloc enough memory for all entries
-	struct STD_SYSCALL_STRUCTURE_TASK *task = (struct STD_SYSCALL_STRUCTURE_TASK *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * count ) >> STD_SHIFT_PAGE );
+	struct STD_SYSCALL_STRUCTURE_TASK *task = (struct STD_SYSCALL_STRUCTURE_TASK *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * count ) >> STD_SHIFT_PAGE );
 
 	// copy essential information about every task
 	uint64_t entry = 0;
@@ -688,21 +679,20 @@ uintptr_t kernel_syscall_task( void ) {
 		task[ entry ].flags = kernel -> task_base_address[ i ].flags;
 
 		// name of task with length
-		for( uint64_t j = 0; j < KERNEL_TASK_NAME_limit; j++ ) task[ entry ].name[ task[ entry ].name_length++ ] = kernel -> task_base_address[ i ].name[ j ]; task[ entry ].name[ task[ entry ].name_length ] = STD_ASCII_TERMINATOR;
+		for( uint64_t j = 0; j < kernel -> task_base_address[ i ].name_length; j++ ) task[ entry ].name[ task[ entry ].name_length++ ] = kernel -> task_base_address[ i ].name[ j ]; task[ entry ].name[ task[ entry ].name_length ] = STD_ASCII_TERMINATOR;
 
 		// required amount of entries passed?
 		if( entry++ == count ) break;	// yes
 	}
 
 	// share structure with process
-	return kernel_memory_share( (uintptr_t) task & ~KERNEL_PAGE_PML5_mask, MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * count ) >> STD_SHIFT_PAGE );
+	return (uintptr_t) task;
 }
 
 void kernel_syscall_kill( int64_t pid ) {
 	// properties of current task
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_by_id( pid );
 
-	// mark task as not active and ready to close
-	task -> flags &= ~STD_TASK_FLAG_active;
+	// mark task as ready to close
 	task -> flags |= STD_TASK_FLAG_close;
 }

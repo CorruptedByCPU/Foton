@@ -3,6 +3,9 @@
 ===============================================================================*/
 
 void kernel_log( uint8_t *string, ... ) {
+	// lock access to function, one process at a time
+	// MACRO_LOCK( kernel -> log_semaphore );
+
 	// properties of argument list
 	va_list argv;
 
@@ -117,4 +120,7 @@ void kernel_log( uint8_t *string, ... ) {
 
 	// end of arguemnt list
 	va_end( argv );
+
+	// unlock access
+	// MACRO_UNLOCK( kernel -> log_semaphore );
 }

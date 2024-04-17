@@ -20,9 +20,9 @@ void unit( uint8_t level ) {
 }
 
 void ratio( uint64_t bytes ) {
-	// if( bytes >= 0x10000000000 ) { printf( "%4u ", bytes / 0x10000000000 ); unit( 4 ); return; }
-	// if( bytes >= 0x40000000 ) { printf( "%4u ", bytes / 0x40000000 ); unit( 3 ); return; }
-	// if( bytes >= 0x100000 ) { printf( "%5u ", bytes / 0x100000 ); unit( 2 ); return; }
+	if( bytes >= 0x10000000000 ) { printf( "%4u ", bytes / 0x10000000000 ); unit( 4 ); return; }
+	if( bytes >= 0x40000000 ) { printf( "%4u ", bytes / 0x40000000 ); unit( 3 ); return; }
+	if( bytes >= 0x100000 ) { printf( "%5u ", bytes / 0x100000 ); unit( 2 ); return; }
 	if( bytes >= 0x400 ) { printf( "%5u ", bytes / 0x400 ); unit( 1 ); return; }
 }
 

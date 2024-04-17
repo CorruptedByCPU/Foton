@@ -86,6 +86,9 @@ struct KERNEL {
 	struct KERNEL_LIBRARY_STRUCTURE				*library_base_address;
 	uint32_t	*library_map_address;
 
+	// variables of Log management functions
+	uint8_t		log_semaphore;
+
 	// variables of Memory management functions
 	uint32_t	*memory_base_address;
 	// functions of Memory management
@@ -100,6 +103,7 @@ struct KERNEL {
 
 	// variables of Page management functions
 	uint64_t	*page_base_address;
+	uint8_t		page_semaphore;
 	uint64_t	page_total;
 	uint64_t	page_available;
 	uint64_t	page_limit;
@@ -107,6 +111,7 @@ struct KERNEL {
 	uint64_t	page_shared;
 	// functions of Page management
 	void							(*page_deconstruct)( uintptr_t *pml4 );
+	uint8_t							(*page_release)( uint64_t *pml4, uint64_t address, uint64_t pages );
 
 	// variables of Storage management functions
 	struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;
