@@ -2,6 +2,20 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+20.04.2024
+- memory management overhaul (optimizations, behaviour change etc.),
+- free - added info about paging and shared memory,
+- software execution cancel now returns proper error no,
+- moved page clean to memory clean function,
+- moved binary memory semaphore from kernel/software environment
+  to end of binary memory map,
+- some cleanups of old debug code,
+- kernel_memory_alloc_page will be used only for paging structure,
+- tm - Task Manager software added,
+- renaming kernels variables and use of STD definied names,
+- unlocked all free( * ) functions,
+- rewrite of shredder.ko module, now closing starts from childs of parent.
+
 11.04.2024
 - window maximize (and back to previous dimensions/location), functional
 

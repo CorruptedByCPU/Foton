@@ -14,7 +14,7 @@ void kernel_task( void ) {
 	__asm__ volatile( "mov %%rsp, %0" : "=rm" (current -> rsp) );
 
 	// current task execution stopped
-	current -> flags &= ~KERNEL_TASK_FLAG_exec;
+	current -> flags &= ~STD_TASK_FLAG_exec;
 
 	//----------------------------------------------------------------------
 
@@ -36,12 +36,12 @@ void kernel_task( void ) {
 	kernel_lapic_accept();
 
 	// first run of task?
-	if( next -> flags & KERNEL_TASK_FLAG_init ) {
+	if( next -> flags & STD_TASK_FLAG_init ) {
 		// disable init flag
-		next -> flags &= ~KERNEL_TASK_FLAG_init;
+		next -> flags &= ~STD_TASK_FLAG_init;
 
 		// if module, pass a pointer to kernel environment specification
-		if( next -> flags & KERNEL_TASK_FLAG_module ) __asm__ volatile( "" :: "D" (kernel), "S" (EMPTY) );
+		if( next -> flags & STD_TASK_FLAG_module ) __asm__ volatile( "" :: "D" (kernel), "S" (EMPTY) );
 		else {
 			// retrieve from stack
 			uint64_t *arg = (uint64_t *) (next -> rsp + offsetof( struct KERNEL_IDT_STRUCTURE_RETURN, rsp ) );
@@ -68,6 +68,7 @@ void kernel_task( void ) {
 struct KERNEL_TASK_STRUCTURE *kernel_task_active( void ) {
 	// from list of active tasks on individual logical processors
 	// select currently processed position relative to current logical processor
+	if( ! kernel -> task_cpu_address ) return EMPTY;
 	return (struct KERNEL_TASK_STRUCTURE *) kernel -> task_cpu_address[ kernel_lapic_id() ];
 }
 
@@ -81,7 +82,7 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 		if( kernel -> task_base_address[ i ].flags ) continue;	// no
 
 		// mark entry as "in use""
-		kernel -> task_base_address[ i ].flags = KERNEL_TASK_FLAG_secured;
+		kernel -> task_base_address[ i ].flags = STD_TASK_FLAG_secured;
 
 		// ID of new job
 		kernel -> task_base_address[ i ].pid = ++kernel -> task_id;
@@ -89,12 +90,13 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 		// ID of its parent
 		kernel -> task_base_address[ i ].pid_parent = kernel_task_pid();
 
-		// number of characters representing process name
-		kernel -> task_base_address[ i ].length = length;
+		// reset number of characters representing process name
+		kernel -> task_base_address[ i ].name_length = length;
 
 		// set process name
-		if( length > KERNEL_TASK_NAME_limit ) length = KERNEL_TASK_NAME_limit;
-		for( uint16_t n = 0; n < length; n++ ) kernel -> task_base_address[ i ].name[ n ] = name[ n ]; kernel -> task_base_address[ i ].name[ length ] = EMPTY;
+		if( kernel -> task_base_address[ i ].name_length > KERNEL_TASK_NAME_limit ) kernel -> task_base_address[ i ].name_length = KERNEL_TASK_NAME_limit;
+		for( uint16_t n = 0; n < kernel -> task_base_address[ i ].name_length; n++ ) kernel -> task_base_address[ i ].name[ n ] = name[ n ]; kernel -> task_base_address[ i ].name[ kernel -> task_base_address[ i ].name_length ] = STD_ASCII_TERMINATOR;
+
 
 		// number of jobs in queue
 		kernel -> task_count++;
@@ -131,9 +133,9 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
 		// search in task queue for a ready-to-do task
 		for( ++i ; i < kernel -> task_limit; i++ ) {
 			// task available for processing?
-			if( kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_active && ! (kernel -> task_base_address[ i ].flags & KERNEL_TASK_FLAG_exec) ) {	// yes
+			if( kernel -> task_base_address[ i ].flags & STD_TASK_FLAG_active && ! (kernel -> task_base_address[ i ].flags & STD_TASK_FLAG_exec) ) {	// yes
 				// mark task as performed by current logical processor
-				kernel -> task_base_address[ i ].flags |= KERNEL_TASK_FLAG_exec;
+				kernel -> task_base_address[ i ].flags |= STD_TASK_FLAG_exec;
 
 				// inform BS/A about task to execute as next
 				kernel -> task_cpu_address[ kernel_lapic_id() ] = &kernel -> task_base_address[ i ];

@@ -56,7 +56,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// show prompt
-		printf( "\e[38;5;47m%s \e[38;5;15m%s \e[38;5;47m%%\e[0m ", hostname, dir -> name );
+		printf( "\e[0m\e[P\e[38;5;47m%s \e[38;5;15m%s \e[38;5;47m%%\e[0m ", hostname, dir -> name );
 
 		// close directory
 		fclose( dir );
@@ -110,7 +110,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			shell_command[ lib_string_word( shell_command, shell_command_length ) ] = STD_ASCII_TERMINATOR;
 			
 			// show information
-			printf( "Command \e[38;5;196m%s\e[0m not found.", shell_command );
+			printf( "Command \e[38;5;250m%s\e[0m not found.", shell_command );
 
 			// new prompt
 			continue;
@@ -127,7 +127,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					std_ipc_send( shell_exec_pid, (uint8_t *) &data );
 			
 				// free up AP time until program execution ends
-				std_sleep( 1 );
+				std_sleep( TRUE );
 			}
 
 			// restore header

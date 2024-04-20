@@ -50,7 +50,7 @@ void console_init( void ) {
 		console_terminal -> height		= console_interface -> height - (LIB_INTERFACE_HEADER_HEIGHT_pixel + 1 + (console_interface -> descriptor -> offset << STD_SHIFT_2));
 		console_terminal -> base_address	= (uint32_t *) ((uintptr_t) console_interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ) + ((((LIB_INTERFACE_HEADER_HEIGHT_pixel + console_interface -> descriptor -> offset) * console_interface -> width) + LIB_INTERFACE_BORDER_pixel + console_interface -> descriptor -> offset) << STD_VIDEO_DEPTH_shift));
 		console_terminal -> scanline_pixel	= console_interface -> width;
-		console_terminal -> alpha		= 0x20;	// 32 of 255, background slightly transparent
+		console_terminal -> alpha		= 0x10;
 		console_terminal -> color_foreground	= lib_color( 255 );
 		console_terminal -> color_background	= lib_color( 232 );
 		lib_terminal( console_terminal );

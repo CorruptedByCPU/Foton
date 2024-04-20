@@ -54,7 +54,7 @@ uint8_t driver_usb_detect_uhci( uint8_t i ) {
 
 uintptr_t driver_usb_queue_empty( void ) {
 	// assign queue area
-	struct DRIVER_USB_QUEUE_STRUCTURE *queue = (struct DRIVER_USB_QUEUE_STRUCTURE *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);
+	struct DRIVER_USB_QUEUE_STRUCTURE *queue = (struct DRIVER_USB_QUEUE_STRUCTURE *) kernel -> memory_alloc( TRUE );
 
 	// fill with empty entries
 	for( uint64_t i = 0; i < STD_PAGE_byte / sizeof( struct DRIVER_USB_QUEUE_STRUCTURE ); i++ ) {
@@ -98,7 +98,7 @@ void driver_usb_debug_descriptors( struct DRIVER_USB_TD_STRUCTURE *td ) {
 
 // void driver_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_t target ) {
 // 	// prepare Transfer Descriptors area
-// 	struct DRIVER_USB_TD_STRUCTURE *td = (struct DRIVER_USB_TD_STRUCTURE *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);
+// 	struct DRIVER_USB_TD_STRUCTURE *td = (struct DRIVER_USB_TD_STRUCTURE *) kernel -> memory_alloc( TRUE );
 
 // 	// amount of required TDs
 // 	uint64_t tds = length / driver_usb_port[ port ].max_packet_size;
@@ -252,12 +252,12 @@ void driver_usb_debug_descriptors( struct DRIVER_USB_TD_STRUCTURE *td ) {
 // 	driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = DRIVER_USB_DEFAULT_FLAG_terminate;
 
 // 	// relase Transfer Descriptors
-// 	kernel -> memory_release_page( (uintptr_t) td );
+// 	kernel -> memory_release( (uintptr_t) td, TRUE );
 // }
 
 void driver_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_t target ) {
 	// prepare Transfer Descriptors area
-	struct DRIVER_USB_TD_STRUCTURE *td = (struct DRIVER_USB_TD_STRUCTURE *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);
+	struct DRIVER_USB_TD_STRUCTURE *td = (struct DRIVER_USB_TD_STRUCTURE *) kernel -> memory_alloc( TRUE );
 	uint32_t *data = (uint32_t *) td;
 
 	switch( type ) {
@@ -398,7 +398,7 @@ void driver_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_
 	driver_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = DRIVER_USB_DEFAULT_FLAG_terminate;
 
 	// relase Transfer Descriptors
-	kernel -> memory_release_page( (uintptr_t) td );
+	kernel -> memory_release( (uintptr_t) td, TRUE );
 }
 
 uint16_t driver_usb_port_reset( uint8_t id ) {
@@ -539,7 +539,7 @@ void _entry( uintptr_t kernel_ptr ) {
 				driver_port_out_word( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, frame_number ), EMPTY );
 
 				// alloc area for frame list
-				driver_usb_controller[ i ].frame_base_address = kernel -> memory_alloc_page();
+				driver_usb_controller[ i ].frame_base_address = kernel -> memory_alloc( TRUE ) & ~KERNEL_PAGE_logical;
 				driver_port_out_dword( driver_usb_controller[ i ].base_address + offsetof( struct DRIVER_USB_REGISTER_STRUCTURE, frame_list_base_address ), driver_usb_controller[ i ].frame_base_address );
 
 				// fill up frame list with queues
@@ -575,7 +575,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					kernel -> log( (uint8_t *) "[USB module].%u Port%u - device connected.\n", i, j );
 
 					// retrieve default descriptor from device
-					struct DRIVER_USB_DESCRIPTOR_STANDARD *device_descriptor = (struct DRIVER_USB_DESCRIPTOR_STANDARD *) (kernel -> memory_alloc_page() | KERNEL_PAGE_logical);
+					struct DRIVER_USB_DESCRIPTOR_STANDARD *device_descriptor = (struct DRIVER_USB_DESCRIPTOR_STANDARD *) kernel -> memory_alloc( TRUE );
 					driver_usb_descriptor( driver_usb_port_count, 0, 0x08, (uintptr_t) device_descriptor & ~KERNEL_PAGE_logical );
 
 					// port reset
@@ -593,8 +593,8 @@ void _entry( uintptr_t kernel_ptr ) {
 					// assign device address
 					driver_usb_port[ driver_usb_port_count ].address_id = (uint64_t) ((uintptr_t) &driver_usb_port[ driver_usb_port_count ] - (uintptr_t) driver_usb_port) / sizeof( struct DRIVER_USB_PORT_STRUCTURE );
 
-					// // // retrieve full device descriptor
-					kernel -> page_clean( (uintptr_t) device_descriptor, 1 );
+					// retrieve full device descriptor
+					kernel -> memory_clean( (uint64_t *) device_descriptor, 1 );
 					driver_usb_descriptor( driver_usb_port_count, 2, driver_usb_port[ driver_usb_port_count ].default_descriptor_length, (uintptr_t) device_descriptor & ~KERNEL_PAGE_logical );
 				}
 			}

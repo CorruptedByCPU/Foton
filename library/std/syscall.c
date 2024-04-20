@@ -69,9 +69,9 @@ uintptr_t std_memory_alloc( uint64_t page ) {
 	return std_syscall_pointer();
 }
 
-void std_memory_release( uintptr_t source, uint64_t page ) {
+void std_memory_release( uintptr_t target, uint64_t page ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_RELEASE), "D" (source), "S" (page) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_RELEASE), "D" (target), "S" (page) );
 
 	// return nothing
 	return std_syscall_empty();
@@ -307,4 +307,20 @@ int64_t std_file_touch( uint8_t *path, uint8_t type ) {
 
 	// return value
 	return std_syscall_value();
+}
+
+uintptr_t std_task( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_TASK) );
+
+	// return pointer
+	return std_syscall_pointer();
+}
+
+void std_kill( int64_t pid ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_KILL), "D" (pid) );
+
+	// return nothing
+	return std_syscall_empty();
 }

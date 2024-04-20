@@ -77,13 +77,13 @@ uint8_t wm_init( void ) {
 				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
 
 		// release temporary image
-		// free( tmp_workbench_image );
+		free( tmp_workbench_image );
 
 		// release file content
-		// free( workbench_image );
+		free( workbench_image );
 
 		// close file
-		// fclose( workbench_file );
+		fclose( workbench_file );
 	} else
 		// fill workbench with default color
 		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
@@ -116,19 +116,19 @@ uint8_t wm_init( void ) {
 	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), 0xFFFFFFFF, taskbar_pixel + (((WM_OBJECT_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) * wm_object_taskbar -> width) + (22 >> STD_SHIFT_2), wm_object_taskbar -> width, LIB_FONT_ALIGN_center );
 
 	// execute taskbar function as thread
-	uint8_t wm_string_taskbar[] = "{wm: taskbar}";
+	uint8_t wm_string_taskbar[] = "wm taskbar";
 	wm_object_taskbar -> pid = std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
 
 	//----------------------------------------------------------------------
 
 	// execute menu function as thread
-	uint8_t wm_string_menu[] = "{wm: menu}";
+	uint8_t wm_string_menu[] = "wm menu";
 	std_thread( (uintptr_t) &wm_menu, (uint8_t *) &wm_string_menu, sizeof( wm_string_menu ) );
 
 	//----------------------------------------------------------------------
 
 	// execute clock function as thread
-	uint8_t wm_string_clock[] = "{wm: clock}";
+	uint8_t wm_string_clock[] = "wm clock";
 	std_thread( (uintptr_t) &wm_clock, (uint8_t *) &wm_string_clock, sizeof( wm_string_clock ) );
 
 	//----------------------------------------------------------------------
@@ -170,10 +170,10 @@ uint8_t wm_init( void ) {
 		lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file -> byte );
 
 		// release file content
-		// free( cursor_image );
+		free( cursor_image );
 
 		// close file
-		// fclose( cursor_file );
+		fclose( cursor_file );
 	}
 
 	// mark window as cursor, so Window Manager will treat it different than others
@@ -187,16 +187,13 @@ uint8_t wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
-	// execute taskbar function as thread
-	uint8_t wm_string_release[] = "{wm: release}";
-	std_thread( (uintptr_t) &wm_release, (uint8_t *) &wm_string_release, sizeof( wm_string_release ) );
-
 	// debug
 	// std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console moko", 12, EMPTY );
 	// std_exec( (uint8_t *) "console moko change.log ", 23, EMPTY );
 	// std_exec( (uint8_t *) "console moko LICENSE.txt", 24, EMPTY );
-	// std_exec( (uint8_t *) "console pwd", 11, EMPTY );
+	// std_exec( (uint8_t *) "", 10, EMPTY );
+	// std_exec( (uint8_t *) "console tm", 10, EMPTY );
 	// 
 	// FILE *file = fopen( "test.txt" );
 	// if( file ) { log( "OK\n" ); fclose( file ); }

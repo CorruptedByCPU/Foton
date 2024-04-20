@@ -22,13 +22,13 @@ void unit( uint8_t level ) {
 void ratio( uint64_t bytes ) {
 	if( bytes >= 0x10000000000 ) { printf( "%4u ", bytes / 0x10000000000 ); unit( 4 ); return; }
 	if( bytes >= 0x40000000 ) { printf( "%4u ", bytes / 0x40000000 ); unit( 3 ); return; }
-	if( bytes >= 0x100000 ) { printf( "%4u ", bytes / 0x100000 ); unit( 2 ); return; }
-	if( bytes >= 0x400 ) { printf( "%4u ", bytes / 0x400 ); unit( 1 ); return; }
+	if( bytes >= 0x100000 ) { printf( "%5u ", bytes / 0x100000 ); unit( 2 ); return; }
+	if( bytes >= 0x400 ) { printf( "%5u ", bytes / 0x400 ); unit( 1 ); return; }
 }
 
 void status( uint64_t total, uint64_t available ) {
 	// width of status bar
-	int16_t width = stream_meta.width - (36 + 4);
+	int16_t width = stream_meta.width - (58 + 4);
 	if( width < 10 ) return;	// no enough space to show anything
 
 	// calculate usage in percents
@@ -61,12 +61,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	std_memory( (struct STD_SYSCALL_STRUCTURE_MEMORY *) &memory );
 
 	// show header
-	print( "            Total     Used     Free\n" );
+	print( "             Total       Use      Free      Page     Share\n" );
 
 	//----------------------------------------------------------------------
 
 	// internal memory
-	print( " Memory: " ); ratio( memory.total ); ratio( memory.total - memory.available ); ratio( memory.available );  status( memory.total, memory.available );
+	print( " Memory: " ); ratio( memory.total ); ratio( memory.total - memory.available ); ratio( memory.available );  ratio( memory.paging );  ratio( memory.shared ); status( memory.total, memory.available );
 
 	//----------------------------------------------------------------------
 

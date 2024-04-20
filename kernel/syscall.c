@@ -7,8 +7,8 @@ void kernel_syscall_exit( void ) {
 	struct KERNEL_TASK_STRUCTURE *task = kernel -> task_cpu_address[ kernel_lapic_id() ];
 
 	// mark task as not active and ready to close
-	task -> flags &= ~KERNEL_TASK_FLAG_active;
-	task -> flags |= KERNEL_TASK_FLAG_close;
+	task -> flags &= ~STD_TASK_FLAG_active;
+	task -> flags |= STD_TASK_FLAG_close;
 
 	// release left BS/A time
 	__asm__ volatile( "int $0x20" );
@@ -24,7 +24,7 @@ void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *frame
 	// change framebuffer owner if possible
 	if( ! __sync_val_compare_and_swap( &kernel -> framebuffer_pid, EMPTY, kernel_task_pid() ) )
 		// approved
-		framebuffer -> base_address = (uint32_t *) kernel_memory_share( (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_PAGE_PML5_mask, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel) >> STD_SHIFT_PAGE );
+		framebuffer -> base_address = (uint32_t *) kernel_memory_share( (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_PAGE_PML5_mask, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE );
 
 	// return information about framebuffer owner
 	framebuffer -> pid = kernel -> framebuffer_pid;
@@ -36,15 +36,12 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
-	if( (allocated = kernel_memory_acquire_secured( task, page )) ) {
+	if( (allocated = kernel_memory_acquire( task -> memory_map, page )) ) {
 		// allocate space inside process paging area
 		kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
 
 		// process memory usage
 		task -> page += page;
-
-		// clean up acquired space
-		kernel_page_clean( allocated << STD_SHIFT_PAGE, page );
 
 		// return the address of the first page in the collection
 		return allocated << STD_SHIFT_PAGE;
@@ -57,27 +54,18 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	return EMPTY;
 }
 
-void kernel_syscall_memory_release( uintptr_t source, uint64_t page ) {
+void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-	// release occupied pages
-	for( uint64_t i = source >> STD_SHIFT_PAGE; i < (source >> STD_SHIFT_PAGE) + page; i++ ) {
-		// remove page from paging structure
-		uintptr_t p = kernel_page_remove( (uint64_t *) task -> cr3, i << STD_SHIFT_PAGE );
+	// remove page from paging structure
+	kernel_page_release( (uint64_t *) task -> cr3, target, page );
 
-		// if released
-		if( p ) {
-			// return page back to stack
-			kernel_memory_release_page( p );
+	// release page in binary memory map of process
+	kernel_memory_dispose( task -> memory_map, target >> STD_SHIFT_PAGE, page );
 
-			// process memory usage
-			task -> page--;
-		}
-
-		// release page in binary memory map of process
-		kernel_memory_dispose( task -> memory_map, i, 1 );
-	}
+	// process memory usage
+	task -> page -= page;
 }
 
 uint64_t kernel_syscall_uptime( void ) {
@@ -130,6 +118,9 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	// prepare space for stack of thread
 	uint8_t *process_stack = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE );
 
+	// page used
+	thread -> stack++;
+
 	// context stack top pointer
 	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
 
@@ -150,7 +141,7 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	kernel_page_merge( (uint64_t *) task -> cr3, (uint64_t *) thread -> cr3 );
 
 	// thread ready to run
-	thread -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_thread | KERNEL_TASK_FLAG_init;
+	thread -> flags |= STD_TASK_FLAG_active | STD_TASK_FLAG_thread | STD_TASK_FLAG_init;
 
 	// return process ID of new thread
 	return thread -> pid;
@@ -171,7 +162,7 @@ int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length, uint8_t stream_flow
 
 uint8_t kernel_syscall_pid_check( int64_t pid ) {
 	// find an entry with selected ID
-	for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
+	for( uint64_t i = 0; i < KERNEL_TASK_limit; i++ ) {
 		// ignore kernels ID
 		if( ! pid ) return FALSE;
 
@@ -254,7 +245,7 @@ uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t p
 	struct KERNEL_TASK_STRUCTURE *target = (struct KERNEL_TASK_STRUCTURE *) kernel_task_by_id( pid );
 
 	// acquire space from target task
-	uintptr_t target_pointer = kernel_memory_acquire_secured( target, pages ) << STD_SHIFT_PAGE;
+	uintptr_t target_pointer = kernel_memory_acquire( target -> memory_map, pages ) << STD_SHIFT_PAGE;
 
 	// connect memory space of parent process with child
 	kernel_page_clang( (uintptr_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process | KERNEL_PAGE_FLAG_shared );
@@ -487,6 +478,12 @@ void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 
 	// and currently free
 	memory -> available = kernel -> page_available << STD_SHIFT_PAGE;
+
+	// used by paging
+	memory -> paging = kernel -> page_structure << STD_SHIFT_PAGE;
+
+	// shared between processes (only parent process will have it counted in memory use)
+	memory -> shared = kernel -> page_shared << STD_SHIFT_PAGE;
 }
 
 uint64_t kernel_syscall_sleep( uint64_t units ) {
@@ -494,7 +491,7 @@ uint64_t kernel_syscall_sleep( uint64_t units ) {
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// mark task as sleeping
-	task -> flags |= KERNEL_TASK_FLAG_sleep;
+	task -> flags |= STD_TASK_FLAG_sleep;
 
 	// set release pointer
 	uint64_t stop = kernel -> time_unit + units;
@@ -503,7 +500,7 @@ uint64_t kernel_syscall_sleep( uint64_t units ) {
 	while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
 
 	// remove sleep status
-	task -> flags &= ~KERNEL_TASK_FLAG_sleep;
+	task -> flags &= ~STD_TASK_FLAG_sleep;
 
 	// return remaining units (is sleep was broken)
 	return units;
@@ -648,4 +645,48 @@ int64_t kernel_syscall_file_touch( uint8_t *path, uint8_t type ) {
 
 	// return socket ID
 	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_VFS_STRUCTURE );
+}
+
+uintptr_t kernel_syscall_task( void ) {
+	// amount of entries to pass
+	uint64_t count = 1;
+
+	// count entries
+	for( uint64_t i = 1; i < KERNEL_TASK_limit; i++ ) if( kernel -> task_base_address[ i ].flags ) count++;
+
+	// alloc enough memory for all entries
+	struct STD_SYSCALL_STRUCTURE_TASK *task = (struct STD_SYSCALL_STRUCTURE_TASK *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * count ) >> STD_SHIFT_PAGE );
+
+	// copy essential information about every task
+	uint64_t entry = 0;
+	for( uint64_t i = 1; i < KERNEL_TASK_limit; i++ ) {
+		// process PID
+		task[ entry ].pid = kernel -> task_base_address[ i ].pid;
+
+		// amount of used memory (in Pages)
+		task[ entry ].page = kernel -> task_base_address[ i ].page;
+
+		// amount of user memory for stack (in Pages)
+		task[ entry ].stack = kernel -> task_base_address[ i ].stack;
+	
+		// current status of task
+		task[ entry ].flags = kernel -> task_base_address[ i ].flags;
+
+		// name of task with length
+		for( uint64_t j = 0; j < kernel -> task_base_address[ i ].name_length; j++ ) task[ entry ].name[ task[ entry ].name_length++ ] = kernel -> task_base_address[ i ].name[ j ]; task[ entry ].name[ task[ entry ].name_length ] = STD_ASCII_TERMINATOR;
+
+		// required amount of entries passed?
+		if( entry++ == count ) break;	// yes
+	}
+
+	// share structure with process
+	return (uintptr_t) task;
+}
+
+void kernel_syscall_kill( int64_t pid ) {
+	// properties of current task
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_by_id( pid );
+
+	// mark task as ready to close
+	task -> flags |= STD_TASK_FLAG_close;
 }

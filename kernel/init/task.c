@@ -25,11 +25,16 @@ void kernel_init_task( void ) {
 	// so it MUST exist
 
 	// mark first entry of task queue as secured (in use)
-	kernel -> task_base_address -> flags = KERNEL_TASK_FLAG_secured;
+	kernel -> task_base_address -> flags = STD_TASK_FLAG_secured;
 
-	// register memory map of kernel and unlock access
+	// register memory map of kernel
 	kernel -> task_base_address -> memory_map = kernel -> memory_base_address;
-	MACRO_UNLOCK( kernel -> task_base_address -> memory_semaphore );
+
+	// define memory semaphore location
+	uint8_t *semaphore = (uint8_t *) kernel -> task_base_address -> memory_map + MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) - STD_SIZE_BYTE_byte;
+
+	// unlock access to binary memory map
+	MACRO_UNLOCK( *semaphore );
 
 	// when BSP (Bootstrap Processor) will end with initialization of every system aspect,
 	// he needs to know which is his current task entry point

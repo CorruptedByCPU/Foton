@@ -53,6 +53,7 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 					// return sequence length
 					return 2 + arg_length[ 0 ] + 1;
 				}
+
 				// move cursor down
 				case 'B': {
 					// if steps are not specified
@@ -213,6 +214,36 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 							return 2 + arg_length[ 0 ] + 1;
 						}
 					}
+				}
+
+				// disable cursor
+				case 'N': {
+					// disable cursor
+					lib_terminal_cursor_disable( console_terminal );
+
+					// return sequence length
+					return 2 + 1;
+				}
+
+				// enable cursor
+				case 'O': {
+					// disable cursor
+					lib_terminal_cursor_enable( console_terminal );
+
+					// return sequence length
+					return 2 + 1;
+				}
+
+				// cursor lock reset
+				case 'P': {
+					// unroll cursor lock
+					if( console_terminal -> cursor_lock ) console_terminal -> cursor_lock = TRUE;
+
+					// disable cursor
+					lib_terminal_cursor_enable( console_terminal );
+
+					// return sequence length
+					return 2 + 1;
 				}
 
 				// scroll up

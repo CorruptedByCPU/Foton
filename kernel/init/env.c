@@ -28,13 +28,13 @@ void kernel_init_env( void ) {
 
 	// share memory management functions
 	kernel -> memory_alloc			= (void *) kernel_memory_alloc;
-	kernel -> memory_alloc_page		= (void *) kernel_memory_alloc_page;
+	kernel -> memory_clean			= (void *) kernel_memory_clean;
 	kernel -> memory_release		= (void *) kernel_memory_release;
 	kernel -> memory_release_page		= (void *) kernel_memory_release_page;
 
 	// share page management functions
-	kernel -> page_clean			= (void *) kernel_page_clean;
 	kernel -> page_deconstruct		= (void *) kernel_page_deconstruct;
+	kernel -> page_release			= (void *) kernel_page_release;
 
 	// share Stream management function
 	kernel -> stream_release		= (void *) kernel_stream_release;

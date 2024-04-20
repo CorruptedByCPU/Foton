@@ -22,7 +22,7 @@
 	#define	KERNEL_TASK_EFLAGS_df		0b000000000000010000000000
 	#define	KERNEL_TASK_EFLAGS_default	KERNEL_TASK_EFLAGS_if
 
-	#define	KERNEL_TASK_NAME_limit		255
+	#define	KERNEL_TASK_NAME_limit		254
 
 	#define	KERNEL_TASK_STACK_pointer	KERNEL_LIBRARY_base_address
 
@@ -39,10 +39,9 @@
 		struct KERNEL_STREAM_STRUCTURE *stream_in;
 		struct KERNEL_STREAM_STRUCTURE *stream_out;
 		uint32_t		*memory_map;
-		uint8_t			memory_semaphore;
 		volatile uint16_t	flags;
-		uint8_t			length;
-		uint8_t			name[ KERNEL_TASK_NAME_limit ];
+		uint8_t			name_length;
+		uint8_t			name[ KERNEL_TASK_NAME_limit + 1 ];
 	};
 
 	// returns pointer to structure of currently executed task

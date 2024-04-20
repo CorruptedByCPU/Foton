@@ -204,5 +204,5 @@ void object_load( void ) {
 	}
 
 	// release file content
-	// free( file_object_start );
+	free( file_object_start );
 }

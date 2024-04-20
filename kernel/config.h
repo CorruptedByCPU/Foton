@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"250"
+#define	KERNEL_revision		"257"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -86,26 +86,32 @@ struct KERNEL {
 	struct KERNEL_LIBRARY_STRUCTURE				*library_base_address;
 	uint32_t	*library_map_address;
 
+	// variables of Log management functions
+	uint8_t		log_semaphore;
+
 	// variables of Memory management functions
 	uint32_t	*memory_base_address;
-	uint8_t		memory_semaphore;
 	// functions of Memory management
 	uintptr_t						(*memory_alloc)( uint64_t N );
 	uintptr_t						(*memory_alloc_page)( void );
+	void							(*memory_clean)( uint64_t *address, uint64_t n );
 	void							(*memory_release)( uintptr_t address, uint64_t N );
 	void							(*memory_release_page)( uintptr_t address );
 
 	// variables of Modules functions
-	uint32_t	*module_base_address;
+	uint32_t	*module_map_address;
 
 	// variables of Page management functions
 	uint64_t	*page_base_address;
+	uint8_t		page_semaphore;
 	uint64_t	page_total;
 	uint64_t	page_available;
 	uint64_t	page_limit;
+	uint64_t	page_structure;
+	uint64_t	page_shared;
 	// functions of Page management
-	void							(*page_clean)( uintptr_t address, uint64_t n );
 	void							(*page_deconstruct)( uintptr_t *pml4 );
+	uint8_t							(*page_release)( uint64_t *pml4, uint64_t address, uint64_t pages );
 
 	// variables of Storage management functions
 	struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;

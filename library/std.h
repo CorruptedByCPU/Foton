@@ -112,10 +112,12 @@
 
 	#define	STD_ERROR_file_not_found			-1
 	#define	STD_ERROR_memory_low				-2
-	#define	STD_ERROR_file_not_elf				-3
+	#define	STD_ERROR_file_unknown				-3
 	#define	STD_ERROR_file_not_executable			-4
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 	#define	STD_ERROR_overflow				-6
+	#define	STD_ERROR_file_dependence			-7
+	#define	STD_ERROR_limit				-8
 
 	#define	STD_FILE_TYPE_file				0b00000001
 	#define	STD_FILE_TYPE_directory				0b00000010
@@ -244,6 +246,8 @@
 	struct	STD_SYSCALL_STRUCTURE_MEMORY {
 		uint64_t	total;
 		uint64_t	available;
+		uint64_t	paging;
+		uint64_t	shared;
 	};
 
 	#define	STD_MAX_unsigned				-1
@@ -277,6 +281,9 @@
 	#define	STD_SHIFT_2048					11
 	#define	STD_SHIFT_4096					12
 	#define	STD_SHIFT_PAGE					STD_SHIFT_4096
+
+	#define	STD_SIZE_BYTE_byte				1
+	#define	STD_SIZE_BYTE_bit				8
 
 	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STREAM_STRUCTURE
 
@@ -328,6 +335,8 @@
 	#define	STD_SYSCALL_FILE				0x1E
 	#define	STD_SYSCALL_FILE_WRITE				0x1F
 	#define	STD_SYSCALL_FILE_TOUCH				0x20
+	#define	STD_SYSCALL_TASK				0x21
+	#define	STD_SYSCALL_KILL				0x22
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -335,6 +344,24 @@
 		uint16_t	height_pixel;
 		uint64_t	pitch_byte;
 		int64_t		pid;
+	};
+
+	#define	STD_TASK_FLAG_active				0b0000000000000001
+	#define	STD_TASK_FLAG_exec				0b0000000000000010
+	#define	STD_TASK_FLAG_close				0b0000000000000100
+	#define	STD_TASK_FLAG_module				0b0000000000001000
+	#define	STD_TASK_FLAG_thread				0b0000000000010000
+	#define	STD_TASK_FLAG_sleep				0b0000000000100000
+	#define	STD_TASK_FLAG_init				0b0100000000000000
+	#define	STD_TASK_FLAG_secured				0b1000000000000000
+
+	struct STD_SYSCALL_STRUCTURE_TASK {
+		int64_t		pid;
+		uint64_t	page;
+		uint64_t	stack;
+		uint8_t		flags;
+		uint8_t		name_length;
+		uint8_t		name[ 255 ];
 	};
 
 	#define	STD_VIDEO_DEPTH_shift				2
@@ -394,7 +421,7 @@
 	uintptr_t std_memory_alloc( uint64_t page );
 
 	// releases memory area of N pages
-	void std_memory_release( uintptr_t source, uint64_t page );
+	void std_memory_release( uintptr_t target, uint64_t page );
 
 	// returns ID of newly executed process
 	int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow );
@@ -473,6 +500,12 @@
 
 	// create empty file of definied type
 	int64_t std_file_touch( uint8_t *path, uint8_t type );
+
+	// returns structure of currently running tasks
+	uintptr_t std_task( void );
+
+	// close process with selected PID
+	void std_kill( int64_t pid );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

@@ -38,6 +38,8 @@ extern	kernel_syscall_file_read
 extern	kernel_syscall_file
 extern	kernel_syscall_file_write
 extern	kernel_syscall_file_touch
+extern	kernel_syscall_task
+extern	kernel_syscall_kill
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -84,6 +86,8 @@ kernel_syscall_list:
 	dq	kernel_syscall_file			; 0x1E
 	dq	kernel_syscall_file_write		; 0x1F
 	dq	kernel_syscall_file_touch		; 0x20
+	dq	kernel_syscall_task			; 0x21
+	dq	kernel_syscall_kill			; 0x22
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

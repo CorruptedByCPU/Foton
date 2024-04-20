@@ -13,3 +13,4 @@ yet to be done:
 - software: cal, cp, cut, date, df, du, echo, find, grep, halt, head, kill,
   less/more, ln, mkdir, mv, ping, ps, reboot, rm, sleep, tail, time, top,
   uname, uptime, wc
+- one instance of application code in memory (data per running task)

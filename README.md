@@ -55,7 +55,7 @@ You will be able to create your own system profiles, and build your own compilat
 |shell|default command line interaction with operating system.|
 |soler|*{work in progress}* **calculator**|
 |taris|Tetris alike game.|
-|top|*{work in progress}*|
+|tm|Task Manager - kill some lighthearted process.|
 |touch|Create empty files.|
 |welcome|Welcome screen, with small documentation *{work in progress}*.|
 |wm|windows wanager - display, movement.|
