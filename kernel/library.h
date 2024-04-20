@@ -37,7 +37,7 @@
 	int64_t kernel_library( struct LIB_ELF_STRUCTURE *elf );
 
 	// configure and initialize library
-	uint8_t kernel_library_load( uint8_t *name, uint64_t length );
+	int64_t kernel_library_load( uint8_t *name, uint64_t length );
 
 	// reserving entry for new library
 	struct KERNEL_LIBRARY_STRUCTURE *kernel_library_register();

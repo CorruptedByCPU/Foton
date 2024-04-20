@@ -10,35 +10,11 @@
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
+	#include	"./tm/data.c"
 	//----------------------------------------------------------------------
 	// routines, procedures
 	//----------------------------------------------------------------------
-
-struct STD_STREAM_STRUCTURE_META top_stream_meta;
-
-uint8_t top_string_interface[] = "\e[0m\e[2J\e[38;5;0m\e[48;5;34m\e[2K PID   Memory Application\e[E";
-
-uint64_t top_line_selected = 0;
-
-uint8_t top_hide_modules = TRUE;
-
-uint64_t top_update_limit = 8192;	// ~1 second
-
-uint64_t top_update_next = 0;	// as fast as possible
-
-uint8_t top_units[] = { ' ', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
-
-void top_format( uint64_t bytes ) {
-	// unity type
-	uint8_t unit = 0;	// bytes by default
-
-	// calculate unit type
-	double value = (double) bytes;
-	while( value >= (double) 1024.0f ) { value /= (double) 1024.0f; unit++; }
-
-	// show value with unit
-	printf( " %4.1f%c", value, top_units[ unit ] );
-}
+	#include	"./tm/format.c"
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// set window header, clear and disable cursor
@@ -95,8 +71,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			printf( "\e[2K%4u ", task[ entry ].pid );
 
 			// memory use
-			// if( task[ entry ].flags & STD_TASK_FLAG_thread ) printf( " %6uk", (task[ entry ].page + task[ entry ].stack) << STD_SHIFT_4 );
-			top_format( (task[ entry ].page + task[ entry ].stack) << STD_SHIFT_PAGE );
+			top_size( (task[ entry ].page + task[ entry ].stack) << STD_SHIFT_PAGE );
 
 			// show process name
 			uint64_t name_length = lib_string_word( task[ entry ].name, task[ entry ].name_length ); task[ entry ].name[ name_length ] = STD_ASCII_TERMINATOR;

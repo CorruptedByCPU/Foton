@@ -117,7 +117,7 @@
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 	#define	STD_ERROR_overflow				-6
 	#define	STD_ERROR_file_dependence			-7
-	#define	STD_ERROR_task_limit				-8
+	#define	STD_ERROR_limit				-8
 
 	#define	STD_FILE_TYPE_file				0b00000001
 	#define	STD_FILE_TYPE_directory				0b00000010

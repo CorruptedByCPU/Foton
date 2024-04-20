@@ -79,9 +79,6 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// load executable into workbench space
 	kernel_vfs_file_read( exec.socket, (uint8_t *) exec.workbench_address, EMPTY, exec.properties.byte );
 
-	// close file
-	kernel_vfs_file_close( exec.socket );
-
 	//----------------------------------------------------------------------
 
 	// file contains proper ELF header?
@@ -94,8 +91,8 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	if( elf -> type != LIB_ELF_TYPE_executable ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_file_not_executable; }	// no
 
 	// load libraries required by file
-	int64_t result;
-	if( (result = kernel_library( elf ) ) ) {
+	int64_t result = kernel_library( elf );
+	if( result ) {
 		// cancel execution
 		kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec );
 		
@@ -106,7 +103,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// create a new job in task queue
-	if( ! (exec.task = kernel_task_add( name, length )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_task_limit; }
+	if( ! (exec.task = kernel_task_add( name, length )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_limit; }
 
 	// checkpoint reached: prepared task entry for new process
 	exec.level++;
@@ -291,6 +288,9 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 
 	// process ready to run
 	exec.task -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
+
+	// close file
+	kernel_vfs_file_close( exec.socket );
 
 	// return PID of created job
 	return exec.task -> pid;
