@@ -38,6 +38,12 @@ uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N ) {
 			// unlock access to binary memory map
 			MACRO_UNLOCK( *semaphore );
 
+			// debug
+			MACRO_LOCK( kernel -> log_semaphore );
+			struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+			if( task ) kernel_log( (uint8_t *) "+ %u:%u for %s\n", p, p + N - 1, task -> name );
+			MACRO_UNLOCK( kernel -> log_semaphore );
+
 			// return address of acquired memory area
 			return p;
 		}
@@ -90,6 +96,12 @@ void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
 	// mark pages as available
 	for( uint64_t i = p; i < p + N; i++ )
 		memory_map[ i >> STD_SHIFT_32 ] |= 1 << (i & 0b0011111);
+
+	// debug
+	MACRO_LOCK( kernel -> log_semaphore );
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	if( task ) kernel_log( (uint8_t *) "+ %u:%u for %s\n", p, p + N - 1, task -> name );
+	MACRO_UNLOCK( kernel -> log_semaphore );
 }
 
 void kernel_memory_release( uintptr_t address, uint64_t N ) {

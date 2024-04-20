@@ -40,9 +40,6 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 		// allocate space inside process paging area
 		kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
 
-		// debug
-		// kernel -> log( (uint8_t *) "(alloc) 0x%X:0x%X [%s]\n", allocated << STD_SHIFT_PAGE, ((allocated + page) << STD_SHIFT_PAGE) - 1, task -> name );
-
 		// process memory usage
 		task -> page += page;
 
@@ -60,9 +57,6 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
-
-	// debug
-	// kernel -> log( (uint8_t *) "(release) 0x%X:0x%X [%s]\n", target, target + (page << STD_SHIFT_PAGE) - 1, task -> name );
 
 	// remove page from paging structure
 	kernel_page_release( (uint64_t *) task -> cr3, target, page );

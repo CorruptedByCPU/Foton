@@ -115,9 +115,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// until end of list
 		} while( task[ ++entry ].flags );
 
-		// release list
-		std_memory_release( (uintptr_t) task, MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * entry ) >> STD_SHIFT_PAGE );
-
 		// wait before update
 		while( std_uptime() < top_update_next ) {
 			// recieve key
@@ -133,11 +130,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			if( key == STD_KEY_ARROW_UP && top_line_selected ) { top_line_selected--; break; }
 
 			// kill selected process?
-			if( key == 'k' ) { std_kill( task[ entry_selected ].pid ); top_line_selected = 0; break; }
+			if( key == 'k' ) { std_kill( task[ entry_selected ].pid ); if( top_line_selected ) top_line_selected--; break; }
 
 			// release rest of CPU time
 			std_sleep( TRUE );
 		}
+
+		// release list
+		std_memory_release( (uintptr_t) task, MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * entry ) >> STD_SHIFT_PAGE );
 
 		// set next update
 		top_update_next = std_uptime() + top_update_limit;
