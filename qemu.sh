@@ -19,5 +19,6 @@ qemu-system-x86_64				\
 	-cdrom build/foton.iso			\
 	-rtc base=localtime			\
 	-serial stdio				\
+	-device e1000				\
 	# -usb -device usb-mouse,id=mouse		\
-	# -usb -device usb-kbd,id=keyboard	\
+	# -usb -device usb-kbd,id=keyboard		\
