@@ -26,4 +26,8 @@
 	#define MACRO_IMPORT_FILE_AS_ARRAY( name, file ) __asm__( ".section .rodata\n.global file_" MACRO_STR( name ) "_start\n.global file_" MACRO_STR( name ) "_end\n.balign 16\nfile_" MACRO_STR( name ) "_start:\n.incbin \"" file "\"\nfile_" MACRO_STR( name ) "_end:\n" ); \
 		extern const __attribute__( ( aligned( 16 ) ) ) void* file_ ## name ## _start; \
 		extern const void* file_ ## name ## _end;
+	
+	#define MACRO_WORD( x ) ( *( (uint16_t *) (x) ) )
+	#define MACRO_DWORD( x ) ( *( (uint32_t *) (x) ) )
+	#define MACRO_QWORD( x ) ( *( (uint64_t *) (x) ) )
 #endif

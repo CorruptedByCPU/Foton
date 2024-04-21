@@ -444,6 +444,28 @@ void printf( const char *string, ... ) {
 					// next character from string
 					continue;
 				}
+
+				case 'X': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// convert value to string
+					uint8_t v = lib_integer_to_string( value, 16, (uint8_t *) &digits );
+
+					// set prefix before value if higher than value ifself
+					while( p_value-- > v ) {
+						// insert prefix before value
+						cache = (uint8_t *) realloc( cache, c + 1 );
+						cache[ c++ ] = STD_ASCII_DIGIT_0;
+					}
+
+					// insert valuse string into cache
+					cache = (uint8_t *) realloc( cache, c + v );
+					for( uint8_t i = 0; i < v; i++ ) cache[ c++ ] = digits[ i ];
+
+					// next character from string
+					continue;
+				}
 			}
 		}
 

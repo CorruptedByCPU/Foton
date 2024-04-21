@@ -3,6 +3,9 @@
 ===============================================================================*/
 
 void kernel_log( uint8_t *string, ... ) {
+	// lock access to error output
+	MACRO_LOCK( kernel -> log_semaphore );
+
 	// properties of argument list
 	va_list argv;
 
@@ -85,7 +88,7 @@ void kernel_log( uint8_t *string, ... ) {
 				uint8_t *substring = va_arg( argv, uint8_t * );
 				
 				// show 'substring' on terminal
-				kernel -> log( substring );
+				for( uint64_t j = 0; j < lib_string_length( substring ); j++ ) driver_serial_char( substring[ j ] );
 
 				// next character from string
 				continue;
@@ -117,4 +120,7 @@ void kernel_log( uint8_t *string, ... ) {
 
 	// end of arguemnt list
 	va_end( argv );
+
+	// unlock access to error output
+	MACRO_UNLOCK( kernel -> log_semaphore );
 }

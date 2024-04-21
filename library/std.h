@@ -284,6 +284,12 @@
 
 	#define	STD_SIZE_BYTE_byte				1
 	#define	STD_SIZE_BYTE_bit				8
+	#define	STD_SIZE_WORD_byte				2
+	#define	STD_SIZE_WORD_bit				16
+	#define	STD_SIZE_DWORD_byte				4
+	#define	STD_SIZE_DWORD_bit				32
+	#define	STD_SIZE_QWORD_byte				8
+	#define	STD_SIZE_QWORD_bit				64
 
 	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STREAM_STRUCTURE
 
