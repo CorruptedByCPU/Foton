@@ -53,3 +53,5 @@ com2: enabled=false
 com3: enabled=false
 com4: enabled=false
 #e1000: enabled=1, mac=00:22:44:66:88:AA, ethmod=linux, ethdev=wlp0s20f3
+# debug
+e1000: enabled=1, mac=00:22:44:66:88:AA, ethmod=vnet

@@ -17,13 +17,13 @@ void kernel_init_page( void ) {
 			kernel_page_map( kernel -> page_base_address, limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_logical, MACRO_PAGE_ALIGN_UP( limine_memmap_request.response -> entries[ i ] -> length ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// map LAPIC controller area
-	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> lapic_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> lapic_base_address, STD_PAGE_byte, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> lapic_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> lapic_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// map I/O APIC controller area
-	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> io_apic_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> io_apic_base_address, STD_PAGE_byte, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> io_apic_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> io_apic_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// map HPET controller area
-	// kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> hpet_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> hpet_base_address, STD_PAGE_byte, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	// kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> hpet_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> hpet_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// now something harder ------------------------------------------------
 
@@ -43,7 +43,7 @@ void kernel_init_page( void ) {
 
 		// segment properties
 		uintptr_t segment_offset = MACRO_PAGE_ALIGN_DOWN( limine_file_elf64_header_entry[ i ].virtual_address ) - KERNEL_BASE_address;
-		uint64_t segment_length = (MACRO_PAGE_ALIGN_UP( limine_file_elf64_header_entry[ i ].virtual_address + limine_file_elf64_header_entry[ i ].memory_size ) - KERNEL_BASE_address) >> STD_SHIFT_PAGE;
+		uint64_t segment_page = (MACRO_PAGE_ALIGN_UP( limine_file_elf64_header_entry[ i ].virtual_address + limine_file_elf64_header_entry[ i ].memory_size ) - KERNEL_BASE_address) >> STD_SHIFT_PAGE;
 
 		// default flag, for every segment
 		uint16_t segment_flags = KERNEL_PAGE_FLAG_present;
@@ -52,7 +52,7 @@ void kernel_init_page( void ) {
 		if( limine_file_elf64_header_entry[ i ].flags & LIB_ELF_FLAG_write ) segment_flags |= KERNEL_PAGE_FLAG_write;
 
 		// map kernel memory area
-		kernel_page_map( kernel -> page_base_address, limine_kernel_address_request.response -> physical_base + segment_offset, KERNEL_BASE_address + segment_offset, segment_length, segment_flags );
+		kernel_page_map( kernel -> page_base_address, limine_kernel_address_request.response -> physical_base + segment_offset, KERNEL_BASE_address + segment_offset, segment_page, segment_flags );
 	}
 
 	// and last thing, create kernel stack area

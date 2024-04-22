@@ -4,10 +4,11 @@
 
 #define	KERNEL_INIT_MODULE_count	3
 
-uint8_t *module_list[ KERNEL_INIT_MODULE_count ] = {
+uint8_t *module_list[ 4 ] = {
 	(uint8_t *) "ps2.ko",
 	(uint8_t *) "usb.ko",
-	(uint8_t *) "shredder.ko"
+	(uint8_t *) "shredder.ko",
+	(uint8_t *) "e1000.ko"
 };
 
 void kernel_init_module( void ) {
