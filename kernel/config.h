@@ -99,7 +99,7 @@ struct KERNEL {
 	void							(*memory_release_page)( uintptr_t address );
 
 	// variables of Modules functions
-	uint32_t	*module_map_address;
+	// uint32_t	*module_map_address;
 
 	// functions of Network management
 	void							(*network_rx)( uintptr_t packet );

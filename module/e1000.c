@@ -102,7 +102,7 @@ void _entry( uintptr_t kernel_ptr ) {
 
 		// configure register of incoming packets
 		// documentation, page 314/410, table 13-67
-		module_e1000_mmio_base_address -> rctl = MODULE_E1000_RCTL_EN | MODULE_E1000_RCTL_UPE | MODULE_E1000_RCTL_MPE | MODULE_E1000_RCTL_BAM | MODULE_E1000_RCTL_BSIZE_4096_BYTE | MODULE_E1000_RCTL_BSEX | MODULE_E1000_RCTL_SECRC;
+		module_e1000_mmio_base_address -> rctl = MODULE_E1000_RCTL_EN | MODULE_E1000_RCTL_UPE | MODULE_E1000_RCTL_MPE | MODULE_E1000_RCTL_BAM | MODULE_E1000_RCTL_SECRC;
 
 		/*==========================================================================
 		= configuration of outcoming packets

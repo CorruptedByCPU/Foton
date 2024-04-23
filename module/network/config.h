@@ -42,5 +42,10 @@ struct MODULE_NETWORK_STRUCTURE_FRAME_ARP {
 	uint32_t	target_ipv4;
 } __attribute__((packed));
 
+uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET *ethernet, uint16_t length );
+
+// network module initialization
+void module_network_init( void );
+
 // storage function for incomming packets
 void module_network_rx( uintptr_t packet );
