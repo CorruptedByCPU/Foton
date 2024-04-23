@@ -27,78 +27,78 @@
 	//----------------------------------------------------------------------
 	#include	"./ps2/data.c"
 
-void driver_ps2_check_read( void ) {
+void module_ps2_check_read( void ) {
 	// wait for output data
-	while( ! (driver_port_in_byte( DRIVER_PS2_PORT_COMMAND_OR_STATUS ) & DRIVER_PS2_STATUS_output) );
+	while( ! (driver_port_in_byte( MODULE_PS2_PORT_COMMAND_OR_STATUS ) & MODULE_PS2_STATUS_output) );
 }
 
-void driver_ps2_check_write( void ) {
+void module_ps2_check_write( void ) {
 	// wait for input data
-	while( driver_port_in_byte( DRIVER_PS2_PORT_COMMAND_OR_STATUS ) & DRIVER_PS2_STATUS_input );
+	while( driver_port_in_byte( MODULE_PS2_PORT_COMMAND_OR_STATUS ) & MODULE_PS2_STATUS_input );
 }
 
-void driver_ps2_command( uint8_t command ) {
+void module_ps2_command( uint8_t command ) {
 	// wait for controller to be ready to accept command
-	driver_ps2_check_write();
+	module_ps2_check_write();
 
 	// send command
-	driver_port_out_byte( DRIVER_PS2_PORT_COMMAND_OR_STATUS, command );
+	driver_port_out_byte( MODULE_PS2_PORT_COMMAND_OR_STATUS, command );
 }
 
-uint8_t driver_ps2_data_read( void ) {
+uint8_t module_ps2_data_read( void ) {
 	// wait for controller to be ready to accept answer/data
-	driver_ps2_check_read();
+	module_ps2_check_read();
 
 	// receive answer/data
-	return driver_port_in_byte( DRIVER_PS2_PORT_DATA );
+	return driver_port_in_byte( MODULE_PS2_PORT_DATA );
 }
 
-uint8_t	driver_ps2_status_read( void ) {
+uint8_t	module_ps2_status_read( void ) {
 	// receive status
-	return driver_port_in_byte( DRIVER_PS2_PORT_COMMAND_OR_STATUS );
+	return driver_port_in_byte( MODULE_PS2_PORT_COMMAND_OR_STATUS );
 }
 
-void driver_ps2_data_write( uint8_t data ) {
+void module_ps2_data_write( uint8_t data ) {
 	// wait for controller to be ready to accept command/data
-	driver_ps2_check_write();
+	module_ps2_check_write();
 
 	// send data
-	driver_port_out_byte( DRIVER_PS2_PORT_DATA, data );
+	driver_port_out_byte( MODULE_PS2_PORT_DATA, data );
 }
 
-void driver_ps2_drain( void ) {
+void module_ps2_drain( void ) {
 	// flush PS2 controller output buffer
-	while( driver_port_in_byte( DRIVER_PS2_PORT_COMMAND_OR_STATUS ) & DRIVER_PS2_STATUS_output )
+	while( driver_port_in_byte( MODULE_PS2_PORT_COMMAND_OR_STATUS ) & MODULE_PS2_STATUS_output )
 		// drop data from PS2 controller
-		driver_port_in_byte( DRIVER_PS2_PORT_DATA );
+		driver_port_in_byte( MODULE_PS2_PORT_DATA );
 	
 	// there is nothig left, good
 }
 
 __attribute__(( no_caller_saved_registers ))
-void driver_ps2_mouse( void ) {
+void module_ps2_mouse( void ) {
 	// data from second controller port?
-	if( driver_port_in_byte( DRIVER_PS2_PORT_COMMAND_OR_STATUS ) & DRIVER_PS2_STATUS_output_second ) {
+	if( driver_port_in_byte( MODULE_PS2_PORT_COMMAND_OR_STATUS ) & MODULE_PS2_STATUS_output_second ) {
 		// retrieve package from PS2 controller
-		int8_t package = driver_ps2_data_read();
+		int8_t package = module_ps2_data_read();
 
 		// perform operation depending on number of package
-		switch( driver_ps2_mouse_package_id ) {
+		switch( module_ps2_mouse_package_id ) {
 			case 0: {
 				// status package contains ALWAYS ON bit?
-				if( ! (package & DRIVER_PS2_MOUSE_PACKET_ALWAYS_ONE ) ) break;	// no
+				if( ! (package & MODULE_PS2_MOUSE_PACKET_ALWAYS_ONE ) ) break;	// no
 
 				// overflow on X axis?
-				if( package & DRIVER_PS2_MOUSE_PACKET_OVERFLOW_x ) break;	// yes
+				if( package & MODULE_PS2_MOUSE_PACKET_OVERFLOW_x ) break;	// yes
 
 				// overflow on Y axis?
-				if( package & DRIVER_PS2_MOUSE_PACKET_OVERFLOW_y ) break;	// yes
+				if( package & MODULE_PS2_MOUSE_PACKET_OVERFLOW_y ) break;	// yes
 
 				// save device status: mouse
 				kernel -> device_mouse_status = package;
 
 				// package handled from given interrupt
-				driver_ps2_mouse_package_id++;
+				module_ps2_mouse_package_id++;
 
 				// package parsed
 				break;
@@ -118,7 +118,7 @@ void driver_ps2_mouse( void ) {
 				else kernel -> device_mouse_x += rx;
 
 				// package handled from given interrupt
-				driver_ps2_mouse_package_id++;
+				module_ps2_mouse_package_id++;
 
 				// package parsed
 				break;
@@ -138,7 +138,7 @@ void driver_ps2_mouse( void ) {
 				else kernel -> device_mouse_y += ry;
 
 				// package handled from given interrupt
-				driver_ps2_mouse_package_id = EMPTY;
+				module_ps2_mouse_package_id = EMPTY;
 
 				// package parsed
 				break;
@@ -151,16 +151,16 @@ void driver_ps2_mouse( void ) {
 }
 
 __attribute__(( no_caller_saved_registers ))
-void driver_ps2_keyboard( void ) {
+void module_ps2_keyboard( void ) {
 	// get key code
-	driver_ps2_scancode |= driver_ps2_data_read();
+	module_ps2_scancode |= module_ps2_data_read();
 
 	// perform operation depending on opcode
 
 	// controller started sequence?
-	if( driver_ps2_scancode == DRIVER_PS2_KEYBOARD_sequence ) {
+	if( module_ps2_scancode == MODULE_PS2_KEYBOARD_sequence ) {
 		// save sequence type
-		driver_ps2_scancode = 0xE000;
+		module_ps2_scancode = 0xE000;
 
 		// tell APIC of current logical processor that hardware interrupt was handled, propely
 		kernel -> lapic_base_address -> eoi = EMPTY;
@@ -170,9 +170,9 @@ void driver_ps2_keyboard( void ) {
 	}
 
 	// controller started alternate sequence?
-	if( driver_ps2_scancode == DRIVER_PS2_KEYBOARD_sequence_alternative ) {
+	if( module_ps2_scancode == MODULE_PS2_KEYBOARD_sequence_alternative ) {
 		// zachowaj typ sekwencji
-		driver_ps2_scancode = 0xE100;
+		module_ps2_scancode = 0xE100;
 
 		// tell APIC of current logical processor that hardware interrupt was handled, propely
 		kernel -> lapic_base_address -> eoi = EMPTY;
@@ -182,82 +182,82 @@ void driver_ps2_keyboard( void ) {
 	}
 
 	// complete sequence?
-	if( driver_ps2_scancode < 0xE000 ) {
+	if( module_ps2_scancode < 0xE000 ) {
 		// key code not in matrix?
-		if( driver_ps2_scancode >= 0x80 ) {
+		if( module_ps2_scancode >= 0x80 ) {
 			// get ASCII code for key from matrix
-			if( ! driver_ps2_keyboard_matrix ) driver_ps2_scancode = driver_ps2_keyboard_matrix_low[ driver_ps2_scancode - 0x80 ];
-			else driver_ps2_scancode = driver_ps2_keyboard_matrix_high[ driver_ps2_scancode - 0x80 ];
+			if( ! module_ps2_keyboard_matrix ) module_ps2_scancode = module_ps2_keyboard_matrix_low[ module_ps2_scancode - 0x80 ];
+			else module_ps2_scancode = module_ps2_keyboard_matrix_high[ module_ps2_scancode - 0x80 ];
 
 			// correct key code
-			driver_ps2_scancode += 0x80;
+			module_ps2_scancode += 0x80;
 		} else
 			// get ASCII code for key from matrix
-			if( ! driver_ps2_keyboard_matrix ) driver_ps2_scancode = driver_ps2_keyboard_matrix_low[ driver_ps2_scancode ];
-			else driver_ps2_scancode = driver_ps2_keyboard_matrix_high[ driver_ps2_scancode ];
+			if( ! module_ps2_keyboard_matrix ) module_ps2_scancode = module_ps2_keyboard_matrix_low[ module_ps2_scancode ];
+			else module_ps2_scancode = module_ps2_keyboard_matrix_high[ module_ps2_scancode ];
 	}
 
 	// SHIFT or CAPSLOCK key?
-	if( driver_ps2_scancode == STD_KEY_CAPSLOCK || driver_ps2_scancode == STD_KEY_SHIFT_LEFT || driver_ps2_scancode == STD_KEY_SHIFT_RIGHT ) {
-		if( driver_ps2_keyboard_matrix ) driver_ps2_keyboard_matrix = FALSE;
-		else driver_ps2_keyboard_matrix = TRUE;
-	} else if( driver_ps2_scancode == STD_KEY_SHIFT_LEFT + 0x80 || driver_ps2_scancode == STD_KEY_SHIFT_RIGHT + 0x80 ) {
-		if( driver_ps2_keyboard_matrix ) driver_ps2_keyboard_matrix = FALSE;
-		else driver_ps2_keyboard_matrix = TRUE;
+	if( module_ps2_scancode == STD_KEY_CAPSLOCK || module_ps2_scancode == STD_KEY_SHIFT_LEFT || module_ps2_scancode == STD_KEY_SHIFT_RIGHT ) {
+		if( module_ps2_keyboard_matrix ) module_ps2_keyboard_matrix = FALSE;
+		else module_ps2_keyboard_matrix = TRUE;
+	} else if( module_ps2_scancode == STD_KEY_SHIFT_LEFT + 0x80 || module_ps2_scancode == STD_KEY_SHIFT_RIGHT + 0x80 ) {
+		if( module_ps2_keyboard_matrix ) module_ps2_keyboard_matrix = FALSE;
+		else module_ps2_keyboard_matrix = TRUE;
 	}
 
 	// in first free space in keyboard buffer
-	for( uint8_t i = 0; i < DRIVER_PS2_CACHE_limit; i++ )
+	for( uint8_t i = 0; i < MODULE_PS2_CACHE_limit; i++ )
 		// save key code
-		if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = driver_ps2_scancode; break; }
+		if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = module_ps2_scancode; break; }
 
 	// key processed
-	driver_ps2_scancode = EMPTY;
+	module_ps2_scancode = EMPTY;
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely
 	kernel -> lapic_base_address -> eoi = EMPTY;
 }
 
-void driver_ps2_init( void ) {
+void module_ps2_init( void ) {
 	// drain PS2 controller buffer
-	driver_ps2_drain();
+	module_ps2_drain();
 
 	// retrieve PS2 controller configuration
-	driver_ps2_command( DRIVER_PS2_COMMAND_CONFIGURATION_GET );
-	uint8_t configuration = driver_ps2_data_read();
+	module_ps2_command( MODULE_PS2_COMMAND_CONFIGURATION_GET );
+	uint8_t configuration = module_ps2_data_read();
 
 	// turn on interrupts and clock on device: mouse
-	driver_ps2_command( DRIVER_PS2_COMMAND_CONFIGURATION_SET );
-	driver_ps2_data_write( (configuration | DRIVER_PS2_CONFIGURATION_PORT_SECOND_INTERRUPT) & ~DRIVER_PS2_CONFIGURATION_PORT_SECOND_CLOCK );
+	module_ps2_command( MODULE_PS2_COMMAND_CONFIGURATION_SET );
+	module_ps2_data_write( (configuration | MODULE_PS2_CONFIGURATION_PORT_SECOND_INTERRUPT) & ~MODULE_PS2_CONFIGURATION_PORT_SECOND_CLOCK );
 
 	// send a RESET command to device: mouse
-	driver_ps2_command( DRIVER_PS2_COMMAND_PORT_SECOND );
-	driver_ps2_data_write( DRIVER_PS2_DEVICE_RESET );
+	module_ps2_command( MODULE_PS2_COMMAND_PORT_SECOND );
+	module_ps2_data_write( MODULE_PS2_DEVICE_RESET );
 
 	// command accepted?
-	if( driver_ps2_data_read() == DRIVER_PS2_ANSWER_ACKNOWLEDGED ) {
+	if( module_ps2_data_read() == MODULE_PS2_ANSWER_ACKNOWLEDGED ) {
 		// device is working properly?
-		if( driver_ps2_data_read() == DRIVER_PS2_ANSWER_SELF_TEST_SUCCESS ) {
+		if( module_ps2_data_read() == MODULE_PS2_ANSWER_SELF_TEST_SUCCESS ) {
 			// get device ID
-			driver_ps2_mouse_type = driver_ps2_data_read();
+			module_ps2_mouse_type = module_ps2_data_read();
 
 			// send SET DEFAULT command to device: mouse
-			driver_ps2_command( DRIVER_PS2_COMMAND_PORT_SECOND );
-			driver_ps2_data_write( DRIVER_PS2_DEVICE_SET_DEFAULT );
+			module_ps2_command( MODULE_PS2_COMMAND_PORT_SECOND );
+			module_ps2_data_write( MODULE_PS2_DEVICE_SET_DEFAULT );
 
 			// command accepted?
-			if( driver_ps2_data_read() == DRIVER_PS2_ANSWER_ACKNOWLEDGED ) {
+			if( module_ps2_data_read() == MODULE_PS2_ANSWER_ACKNOWLEDGED ) {
 				// send PACKETS ENABLE command to device: mouse
-				driver_ps2_command( DRIVER_PS2_COMMAND_PORT_SECOND );
-				driver_ps2_data_write( DRIVER_PS2_DEVICE_PACKETS_ENABLE );
+				module_ps2_command( MODULE_PS2_COMMAND_PORT_SECOND );
+				module_ps2_data_write( MODULE_PS2_DEVICE_PACKETS_ENABLE );
 
 				// command accepted?
-				if( driver_ps2_data_read() == DRIVER_PS2_ANSWER_ACKNOWLEDGED ) {
+				if( module_ps2_data_read() == MODULE_PS2_ANSWER_ACKNOWLEDGED ) {
 					// connect PS2 controller interrupt handler for device: mouse
-					kernel -> idt_mount( KERNEL_IDT_IRQ_offset + DRIVER_PS2_MOUSE_IRQ_number, KERNEL_IDT_TYPE_irq, (uintptr_t) driver_ps2_mouse_entry );
+					kernel -> idt_mount( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, KERNEL_IDT_TYPE_irq, (uintptr_t) module_ps2_mouse_entry );
 
 					// connect interrupt vector from IDT table in IOAPIC controller
-					kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + DRIVER_PS2_MOUSE_IRQ_number, DRIVER_PS2_MOUSE_IO_APIC_register );
+					kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, MODULE_PS2_MOUSE_IO_APIC_register );
 
 					// set default position of pointer
 					kernel -> device_mouse_x = kernel -> framebuffer_width_pixel >> STD_SHIFT_2;
@@ -268,10 +268,10 @@ void driver_ps2_init( void ) {
 	}
 
 	// connect PS2 controller interrupt handler for device: keyboard
-	kernel -> idt_mount( KERNEL_IDT_IRQ_offset + DRIVER_PS2_KEYBOARD_IRQ_number, KERNEL_IDT_TYPE_irq, (uint64_t) driver_ps2_keyboard_entry );
+	kernel -> idt_mount( KERNEL_IDT_IRQ_offset + MODULE_PS2_KEYBOARD_IRQ_number, KERNEL_IDT_TYPE_irq, (uint64_t) module_ps2_keyboard_entry );
 
 	// connect interrupt vector from IDT table in IOAPIC controller
-	kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + DRIVER_PS2_KEYBOARD_IRQ_number, DRIVER_PS2_KEYBOARD_IO_APIC_register );
+	kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + MODULE_PS2_KEYBOARD_IRQ_number, MODULE_PS2_KEYBOARD_IO_APIC_register );
 }
 
 void _entry( uintptr_t kernel_ptr ) {
@@ -279,7 +279,7 @@ void _entry( uintptr_t kernel_ptr ) {
 	kernel = (struct KERNEL *) kernel_ptr;
 
 	// initialize available PS2 devices
-	driver_ps2_init();
+	module_ps2_init();
 
 	// hold the door
 	while( TRUE );

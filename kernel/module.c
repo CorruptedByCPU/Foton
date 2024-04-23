@@ -56,7 +56,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 
 	//----------------------------------------------------------------------
 
-	// insert into paging, context stack of new process
+	// insert into paging, context stack
 	kernel_page_alloc( (uintptr_t *) module -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
 
 	// set initial startup configuration for new process
@@ -117,16 +117,15 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 		for( uint64_t j = 0; j < elf_h[ i ].memory_size; j++ ) destination[ j ] = source[ j ];
 	}
 
-	// map module space to paging array
-	uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_map_address, module_page ) << STD_SHIFT_PAGE);
-	kernel_page_map( (uintptr_t *) module -> cr3, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_external );
+	// insert into paging, module area
+	// uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_map_address, module_page ) << STD_SHIFT_PAGE);
+	// kernel_page_map( (uintptr_t *) module -> cr3, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_external );
 
 	// map module space to kernel space
-	kernel_page_map( (uintptr_t *) kernel -> page_base_address, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_external );
+	// kernel_page_map( (uintptr_t *) kernel -> page_base_address, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_external );
 
-
-	// set module entry address
-	context -> rip = module_memory + elf -> entry_ptr;
+	// update module entry address
+	context -> rip += module_content;	// module_memory
 
 	// debug
 	kernel -> log( (uint8_t *) "Module: %s at 0x%X\n", name, context -> rip );

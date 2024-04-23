@@ -45,9 +45,6 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 				return;
 			}
 
-			// debug
-			kernel -> log( (uint8_t *) "Page Fault\nRAX 0x%16X\nRBX 0x%16X\nRCX 0x%16X\nRDX 0x%16X\nRBP 0x%16X\nR8  0x%16X\nR9  0x%16X\nR10 0x%16X\nR11 0x%16X\nR12 0x%16X\nR13 0x%16X\nR14 0x%16X\nR15 0x%16X\n", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rbp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
-			
 			// done
 			break;
 		}
@@ -63,12 +60,15 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 		default: { kernel -> log( (uint8_t *) "{unknown}" ); break; }
 	}
 
+	// debug
+	kernel -> log( (uint8_t *) "Page Fault\nRAX 0x%16X\nRBX 0x%16X\nRCX 0x%16X\nRDX 0x%16X\nRBP 0x%16X\nR8  0x%16X\nR9  0x%16X\nR10 0x%16X\nR11 0x%16X\nR12 0x%16X\nR13 0x%16X\nR14 0x%16X\nR15 0x%16X\n", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rbp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
+	
 	// show task name
 	kernel -> log( (uint8_t *) "Task: '%s' near CR2: 0x%16X or RIP: 0x%16X)\n", task -> name, exception -> cr2, exception -> rip );
 
 	// memory dump
 	uint8_t *memory = (uint8_t *) (exception -> rip & (uint64_t) ~0x0F );
-	for( uint8_t y = 0; y < 4; y++ )
+	for( uint8_t y = 0; y < 16; y++ )
 		kernel -> log( (uint8_t *) "%8X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X\n", (uintptr_t) &memory[ y * 16 ], memory[ (y * 16) + 0 ], memory[ (y * 16) + 1 ], memory[ (y * 16) + 2 ], memory[ (y * 16) + 3 ], memory[ (y * 16) + 4 ], memory[ (y * 16) + 5 ], memory[ (y * 16) + 6 ], memory[ (y * 16) + 7 ], memory[ (y * 16) + 8 ], memory[ (y * 16) + 9 ], memory[ (y * 16) + 10 ], memory[ (y * 16) + 11 ], memory[ (y * 16) + 12 ], memory[ (y * 16) + 13 ], memory[ (y * 16) + 14 ], memory[ (y * 16) + 15 ]);
 
 	// TODO, disassembly?

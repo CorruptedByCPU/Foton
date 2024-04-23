@@ -60,11 +60,8 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	// less available pages
 	kernel -> page_available -= N;
 
-	// convert page ID to logical address
-	p = (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;
-
-	// convert page ID to logical address
-	return (uintptr_t) p;
+	// convert page ID to logical address and return
+	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;;
 }
 
 uintptr_t kernel_memory_alloc_page( void ) {

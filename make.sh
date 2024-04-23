@@ -68,20 +68,20 @@ for submodule in `(cd module && ls *.asm)`; do
 	${ASM} -f elf64 module/${name}.asm -o build/${name}.ao
 done
 
-for module in `(cd module && ls *.c)`; do
+for modules in `(cd module && ls *.c)`; do
 	# module name
-	name=${module%.*}
+	module=${modules%.*}
 
 	# build
-	${C} -DMODULE -c module/${name}.c -o build/${name}.o ${CFLAGS} || exit 1
+	${C} -c -fpic -DMODULE module/${module}.c -o build/${module}.o ${CFLAGS} || exit 1
 
 	# connect with libraries (if necessery)
 	SUB=""
-	if [ -f build/${name}.ao ]; then SUB="build/${name}.ao"; fi
-	${LD} ${SUB} build/${name}.o -o build/root/system/lib/modules/${name}.ko -T tools/module.ld ${LDFLAGS}
+	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
+	${LD} ${SUB} build/${module}.o -o build/root/system/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
 
 	# we do not need any additional information
-	strip -R .comment -s build/root/system/lib/modules/${name}.ko > /dev/null 2>&1
+	strip -R .comment -s build/root/system/lib/modules/${module}.ko > /dev/null 2>&1
 done
 
 #===============================================================================

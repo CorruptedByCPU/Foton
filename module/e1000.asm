@@ -12,11 +12,11 @@ extern	driver_e1000
 section	.text
 
 ; share routine
-global	driver_e1000_entry
+global	module_e1000_entry
 
 ; align routine to full address
 align	0x08,	db	0x00
-driver_e1000_entry:
+module_e1000_entry:
 	; turn off Direction Flag
 	cld
 

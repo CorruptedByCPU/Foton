@@ -338,9 +338,9 @@ void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 	}
 }
 
-uint8_t kernel_page_empty( uint64_t *page ) {
+uint8_t kernel_page_empty( uint64_t *page, uint64_t N ) {
 	// check every entry
-	for( uint16_t i = 0; i < 512; i++ ) if( page[ i ] ) return FALSE;
+	for( uint16_t i = 0; i < N << STD_SHIFT_512; i++ ) if( page[ i ] ) return FALSE;
 
 	// page is empty
 	return TRUE;
@@ -544,7 +544,7 @@ void kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 				}
 
 				// if page is empty
-				if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical) ) ) {
+				if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical), TRUE ) ) {
 					// release
 					kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) );
 
@@ -557,7 +557,7 @@ void kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 			}
 
 			// if page is empty
-			if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical) ) ) {
+			if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical), TRUE ) ) {
 				// release
 				kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) );
 
@@ -570,7 +570,7 @@ void kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 		}
 
 		// if page is empty
-		if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical) ) ) {
+		if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical), TRUE ) ) {
 			// release
 			kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) );
 

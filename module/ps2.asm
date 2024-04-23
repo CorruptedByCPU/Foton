@@ -3,8 +3,8 @@
 ;=================================================================================
 
 ; get pointers from driver handling functions
-extern	driver_ps2_keyboard
-extern	driver_ps2_mouse
+extern	module_ps2_keyboard
+extern	module_ps2_mouse
 
 ; 64 bit procedure code
 [BITS 64]
@@ -13,29 +13,29 @@ extern	driver_ps2_mouse
 section	.text
 
 ; share routines
-global	driver_ps2_mouse_entry
-global	driver_ps2_keyboard_entry
+global	module_ps2_mouse_entry
+global	module_ps2_keyboard_entry
 
 ; align routine to full address
 align	0x08,	db	0x00
-driver_ps2_mouse_entry:
+module_ps2_mouse_entry:
 	; turn off Direction Flag
 	cld
 
 	; execute driver handler
-	call	driver_ps2_mouse
+	call	module_ps2_mouse
 
 	; return from the procedure
 	iretq
 
 ; align routine to full address
 align	0x08,	db	0x00
-driver_ps2_keyboard_entry:
+module_ps2_keyboard_entry:
 	; turn off Direction Flag
 	cld
 
 	; execute driver handler
-	call	driver_ps2_keyboard
+	call	module_ps2_keyboard
 
 	; return from the procedure
 	iretq

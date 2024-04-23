@@ -4,15 +4,15 @@
 
 struct KERNEL *kernel = EMPTY;
 
-uint8_t driver_ps2_mouse_semaphore		= FALSE;
-uint8_t driver_ps2_mouse_type			= EMPTY;
-uint8_t driver_ps2_mouse_package_id		= EMPTY;
+uint8_t module_ps2_mouse_semaphore		= FALSE;
+uint8_t module_ps2_mouse_type			= EMPTY;
+uint8_t module_ps2_mouse_package_id		= EMPTY;
 
-uint8_t driver_ps2_keyboard_matrix = FALSE;
+uint8_t module_ps2_keyboard_matrix = FALSE;
 
-volatile uint16_t driver_ps2_scancode = EMPTY;
+volatile uint16_t module_ps2_scancode = EMPTY;
 
-uint16_t	driver_ps2_keyboard_matrix_low[] = {
+uint16_t	module_ps2_keyboard_matrix_low[] = {
 	EMPTY,
 	STD_KEY_ESC,	// Escape
 	0x0031,	// 1
@@ -109,7 +109,7 @@ uint16_t	driver_ps2_keyboard_matrix_low[] = {
 	STD_KEY_F12
 };
 
-uint16_t driver_ps2_keyboard_matrix_high[] = {
+uint16_t module_ps2_keyboard_matrix_high[] = {
 	EMPTY,
 	STD_KEY_ESC,
 	0x0021,	// !

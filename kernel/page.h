@@ -39,7 +39,7 @@
 	void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages );
 
 	// checks if page is empty of entries
-	uint8_t kernel_page_empty( uint64_t *page );
+	uint8_t kernel_page_empty( uint64_t *page, uint64_t N );
 
 	// connect source with target address for definies paging array
 	uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags );

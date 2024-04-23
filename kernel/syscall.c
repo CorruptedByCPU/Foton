@@ -61,7 +61,7 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// remove page from paging structure
 	kernel_page_release( (uint64_t *) task -> cr3, target, page );
 
-	// there something really nasty is in here...
+	// there is really something nasty in here...
 	// it will take some time to find :<
 	// 
 	// release page in binary memory map of process
