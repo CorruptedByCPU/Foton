@@ -38,10 +38,6 @@ uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N ) {
 			// unlock access to binary memory map
 			MACRO_UNLOCK( *semaphore );
 
-			// debug
-			struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
-			if( task ) kernel_log( (uint8_t *) "+ %u:%u for %s\n", p, p + N - 1, task -> name );
-
 			// return address of acquired memory area
 			return p;
 		}
@@ -66,9 +62,6 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 
 	// convert page ID to logical address
 	p = (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;
-
-	// we need to guarantee clean memory area before use
-	kernel_memory_clean( (uint64_t *) p, N );
 
 	// convert page ID to logical address
 	return (uintptr_t) p;
@@ -97,6 +90,9 @@ void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
 }
 
 void kernel_memory_release( uintptr_t address, uint64_t N ) {
+	// we need to guarantee clean memory inside binary memory map
+	kernel_memory_clean( (uint64_t *) address, N );
+
 	// release occupied pages inside kernels binary memory map
 	kernel_memory_dispose( kernel -> memory_base_address, (address & ~KERNEL_PAGE_logical) >> STD_SHIFT_PAGE, N );
 

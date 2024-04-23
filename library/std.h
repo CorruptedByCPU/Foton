@@ -409,7 +409,7 @@
 		// window name, it will appear at header and taskbar
 		uint8_t		name_length;
 		uint8_t		name[ 64 ];
-	};
+	} __attribute__( (aligned( STD_PAGE_byte )) );
 
 	// returns properties of available framebuffer ()
 	void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );

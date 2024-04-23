@@ -128,6 +128,9 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	// set module entry address
 	context -> rip = module_memory + elf -> entry_ptr;
 
+	// debug
+	kernel -> log( (uint8_t *) "Module: %s at 0x%X\n", name, context -> rip );
+
 	//----------------------------------------------------------------------
 
 	// module uses same memory map as kernel

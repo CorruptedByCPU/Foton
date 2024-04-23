@@ -326,6 +326,9 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.entry -> pointer = library.base_address;
 	library.entry -> size_page = library.page;
 
+	// debug
+	kernel -> log( (uint8_t *) "Library: %s at 0x%X\n", name, library.base_address );
+
 	// copy library segments in place
 	for( uint64_t i = 0; i < elf -> h_entry_count; i++ ) {
 		// ignore blank entry or not loadable

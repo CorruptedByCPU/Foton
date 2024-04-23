@@ -61,8 +61,11 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// remove page from paging structure
 	kernel_page_release( (uint64_t *) task -> cr3, target, page );
 
+	// there something really nasty is in here...
+	// it will take some time to find :<
+	// 
 	// release page in binary memory map of process
-	kernel_memory_dispose( task -> memory_map, target >> STD_SHIFT_PAGE, page );
+	// kernel_memory_dispose( task -> memory_map, target >> STD_SHIFT_PAGE, page );
 
 	// process memory usage
 	task -> page -= page;
@@ -82,6 +85,9 @@ void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 }
 
 int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
+	// debug
+	kernel -> log( (uint8_t *) "Thread: %s at 0x%X\n", name, function );
+	
 	// create a new thread in task queue
 	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );
 

@@ -29,11 +29,11 @@ void kernel_init_memory( void ) {
 				// keep size information
 				local_largest_byte = limine_memmap_request.response -> entries[ i ] -> length;
 			}
+
+			// we guarantee clean memory area at first use
+			kernel_memory_clean( (uint64_t *) MACRO_PAGE_ALIGN_DOWN( limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_logical ), MACRO_PAGE_ALIGN_DOWN( limine_memmap_request.response -> entries[ i ] -> length ) >> STD_SHIFT_PAGE );
 		}
 	}
-
-	// initialize crucial variables
-	kernel_memory_clean( (uint64_t *) kernel, MACRO_PAGE_ALIGN_UP( sizeof( struct KERNEL ) ) >> STD_SHIFT_PAGE );
 
 	// binary memory map base address will be placed after kernel environment variables/functions/rountines
 	kernel -> memory_base_address = (uint32_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
