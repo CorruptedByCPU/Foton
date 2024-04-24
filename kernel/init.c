@@ -33,6 +33,7 @@
 	#include	"lapic.h"
 	// #include	"hpet.h"
 	#include	"io_apic.h"
+	#include	"network.h"
 	#include	"config.h"
 	#include	"lapic.h"
 	#include	"memory.h"

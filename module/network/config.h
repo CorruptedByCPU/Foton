@@ -2,8 +2,15 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#define	MODULE_NETWORK_RX_limit						512
-#define	MODULE_NETWORK_TX_limit						512
+#define	MODULE_NETWORK_YX_limit						512
+
+#define	MODULE_NETWORK_PORT_limit					128
+#define	MODULE_NETWORK_SOCKET_limit					32
+
+#define	MODULE_NETWORK_SOCKET_FLAG_active				0b00000001
+
+#define	MODULE_NETWORK_SOCKET_PROTOCOL_arp				1
+
 
 #define	MODULE_NETWORK_FRAME_ETHERNET_TYPE_arp				0x0608	// Big-Endian
 #define	MODULE_NETWORK_FRAME_ETHERNET_TYPE_ipv4				0x0008	// Big-Endian
@@ -24,13 +31,13 @@
 #define	MODULE_NETWORK_FRAME_IPV4_PROTOCOL_tcp				0x06
 #define	MODULE_NETWORK_FRAME_IPV4_PROTOCOL_udp				0x11
 
-struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET {
+struct	MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET {
 	uint8_t 	target[ 6 ];
 	uint8_t		source[ 6 ];
 	uint16_t	type;
 } __attribute__((packed));
 
-struct MODULE_NETWORK_STRUCTURE_FRAME_ARP {
+struct	MODULE_NETWORK_STRUCTURE_FRAME_ARP {
 	uint16_t	hardware_type;
 	uint16_t	protocol_type;
 	uint8_t		hardware_length;
@@ -42,10 +49,25 @@ struct MODULE_NETWORK_STRUCTURE_FRAME_ARP {
 	uint32_t	target_ipv4;
 } __attribute__((packed));
 
+struct	MODULE_NETWORK_STRUCTURE_SOCKET {
+	int64_t		pid;
+	uint8_t		flags;
+	uint8_t		protocol;
+	uint8_t		ethernet_mac[ 6 ];
+	uint32_t	ipv4_address;
+};
+
 uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET *ethernet, uint16_t length );
+
+void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET *ethernet, uint16_t length );
 
 // network module initialization
 void module_network_init( void );
 
 // storage function for incomming packets
 void module_network_rx( uintptr_t packet );
+
+struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket_open( void );
+
+// returns physical address and size of packet to transfer outside of host
+uintptr_t module_network_tx( void );

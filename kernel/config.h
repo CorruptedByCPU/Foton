@@ -101,8 +101,12 @@ struct KERNEL {
 	// variables of Modules functions
 	// uint32_t	*module_map_address;
 
+	// variables of Network management functions
+	struct KERNEL_NETWORK_STRUCTURE_INTERFACE		network_interface;
+
 	// functions of Network management
 	void							(*network_rx)( uintptr_t packet );
+	uintptr_t						(*network_tx)( void );
 
 	// variables of Page management functions
 	uint64_t	*page_base_address;

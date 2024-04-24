@@ -9,6 +9,7 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
+	#include	"../kernel/network.h"
 	#include	"../kernel/config.h"
 	#include	"../kernel/idt.h"
 	#include	"../kernel/io_apic.h"
@@ -69,6 +70,9 @@ void _entry( uintptr_t kernel_ptr ) {
 		module_e1000_mac[ 3 ] = (uint8_t) (module_e1000_eeprom( 0x0101 ) >> 24);
 		module_e1000_mac[ 4 ] = (uint8_t) (module_e1000_eeprom( 0x0201 ) >> 16);
 		module_e1000_mac[ 5 ] = (uint8_t) (module_e1000_eeprom( 0x0201 ) >> 24);
+
+		// share interaface MAC address with kernel
+		for( uint8_t i = 0; i < 6; i++ ) kernel -> network_interface.ethernet_mac[ i ] = module_e1000_mac[ i ];
 
 		// debug
 		kernel -> log( (uint8_t *) "[E1000] MAC address %2X:%2X:%2X:%2X:%2X:%2X\n", module_e1000_mac[ 0 ], module_e1000_mac[ 1 ], module_e1000_mac[ 2 ], module_e1000_mac[ 3 ], module_e1000_mac[ 4 ], module_e1000_mac[ 5 ] );
@@ -154,8 +158,38 @@ void _entry( uintptr_t kernel_ptr ) {
 
 	// ultimately, module will check stack of packets to send
 
+	// transmit function ready?
+	while( ! kernel -> network_tx );
+
 	// hold the door
-	while( TRUE );
+	while( TRUE ) {
+		// properties of packet to send
+		uintptr_t packet = EMPTY;
+
+		// acquire data for transmission
+		while( ! (packet = kernel -> network_tx()) );
+
+		// resolve properties
+		uintptr_t data = packet & STD_PAGE_mask;
+		uint64_t length = packet & ~STD_PAGE_mask;
+
+		// load data pointer
+		module_e1000_tx_base_address[ 0 ].address = data;
+
+		// set flags and length of data
+		module_e1000_tx_base_address[ 0 ].length = length;
+		module_e1000_tx_base_address[ 0 ].command = MODULE_E1000_TDESC_CMD_EOP | MODULE_E1000_TDESC_CMD_IFCS | MODULE_E1000_TDESC_CMD_RS;
+
+		// inform controller about data to send
+		module_e1000_mmio_base_address -> tdh = 0;
+		module_e1000_mmio_base_address -> tdt = 1;
+
+		// packet was sent?
+		while( module_e1000_mmio_base_address -> tdh == 0 && module_e1000_mmio_base_address -> tdt == 1 );
+
+		// release page
+		kernel -> memory_release( packet, TRUE );
+	}
 }
 
 __attribute__(( no_caller_saved_registers ))
