@@ -186,7 +186,7 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 		uint32_t	status_and_reserved;
         } __attribute__( (packed) );
 
-        struct MODULE_E1000_STRUCTURE_FRAME_ETHERNET {
+        struct MODULE_E1000_STRUCTURE_HEADER_ETHERNET {
                 uint8_t 	target[ 6 ];
                 uint8_t		source[ 6 ];
                 uint8_t		type;

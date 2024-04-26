@@ -163,15 +163,15 @@ void _entry( uintptr_t kernel_ptr ) {
 
 	// hold the door
 	while( TRUE ) {
-		// properties of packet to send
-		uintptr_t packet = EMPTY;
+		// properties of frame to send
+		uintptr_t frame = EMPTY;
 
 		// acquire data for transmission
-		while( ! (packet = kernel -> network_tx()) );
+		while( ! (frame = kernel -> network_tx()) );
 
 		// resolve properties
-		uintptr_t data = packet & STD_PAGE_mask;
-		uint64_t length = packet & ~STD_PAGE_mask;
+		uintptr_t data = frame & STD_PAGE_mask;
+		uint64_t length = frame & ~STD_PAGE_mask;
 
 		// load data pointer
 		module_e1000_tx_base_address[ 0 ].address = data;
@@ -184,11 +184,11 @@ void _entry( uintptr_t kernel_ptr ) {
 		module_e1000_mmio_base_address -> tdh = 0;
 		module_e1000_mmio_base_address -> tdt = 1;
 
-		// packet was sent?
+		// frame was sent?
 		while( module_e1000_mmio_base_address -> tdh == 0 && module_e1000_mmio_base_address -> tdt == 1 );
 
 		// release page
-		kernel -> memory_release( packet, TRUE );
+		kernel -> memory_release_page( data );
 	}
 }
 

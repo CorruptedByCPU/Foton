@@ -29,21 +29,24 @@ void _entry( uintptr_t kernel_ptr ) {
 	// initialize network module
 	module_network_init();
 
+	// debug
+	kernel -> network_interface.ipv4_address = 0x4000000A;
+
 	// never ending story
 	while( TRUE ) {
-		// packet for translation?
+		// frame for translation?
 		if( ! module_network_rx_limit ) continue;	// nope
 
-		// properties of first packet
-		struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET *ethernet = (struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET *) (*module_network_rx_base_address & STD_PAGE_mask);
+		// properties of first header
+		struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *) (*module_network_rx_base_address & STD_PAGE_mask);
 
-		// release packet area?
-		uint8_t release = FALSE;
+		// release frame area?
+		uint8_t release = TRUE;
 
 		// choose action
 		switch( ethernet -> type ) {
-			case MODULE_NETWORK_FRAME_ETHERNET_TYPE_arp: {
-				// parse ARP frame
+			case MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp: {
+				// parse as ARP frame
 				release = module_network_arp( ethernet, *module_network_rx_base_address & ~STD_PAGE_mask );
 
 				// done
@@ -51,16 +54,16 @@ void _entry( uintptr_t kernel_ptr ) {
 			}
 		}
 
-		// release packet area
+		// release frame area
 		if( release ) kernel -> memory_release( (uintptr_t) ethernet, TRUE );
 
 		// block access to stack modification
 		MACRO_LOCK( module_network_rx_semaphore );
 
-		// remove packet from stack
+		// remove frame from stack
 		for( uint64_t i = 0; i < module_network_rx_limit; i++ ) module_network_rx_base_address[ i ] = module_network_rx_base_address[ i + 1 ];
 
-		// one packet less on stack
+		// one frame less on stack
 		module_network_rx_limit--;
 
 		// unlock
@@ -68,12 +71,12 @@ void _entry( uintptr_t kernel_ptr ) {
 	}
 }
 
-uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET *ethernet, uint16_t length ) {
-	// properties of ARP frame
-	struct MODULE_NETWORK_STRUCTURE_FRAME_ARP *arp = (struct MODULE_NETWORK_STRUCTURE_FRAME_ARP *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET ));
+uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+	// properties of ARP header
+	struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *arp = (struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ));
 
 	// inquiry about our IPv4 address?
-	if( arp -> operation == MODULE_NETWORK_FRAME_ARP_OPERATION_request && arp -> target_ipv4 != kernel -> network_interface.ipv4_address ) return TRUE;	// no, ignore message and release packet area
+	if( arp -> operation == MODULE_NETWORK_HEADER_ARP_OPERATION_request && arp -> target_ipv4 != kernel -> network_interface.ipv4_address ) return TRUE;	// no, ignore message and release frame area
 
 	//----------------------------------------------------------------------
 
@@ -97,7 +100,7 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET *ethe
 	//----------------------------------------------------------------------
 
 	// change ARP content to answer
-	arp -> operation = MODULE_NETWORK_FRAME_ARP_OPERATION_answer;
+	arp -> operation = MODULE_NETWORK_HEADER_ARP_OPERATION_answer;
 
 	// set target MAC
 	for( uint8_t i = 0; i < 6; i++ ) arp -> target_mac[ i ] = socket -> ethernet_mac[ i ];
@@ -112,32 +115,32 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET *ethe
 	arp -> source_ipv4 = kernel -> network_interface.ipv4_address;
 
 	// encapsulate ARP frame and send
-	module_network_ethernet_encapsulate( socket, ethernet, length - sizeof( struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET ) );
+	module_network_ethernet_encapsulate( socket, ethernet, length - sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) );
 
-	// packet transferred to driver
+	// frame transferred to driver
 	return FALSE;
 }
 
-void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET *ethernet, uint16_t length ) {
+void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// set target and host MAC addresses
 	for( uint8_t i = 0; i < 6; i++ ) ethernet -> target[ i ] = socket -> ethernet_mac[ i ];
 	for( uint8_t i = 0; i < 6; i++ ) ethernet -> source[ i ] = kernel -> network_interface.ethernet_mac[ i ];
 
-	// set type of Ethernet frame
+	// set type of Ethernet header
 	switch( socket -> protocol ) {
-		case MODULE_NETWORK_SOCKET_PROTOCOL_arp: { ethernet -> type = MODULE_NETWORK_FRAME_ETHERNET_TYPE_arp; break; }
-		default: { ethernet -> type = MODULE_NETWORK_FRAME_ETHERNET_TYPE_ipv4; break; }
+		case MODULE_NETWORK_SOCKET_PROTOCOL_arp: { ethernet -> type = MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp; break; }
+		default: { ethernet -> type = MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4; break; }
 	}
 
 	// block access to stack modification
 	MACRO_LOCK( module_network_tx_semaphore );
 
-	// TODO, make sure that packet was placed inside transfer queue
+	// TODO, make sure that frame was placed inside transfer queue
 
 	// free entry available?
 	if( module_network_tx_limit < MODULE_NETWORK_YX_limit )
-		// insert packet properties
-		module_network_tx_base_address[ module_network_tx_limit++ ] = ((uintptr_t) ethernet & ~KERNEL_PAGE_logical) | length + sizeof( struct MODULE_NETWORK_STRUCTURE_FRAME_ETHERNET );
+		// insert frame properties
+		module_network_tx_base_address[ module_network_tx_limit++ ] = ((uintptr_t) ethernet & ~KERNEL_PAGE_logical) | length + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET );
 
 	// unlock
 	MACRO_UNLOCK( module_network_tx_semaphore );
@@ -147,7 +150,7 @@ void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET
 }
 
 void module_network_init( void ) {
-	// assign area for incomming/outgoing packets
+	// assign area for incomming/outgoing frames
 	module_network_rx_base_address = (uint64_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_YX_limit * sizeof( uintptr_t ) ) >> STD_SHIFT_PAGE );
 	module_network_tx_base_address = (uint64_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_YX_limit * sizeof( uintptr_t ) ) >> STD_SHIFT_PAGE );
 
@@ -162,14 +165,14 @@ void module_network_init( void ) {
 	module_network_socket = (struct MODULE_NETWORK_STRUCTURE_SOCKET *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_SOCKET_limit * sizeof( struct MODULE_NETWORK_STRUCTURE_SOCKET ) ) >> STD_SHIFT_PAGE );
 }
 
-void module_network_rx( uintptr_t packet ) {
+void module_network_rx( uintptr_t frame ) {
 	// block access to stack modification
 	MACRO_LOCK( module_network_rx_semaphore );
 
 	// rx stack is full?
 	if( module_network_rx_limit < MODULE_NETWORK_YX_limit )	// no
-		// add packet to stack
-		module_network_rx_base_address[ module_network_rx_limit++ ] = packet;
+		// add frame to stack
+		module_network_rx_base_address[ module_network_rx_limit++ ] = frame;
 
 	// unlock
 	MACRO_UNLOCK( module_network_rx_semaphore );
@@ -205,21 +208,21 @@ uintptr_t module_network_tx( void ) {
 	// tx stack is empty?
 	if( ! module_network_tx_limit ) return EMPTY;	// nothing to send
 
-	// retrieve packet properties
-	volatile uintptr_t packet = *module_network_tx_base_address;
+	// retrieve frame properties
+	volatile uintptr_t frame = *module_network_tx_base_address;
 
 	// block access to stack modification
 	MACRO_LOCK( module_network_tx_semaphore );
 
-	// remove packet from stack
+	// remove frame from stack
 	for( uint64_t i = 0; i < module_network_tx_limit; i++ ) module_network_tx_base_address[ i ] = module_network_tx_base_address[ i + 1 ];
 
-	// one packet sent
+	// one frame sent
 	module_network_tx_limit--;
 
 	// unlock
 	MACRO_UNLOCK( module_network_tx_semaphore );
 
-	// return packet properties
-	return packet;
+	// return frame properties
+	return frame;
 }
