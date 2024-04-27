@@ -329,6 +329,14 @@ void std_network_debug( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_DEBUG), "D" (interface) );
 
-	// return nothin
+	// return nothing
 	return std_syscall_empty();
+}
+
+int64_t std_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_target, uint16_t port_local ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_OPEN), "D" (protocol), "S" (ipv4_target), "d" (port_target), "c" (port_local) );
+
+	// return value
+	return std_syscall_value();
 }

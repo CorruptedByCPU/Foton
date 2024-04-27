@@ -706,3 +706,31 @@ void kernel_syscall_network_debug( struct STD_NETWORK_STRUCTURE_INTERFACE *inter
 	interface -> rx_byte = kernel -> network_interface.rx_byte;
 	interface -> tx_byte = kernel -> network_interface.tx_byte;
 }
+
+int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_target, uint16_t port_local ) {
+	// if network module not available
+	if( ! kernel -> network_socket ) return STD_ERROR_unavailable;
+
+	// try to acquire socket
+	struct MODULE_NETWORK_STRUCTURE_SOCKET *socket = kernel -> network_socket();
+
+	// connection limit reached?
+	if( ! socket ) return EMPTY;
+
+	// bind selected port
+	socket -> port_local = kernel -> network_port( port_local );
+
+	// port already in use?
+	if( ! socket -> port_local ) return STD_ERROR_locked;
+
+	// set socket properties
+	socket -> protocol	= protocol;
+	socket -> ipv4_target	= ipv4_target;
+	socket -> port_target	= port_target;
+
+	// socket configures, initialize
+	socket -> flags = MODULE_NETWORK_SOCKET_FLAG_init;	// if socket is of type TCP, network module will try to establish connection with target
+
+	// return socket ID
+	return (int64_t) ((uintptr_t) socket - kernel -> network_socket_offset) / sizeof( struct MODULE_NETWORK_STRUCTURE_SOCKET );
+}

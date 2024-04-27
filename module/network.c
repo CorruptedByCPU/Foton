@@ -85,7 +85,7 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	//----------------------------------------------------------------------
 
 	// open new socket for this task
-	struct MODULE_NETWORK_STRUCTURE_SOCKET *socket = module_network_socket_open();
+	struct MODULE_NETWORK_STRUCTURE_SOCKET *socket = module_network_socket();
 
 	// set socket properties
 
@@ -93,7 +93,7 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	socket -> protocol = MODULE_NETWORK_SOCKET_PROTOCOL_arp;
 
 	// target IPv4 address
-	socket -> ipv4_address = arp -> source_ipv4;
+	socket -> ipv4_target = arp -> source_ipv4;
 
 	// target MAC address
 	for( uint8_t i = 0; i < 6; i++ ) socket -> ethernet_mac[ i ] = arp -> source_mac[ i ];
@@ -113,7 +113,7 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	for( uint8_t i = 0; i < 6; i++ ) arp -> source_mac[ i ] = kernel -> network_interface.ethernet_mac[ i ];
 	
 	// set target IPv4
-	arp -> target_ipv4 = socket -> ipv4_address;
+	arp -> target_ipv4 = socket -> ipv4_target;
 
 	// set source IPv4
 	arp -> source_ipv4 = kernel -> network_interface.ipv4_address;
@@ -165,8 +165,18 @@ void module_network_init( void ) {
 	// create port table
 	module_network_port_table = (int64_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_PORT_limit * sizeof( int64_t ) ) >> STD_SHIFT_PAGE );
 
+	// share port function
+	kernel -> network_port = (void *) module_network_port;
+
 	// assign area for connection sockets
-	module_network_socket = (struct MODULE_NETWORK_STRUCTURE_SOCKET *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_SOCKET_limit * sizeof( struct MODULE_NETWORK_STRUCTURE_SOCKET ) ) >> STD_SHIFT_PAGE );
+	module_network_socket_list = (struct MODULE_NETWORK_STRUCTURE_SOCKET *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_SOCKET_limit * sizeof( struct MODULE_NETWORK_STRUCTURE_SOCKET ) ) >> STD_SHIFT_PAGE );
+
+	// share socket function and offset
+	kernel -> network_socket = (void *) module_network_socket;
+	kernel -> network_socket_offset = (uintptr_t) module_network_socket_list;
+
+	// open dummy socket, as socket with ID 0, cannot be used
+	module_network_socket();
 }
 
 uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
@@ -176,11 +186,44 @@ uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	// inquiry about our IPv4 address or multicast?
 	if( ipv4 -> target != kernel -> network_interface.ipv4_address && ipv4 -> target != module_network_multicast_address ) return TRUE;	// ignore
 
-	// encapsulate ARP frame and send
-	// module_network_ethernet_encapsulate( socket, ethernet, length - sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) );
+	// IPv4 header length
+	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length >> STD_SHIFT_4) << STD_SHIFT_32;
 
-	// frame transferred to driver
-	return TRUE;
+	// choose action
+	switch( ipv4 -> protocol ) {
+		case MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp: {
+			// module_network_udp( ethernet, length );
+		}
+	}
+
+	// debug
+	return FALSE;
+}
+
+uint8_t module_network_port( uint16_t port ) {
+	// port overflow?
+	if( MODULE_NETWORK_PORT_limit <= port ) return FALSE;	// yes
+
+	// block access to port table
+	MACRO_LOCK( module_network_port_semaphore );
+
+	// port is free to use?
+	if( ! module_network_port_table[ port ] ) {
+		// assign task to it
+		module_network_port_table[ port ] = kernel -> task_pid();
+
+		// unlock
+		MACRO_UNLOCK( module_network_port_semaphore );
+
+		// port assigned
+		return TRUE;
+	}
+
+	// unlock
+	MACRO_UNLOCK( module_network_port_semaphore );
+
+	// port already in use
+	return FALSE;
 }
 
 void module_network_rx( uintptr_t frame ) {
@@ -196,23 +239,23 @@ void module_network_rx( uintptr_t frame ) {
 	MACRO_UNLOCK( module_network_rx_semaphore );
 }
 
-struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket_open( void ) {
+struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void ) {
 	// block access to socket list
 	MACRO_LOCK( module_network_socket_semaphore );
 
 	// search for closed socket
 	for( uint64_t i = 0; i < MODULE_NETWORK_SOCKET_limit; i++ ) {
 		// socket already in use?
-		if( module_network_socket[ i ].pid ) continue;	// yes, leave it
+		if( module_network_socket_list[ i ].pid ) continue;	// yes, leave it
 
 		// register socket for current task
-		module_network_socket[ i ].pid = kernel -> task_pid();
+		module_network_socket_list[ i ].pid = kernel -> task_pid();
 
 		// unlock
 		MACRO_UNLOCK( module_network_socket_semaphore );
 
 		// return socket pointer
-		return (struct MODULE_NETWORK_STRUCTURE_SOCKET *) &module_network_socket[ i ];
+		return (struct MODULE_NETWORK_STRUCTURE_SOCKET *) &module_network_socket_list[ i ];
 	}
 
 	// unlock

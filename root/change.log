@@ -2,6 +2,11 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+27.04.2024
+- [in this past few days] preparing network tcp/ip stack
+  together with dhcpcd software,
+- network: arp - responses are ready
+
 20.04.2024
 - memory management overhaul (optimizations, behaviour change etc.),
 - free - added info about paging and shared memory,

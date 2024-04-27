@@ -8,9 +8,9 @@
 #define	MODULE_NETWORK_SOCKET_limit					32
 
 #define	MODULE_NETWORK_SOCKET_FLAG_active				0b00000001
+#define	MODULE_NETWORK_SOCKET_FLAG_init					0b10000000
 
 #define	MODULE_NETWORK_SOCKET_PROTOCOL_arp				1
-
 
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp				0x0608	// Big-Endian
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4			0x0008	// Big-Endian
@@ -27,9 +27,9 @@
 #define	MODULE_NETWORK_HEADER_IPV4_ECN_default 				0x00
 #define	MODULE_NETWORK_HEADER_IPV4_FLAGS_AND_OFFSET_default		0x0040	// Big-Endian
 #define	MODULE_NETWORK_HEADER_IPV4_TTL_default				0x40	// 64
-#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp			0x01
-#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_tcp				0x06
-#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp				0x11
+#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp			STD_NETWORK_PROTOCOL_icmp
+#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_tcp				STD_NETWORK_PROTOCOL_tcp
+#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp				STD_NETWORK_PROTOCOL_udp
 
 struct	MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET {
 	uint8_t 	target[ 6 ];
@@ -75,7 +75,9 @@ struct	MODULE_NETWORK_STRUCTURE_SOCKET {
 	uint8_t		flags;
 	uint8_t		protocol;
 	uint8_t		ethernet_mac[ 6 ];
-	uint32_t	ipv4_address;
+	uint16_t	port_local;
+	uint16_t	port_target;
+	uint32_t	ipv4_target;
 };
 
 uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
@@ -87,10 +89,12 @@ void module_network_init( void );
 
 uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
 
+uint8_t module_network_port( uint16_t port );
+
 // storage function for incomming packets
 void module_network_rx( uintptr_t packet );
 
-struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket_open( void );
+struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void );
 
 // returns physical address and size of packet to transfer outside of host
 uintptr_t module_network_tx( void );

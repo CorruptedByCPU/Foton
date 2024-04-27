@@ -117,7 +117,9 @@
 	#define	STD_ERROR_syntax_error				-5	// provided values or structure is invalid
 	#define	STD_ERROR_overflow				-6
 	#define	STD_ERROR_file_dependence			-7
-	#define	STD_ERROR_limit				-8
+	#define	STD_ERROR_limit					-8
+	#define	STD_ERROR_locked				-9
+	#define	STD_ERROR_unavailable				-10
 
 	#define	STD_FILE_TYPE_file				0b00000001
 	#define	STD_FILE_TYPE_directory				0b00000010
@@ -262,6 +264,10 @@
 		uint8_t		status;
 	};
 
+	#define	STD_NETWORK_PROTOCOL_icmp			0x01
+	#define	STD_NETWORK_PROTOCOL_tcp			0x06
+	#define	STD_NETWORK_PROTOCOL_udp			0x11
+
 	struct STD_NETWORK_STRUCTURE_INTERFACE {
 		uint8_t		ethernet_mac[ 6 ];
 		uint32_t	ipv4_address;
@@ -353,6 +359,7 @@
 	#define	STD_SYSCALL_TASK				0x21
 	#define	STD_SYSCALL_KILL				0x22
 	#define	STD_SYSCALL_NETWORK_DEBUG			0x23
+	#define	STD_SYSCALL_NETWORK_OPEN			0x24
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -524,6 +531,9 @@
 	void std_kill( int64_t pid );
 
 	void std_network_debug( struct STD_NETWORK_STRUCTURE_INTERFACE *interface );
+
+	// open network connection
+	int64_t std_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_target, uint16_t port_local );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
