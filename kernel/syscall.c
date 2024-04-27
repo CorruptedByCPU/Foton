@@ -696,3 +696,13 @@ void kernel_syscall_kill( int64_t pid ) {
 	// mark task as ready to close
 	task -> flags |= STD_TASK_FLAG_close;
 }
+
+void kernel_syscall_network_debug( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+	interface -> ipv4_address = kernel -> network_interface.ipv4_address;
+
+	interface -> rx_frame = kernel -> network_interface.rx_frame;
+	interface -> tx_frame = kernel -> network_interface.tx_frame;
+
+	interface -> rx_byte = kernel -> network_interface.rx_byte;
+	interface -> tx_byte = kernel -> network_interface.tx_byte;
+}

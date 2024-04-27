@@ -9,7 +9,6 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
-	#include	"../kernel/network.h"
 	#include	"../kernel/config.h"
 	#include	"../kernel/idt.h"
 	#include	"../kernel/io_apic.h"
@@ -187,6 +186,10 @@ void _entry( uintptr_t kernel_ptr ) {
 		// frame was sent?
 		while( module_e1000_mmio_base_address -> tdh == 0 && module_e1000_mmio_base_address -> tdt == 1 );
 
+		// frame sent
+		kernel -> network_interface.tx_frame++;
+		kernel -> network_interface.tx_byte += length;
+
 		// release page
 		kernel -> memory_release_page( data );
 	}
@@ -204,6 +207,10 @@ void driver_e1000( void ) {
 
 		// insert clean page
 		module_e1000_rx_base_address[ 0 ].address = kernel -> memory_alloc_page();
+
+		// frame received
+		kernel -> network_interface.rx_frame++;
+		kernel -> network_interface.rx_byte += module_e1000_rx_base_address[ 0 ].length;
 
 		// descriptor parsed, clean Length
 		module_e1000_rx_base_address[ 0 ].length = EMPTY;

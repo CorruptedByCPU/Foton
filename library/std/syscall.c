@@ -324,3 +324,11 @@ void std_kill( int64_t pid ) {
 	// return nothing
 	return std_syscall_empty();
 }
+
+void std_network_debug( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_DEBUG), "D" (interface) );
+
+	// return nothin
+	return std_syscall_empty();
+}

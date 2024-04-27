@@ -9,7 +9,6 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
-	#include	"../kernel/network.h"
 	#include	"../kernel/config.h"
 	#include	"../kernel/idt.h"
 	#include	"../kernel/io_apic.h"

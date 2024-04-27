@@ -262,6 +262,15 @@
 		uint8_t		status;
 	};
 
+	struct STD_NETWORK_STRUCTURE_INTERFACE {
+		uint8_t		ethernet_mac[ 6 ];
+		uint32_t	ipv4_address;
+		uint64_t	rx_frame;
+		uint64_t	rx_byte;
+		uint64_t	tx_frame;
+		uint64_t	tx_byte;
+	};
+
 	#define	STD_PAGE_byte					0x1000
 	#define	STD_PAGE_mask					0xFFFFFFFFFFFFF000
 
@@ -343,6 +352,7 @@
 	#define	STD_SYSCALL_FILE_TOUCH				0x20
 	#define	STD_SYSCALL_TASK				0x21
 	#define	STD_SYSCALL_KILL				0x22
+	#define	STD_SYSCALL_NETWORK_DEBUG			0x23
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -512,6 +522,8 @@
 
 	// close process with selected PID
 	void std_kill( int64_t pid );
+
+	void std_network_debug( struct STD_NETWORK_STRUCTURE_INTERFACE *interface );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

@@ -2,7 +2,7 @@
 plugin_ctrl: unmapped=true, biosdev=true, speaker=true, extfpuirq=true, parallel=true, serial=true, e1000=true, gameport=true, iodebug=true, sb16=false, usb_uhci=true, usb_ohci=false, usb_ehci=false, usb_xhci=false
 config_interface: textconfig
 display_library: x, options="gui_debug"
-memory: host=64, guest=64
+memory: host=512, guest=512
 romimage: file="/opt/bochs/share/bochs/BIOS-bochs-latest", address=0x00000000, options=none
 vgaromimage: file="/opt/bochs/share/bochs/VGABIOS-lgpl-latest"
 boot: cdrom
@@ -52,6 +52,6 @@ com1: enabled=true, mode=file, dev="serial.log"
 com2: enabled=false
 com3: enabled=false
 com4: enabled=false
-#e1000: enabled=1, mac=00:22:44:66:88:AA, ethmod=linux, ethdev=wlp0s20f3
+#e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=linux, ethdev=wlp0s20f3
 # debug
 e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=vnet

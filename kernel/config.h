@@ -102,7 +102,7 @@ struct KERNEL {
 	// uint32_t	*module_map_address;
 
 	// variables of Network management functions
-	struct KERNEL_NETWORK_STRUCTURE_INTERFACE		network_interface;
+	struct STD_NETWORK_STRUCTURE_INTERFACE		network_interface;
 
 	// functions of Network management
 	void							(*network_rx)( uintptr_t packet );

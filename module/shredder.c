@@ -10,7 +10,6 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
-	#include	"../kernel/network.h"
 	#include	"../kernel/config.h"
 	#include	"../kernel/page.h"
 	#include	"../kernel/task.h"

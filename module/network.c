@@ -10,7 +10,6 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
-	#include	"../kernel/network.h"
 	#include	"../kernel/config.h"
 	#include	"../kernel/page.h"
 	//----------------------------------------------------------------------
@@ -29,9 +28,6 @@ void _entry( uintptr_t kernel_ptr ) {
 	// initialize network module
 	module_network_init();
 
-	// debug
-	kernel -> network_interface.ipv4_address = 0x4000000A;
-
 	// never ending story
 	while( TRUE ) {
 		// frame for translation?
@@ -41,13 +37,21 @@ void _entry( uintptr_t kernel_ptr ) {
 		struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *) (*module_network_rx_base_address & STD_PAGE_mask);
 
 		// release frame area?
-		uint8_t release = TRUE;
+		uint8_t release = TRUE;	// yes, why not?
 
 		// choose action
 		switch( ethernet -> type ) {
 			case MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp: {
 				// parse as ARP frame
 				release = module_network_arp( ethernet, *module_network_rx_base_address & ~STD_PAGE_mask );
+
+				// done
+				break;
+			}
+
+			case MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4: {
+				// parse as IPv4 frame
+				release = module_network_ipv4( ethernet, *module_network_rx_base_address & ~STD_PAGE_mask );
 
 				// done
 				break;
@@ -163,6 +167,20 @@ void module_network_init( void ) {
 
 	// assign area for connection sockets
 	module_network_socket = (struct MODULE_NETWORK_STRUCTURE_SOCKET *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_SOCKET_limit * sizeof( struct MODULE_NETWORK_STRUCTURE_SOCKET ) ) >> STD_SHIFT_PAGE );
+}
+
+uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+	// properties of IPv4 header
+	struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+
+	// inquiry about our IPv4 address or multicast?
+	if( ipv4 -> target != kernel -> network_interface.ipv4_address && ipv4 -> target != module_network_multicast_address ) return TRUE;	// ignore
+
+	// encapsulate ARP frame and send
+	// module_network_ethernet_encapsulate( socket, ethernet, length - sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) );
+
+	// frame transferred to driver
+	return TRUE;
 }
 
 void module_network_rx( uintptr_t frame ) {

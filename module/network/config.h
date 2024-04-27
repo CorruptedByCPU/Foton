@@ -13,10 +13,10 @@
 
 
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp				0x0608	// Big-Endian
-#define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4				0x0008	// Big-Endian
-#define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv6				0xDD86	// Big-Endian
+#define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4			0x0008	// Big-Endian
+#define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv6			0xDD86	// Big-Endian
 
-#define	MODULE_NETWORK_HEADER_ARP_HARDWARE_ETHERNET_type			0x0100	// Big-Endian
+#define	MODULE_NETWORK_HEADER_ARP_HARDWARE_ETHERNET_type		0x0100	// Big-Endian
 #define	MODULE_NETWORK_HEADER_ARP_PROTOCOL_IPV4_type			0x0008	// Big-Endian
 #define	MODULE_NETWORK_HEADER_ARP_HARDWARE_MAC_length			0x06	// xx:xx:xx:xx:xx:xx
 #define	MODULE_NETWORK_HEADER_ARP_PROTOCOL_IPV4_length			0x04	// x.x.x.x
@@ -27,7 +27,7 @@
 #define	MODULE_NETWORK_HEADER_IPV4_ECN_default 				0x00
 #define	MODULE_NETWORK_HEADER_IPV4_FLAGS_AND_OFFSET_default		0x0040	// Big-Endian
 #define	MODULE_NETWORK_HEADER_IPV4_TTL_default				0x40	// 64
-#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp				0x01
+#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp			0x01
 #define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_tcp				0x06
 #define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp				0x11
 
@@ -49,6 +49,27 @@ struct	MODULE_NETWORK_STRUCTURE_HEADER_ARP {
 	uint32_t	target_ipv4;
 } __attribute__((packed));
 
+struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 {
+	uint8_t		version_and_header_length;
+	uint8_t		ecn;
+	uint16_t	length;
+	uint16_t	id;
+	uint16_t	flags_and_offset;
+	uint8_t		ttl;
+	uint8_t		protocol;
+	uint16_t	checksum;
+	uint32_t	source;
+	uint32_t	target;
+} __attribute__((packed));
+
+struct MODULE_NETWORK_STRUCTURE_HEADER_ICMP {
+	uint8_t		type;
+	uint8_t		code;
+	uint16_t	checksum;
+	uint32_t	reserved;
+	uint8_t		data[ 32 ];
+} __attribute__((packed));
+
 struct	MODULE_NETWORK_STRUCTURE_SOCKET {
 	int64_t		pid;
 	uint8_t		flags;
@@ -63,6 +84,8 @@ void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET
 
 // network module initialization
 void module_network_init( void );
+
+uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
 
 // storage function for incomming packets
 void module_network_rx( uintptr_t packet );
