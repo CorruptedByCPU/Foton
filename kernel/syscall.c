@@ -697,12 +697,22 @@ void kernel_syscall_kill( int64_t pid ) {
 	task -> flags |= STD_TASK_FLAG_close;
 }
 
-void kernel_syscall_network_debug( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+void kernel_syscall_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+	// share set interface properties
+
+	// IPv4 address
 	interface -> ipv4_address = kernel -> network_interface.ipv4_address;
 
+	// MAC address
+	for( uint8_t i = 0; i < 6; i++ ) interface -> ethernet_mac[ i ] = kernel -> network_interface.ethernet_mac[ i ];
+
+	// statistics
+
+	// received frames and Bytes
 	interface -> rx_frame = kernel -> network_interface.rx_frame;
 	interface -> tx_frame = kernel -> network_interface.tx_frame;
 
+	// transferred frames and Bytes
 	interface -> rx_byte = kernel -> network_interface.rx_byte;
 	interface -> tx_byte = kernel -> network_interface.tx_byte;
 }

@@ -325,9 +325,9 @@ void std_kill( int64_t pid ) {
 	return std_syscall_empty();
 }
 
-void std_network_debug( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+void std_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_DEBUG), "D" (interface) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_INTERFACE), "D" (interface) );
 
 	// return nothing
 	return std_syscall_empty();

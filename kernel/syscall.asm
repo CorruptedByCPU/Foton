@@ -40,7 +40,7 @@ extern	kernel_syscall_file_write
 extern	kernel_syscall_file_touch
 extern	kernel_syscall_task
 extern	kernel_syscall_kill
-extern	kernel_syscall_network_debug
+extern	kernel_syscall_network_interface
 extern	kernel_syscall_network_open
 
 ;------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_file_touch		; 0x20
 	dq	kernel_syscall_task			; 0x21
 	dq	kernel_syscall_kill			; 0x22
-	dq	kernel_syscall_network_debug		; 0x23
+	dq	kernel_syscall_network_interface	; 0x23
 	dq	kernel_syscall_network_open		; 0x24
 kernel_syscall_list_end:
 

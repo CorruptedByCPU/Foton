@@ -27,7 +27,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	struct STD_WINDOW_STRUCTURE_DESCRIPTOR *window = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) answer -> descriptor;
 
 	struct STD_NETWORK_STRUCTURE_INTERFACE eth0;
-	std_network_debug( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &eth0 );
+	std_network_interface( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &eth0 );
 
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) window + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	for( uint16_t y = 0; y < HEIGHT; y++ ) for( uint16_t x = 0; x < WIDTH; x++ ) pixel[ (y * WIDTH) + x ] = EMPTY;
@@ -40,7 +40,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		std_sleep( TRUE );
 
 		struct STD_NETWORK_STRUCTURE_INTERFACE tmp;
-		std_network_debug( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &tmp );
+		std_network_interface( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &tmp );
 		if( eth0.rx_frame == tmp.rx_frame ) continue;
 
 		for( uint16_t y = 0; y < HEIGHT; y++ ) for( uint16_t x = 0; x < WIDTH; x++ ) pixel[ (y * WIDTH) + x ] = EMPTY;

@@ -358,7 +358,7 @@
 	#define	STD_SYSCALL_FILE_TOUCH				0x20
 	#define	STD_SYSCALL_TASK				0x21
 	#define	STD_SYSCALL_KILL				0x22
-	#define	STD_SYSCALL_NETWORK_DEBUG			0x23
+	#define	STD_SYSCALL_NETWORK_INTERFACE			0x23
 	#define	STD_SYSCALL_NETWORK_OPEN			0x24
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
@@ -530,7 +530,8 @@
 	// close process with selected PID
 	void std_kill( int64_t pid );
 
-	void std_network_debug( struct STD_NETWORK_STRUCTURE_INTERFACE *interface );
+	// returns properties of interface
+	void std_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *interface );
 
 	// open network connection
 	int64_t std_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_target, uint16_t port_local );
