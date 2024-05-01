@@ -264,6 +264,11 @@
 		uint8_t		status;
 	};
 
+	#define	STD_MOVE_BYTE					8
+	#define	STD_MOVE_WORD					16
+	#define	STD_MOVE_DWORD					32
+
+	#define	STD_NETWORK_PROTOCOL_arp			0x00
 	#define	STD_NETWORK_PROTOCOL_icmp			0x01
 	#define	STD_NETWORK_PROTOCOL_tcp			0x06
 	#define	STD_NETWORK_PROTOCOL_udp			0x11
@@ -360,6 +365,7 @@
 	#define	STD_SYSCALL_KILL				0x22
 	#define	STD_SYSCALL_NETWORK_INTERFACE			0x23
 	#define	STD_SYSCALL_NETWORK_OPEN			0x24
+	#define	STD_SYSCALL_NETWORK_SEND			0x25
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -427,6 +433,8 @@
 		uint8_t		name_length;
 		uint8_t		name[ 64 ];
 	} __attribute__( (aligned( STD_PAGE_byte )) );
+
+	#define	STD_WORD_mask			0x000000000000FFFF
 
 	// returns properties of available framebuffer ()
 	void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
@@ -535,6 +543,9 @@
 
 	// open network connection
 	int64_t std_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_target, uint16_t port_local );
+
+	// send data to socket
+	int64_t std_network_send( int64_t socket, uint8_t *data, uint64_t length );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

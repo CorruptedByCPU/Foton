@@ -340,3 +340,11 @@ int64_t std_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_
 	// return value
 	return std_syscall_value();
 }
+
+int64_t std_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_SEND), "D" (socket), "S" (data), "d" (length) );
+
+	// return value
+	return std_syscall_value();
+}

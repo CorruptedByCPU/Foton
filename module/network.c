@@ -33,6 +33,8 @@ void _entry( uintptr_t kernel_ptr ) {
 		// frame for translation?
 		if( ! module_network_rx_limit ) continue;	// nope
 
+		kernel -> log( (uint8_t *) "Packet!\n" );
+
 		// properties of first header
 		struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *) (*module_network_rx_base_address & STD_PAGE_mask);
 
@@ -125,6 +127,23 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	return FALSE;
 }
 
+uint16_t module_network_checksum( uint16_t *data, uint16_t length ) {
+	// initial checksum value
+	uint32_t result = EMPTY;
+
+	// add each chunk of data
+	for( uint16_t i = 0; i < length >> STD_SHIFT_2; i++ ) {
+		result += (uint16_t) MACRO_ENDIANNESS_WORD( data[ i ] );
+	
+		// if overflow
+		if( result > 0xFFFF ) result = (result & STD_WORD_mask) + 1;
+	}
+
+	// if result is EMPTY
+	if( ! result ) return STD_MAX_unsigned;
+	else return ~MACRO_ENDIANNESS_WORD( ((result >> STD_MOVE_WORD) + (result & STD_WORD_mask)) );
+}
+
 void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// set target and host MAC addresses
 	for( uint8_t i = 0; i < 6; i++ ) ethernet -> target[ i ] = socket -> ethernet_mac[ i ];
@@ -158,9 +177,12 @@ void module_network_init( void ) {
 	module_network_rx_base_address = (uint64_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_YX_limit * sizeof( uintptr_t ) ) >> STD_SHIFT_PAGE );
 	module_network_tx_base_address = (uint64_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_YX_limit * sizeof( uintptr_t ) ) >> STD_SHIFT_PAGE );
 
-	// share incomming function
+	// share in/out frames functions
 	kernel -> network_rx = (void *) module_network_rx;
 	kernel -> network_tx = (void *) module_network_tx;
+
+	// share send/receive functions
+	kernel -> network_send = (void *) module_network_send;
 
 	// create port table
 	module_network_port_table = (int64_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_PORT_limit * sizeof( int64_t ) ) >> STD_SHIFT_PAGE );
@@ -200,6 +222,27 @@ uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	return FALSE;
 }
 
+void module_network_ipv4_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+	// properties of IPv4 header
+	struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+	ipv4 -> version_and_header_length = MODULE_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default;
+	ipv4 -> ecn = MODULE_NETWORK_HEADER_IPV4_ECN_default;
+	ipv4 -> length = MACRO_ENDIANNESS_WORD( (length + ((MODULE_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default & 0x0F) << STD_SHIFT_4)) );
+	ipv4 -> id = socket -> ipv4_id;
+	ipv4 -> flags_and_offset = MODULE_NETWORK_HEADER_IPV4_FLAGS_AND_OFFSET_default;
+	ipv4 -> ttl = MODULE_NETWORK_HEADER_IPV4_TTL_default;
+	ipv4 -> protocol = socket -> protocol;
+	ipv4 -> local = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
+	ipv4 -> target = socket -> ipv4_target;
+
+	// calculate checksum
+	ipv4 -> checksum = EMPTY;	// always
+	ipv4 -> checksum = module_network_checksum( (uint16_t *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET )), sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 ) );
+
+	// wrap data into a Ethernet frame and send
+	module_network_ethernet_encapsulate( socket, ethernet, length + ((MODULE_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default & 0x0F) << STD_SHIFT_4) );
+}
+
 uint8_t module_network_port( uint16_t port ) {
 	// port overflow?
 	if( MODULE_NETWORK_PORT_limit <= port ) return FALSE;	// yes
@@ -237,6 +280,16 @@ void module_network_rx( uintptr_t frame ) {
 
 	// unlock
 	MACRO_UNLOCK( module_network_rx_semaphore );
+}
+
+int64_t module_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
+	// choose action
+	switch( module_network_socket_list[ socket ].protocol ) {
+		case MODULE_NETWORK_SOCKET_PROTOCOL_udp: { module_network_udp( (struct MODULE_NETWORK_STRUCTURE_SOCKET *) &module_network_socket_list[ socket ], data, length ); break; }
+	}
+
+	// sent
+	return EMPTY;
 }
 
 struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void ) {
@@ -286,4 +339,58 @@ uintptr_t module_network_tx( void ) {
 
 	// return frame properties
 	return frame;
+}
+
+void module_network_udp( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint64_t length ) {
+	// amount of data already sent
+	uint16_t data_sent = EMPTY;
+
+	// send data in parts of 512 Bytes
+	while( data_sent < length ) {
+		// prepare ethernet header
+		struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel -> memory_alloc( TRUE );
+
+		// load data to UDP data frame
+		uint8_t *source = (uint8_t *) &data[ data_sent ];
+		uint8_t	*target = (uint8_t *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 ) + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_UDP ) );
+
+		// length of data part
+		uint16_t data_length = 512;
+		if( length < 512 ) data_length = length;
+
+		// round up length to parity
+		if( data_length % 2 ) data_length++;
+
+		// copy part of data for send
+		for( uint64_t i = 0; i < data_length; i++ ) target[ i ] = source[ i ];
+
+		// wrap data into a UDP frame and send
+		module_network_udp_encapsulate( socket, ethernet, data_length );
+
+		// part of data sent
+		data_sent += data_length;
+	}
+}
+
+void module_network_udp_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+	// properties of UDP haeder
+	struct MODULE_NETWORK_STRUCTURE_HEADER_UDP *udp = (struct MODULE_NETWORK_STRUCTURE_HEADER_UDP *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 ));
+	udp -> local = socket -> port_local;
+	udp -> target = socket -> port_target;
+	udp -> length = MACRO_ENDIANNESS_WORD( (length + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_UDP)) );
+
+	// properties of UDP Pseudo header
+	struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO *pseudo = (struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO *) (ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 ) - sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO ));
+	pseudo -> local = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
+	pseudo -> target = socket -> ipv4_target;
+	pseudo -> reserved = EMPTY;	// always
+	pseudo -> protocol = socket -> protocol;
+	pseudo -> length = udp -> length;
+
+	// calculate checksum
+	udp -> checksum = EMPTY;	// always
+	udp -> checksum = module_network_checksum( (uint16_t *) pseudo, sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO ) + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_UDP ) + length);
+
+	// wrap data into a IPv4 frame and send
+	module_network_ipv4_encapsulate( socket, ethernet, length + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_UDP ) );
 }

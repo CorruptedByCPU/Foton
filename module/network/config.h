@@ -10,7 +10,9 @@
 #define	MODULE_NETWORK_SOCKET_FLAG_active				0b00000001
 #define	MODULE_NETWORK_SOCKET_FLAG_init					0b10000000
 
-#define	MODULE_NETWORK_SOCKET_PROTOCOL_arp				1
+#define	MODULE_NETWORK_SOCKET_PROTOCOL_arp				STD_NETWORK_PROTOCOL_arp
+#define	MODULE_NWTWORK_SOCKET_PROTOCOL_tcp				STD_NETWORK_PROTOCOL_tcp
+#define	MODULE_NETWORK_SOCKET_PROTOCOL_udp				STD_NETWORK_PROTOCOL_udp
 
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp				0x0608	// Big-Endian
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4			0x0008	// Big-Endian
@@ -58,7 +60,7 @@ struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 {
 	uint8_t		ttl;
 	uint8_t		protocol;
 	uint16_t	checksum;
-	uint32_t	source;
+	uint32_t	local;
 	uint32_t	target;
 } __attribute__((packed));
 
@@ -70,6 +72,21 @@ struct MODULE_NETWORK_STRUCTURE_HEADER_ICMP {
 	uint8_t		data[ 32 ];
 } __attribute__((packed));
 
+struct MODULE_NETWORK_STRUCTURE_HEADER_UDP {
+	uint16_t	local;
+	uint16_t	target;
+	uint16_t	length;
+	uint16_t	checksum;
+} __attribute__((packed));
+
+struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO {
+	uint32_t	local;
+	uint32_t	target;
+	uint8_t		reserved;
+	uint8_t		protocol;
+	uint16_t	length;
+} __attribute__((packed));
+
 struct	MODULE_NETWORK_STRUCTURE_SOCKET {
 	int64_t		pid;
 	uint8_t		flags;
@@ -78,6 +95,7 @@ struct	MODULE_NETWORK_STRUCTURE_SOCKET {
 	uint16_t	port_local;
 	uint16_t	port_target;
 	uint32_t	ipv4_target;
+	uint16_t	ipv4_id;
 };
 
 uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
@@ -94,7 +112,13 @@ uint8_t module_network_port( uint16_t port );
 // storage function for incomming packets
 void module_network_rx( uintptr_t packet );
 
+int64_t module_network_send( int64_t socket, uint8_t *data, uint64_t length );
+
 struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void );
 
 // returns physical address and size of packet to transfer outside of host
 uintptr_t module_network_tx( void );
+
+void module_network_udp( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint64_t length );
+
+void module_network_udp_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );

@@ -42,6 +42,7 @@ extern	kernel_syscall_task
 extern	kernel_syscall_kill
 extern	kernel_syscall_network_interface
 extern	kernel_syscall_network_open
+extern	kernel_syscall_network_send
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -92,6 +93,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_kill			; 0x22
 	dq	kernel_syscall_network_interface	; 0x23
 	dq	kernel_syscall_network_open		; 0x24
+	dq	kernel_syscall_network_send		; 0x25
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

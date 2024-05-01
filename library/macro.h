@@ -30,4 +30,7 @@
 	#define MACRO_WORD( x ) ( *( (uint16_t *) (x) ) )
 	#define MACRO_DWORD( x ) ( *( (uint32_t *) (x) ) )
 	#define MACRO_QWORD( x ) ( *( (uint64_t *) (x) ) )
+
+	#define MACRO_ENDIANNESS_WORD( value )( value >> STD_MOVE_BYTE | value << STD_MOVE_BYTE )
+	#define MACRO_ENDIANNESS_DWORD( value )( value >> (STD_MOVE_WORD + STD_MOVE_BYTE) | ((value >> STD_MOVE_BYTE) & 0xFF00) | ((value << STD_MOVE_BYTE) & 0xFF0000) | value << (STD_MOVE_WORD + STD_MOVE_BYTE) )
 #endif

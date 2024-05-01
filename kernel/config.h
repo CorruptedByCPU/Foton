@@ -109,6 +109,7 @@ struct KERNEL {
 	uintptr_t						(*network_tx)( void );
 	uint8_t							(*network_port)( uint16_t port );
 	struct MODULE_NETWORK_STRUCTURE_SOCKET			*(*network_socket)( void );
+	int64_t							(*network_send)( int64_t socket, uint8_t *data, uint64_t length );
 
 	// variables of Page management functions
 	uint64_t	*page_base_address;

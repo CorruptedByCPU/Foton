@@ -732,15 +732,29 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 
 	// port already in use?
 	if( ! socket -> port_local ) return STD_ERROR_locked;
+	else socket -> port_local = MACRO_ENDIANNESS_WORD( port_local );
 
 	// set socket properties
 	socket -> protocol	= protocol;
-	socket -> ipv4_target	= ipv4_target;
-	socket -> port_target	= port_target;
+	socket -> ipv4_target	= MACRO_ENDIANNESS_DWORD( ipv4_target );
+	socket -> port_target	= MACRO_ENDIANNESS_WORD( port_target );
+	socket -> ipv4_id	= MACRO_ENDIANNESS_WORD( kernel_syscall_microtime() );
 
 	// socket configures, initialize
 	socket -> flags = MODULE_NETWORK_SOCKET_FLAG_init;	// if socket is of type TCP, network module will try to establish connection with target
 
 	// return socket ID
 	return (int64_t) ((uintptr_t) socket - kernel -> network_socket_offset) / sizeof( struct MODULE_NETWORK_STRUCTURE_SOCKET );
+}
+
+int64_t kernel_syscall_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
+	// socket can exist?
+	if( socket > MODULE_NETWORK_SOCKET_limit ) return STD_ERROR_unavailable;	// no
+
+	// socket exist and belongs to process?
+	struct MODULE_NETWORK_STRUCTURE_SOCKET *s = (struct MODULE_NETWORK_STRUCTURE_SOCKET *) kernel -> network_socket_offset;
+	if( s[ socket ].pid != kernel -> task_pid() ) return STD_ERROR_unavailable;	// no
+
+	// pass execution to Network module
+	return kernel -> network_send( socket, data, length );
 }

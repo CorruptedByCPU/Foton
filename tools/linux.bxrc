@@ -2,7 +2,7 @@
 plugin_ctrl: unmapped=true, biosdev=true, speaker=true, extfpuirq=true, parallel=true, serial=true, e1000=true, gameport=true, iodebug=true, sb16=false, usb_uhci=true, usb_ohci=false, usb_ehci=false, usb_xhci=false
 config_interface: textconfig
 display_library: x, options="gui_debug"
-memory: host=64, guest=64
+memory: host=MEM, guest=MEM
 romimage: file="/opt/bochs/share/bochs/BIOS-bochs-latest", address=0x00000000, options=none
 vgaromimage: file="/opt/bochs/share/bochs/VGABIOS-lgpl-latest"
 boot: cdrom
@@ -27,13 +27,13 @@ optramimage3: file=none
 optramimage4: file=none
 pci: enabled=1, chipset=i440fx, slot1=pcivga, slot2=e1000, slot3=none, slot4=none, slot5=none
 vga: extension=vbe, update_freq=30, realtime=1, ddc=builtin
-cpu: count=1:SMP:1, ips=8000000, quantum=16, model=corei7_skylake_x, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
+cpu: count=1:1:1, ips=8000000, quantum=16, model=corei7_skylake_x, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
 print_timestamps: enabled=0
 debugger_log: -
 magic_break: enabled=1
 port_e9_hack: enabled=0
 private_colormap: enabled=0
-clock: sync=realtime, time0=local, rtc_sync=1
+clock: sync=none, time0=local, rtc_sync=0
 # no cmosimage
 log: -
 logprefix: %t%e%d
