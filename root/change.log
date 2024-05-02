@@ -2,6 +2,9 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+02.05.2024
+- network: icmp replies, ready
+
 27.04.2024
 - [in this past few days] preparing network tcp/ip stack
   together with dhcpcd software,

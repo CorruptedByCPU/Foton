@@ -10,10 +10,6 @@
 #define	MODULE_NETWORK_SOCKET_FLAG_active				0b00000001
 #define	MODULE_NETWORK_SOCKET_FLAG_init					0b10000000
 
-#define	MODULE_NETWORK_SOCKET_PROTOCOL_arp				STD_NETWORK_PROTOCOL_arp
-#define	MODULE_NWTWORK_SOCKET_PROTOCOL_tcp				STD_NETWORK_PROTOCOL_tcp
-#define	MODULE_NETWORK_SOCKET_PROTOCOL_udp				STD_NETWORK_PROTOCOL_udp
-
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp				0x0608	// Big-Endian
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4			0x0008	// Big-Endian
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv6			0xDD86	// Big-Endian
@@ -29,15 +25,12 @@
 #define	MODULE_NETWORK_HEADER_IPV4_ECN_default 				0x00
 #define	MODULE_NETWORK_HEADER_IPV4_FLAGS_AND_OFFSET_default		0x0040	// Big-Endian
 #define	MODULE_NETWORK_HEADER_IPV4_TTL_default				0x40	// 64
-#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp			STD_NETWORK_PROTOCOL_icmp
-#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_tcp				STD_NETWORK_PROTOCOL_tcp
-#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp				STD_NETWORK_PROTOCOL_udp
+#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp			0x01
+#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_tcp				0x06
+#define	MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp				0x11
 
-struct	MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET {
-	uint8_t 	target[ 6 ];
-	uint8_t		source[ 6 ];
-	uint16_t	type;
-} __attribute__((packed));
+#define	MODULE_NETWORK_HEADER_ICMP_TYPE_PING				0x08
+#define	MODULE_NETWORK_HEADER_ICMP_TYPE_REPLY				0x00
 
 struct	MODULE_NETWORK_STRUCTURE_HEADER_ARP {
 	uint16_t	hardware_type;
@@ -49,6 +42,18 @@ struct	MODULE_NETWORK_STRUCTURE_HEADER_ARP {
 	uint32_t	source_ipv4;
 	uint8_t		target_mac[ 6 ];
 	uint32_t	target_ipv4;
+} __attribute__((packed));
+
+struct	MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET {
+	uint8_t 	target[ 6 ];
+	uint8_t		source[ 6 ];
+	uint16_t	type;
+} __attribute__((packed));
+
+struct MODULE_NETWORK_STRUCTURE_HEADER_ICMP {
+	uint8_t		type;
+	uint8_t		code;
+	uint16_t	checksum;
 } __attribute__((packed));
 
 struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 {
@@ -64,12 +69,12 @@ struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 {
 	uint32_t	target;
 } __attribute__((packed));
 
-struct MODULE_NETWORK_STRUCTURE_HEADER_ICMP {
-	uint8_t		type;
-	uint8_t		code;
-	uint16_t	checksum;
-	uint32_t	reserved;
-	uint8_t		data[ 32 ];
+struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO {
+	uint32_t	local;
+	uint32_t	target;
+	uint8_t		reserved;
+	uint8_t		protocol;
+	uint16_t	length;
 } __attribute__((packed));
 
 struct MODULE_NETWORK_STRUCTURE_HEADER_UDP {
@@ -79,38 +84,39 @@ struct MODULE_NETWORK_STRUCTURE_HEADER_UDP {
 	uint16_t	checksum;
 } __attribute__((packed));
 
-struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO {
-	uint32_t	local;
-	uint32_t	target;
-	uint8_t		reserved;
-	uint8_t		protocol;
-	uint16_t	length;
-} __attribute__((packed));
-
 struct	MODULE_NETWORK_STRUCTURE_SOCKET {
 	int64_t		pid;
 	uint8_t		flags;
 	uint8_t		protocol;
+	uint16_t	ethernet_type;
 	uint8_t		ethernet_mac[ 6 ];
 	uint16_t	port_local;
 	uint16_t	port_target;
+	uint8_t		ipv4_protocol;
 	uint32_t	ipv4_target;
 	uint16_t	ipv4_id;
+	uint8_t		ipv4_ttl;
 };
 
 uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
 
+uint16_t module_network_checksum( uint16_t *data, uint16_t length );
+
 void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+
+void module_network_icmp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
 
 // network module initialization
 void module_network_init( void );
 
 uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
 
+void module_network_ipv4_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+
 uint8_t module_network_port( uint16_t port );
 
 // storage function for incomming packets
-void module_network_rx( uintptr_t packet );
+void module_network_rx( uintptr_t frame );
 
 int64_t module_network_send( int64_t socket, uint8_t *data, uint64_t length );
 

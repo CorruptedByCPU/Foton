@@ -270,8 +270,8 @@
 
 	#define	STD_NETWORK_PROTOCOL_arp			0x00
 	#define	STD_NETWORK_PROTOCOL_icmp			0x01
-	#define	STD_NETWORK_PROTOCOL_tcp			0x06
-	#define	STD_NETWORK_PROTOCOL_udp			0x11
+	#define	STD_NETWORK_PROTOCOL_udp			0x02
+	#define	STD_NETWORK_PROTOCOL_tcp			0x03
 
 	struct STD_NETWORK_STRUCTURE_INTERFACE {
 		uint8_t		ethernet_mac[ 6 ];

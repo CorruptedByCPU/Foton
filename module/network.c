@@ -29,7 +29,7 @@ void _entry( uintptr_t kernel_ptr ) {
 	module_network_init();
 
 	// debug
-	kernel -> network_interface.ipv4_address = 0x4000000A;
+	kernel -> network_interface.ipv4_address = 0x0A000040;
 
 	// never ending story
 	while( TRUE ) {
@@ -93,7 +93,7 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	// set socket properties
 
 	// protocol
-	socket -> protocol = MODULE_NETWORK_SOCKET_PROTOCOL_arp;
+	socket -> protocol = STD_NETWORK_PROTOCOL_arp;
 
 	// target IPv4 address
 	socket -> ipv4_target = arp -> source_ipv4;
@@ -152,7 +152,7 @@ void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET
 
 	// set type of Ethernet header
 	switch( socket -> protocol ) {
-		case MODULE_NETWORK_SOCKET_PROTOCOL_arp: { ethernet -> type = MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp; break; }
+		case STD_NETWORK_PROTOCOL_arp: { ethernet -> type = MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp; break; }
 		default: { ethernet -> type = MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4; break; }
 	}
 
@@ -169,8 +169,68 @@ void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET
 	// unlock
 	MACRO_UNLOCK( module_network_tx_semaphore );
 
-	// if socket was type of ARP
-	if( socket -> protocol == MODULE_NETWORK_SOCKET_PROTOCOL_arp ) socket -> pid = EMPTY;	// release it
+	// if socket was type of ARP or ICMP
+	if( socket -> protocol == STD_NETWORK_PROTOCOL_arp || socket -> protocol == STD_NETWORK_PROTOCOL_icmp ) socket -> pid = EMPTY;	// release it
+}
+
+void module_network_icmp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+	// properties of IPv4 header
+	struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+
+	// IPv4 header length
+	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
+
+	// properties of ICMP header
+	struct MODULE_NETWORK_STRUCTURE_HEADER_ICMP *icmp = (struct MODULE_NETWORK_STRUCTURE_HEADER_ICMP *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) + ipv4_header_length);
+
+	//----------------------------------------------------------------------
+
+	// open new socket for this task
+	struct MODULE_NETWORK_STRUCTURE_SOCKET *socket = module_network_socket();
+
+	// cannot open socket?
+	if( ! socket ) return;	// ignore request
+
+	// set socket properties
+
+	// socket protocol
+	socket -> protocol = STD_NETWORK_PROTOCOL_icmp;
+
+	// target MAC address
+	for( uint8_t i = 0; i < 6; i++ ) socket -> ethernet_mac[ i ] = ethernet -> source[ i ];
+
+	// ethernet type
+	socket -> ethernet_type = MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4;
+
+	// target ID transmission
+	socket -> ipv4_id = ipv4 -> id;
+
+	// target TTL decreased value
+	socket -> ipv4_ttl = --ipv4 -> ttl;
+
+	// communication protocol
+	socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp;
+
+	// target IPv4 address
+	socket -> ipv4_target = ipv4 -> local;
+
+	// socket configured, activate
+	socket -> flags = MODULE_NETWORK_SOCKET_FLAG_active;
+
+	//----------------------------------------------------------------------
+
+	// ICMP frame length
+	uint16_t icmp_frame_length = MACRO_ENDIANNESS_WORD( ipv4 -> length ) - ipv4_header_length;
+
+	// change ICMP content to answer
+	icmp -> type = MODULE_NETWORK_HEADER_ICMP_TYPE_REPLY;
+
+	// calculate checksum
+	icmp -> checksum = EMPTY;	// always
+	icmp -> checksum = module_network_checksum( (uint16_t *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) + ipv4_header_length), icmp_frame_length );
+
+	// encapsulate ICMP frame and send
+	module_network_ipv4_encapsulate( socket, ethernet, icmp_frame_length );
 }
 
 void module_network_init( void ) {
@@ -214,6 +274,14 @@ uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 
 	// choose action
 	switch( ipv4 -> protocol ) {
+		case MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp: {
+			// parse as ICMP frame
+			module_network_icmp( ethernet, length );
+
+			// done
+			break;
+		}
+
 		case MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp: {
 			// module_network_udp( ethernet, length );
 		}
@@ -232,7 +300,7 @@ void module_network_ipv4_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *so
 	ipv4 -> id = socket -> ipv4_id;
 	ipv4 -> flags_and_offset = MODULE_NETWORK_HEADER_IPV4_FLAGS_AND_OFFSET_default;
 	ipv4 -> ttl = MODULE_NETWORK_HEADER_IPV4_TTL_default;
-	ipv4 -> protocol = socket -> protocol;
+	ipv4 -> protocol = socket -> ipv4_protocol;
 	ipv4 -> local = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
 	ipv4 -> target = socket -> ipv4_target;
 
@@ -286,7 +354,7 @@ void module_network_rx( uintptr_t frame ) {
 int64_t module_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
 	// choose action
 	switch( module_network_socket_list[ socket ].protocol ) {
-		case MODULE_NETWORK_SOCKET_PROTOCOL_udp: { module_network_udp( (struct MODULE_NETWORK_STRUCTURE_SOCKET *) &module_network_socket_list[ socket ], data, length ); break; }
+		case STD_NETWORK_PROTOCOL_udp: { module_network_udp( (struct MODULE_NETWORK_STRUCTURE_SOCKET *) &module_network_socket_list[ socket ], data, length ); break; }
 	}
 
 	// sent
