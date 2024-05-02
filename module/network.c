@@ -83,7 +83,7 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *arp = (struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ));
 
 	// inquiry about our IPv4 address?
-	if( arp -> operation == MODULE_NETWORK_HEADER_ARP_OPERATION_request && arp -> target_ipv4 != kernel -> network_interface.ipv4_address ) return TRUE;	// no, ignore message and release frame area
+	if( arp -> operation == MODULE_NETWORK_HEADER_ARP_OPERATION_request && arp -> target_ipv4 != MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address ) ) return TRUE;	// no, ignore message and release frame area
 
 	//----------------------------------------------------------------------
 
@@ -119,7 +119,7 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	arp -> target_ipv4 = socket -> ipv4_target;
 
 	// set source IPv4
-	arp -> source_ipv4 = kernel -> network_interface.ipv4_address;
+	arp -> source_ipv4 = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
 
 	// encapsulate ARP frame and send
 	module_network_ethernet_encapsulate( socket, ethernet, sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ARP ) );
@@ -267,7 +267,7 @@ uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ));
 
 	// inquiry about our IPv4 address or multicast?
-	if( ipv4 -> target != kernel -> network_interface.ipv4_address && ipv4 -> target != module_network_multicast_address ) return TRUE;	// ignore
+	if( ipv4 -> target != MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address ) && ipv4 -> target != module_network_multicast_address ) return TRUE;	// ignore
 
 	// IPv4 header length
 	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length >> STD_SHIFT_4) << STD_SHIFT_32;
