@@ -28,7 +28,7 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
         #define	MODULE_E1000_CTRL_RFCE			0x08000000	// Receive Flow Control Enable
         #define	MODULE_E1000_CTRL_TFCE			0x10000000	// Transmit Flow Control Enable
         #define	MODULE_E1000_CTRL_VME			0x40000000	// VLAN Mode Enable
-        #define	MODULE_E1000_CTRL_PHY_RST		0x7FFFFFFF	// NASM ERROR => 0x80000000	// PHY Reset
+        #define	MODULE_E1000_CTRL_PHY_RST		0x80000000	// PHY Reset
 
         #define	MODULE_E1000_ICR_txqe			0b0000000000000010	// Transmit Queue Empty
         #define	MODULE_E1000_ICR_rxt0			0b0000000010000000	// Receiver Timer Interrupt

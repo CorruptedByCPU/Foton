@@ -28,12 +28,13 @@ void _entry( uintptr_t kernel_ptr ) {
 	// initialize network module
 	module_network_init();
 
+	// debug
+	kernel -> network_interface.ipv4_address = 0x4000000A;
+
 	// never ending story
 	while( TRUE ) {
 		// frame for translation?
 		if( ! module_network_rx_limit ) continue;	// nope
-
-		kernel -> log( (uint8_t *) "Packet!\n" );
 
 		// properties of first header
 		struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *) (*module_network_rx_base_address & STD_PAGE_mask);
@@ -121,7 +122,7 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	arp -> source_ipv4 = kernel -> network_interface.ipv4_address;
 
 	// encapsulate ARP frame and send
-	module_network_ethernet_encapsulate( socket, ethernet, length - sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) );
+	module_network_ethernet_encapsulate( socket, ethernet, sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ARP ) );
 
 	// frame transferred to driver
 	return FALSE;

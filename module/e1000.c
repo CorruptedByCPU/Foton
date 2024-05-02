@@ -54,7 +54,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		kernel -> log( (uint8_t *) "[E1000] MMIO base address at 0x%X\n", mmio );
 
 		// remember mmio base address of network controller
-		module_e1000_mmio_base_address = (struct MODULE_E1000_STRUCTURE_MMIO *) (mmio | KERNEL_PAGE_logical);
+		module_e1000_mmio_base_address = (struct MODULE_E1000_STRUCTURE_MMIO *) ((mmio & ~0x0F) | KERNEL_PAGE_logical);
 
 		// retrieve interrupt number of network controller
 		module_e1000_irq_number = (uint8_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_irq );
@@ -80,7 +80,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		module_e1000_mmio_base_address -> imc = STD_MAX_unsigned;	// documentation, page 312/410
 
 		// release all pending interrupts
-		uint32_t null = module_e1000_mmio_base_address -> icr;	// documentation, page 307/410
+		volatile uint32_t null = module_e1000_mmio_base_address -> icr;	// documentation, page 307/410
 
 		/*==========================================================================
 		= configuration of incoming packets
@@ -143,10 +143,11 @@ void _entry( uintptr_t kernel_ptr ) {
 		module_e1000_mmio_base_address -> tipg = MODULE_E1000_TIPG_IPGT_DEFAULT | MODULE_E1000_TIPG_IPGR1_DEFAULT | MODULE_E1000_TIPG_IPGR2_DEFAULT;
 
 		// clean: LRST, PHY_RST, VME, ILOS, set: SLU, ASDE
-		uint32_t ctrl = module_e1000_mmio_base_address -> ctrl;
+		volatile uint32_t ctrl = module_e1000_mmio_base_address -> ctrl;
 		ctrl |= MODULE_E1000_CTRL_SLU | MODULE_E1000_CTRL_ASDE;
 		ctrl &= ~MODULE_E1000_CTRL_LRST;
 		ctrl &= ~MODULE_E1000_CTRL_ILOS;
+		ctrl &= ~MODULE_E1000_CTRL_VME;
 		ctrl &= ~MODULE_E1000_CTRL_PHY_RST;
 		module_e1000_mmio_base_address -> ctrl = ctrl;
 
