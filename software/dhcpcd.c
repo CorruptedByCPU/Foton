@@ -151,7 +151,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		dhcp -> hardware_length = 6;	// MAC address length
 		dhcp -> transaction_id = (uint32_t) std_microtime();
 		dhcp -> seconds = 0x0100;
-		dhcp -> flags = DHCP_FLAGS_broadcast;
+		dhcp -> flags = DHCP_FLAGS_broadcast;	// initially, later unicast
 		dhcp -> client_ip_address = EMPTY;		// unknown
 		dhcp -> your_ip_address = EMPTY;		// unknown
 		dhcp -> server_ip_address = EMPTY;		// unknown

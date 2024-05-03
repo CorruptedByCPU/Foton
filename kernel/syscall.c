@@ -740,6 +740,16 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 	socket -> port_target	= MACRO_ENDIANNESS_WORD( port_target );
 	socket -> ipv4_id	= MACRO_ENDIANNESS_WORD( kernel_syscall_microtime() );
 
+	// set sockets ipv4 protocol
+	switch( protocol ) {
+		// ICMP
+		case STD_NETWORK_PROTOCOL_icmp: { socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp; break; }
+		// UDP
+		case STD_NETWORK_PROTOCOL_udp: { socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp; break; }
+		// TCP
+		case STD_NETWORK_PROTOCOL_tcp: { socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_tcp; break; }
+	}
+
 	// socket configures, initialize
 	socket -> flags = MODULE_NETWORK_SOCKET_FLAG_init;	// if socket is of type TCP, network module will try to establish connection with target
 
