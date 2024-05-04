@@ -2,35 +2,41 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#define DHCP_PORT_target        67
-#define DHCP_PORT_local	        68
+#define DHCP_PORT_target						67
+#define DHCP_PORT_local							68
 
-#define DHCP_OP_CODE_boot_request	0x01
-#define DHCP_HARDWARE_TYPE_ethernet	0x01
-#define DHCP_FLAGS_unicast		0x00000
-#define DHCP_FLAGS_broadcast		0x00080
-#define	DHCP_MAGIC_COOKIE		0x63538263	// Big-Endian
+#define DHCP_OP_CODE_boot_request					0x01
+#define DHCP_HARDWARE_TYPE_ethernet					0x01
+#define DHCP_FLAGS_unicast						0x00000
+#define DHCP_FLAGS_broadcast						0x00080
+#define	DHCP_MAGIC_COOKIE						0x63538263	// Big-Endian
 
-#define	DHCP_OPTION_TYPE_HOSTNAME				0x0C
-#define	DHCP_OPTION_TYPE_REQUESTED_IP_ADDRESS			0x32
-#define	DHCP_OPTION_TYPE_REQUEST				0x35
-#define	DHCP_OPTION_TYPE_REQUEST_DHCPDISCOVER			0x01
-#define	DHCP_OPTION_TYPE_REQUEST_DHCPOFFER			0x02
-#define	DHCP_OPTION_TYPE_REQUEST_DHCPREQUEST			0x03
-#define	DHCP_OPTION_TYPE_REQUEST_DHCPDECLINE			0x04
-#define	DHCP_OPTION_TYPE_REQUEST_DHCPACK			0x05
-#define	DHCP_OPTION_TYPE_REQUEST_DHCPNAK			0x06
-#define	DHCP_OPTION_TYPE_REQUEST_DHCPRELEASE			0x07
-#define	DHCP_OPTION_TYPE_REQUEST_DHCPINFORM			0x08
-#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST			0x37
-#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_subnet_mask	0x01
-#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_router		0x03
-#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_dns		0x06
-#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_lease_time	0x33
-#define	DHCP_OPTION_TYPE_MAX_DHCP_MESSAGE_SIZE			0x39
-#define	DHCP_OPTION_TYPE_CLIENT_IDENTIFIER			0x3D
-#define	DHCP_OPTION_TYPE_AUTO_CONFIGURATION			0x74
-#define	DHCP_OPTION_TYPE_END					0xFF
+#define	DHCP_OPTION_TYPE_HOSTNAME					0x0C
+#define	DHCP_OPTION_TYPE_REQUESTED_IP_ADDRESS				0x32
+#define	DHCP_OPTION_TYPE_REQUEST					0x35
+#define	DHCP_OPTION_TYPE_REQUEST_DHCPDISCOVER				0x01
+#define	DHCP_OPTION_TYPE_REQUEST_DHCPOFFER				0x02
+#define	DHCP_OPTION_TYPE_REQUEST_DHCPREQUEST				0x03
+#define	DHCP_OPTION_TYPE_REQUEST_DHCPDECLINE				0x04
+#define	DHCP_OPTION_TYPE_REQUEST_DHCPACK				0x05
+#define	DHCP_OPTION_TYPE_REQUEST_DHCPNAK				0x06
+#define	DHCP_OPTION_TYPE_REQUEST_DHCPRELEASE				0x07
+#define	DHCP_OPTION_TYPE_REQUEST_DHCPINFORM				0x08
+#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST				0x37
+#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_subnet_mask		0x01
+#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_router			0x03
+#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_dns			0x06
+#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_hostname		0x0C
+#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_domain_name		0x0F
+#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_broadcast_address	0x1C
+#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_static_route		0x23
+#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_ntp			0x2A
+#define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_lease_time		0x33
+#define	DHCP_OPTION_TYPE_MAX_DHCP_MESSAGE_SIZE				0x39
+#define	DHCP_OPTION_TYPE_CLIENT_IDENTIFIER				0x3D
+#define	DHCP_OPTION_TYPE_CLIENT_IDENTIFIER_HARDWARE_TYPE_ethernet	0x01
+#define	DHCP_OPTION_TYPE_AUTO_CONFIGURATION				0x74
+#define	DHCP_OPTION_TYPE_END						0xFF
 
 struct DHCP_STRUCTURE {
 	uint8_t		op_code;
@@ -88,7 +94,6 @@ struct DHCP_STRUCTURE_OPTION_max_dhcp_message_size {
 struct DHCP_STRUCTURE_OPTION_parameter_request_list {
 	uint8_t	type;
 	uint8_t	length;
-	uint8_t	list[ 4 ];
 } __attribute__( (packed) );
 
 struct DHCP_STRUCTURE_OPTION_request {
@@ -167,6 +172,36 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		option_request.dhcp = DHCP_OPTION_TYPE_REQUEST_DHCPDISCOVER;
 		dhcp_option_add( (uint8_t *) &option_request );
 
+		// add "max dhcp message size"
+		struct DHCP_STRUCTURE_OPTION_max_dhcp_message_size option_max_dhcp_message_size = { EMPTY };
+		option_max_dhcp_message_size.type = DHCP_OPTION_TYPE_MAX_DHCP_MESSAGE_SIZE;
+		option_max_dhcp_message_size.length = MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_max_dhcp_message_size, byte );
+		option_max_dhcp_message_size.byte = (uint16_t) MACRO_ENDIANNESS_WORD( 1024 );
+		dhcp_option_add( (uint8_t *) &option_max_dhcp_message_size );
+
+		// add "client identifier" option
+		struct DHCP_STRUCTURE_OPTION_client_identifier option_client_identifier = { EMPTY };
+		option_client_identifier.type = DHCP_OPTION_TYPE_CLIENT_IDENTIFIER;
+		option_client_identifier.length = MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_client_identifier, hardware_type ) + MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_client_identifier, client_mac_address );
+		option_client_identifier.hardware_type = DHCP_OPTION_TYPE_CLIENT_IDENTIFIER_HARDWARE_TYPE_ethernet;
+		for( uint8_t i = 0; i < 6; i++ ) option_client_identifier.client_mac_address[ i ] = eth0.ethernet_mac[ i ];	// our network controller MAC address
+		dhcp_option_add( (uint8_t *) &option_client_identifier );
+
+		// add "parameter request list" option
+		uint8_t option_parameter_request_list_entries = 5;
+		struct DHCP_STRUCTURE_OPTION_parameter_request_list *option_parameter_request_list = (struct DHCP_STRUCTURE_OPTION_parameter_request_list *) malloc( sizeof( struct DHCP_STRUCTURE_OPTION_parameter_request_list ) + option_parameter_request_list_entries );
+		option_parameter_request_list -> type = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST;
+		option_parameter_request_list -> length = option_parameter_request_list_entries;
+		uint8_t *option_parameter_request_list_entry = (uint8_t *) option_parameter_request_list + sizeof( struct DHCP_STRUCTURE_OPTION_parameter_request_list );
+		*(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_subnet_mask;
+		*(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_router;
+		*(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_dns;
+		*(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_ntp;
+		*(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_lease_time;
+		dhcp_option_add( (uint8_t *) option_parameter_request_list );
+		// release option "parameter request list" area
+		free( option_parameter_request_list );
+
 		// open file for read
 		FILE *file = fopen( (uint8_t *) "/system/etc/hostname" );
 		if( file ) {
@@ -197,6 +232,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			free( hostname );
 		}
 
+		print( "DHCPDiscover.\n" );
+
 		// send packet outside
 		std_network_send( socket, (uint8_t *) dhcp, dhcp_length );
 
@@ -204,7 +241,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		free( dhcp );
 
 		// wait before sending next discover message
-		std_sleep( 1024 );
+		std_sleep( 512 );
 	}
 
 	return 0;

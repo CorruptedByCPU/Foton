@@ -29,7 +29,7 @@ void _entry( uintptr_t kernel_ptr ) {
 	module_network_init();
 
 	// debug
-	// kernel -> network_interface.ipv4_address = 0x0A000040;
+	kernel -> network_interface.ipv4_address = 0x0A000040;
 
 	// never ending story
 	while( TRUE ) {
@@ -45,6 +45,9 @@ void _entry( uintptr_t kernel_ptr ) {
 		// choose action
 		switch( ethernet -> type ) {
 			case MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp: {
+				// debug
+				kernel -> log( (uint8_t *) "ARP packet.\n" );
+
 				// parse as ARP frame
 				release = module_network_arp( ethernet, *module_network_rx_base_address & ~STD_PAGE_mask );
 
@@ -53,6 +56,9 @@ void _entry( uintptr_t kernel_ptr ) {
 			}
 
 			case MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4: {
+				// debug
+				kernel -> log( (uint8_t *) "IPv4 packet" );
+
 				// parse as IPv4 frame
 				release = module_network_ipv4( ethernet, *module_network_rx_base_address & ~STD_PAGE_mask );
 
@@ -267,14 +273,26 @@ uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ));
 
 	// inquiry about our IPv4 address or multicast?
-	if( ipv4 -> target != MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address ) && ipv4 -> target != module_network_multicast_address ) return TRUE;	// ignore
+	if( ipv4 -> target != MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address ) && ipv4 -> target != module_network_multicast_address ) {
+		// debug
+		kernel -> log( (uint8_t *) ", not for us.\n" );
+
+		return TRUE;	// ignore
+	}
 
 	// IPv4 header length
 	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length >> STD_SHIFT_4) << STD_SHIFT_32;
 
+	// // packet dump
+	// uint8_t *memory = (uint8_t *) ethernet;
+	// for( uint8_t y = 0; y < (length / 16) + 1 ; y++ ) kernel -> log( (uint8_t *) "%8X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X\n", (uintptr_t) &memory[ y * 16 ], memory[ (y * 16) + 0 ], memory[ (y * 16) + 1 ], memory[ (y * 16) + 2 ], memory[ (y * 16) + 3 ], memory[ (y * 16) + 4 ], memory[ (y * 16) + 5 ], memory[ (y * 16) + 6 ], memory[ (y * 16) + 7 ], memory[ (y * 16) + 8 ], memory[ (y * 16) + 9 ], memory[ (y * 16) + 10 ], memory[ (y * 16) + 11 ], memory[ (y * 16) + 12 ], memory[ (y * 16) + 13 ], memory[ (y * 16) + 14 ], memory[ (y * 16) + 15 ]); kernel -> log( (uint8_t *) "\n" );
+
 	// choose action
 	switch( ipv4 -> protocol ) {
 		case MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp: {
+			// debug
+			kernel -> log( (uint8_t *) " with ICMP frame.\n" );
+
 			// parse as ICMP frame
 			module_network_icmp( ethernet, length );
 
@@ -283,7 +301,17 @@ uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 		}
 
 		case MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp: {
+			// debug
+			kernel -> log( (uint8_t *) " with UDP frame.\n" );
+
 			// module_network_udp( ethernet, length );
+		}
+
+		case MODULE_NETWORK_HEADER_IPV4_PROTOCOL_tcp: {
+			// debug
+			kernel -> log( (uint8_t *) " with TCP frame.\n" );
+
+			// module_network_tcp( ethernet, length );
 		}
 	}
 
@@ -449,16 +477,16 @@ void module_network_udp_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *soc
 	udp -> length = MACRO_ENDIANNESS_WORD( (length + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_UDP)) );
 
 	// properties of UDP Pseudo header
-	struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO *pseudo = (struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO *) (ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 ) - sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO ));
+	struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO *pseudo = (struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO *) ((uintptr_t) udp - sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO ));
 	pseudo -> local = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
 	pseudo -> target = socket -> ipv4_target;
 	pseudo -> reserved = EMPTY;	// always
-	pseudo -> protocol = socket -> protocol;
+	pseudo -> protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp;
 	pseudo -> length = udp -> length;
 
 	// calculate checksum
 	udp -> checksum = EMPTY;	// always
-	udp -> checksum = module_network_checksum( (uint16_t *) pseudo, sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO ) + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_UDP ) + length);
+	udp -> checksum = module_network_checksum( (uint16_t *) pseudo, sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_PSEUDO ) + MACRO_ENDIANNESS_WORD( udp -> length ) );
 
 	// wrap data into a IPv4 frame and send
 	module_network_ipv4_encapsulate( socket, ethernet, length + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_UDP ) );

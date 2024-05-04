@@ -4,7 +4,7 @@
 #=================================================================================
 
 # external resources initialization
-git submodule update --recursive
+git submodule update --init
 
 # for clear view
 clear
