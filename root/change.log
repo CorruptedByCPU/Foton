@@ -2,6 +2,10 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+04.05.2024
+- network: ARP, ICMP, IP, UDP ready,
+- ip software to change/show current IPV4 address of network interface.
+
 02.05.2024
 - network: icmp replies, ready
 

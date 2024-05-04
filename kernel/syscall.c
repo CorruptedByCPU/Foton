@@ -768,3 +768,8 @@ int64_t kernel_syscall_network_send( int64_t socket, uint8_t *data, uint64_t len
 	// pass execution to Network module
 	return kernel -> network_send( socket, data, length );
 }
+
+void kernel_syscall_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+	// update IPv4 address
+	kernel -> network_interface.ipv4_address = interface -> ipv4_address;
+}

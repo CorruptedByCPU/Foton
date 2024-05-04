@@ -276,6 +276,7 @@
 	struct STD_NETWORK_STRUCTURE_INTERFACE {
 		uint8_t		ethernet_mac[ 6 ];
 		uint32_t	ipv4_address;
+		// statistics: read only
 		uint64_t	rx_frame;
 		uint64_t	rx_byte;
 		uint64_t	tx_frame;
@@ -366,6 +367,7 @@
 	#define	STD_SYSCALL_NETWORK_INTERFACE			0x23
 	#define	STD_SYSCALL_NETWORK_OPEN			0x24
 	#define	STD_SYSCALL_NETWORK_SEND			0x25
+	#define	STD_SYSCALL_NETWORK_INTERFACE_SET		0x26
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -546,6 +548,9 @@
 
 	// send data to socket
 	int64_t std_network_send( int64_t socket, uint8_t *data, uint64_t length );
+
+	// modify properties of interface
+	void std_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

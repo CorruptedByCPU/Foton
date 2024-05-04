@@ -35,6 +35,8 @@ You will be able to create your own system profiles, and build your own compilat
 
 |Kernel Modules|Description|
 |-|-|
+|e1000.ko|Network Controller - Intel 82540EM driver.|
+|network.ko|Network management functions [protcols: ARP, ICMP, IP, UDP]|
 |ps2.ko|Failover keyboard & mouse management.|
 |shredder.ko|Garbage Collector|
 |usb.ko|Device management connected via USB controller (UHCI in work)|
@@ -49,6 +51,7 @@ You will be able to create your own system profiles, and build your own compilat
 |fm|**File Manager** *{work in progress}*|
 |free|usage of all abailable devices in system.|
 |hostname|show or set host name.|
+|ip|Network Interface IPv4 show/change tool.|
 |ls|listing of files in current directory or selected one.|
 |moko|Text editor.|
 |pwd|show current path of root directory|

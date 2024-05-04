@@ -348,3 +348,11 @@ int64_t std_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
 	// return value
 	return std_syscall_value();
 }
+
+void std_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_INTERFACE_SET), "D" (interface) );
+
+	// return nothing
+	return std_syscall_empty();
+}
