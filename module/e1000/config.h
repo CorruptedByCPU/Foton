@@ -9,6 +9,11 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 
         #define	MODULE_E1000_CACHE_SIZE_page		1
 
+        #define MODULE_E1000_STATUS_FD			1 << 0
+        #define MODULE_E1000_STATUS_LU			1 << 1
+	#define	MODULE_E1000_STATUS_TXOFF		1 << 4
+	#define	MODULE_E1000_STATUS_SPEED		11 << 6
+
         #define	MODULE_E1000_CTRL_FD			0x00000001	// Full-Duplex
         #define	MODULE_E1000_CTRL_LRST			0x00000008	// Link Reset
         #define	MODULE_E1000_CTRL_ASDE			0x00000020	// Auto-Speed Detection Enable

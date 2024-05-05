@@ -75,6 +75,7 @@ You will be able to create your own system profiles, and build your own compilat
 |libinterface.so|Graphical User Interface manager (button/label/form/radio/list/menu... etc.)|
 |libjson.so|Parsing functions of JSON structure.|
 |libmath.so|Trigonometric functions.|
+|libnetwork.so|Network support functions.|
 |libpath.so|Returns absolute path string from current work directory.|
 |librandom.so|Simple PRNG library.|
 |librgl.so|3D object management.|

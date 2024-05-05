@@ -199,7 +199,10 @@ void _entry( uintptr_t kernel_ptr ) {
 __attribute__(( no_caller_saved_registers ))
 void driver_e1000( void ) {
 	// get network controller status
-	volatile uint32_t status = module_e1000_mmio_base_address -> icr;
+	volatile uint32_t status = module_e1000_mmio_base_address -> status;
+
+	// get network controller "interrupt due to"
+	volatile uint32_t interrupt_cause = module_e1000_mmio_base_address -> icr;
 
 	// if descriptor has set Length
 	if( module_e1000_rx_base_address[ 0 ].length ) {
@@ -213,12 +216,9 @@ void driver_e1000( void ) {
 		kernel -> network_interface.rx_frame++;
 		kernel -> network_interface.rx_byte += module_e1000_rx_base_address[ 0 ].length;
 
-		// descriptor parsed, clean Length
-		module_e1000_rx_base_address[ 0 ].length = EMPTY;
+		// tell network controller, packets are processed
+		module_e1000_mmio_base_address -> rdh = 0;	// identifier of first available descriptor on list
 	}
-	
-	// tell network controller, packets are processed
-	module_e1000_mmio_base_address -> rdh = 0;	// identifier of first available descriptor on list
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely
 	kernel -> lapic_base_address -> eoi = EMPTY;

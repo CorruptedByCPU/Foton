@@ -28,9 +28,6 @@ void _entry( uintptr_t kernel_ptr ) {
 	// initialize network module
 	module_network_init();
 
-	// debug
-	// kernel -> network_interface.ipv4_address = 0x0A000040;
-
 	// never ending story
 	while( TRUE ) {
 		// frame for translation?
