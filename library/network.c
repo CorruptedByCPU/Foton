@@ -7,6 +7,23 @@
 	//----------------------------------------------------------------------
 	#include	"../library/network.h"
 
+uint16_t lib_network_checksum( uint16_t *data, uint16_t length ) {
+	// initial checksum value
+	uint32_t result = EMPTY;
+
+	// add each chunk of data
+	for( uint16_t i = 0; i < length >> STD_SHIFT_2; i++ ) {
+		result += (uint16_t) MACRO_ENDIANNESS_WORD( data[ i ] );
+	
+		// if overflow
+		if( result > 0xFFFF ) result = (result & STD_WORD_mask) + 1;
+	}
+
+	// if result is EMPTY
+	if( ! result ) return STD_MAX_unsigned;
+	else return ~MACRO_ENDIANNESS_WORD( ((result >> STD_MOVE_WORD) + (result & STD_WORD_mask)) );
+}
+
 uint32_t lib_network_string_to_ipv4( uint8_t *string ) {
 	// ipv4 address
 	uint32_t ipv4_address = EMPTY;	// 0.0.0.0

@@ -42,9 +42,6 @@ void _entry( uintptr_t kernel_ptr ) {
 		// choose action
 		switch( ethernet -> type ) {
 			case MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp: {
-				// debug
-				kernel -> log( (uint8_t *) "ARP packet.\n" );
-
 				// parse as ARP frame
 				release = module_network_arp( ethernet, *module_network_rx_base_address & ~STD_PAGE_mask );
 
@@ -53,9 +50,6 @@ void _entry( uintptr_t kernel_ptr ) {
 			}
 
 			case MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4: {
-				// debug
-				kernel -> log( (uint8_t *) "IPv4 packet" );
-
 				// parse as IPv4 frame
 				release = module_network_ipv4( ethernet, *module_network_rx_base_address & ~STD_PAGE_mask );
 
