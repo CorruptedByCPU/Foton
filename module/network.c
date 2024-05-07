@@ -321,8 +321,6 @@ void module_network_ipv4_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *so
 }
 
 void module_network_ipv4_exit( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint16_t length ) {
-	MACRO_DEBUF();
-
 	// alloc packet area
 	struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel -> memory_alloc( TRUE );
 

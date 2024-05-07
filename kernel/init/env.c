@@ -41,6 +41,9 @@ void kernel_init_env( void ) {
 	// share Stream management function
 	kernel -> stream_release		= (void *) kernel_stream_release;
 
+	// share Syacall management function
+	kernel -> syscall_thread		= (void *) kernel_syscall_thread;
+
 	// share memory management functions
 	kernel -> task_active			= (void *) kernel_task_active;
 	kernel -> task_pid			= (void *) kernel_task_pid;

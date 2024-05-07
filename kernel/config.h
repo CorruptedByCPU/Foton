@@ -135,6 +135,9 @@ struct KERNEL {
 	// functions of Stream management
 	void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
 
+	// functions of Syscall management
+	int64_t							(*syscall_thread)( uintptr_t function, uint8_t *name, uint64_t length );
+
 	// variables of Task management functions
 	struct KERNEL_TASK_STRUCTURE				*task_base_address;
 	struct KERNEL_TASK_STRUCTURE				**task_cpu_address;	// contains pointers to task inside queue by specified CPU id
