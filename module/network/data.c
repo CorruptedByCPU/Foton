@@ -19,3 +19,8 @@ uint8_t module_network_port_semaphore					= FALSE;
 
 struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket_list	= EMPTY;
 uint8_t module_network_socket_semaphore					= FALSE;
+
+struct MODULE_NETWORK_STRUCTURE_ARP *module_network_arp_list		= EMPTY;
+uint8_t module_network_arp_semaphore					= FALSE;
+
+int64_t network_thread_pid						= EMPTY;

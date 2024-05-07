@@ -33,6 +33,9 @@ void kernel_init_env( void ) {
 	kernel -> memory_release		= (void *) kernel_memory_release;
 	kernel -> memory_release_page		= (void *) kernel_memory_release_page;
 
+	// share Module management function
+	kernel -> module_thread			= (void *) kernel_module_thread;
+
 	// share page management functions
 	kernel -> page_deconstruct		= (void *) kernel_page_deconstruct;
 	kernel -> page_map			= (void *) kernel_page_map;
@@ -40,9 +43,6 @@ void kernel_init_env( void ) {
 
 	// share Stream management function
 	kernel -> stream_release		= (void *) kernel_stream_release;
-
-	// share Syacall management function
-	kernel -> syscall_thread		= (void *) kernel_syscall_thread;
 
 	// share memory management functions
 	kernel -> task_active			= (void *) kernel_task_active;

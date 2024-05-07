@@ -4,6 +4,7 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 
 started:
 - network (tcp, dhcp)
+- ping
 
 yet to be done:
 - hexedit software, show content of files in binary mode (with ASCII overview)

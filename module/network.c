@@ -260,6 +260,13 @@ void module_network_init( void ) {
 
 	// open dummy socket, as socket with ID 0, cannot be used
 	module_network_socket();
+
+	// assign area for ARP list
+	module_network_arp_list = (struct MODULE_NETWORK_STRUCTURE_ARP *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_ARP_limit * sizeof( struct MODULE_NETWORK_STRUCTURE_ARP ) ) );
+
+	// enable thread for ARP resolving
+	uint8_t network_string_thread_name[] = "network arp";
+	network_thread_pid = kernel -> module_thread( (uintptr_t) &module_network_thread_arp, (uint8_t *) &network_string_thread_name, sizeof( network_string_thread_name ) );
 }
 
 uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
@@ -409,6 +416,14 @@ struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void ) {
 
 	// no available sockets for use
 	return EMPTY;
+}
+
+void module_network_thread_arp( void ) {
+	// main loop
+	while( TRUE ) {
+		// release AP time
+		kernel -> time_sleep( TRUE );
+	}
 }
 
 uintptr_t module_network_tx( void ) {

@@ -136,15 +136,15 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	//----------------------------------------------------------------------
 
 	// aquire parent task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_TASK_STRUCTURE *parent = kernel_task_active();
 
 	// threads use same memory map as parent
-	thread -> memory_map = task -> memory_map;
+	thread -> memory_map = parent -> memory_map;
 
 	//----------------------------------------------------------------------
 
 	// map parent space to thread
-	kernel_page_merge( (uint64_t *) task -> cr3, (uint64_t *) thread -> cr3 );
+	kernel_page_merge( (uint64_t *) parent -> cr3, (uint64_t *) thread -> cr3 );
 
 	// thread ready to run
 	thread -> flags |= STD_TASK_FLAG_active | STD_TASK_FLAG_thread | STD_TASK_FLAG_init;

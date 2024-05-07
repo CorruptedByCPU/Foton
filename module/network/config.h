@@ -4,8 +4,9 @@
 
 #define	MODULE_NETWORK_YX_limit						512
 
-#define	MODULE_NETWORK_PORT_limit					128
-#define	MODULE_NETWORK_SOCKET_limit					32
+#define	MODULE_NETWORK_PORT_limit					65535
+#define	MODULE_NETWORK_SOCKET_limit					255
+#define	MODULE_NETWORK_ARP_limit					1024
 
 #define	MODULE_NETWORK_SOCKET_FLAG_active				0b00000001
 #define	MODULE_NETWORK_SOCKET_FLAG_init					0b10000000
@@ -31,6 +32,12 @@
 
 #define	MODULE_NETWORK_HEADER_ICMP_TYPE_REQUEST				0x08
 #define	MODULE_NETWORK_HEADER_ICMP_TYPE_REPLY				0x00
+
+struct	MODULE_NETWORK_STRUCTURE_ARP {
+	uint64_t	lease_time;
+	uint32_t	ipv4_address;
+	uint8_t		mac_address[ 6 ];
+};
 
 struct	MODULE_NETWORK_STRUCTURE_HEADER_ARP {
 	uint16_t	hardware_type;
@@ -123,6 +130,8 @@ void module_network_rx( uintptr_t frame );
 int64_t module_network_send( int64_t socket, uint8_t *data, uint64_t length );
 
 struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void );
+
+void module_network_thread_arp( void );
 
 // returns physical address and size of packet to transfer outside of host
 uintptr_t module_network_tx( void );

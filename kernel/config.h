@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"276"
+#define	KERNEL_revision		"280"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -98,8 +98,10 @@ struct KERNEL {
 	void							(*memory_release)( uintptr_t address, uint64_t N );
 	void							(*memory_release_page)( uintptr_t address );
 
-	// variables of Modules functions
+	// variables of Modules management functions
 	// uint32_t	*module_map_address;
+	// functions of Module management
+	int64_t							(*module_thread)( uintptr_t function, uint8_t *name, uint64_t length );
 
 	// variables of Network management functions
 	struct STD_NETWORK_STRUCTURE_INTERFACE			network_interface;
@@ -134,9 +136,6 @@ struct KERNEL {
 	uint8_t		stream_semaphore;
 	// functions of Stream management
 	void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
-
-	// functions of Syscall management
-	int64_t							(*syscall_thread)( uintptr_t function, uint8_t *name, uint64_t length );
 
 	// variables of Task management functions
 	struct KERNEL_TASK_STRUCTURE				*task_base_address;
