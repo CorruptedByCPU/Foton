@@ -728,7 +728,10 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 	if( ! socket ) return EMPTY;
 
 	// bind selected port
-	socket -> port_local = kernel -> network_port( port_local );
+	if( port_local ) socket -> port_local = kernel -> network_port( port_local );
+
+	// debug
+	else socket -> port_local = 32768;
 
 	// port already in use?
 	if( ! socket -> port_local ) return STD_ERROR_locked;

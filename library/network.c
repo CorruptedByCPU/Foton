@@ -39,11 +39,12 @@ uint32_t lib_network_string_to_ipv4( uint8_t *string ) {
 		// invalid value?
 		if( ! length ) { translated = FALSE; break; }	// yes
 
-		// set first octet of interface IPV4 address
-		*(uint8_t *) ((uintptr_t) &ipv4_address + i) = lib_string_to_integer( string, 10 );
-
 		// invalid octet value?
-		if( *(uint8_t *) ((uintptr_t) &ipv4_address + i) > 255 ) { translated = FALSE; break; }
+		uint64_t octet = lib_string_to_integer( string, 10 );
+		if( octet > 255 ) { translated = FALSE; break; }
+
+		// set first octet of interface IPV4 address
+		*(uint8_t *) ((uintptr_t) &ipv4_address + i) = octet;
 
 		// move pointer to next value
 		string += length;
@@ -59,7 +60,7 @@ uint32_t lib_network_string_to_ipv4( uint8_t *string ) {
 	}
 
 	// if invalid IPv4 string provided
-	if( ! translated || *string ) return EMPTY;	// string malformed
+	if( ! translated ) return EMPTY;	// string malformed
 
 	// return translated IPV4 address
 	return ipv4_address;

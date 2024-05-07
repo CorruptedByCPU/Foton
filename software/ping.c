@@ -10,10 +10,14 @@
 #define	PING_ICMP_TYPE_request	0x08
 #define	PING_ICMP_TYPE_reply	0x00
 
+#define	PING_ICMP_DATA_length	32
+
 struct PING_STRUCTURE_ICMP {
 	uint8_t		type;
 	uint8_t		code;
 	uint16_t	checksum;
+	uint16_t	identificator;
+	uint16_t	sequence;
 } __attribute__((packed));
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
@@ -39,7 +43,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	int64_t socket = std_network_open( STD_NETWORK_PROTOCOL_icmp, ipv4, EMPTY, EMPTY );
 
 	// create ICMP request
-	struct PING_STRUCTURE_ICMP *icmp = (struct PING_STRUCTURE_ICMP *) malloc( sizeof( struct PING_STRUCTURE_ICMP ) + 32 );	// default 32 Bytes of data inside ICMP frame
+	struct PING_STRUCTURE_ICMP *icmp = (struct PING_STRUCTURE_ICMP *) malloc( sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );	// default 32 Bytes of data inside ICMP frame
 
 	// ICMP type: request
 	icmp -> type = PING_ICMP_TYPE_request;
@@ -47,11 +51,22 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// ICMP code: EMPTY
 	icmp -> code = EMPTY;
 
+	// identificator
+	icmp -> identificator = MACRO_ENDIANNESS_WORD( TRUE );
+
+	// sequence number
+	icmp -> sequence = MACRO_ENDIANNESS_WORD( TRUE );
+
 	// insert data
 	uint8_t *data = (uint8_t *) ((uintptr_t) icmp + sizeof( struct PING_STRUCTURE_ICMP ));
-	for( uint16_t i = 0; i < 32; i++ ) data[ i ] = i + 0x20;
+	for( uint16_t i = 0; i < PING_ICMP_DATA_length; i++ ) data[ i ] = i + 0x20;
 
-	
+	// calculate checksum
+	icmp -> checksum = EMPTY;	// always
+	icmp -> checksum = lib_network_checksum( (uint16_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
+
+	// send request outside
+	std_network_send( socket, (uint8_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
 
 	// release ICMP request
 	free( icmp );

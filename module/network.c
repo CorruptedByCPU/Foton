@@ -28,6 +28,9 @@ void _entry( uintptr_t kernel_ptr ) {
 	// initialize network module
 	module_network_init();
 
+	// debug
+	kernel -> network_interface.ipv4_address = 0x0A000040;	// 10.0.0.64
+
 	// never ending story
 	while( TRUE ) {
 		// frame for translation?
@@ -264,12 +267,7 @@ uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ));
 
 	// inquiry about our IPv4 address or multicast?
-	if( ipv4 -> target != MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address ) && ipv4 -> target != module_network_multicast_address ) {
-		// debug
-		kernel -> log( (uint8_t *) ", not for us.\n" );
-
-		return TRUE;	// ignore
-	}
+	if( ipv4 -> target != MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address ) && ipv4 -> target != module_network_multicast_address ) return TRUE;	// no, ignore
 
 	// IPv4 header length
 	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length >> STD_SHIFT_4) << STD_SHIFT_32;
@@ -281,9 +279,6 @@ uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	// choose action
 	switch( ipv4 -> protocol ) {
 		case MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp: {
-			// debug
-			kernel -> log( (uint8_t *) " with ICMP frame.\n" );
-
 			// parse as ICMP frame
 			module_network_icmp( ethernet, length );
 
@@ -292,16 +287,10 @@ uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 		}
 
 		case MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp: {
-			// debug
-			kernel -> log( (uint8_t *) " with UDP frame.\n" );
-
 			// module_network_udp( ethernet, length );
 		}
 
 		case MODULE_NETWORK_HEADER_IPV4_PROTOCOL_tcp: {
-			// debug
-			kernel -> log( (uint8_t *) " with TCP frame.\n" );
-
 			// module_network_tcp( ethernet, length );
 		}
 	}
@@ -329,6 +318,23 @@ void module_network_ipv4_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *so
 
 	// wrap data into a Ethernet frame and send
 	module_network_ethernet_encapsulate( socket, ethernet, length + ((MODULE_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default & 0x0F) << STD_SHIFT_4) );
+}
+
+void module_network_ipv4_exit( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint16_t length ) {
+	MACRO_DEBUF();
+
+	// alloc packet area
+	struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel -> memory_alloc( TRUE );
+
+	// properties of IPv4 header
+	struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+
+	// copy IPv4 data
+	uint8_t *frame_data = (uint8_t *) ((uintptr_t) ipv4 + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_IPV4 ));
+	for( uint16_t i = 0; i < length; i++ ) frame_data[ i ] = data[ i ];
+
+	// wrap data into a IPv4 frame and send
+	module_network_ipv4_encapsulate( socket, ethernet, length );
 }
 
 uint8_t module_network_port( uint16_t port ) {
@@ -373,6 +379,7 @@ void module_network_rx( uintptr_t frame ) {
 int64_t module_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
 	// choose action
 	switch( module_network_socket_list[ socket ].protocol ) {
+		case STD_NETWORK_PROTOCOL_icmp: { module_network_ipv4_exit( (struct MODULE_NETWORK_STRUCTURE_SOCKET *) &module_network_socket_list[ socket ], data, length ); break; }
 		case STD_NETWORK_PROTOCOL_udp: { module_network_udp( (struct MODULE_NETWORK_STRUCTURE_SOCKET *) &module_network_socket_list[ socket ], data, length ); break; }
 	}
 
