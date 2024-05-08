@@ -14,13 +14,11 @@ volatile uint8_t module_network_tx_semaphore				= FALSE;
 
 uint32_t module_network_multicast_address				= 0xFFFFFFFF;	// 255.255.255.255
 
-int64_t *module_network_port_table					= EMPTY;
-uint8_t module_network_port_semaphore					= FALSE;
-
 struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket_list	= EMPTY;
 uint8_t module_network_socket_semaphore					= FALSE;
+uint8_t module_network_socket_port_semaphore				= FALSE;
 
 struct MODULE_NETWORK_STRUCTURE_ARP *module_network_arp_list		= EMPTY;
-uint8_t module_network_arp_semaphore					= FALSE;
+uint8_t module_network_arp_list_semaphore				= FALSE;
 
 int64_t network_thread_pid						= EMPTY;

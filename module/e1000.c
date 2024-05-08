@@ -115,7 +115,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		module_e1000_tx_base_address = (struct MODULE_E1000_STRUCTURE_TDESC *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_E1000_TDLEN_SIZE_byte ) >> STD_SHIFT_PAGE );
 
 		// load descriptor table address to network controller mmio
-		module_e1000_mmio_base_address -> tdbal = (uint32_t) ((uintptr_t) module_e1000_tx_base_address & ~KERNEL_PAGE_logical);
+		module_e1000_mmio_base_address -> tdbal = (uint32_t) ((uintptr_t) module_e1000_tx_base_address);
 		module_e1000_mmio_base_address -> tdbah = (uint32_t) (((uintptr_t) module_e1000_tx_base_address & ~KERNEL_PAGE_logical) >> 32);
 
 		// set up size of descriptor cache, header and limit

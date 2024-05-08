@@ -728,14 +728,13 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 	if( ! socket ) return EMPTY;
 
 	// bind selected port
-	if( port_local ) socket -> port_local = kernel -> network_port( port_local );
+	if( ! kernel -> network_socket_port( socket, port_local ) ) {
+		// release socket
+		socket -> pid = EMPTY;
 
-	// debug
-	else socket -> port_local = 32768;
-
-	// port already in use?
-	if( ! socket -> port_local ) return STD_ERROR_locked;
-	else socket -> port_local = MACRO_ENDIANNESS_WORD( port_local );
+		// port already in use
+		return STD_ERROR_locked;
+	}
 
 	// set socket properties
 	socket -> protocol	= protocol;

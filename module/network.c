@@ -82,6 +82,23 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	// properties of ARP header
 	struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *arp = (struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ));
 
+	// reply targeting us?
+	if( arp -> operation == MODULE_NETWORK_HEADER_ARP_OPERATION_answer ) {
+		// search inside arp list for already existing entry
+		struct MODULE_NETWORK_STRUCTURE_ARP *arp_list = EMPTY;
+		if( ! (arp_list = module_network_arp_list_search( arp -> source_ipv4 ) ) ) module_network_arp_list_add( arp );
+		else {
+			// update ARP list entry
+			for( uint8_t i = 0; i < 6; i++ ) arp_list -> mac_address[ i ] = arp -> source_mac[ i ];
+
+			// and validation time
+			arp_list -> lease_time = kernel -> time_unit + 300;	// ~5 min
+		}
+
+		// answer parsed
+		return TRUE;
+	}
+
 	// inquiry about our IPv4 address?
 	if( arp -> operation == MODULE_NETWORK_HEADER_ARP_OPERATION_request && arp -> target_ipv4 != MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address ) ) return TRUE;	// no, ignore message and release frame area
 
@@ -126,6 +143,43 @@ uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 
 	// frame transferred to driver
 	return FALSE;
+}
+
+void module_network_arp_list_add( struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *arp ) {
+	// lock ARP list modification
+	MACRO_LOCK( module_network_arp_list_semaphore );
+
+	// search for empty or overtime entry
+	for( uint64_t i = 0; i < MODULE_NETWORK_ARP_limit; i++ ) {
+		// entry in use?
+		if( module_network_arp_list[ i ].lease_time > kernel -> time_unit ) continue;	// yes
+
+		// set IPv4 address
+		module_network_arp_list[ i ].ipv4_address = arp -> source_ipv4;
+
+		// and its MAC address
+		for( uint8_t i = 0; i < 6; i++ ) module_network_arp_list -> mac_address[ i ] = arp -> source_mac[ i ];
+
+		// calculate leasing time
+		module_network_arp_list[ i ].lease_time = kernel -> time_unit + 300;	// ~5 min
+
+		// debug
+		kernel -> log( (uint8_t *) "[NETWORK] ARP new entry: %u.%u.%u.%u > %2X:%2X:%2X:%2X:%2X:%2X\n", (uint8_t) (arp -> source_ipv4 >> 24), (uint8_t) (arp -> source_ipv4 >> 16), (uint8_t) (arp -> source_ipv4 >> 8), (uint8_t) arp -> source_ipv4, arp -> source_mac[ 0 ], arp -> source_mac[ 1 ], arp -> source_mac[ 2 ], arp -> source_mac[ 3 ], arp -> source_mac[ 4 ], arp -> source_mac[ 5 ] );
+	}
+
+	// unlock access
+	MACRO_UNLOCK( module_network_arp_list_semaphore );
+}
+
+struct MODULE_NETWORK_STRUCTURE_ARP *module_network_arp_list_search( uint32_t ipv4_address ) {
+	// search for empty or overtime entry
+	for( uint64_t i = 0; i < MODULE_NETWORK_ARP_limit; i++ ) {
+		// found entry?
+		if( module_network_arp_list[ i ].ipv4_address == ipv4_address ) return (struct MODULE_NETWORK_STRUCTURE_ARP *) &module_network_arp_list[ i ];
+	}
+
+	// not found
+	return EMPTY;
 }
 
 uint16_t module_network_checksum( uint16_t *data, uint16_t length ) {
@@ -245,28 +299,23 @@ void module_network_init( void ) {
 	// share send/receive functions
 	kernel -> network_send = (void *) module_network_send;
 
-	// create port table
-	module_network_port_table = (int64_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_PORT_limit * sizeof( int64_t ) ) >> STD_SHIFT_PAGE );
-
-	// share port function
-	kernel -> network_port = (void *) module_network_port;
-
 	// assign area for connection sockets
 	module_network_socket_list = (struct MODULE_NETWORK_STRUCTURE_SOCKET *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_SOCKET_limit * sizeof( struct MODULE_NETWORK_STRUCTURE_SOCKET ) ) >> STD_SHIFT_PAGE );
 
 	// share socket function and offset
 	kernel -> network_socket = (void *) module_network_socket;
 	kernel -> network_socket_offset = (uintptr_t) module_network_socket_list;
+	kernel -> network_socket_port = (void *) module_network_socket_port;
 
 	// open dummy socket, as socket with ID 0, cannot be used
 	module_network_socket();
 
 	// assign area for ARP list
-	module_network_arp_list = (struct MODULE_NETWORK_STRUCTURE_ARP *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_ARP_limit * sizeof( struct MODULE_NETWORK_STRUCTURE_ARP ) ) );
+	module_network_arp_list = (struct MODULE_NETWORK_STRUCTURE_ARP *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_ARP_limit * sizeof( struct MODULE_NETWORK_STRUCTURE_ARP ) ) >> STD_SHIFT_PAGE );
 
 	// enable thread for ARP resolving
 	uint8_t network_string_thread_name[] = "network arp";
-	network_thread_pid = kernel -> module_thread( (uintptr_t) &module_network_thread_arp, (uint8_t *) &network_string_thread_name, sizeof( network_string_thread_name ) );
+	network_thread_pid = kernel -> module_thread( (uintptr_t) &module_network_arp_thread, (uint8_t *) &network_string_thread_name, sizeof( network_string_thread_name ) );
 }
 
 uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
@@ -342,32 +391,6 @@ void module_network_ipv4_exit( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, u
 	module_network_ipv4_encapsulate( socket, ethernet, length );
 }
 
-uint8_t module_network_port( uint16_t port ) {
-	// port overflow?
-	if( MODULE_NETWORK_PORT_limit <= port ) return FALSE;	// yes
-
-	// block access to port table
-	MACRO_LOCK( module_network_port_semaphore );
-
-	// port is free to use?
-	if( ! module_network_port_table[ port ] ) {
-		// assign task to it
-		module_network_port_table[ port ] = kernel -> task_pid();
-
-		// unlock
-		MACRO_UNLOCK( module_network_port_semaphore );
-
-		// port assigned
-		return TRUE;
-	}
-
-	// unlock
-	MACRO_UNLOCK( module_network_port_semaphore );
-
-	// port already in use
-	return FALSE;
-}
-
 void module_network_rx( uintptr_t frame ) {
 	// block access to stack modification
 	MACRO_LOCK( module_network_rx_semaphore );
@@ -418,9 +441,85 @@ struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void ) {
 	return EMPTY;
 }
 
-void module_network_thread_arp( void ) {
+uint8_t module_network_socket_port( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint16_t port ) {
+	// block access to socket list
+	MACRO_LOCK( module_network_socket_port_semaphore );
+
+	// by default port is free to use
+	uint8_t allow = TRUE;
+
+	// search for port in use
+	for( uint64_t i = 0; allow && i < MODULE_NETWORK_SOCKET_limit; i++ ) {
+		// port already in use?
+		if( module_network_socket_list[ i ].port_local == port ) allow = FALSE;	// yes, god dammit
+	}
+
+	// port not in use?
+	if( allow ) socket -> port_local = port;	// reserve
+
+	// unlock
+	MACRO_UNLOCK( module_network_socket_port_semaphore );
+
+	// port already in use
+	return FALSE;
+}
+
+
+void module_network_arp_thread( void ) {
+	// open new socket for this thread
+	struct MODULE_NETWORK_STRUCTURE_SOCKET *socket = module_network_socket();
+
+	// set socket properties
+
+	// protocol
+	socket -> protocol = STD_NETWORK_PROTOCOL_arp;
+
+	// socket configured, activate
+	socket -> flags = MODULE_NETWORK_SOCKET_FLAG_active;
+
 	// main loop
 	while( TRUE ) {
+		// analyze sockets properties
+		for( uint64_t i = 0; i < MODULE_NETWORK_SOCKET_limit; i++ ) {
+			// resolve IPv4 address?
+			if( ! module_network_socket_list[ i ].pid || module_network_socket_list[ i ].protocol == STD_NETWORK_PROTOCOL_arp ) continue;	// no need
+
+			// ARP entry properties
+			struct MODULE_NETWORK_STRUCTURE_ARP *arp = module_network_arp_list_search( module_network_socket_list[ i ].ipv4_target );
+
+			// up to date?
+			if( arp && arp -> lease_time > kernel -> time_unit ) continue;	// yes
+
+			//----------------------------------------------------------------------
+
+			MACRO_DEBUF();
+
+			// allocate area for ethernet/arp frame
+			struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel -> memory_alloc( TRUE );
+
+			// properties of ARP frame
+			struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *arp_frame = (struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) );
+
+			// set ARP properties
+			arp_frame -> hardware_type	= MODULE_NETWORK_HEADER_ARP_HARDWARE_TYPE_ethernet;
+			arp_frame -> protocol_type	= MODULE_NETWORK_HEADER_ARP_PROTOCOL_TYPE_ipv4;
+			arp_frame -> hardware_length	= MODULE_NETWORK_HEADER_ARP_HARDWARE_LENGTH_mac;
+			arp_frame -> protocol_length	= MODULE_NETWORK_HEADER_ARP_PROTOCOL_LENGTH_ipv4;
+			arp_frame -> operation	= MODULE_NETWORK_HEADER_ARP_OPERATION_request;
+
+			// set source MAC
+			for( uint8_t i = 0; i < 6; i++ ) arp_frame -> source_mac[ i ] = kernel -> network_interface.ethernet_mac[ i ];
+
+			// set source IPv4
+			arp_frame -> source_ipv4 = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
+
+			// set target IPv4
+			arp_frame -> target_ipv4 = MACRO_ENDIANNESS_DWORD( module_network_socket_list[ i ].ipv4_target );
+
+			// encapsulate ARP frame and send
+			module_network_ethernet_encapsulate( socket, ethernet, sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ARP ) );
+		}
+
 		// release AP time
 		kernel -> time_sleep( TRUE );
 	}

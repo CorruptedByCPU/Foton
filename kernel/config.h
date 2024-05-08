@@ -47,9 +47,9 @@ struct KERNEL {
 	struct KERNEL_GDT_STRUCTURE_HEADER			gdt_header;
 
 	// variables of HPET management functions
-	volatile struct KERNEL_HPET_STRUCTURE_REGISTER		*hpet_base_address;
+	// volatile struct KERNEL_HPET_STRUCTURE_REGISTER		*hpet_base_address;
 	// volatile uint64_t	hpet_miliseconds;
-	uint8_t		hpet_timers;
+	// uint8_t		hpet_timers;
 
 	// variables of Time management functions
 	volatile uint64_t	time_unit;
@@ -109,8 +109,8 @@ struct KERNEL {
 	// functions of Network management
 	void							(*network_rx)( uintptr_t packet );
 	uintptr_t						(*network_tx)( void );
-	uint8_t							(*network_port)( uint16_t port );
 	struct MODULE_NETWORK_STRUCTURE_SOCKET			*(*network_socket)( void );
+	uint8_t							(*network_socket_port)( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint16_t port );
 	int64_t							(*network_send)( int64_t socket, uint8_t *data, uint64_t length );
 
 	// variables of Page management functions
@@ -132,7 +132,7 @@ struct KERNEL {
 	uint8_t		storage_semaphore;
 
 	// variables of Stream management functions
-	struct KERNEL_STREAM_STRUCTURE	*stream_base_address;
+	struct KERNEL_STREAM_STRUCTURE				*stream_base_address;
 	uint8_t		stream_semaphore;
 	// functions of Stream management
 	void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
@@ -154,7 +154,7 @@ struct KERNEL {
 	struct KERNEL_TSS_STRUCTURE				tss_table;
 
 	// variables of VFS management functions
-	struct KERNEL_VFS_STRUCTURE			*vfs_base_address;
+	struct KERNEL_VFS_STRUCTURE				*vfs_base_address;
 	uint64_t	vfs_root;
 	uint8_t		vfs_semaphore;
 };

@@ -4,8 +4,7 @@
 
 #define	MODULE_NETWORK_YX_limit						512
 
-#define	MODULE_NETWORK_PORT_limit					65535
-#define	MODULE_NETWORK_SOCKET_limit					255
+#define	MODULE_NETWORK_SOCKET_limit					256
 #define	MODULE_NETWORK_ARP_limit					1024
 
 #define	MODULE_NETWORK_SOCKET_FLAG_active				0b00000001
@@ -15,10 +14,10 @@
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4			0x0008	// Big-Endian
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv6			0xDD86	// Big-Endian
 
-#define	MODULE_NETWORK_HEADER_ARP_HARDWARE_ETHERNET_type		0x0100	// Big-Endian
-#define	MODULE_NETWORK_HEADER_ARP_PROTOCOL_IPV4_type			0x0008	// Big-Endian
-#define	MODULE_NETWORK_HEADER_ARP_HARDWARE_MAC_length			0x06	// xx:xx:xx:xx:xx:xx
-#define	MODULE_NETWORK_HEADER_ARP_PROTOCOL_IPV4_length			0x04	// x.x.x.x
+#define	MODULE_NETWORK_HEADER_ARP_HARDWARE_TYPE_ethernet		0x0100	// Big-Endian
+#define	MODULE_NETWORK_HEADER_ARP_PROTOCOL_TYPE_ipv4			0x0008	// Big-Endian
+#define	MODULE_NETWORK_HEADER_ARP_HARDWARE_LENGTH_mac			0x06	// xx:xx:xx:xx:xx:xx
+#define	MODULE_NETWORK_HEADER_ARP_PROTOCOL_LENGTH_ipv4			0x04	// x.x.x.x
 #define	MODULE_NETWORK_HEADER_ARP_OPERATION_request			0x0100	// Big-Endian
 #define	MODULE_NETWORK_HEADER_ARP_OPERATION_answer			0x0200	// Big-Endian
 
@@ -107,6 +106,10 @@ struct	MODULE_NETWORK_STRUCTURE_SOCKET {
 
 uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
 
+void module_network_arp_list_add( struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *arp );
+
+struct MODULE_NETWORK_STRUCTURE_ARP *module_network_arp_list_search( uint32_t ipv4_address );
+
 uint16_t module_network_checksum( uint16_t *data, uint16_t length );
 
 void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
@@ -122,8 +125,6 @@ void module_network_ipv4_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *so
 
 void module_network_ipv4_exit( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint16_t length );
 
-uint8_t module_network_port( uint16_t port );
-
 // storage function for incomming packets
 void module_network_rx( uintptr_t frame );
 
@@ -131,7 +132,9 @@ int64_t module_network_send( int64_t socket, uint8_t *data, uint64_t length );
 
 struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void );
 
-void module_network_thread_arp( void );
+uint8_t module_network_socket_port( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint16_t port );
+
+void module_network_arp_thread( void );
 
 // returns physical address and size of packet to transfer outside of host
 uintptr_t module_network_tx( void );
