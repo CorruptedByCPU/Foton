@@ -737,17 +737,29 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 	}
 
 	// set socket properties
-	socket -> protocol	= protocol;
-	socket -> ipv4_target	= MACRO_ENDIANNESS_DWORD( ipv4_target );
-	socket -> port_target	= MACRO_ENDIANNESS_WORD( port_target );
-	socket -> ipv4_id	= MACRO_ENDIANNESS_WORD( kernel_syscall_microtime() );
+	socket -> ethernet_mac_lease	= EMPTY;
+	socket -> protocol		= protocol;
+	socket -> ipv4_target		= MACRO_ENDIANNESS_DWORD( ipv4_target );
+	socket -> port_target		= MACRO_ENDIANNESS_WORD( port_target );
+	socket -> ipv4_id		= MACRO_ENDIANNESS_WORD( kernel_syscall_microtime() );
 
 	// set sockets ipv4 protocol
 	switch( protocol ) {
 		// ICMP
-		case STD_NETWORK_PROTOCOL_icmp: { socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp; break; }
+		case STD_NETWORK_PROTOCOL_icmp: {
+			// fill IPv4 protocol field
+			socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp;
+			
+			// wait for socket initialization
+			while( ! socket -> ethernet_mac_lease );
+
+			// ready
+			break;
+		}
+
 		// UDP
 		case STD_NETWORK_PROTOCOL_udp: { socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp; break; }
+		
 		// TCP
 		case STD_NETWORK_PROTOCOL_tcp: { socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_tcp; break; }
 	}

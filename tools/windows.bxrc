@@ -47,7 +47,4 @@ speaker: enabled=true, mode=sound, volume=15
 parport1: enabled=true, file=none
 parport2: enabled=false
 com1: enabled=true, mode=file, dev="serial.log"
-com2: enabled=false
-com3: enabled=false
-com4: enabled=false
-e1000: card=0, enabled=true, mac=00:22:44:66:88:aa, ethmod=win32, ethdev="\Device\NPF_{5e3b4c33-7b2c-4442-b317-bf1f86284dcd}", script=none, bootrom=none
+e1000: card=0, enabled=true, mac=00:22:44:66:88:aa, ethmod=win32, ethdev="\Device\NPF_{d554ea27-ea23-4ec5-8ee5-abfaba42ec32}", script=none, bootrom=none

@@ -96,6 +96,7 @@ struct	MODULE_NETWORK_STRUCTURE_SOCKET {
 	uint8_t		protocol;
 	uint16_t	ethernet_type;
 	uint8_t		ethernet_mac[ 6 ];
+	volatile uint64_t	ethernet_mac_lease;
 	uint16_t	port_local;
 	uint16_t	port_target;
 	uint8_t		ipv4_protocol;
@@ -105,10 +106,6 @@ struct	MODULE_NETWORK_STRUCTURE_SOCKET {
 };
 
 uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
-
-void module_network_arp_list_add( struct MODULE_NETWORK_STRUCTURE_HEADER_ARP *arp );
-
-struct MODULE_NETWORK_STRUCTURE_ARP *module_network_arp_list_search( uint32_t ipv4_address );
 
 uint16_t module_network_checksum( uint16_t *data, uint16_t length );
 
@@ -132,7 +129,11 @@ int64_t module_network_send( int64_t socket, uint8_t *data, uint64_t length );
 
 struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void );
 
+void module_network_socket_close( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket );
+
 uint8_t module_network_socket_port( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint16_t port );
+
+uint16_t module_network_socket_port_random( uint16_t limit );
 
 void module_network_arp_thread( void );
 

@@ -55,4 +55,3 @@ com4: enabled=false
 e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=vnet
 # debug
 #e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=linux, ethdev=wlp0s20f3
-#e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=win32, ethdev=\Device\NPF_{17c01f02-0dd9-4d5e-9a39-c127678c2387}, script=none

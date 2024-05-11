@@ -65,8 +65,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	icmp -> checksum = EMPTY;	// always
 	icmp -> checksum = lib_network_checksum( (uint16_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
 
-	// send request outside
-	std_network_send( socket, (uint8_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
+	while( TRUE ) {
+		// send request outside
+		std_network_send( socket, (uint8_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
+		
+		std_sleep( 1024 );
+	}
 
 	// release ICMP request
 	free( icmp );
