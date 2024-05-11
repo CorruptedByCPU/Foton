@@ -140,6 +140,6 @@ void module_network_arp_thread( void );
 // returns physical address and size of packet to transfer outside of host
 uintptr_t module_network_tx( void );
 
-void module_network_udp( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint64_t length );
+void module_network_udp_exit( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint64_t length );
 
 void module_network_udp_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
