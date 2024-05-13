@@ -2,13 +2,18 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+#define	MODULE_NETWORK_INTERFACE_limit					2
+
 #define	MODULE_NETWORK_YX_limit						512
 
 #define	MODULE_NETWORK_SOCKET_limit					256
 #define	MODULE_NETWORK_ARP_limit					1024
 
 #define	MODULE_NETWORK_SOCKET_FLAG_active				0b00000001
+#define	MODULE_NETWORK_SOCKET_FLAG_pause				0b00100000
+#define	MODULE_NETWORK_SOCKET_FLAG_close				0b01000000
 #define	MODULE_NETWORK_SOCKET_FLAG_init					0b10000000
+#define	MODULE_NETWORK_SOCKET_DATA_limit				511	// packets, last entry 512th always empty
 
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_arp				0x0608	// Big-Endian
 #define	MODULE_NETWORK_HEADER_ETHERNET_TYPE_ipv4			0x0008	// Big-Endian
@@ -103,11 +108,17 @@ struct	MODULE_NETWORK_STRUCTURE_SOCKET {
 	uint32_t	ipv4_target;
 	uint16_t	ipv4_id;
 	uint8_t		ipv4_ttl;
+	uintptr_t	*data_in;
+	uint8_t		data_in_semaphore;
+	uintptr_t	*data_out;
+	uint8_t		data_out_semaphore;
 };
 
 uint8_t module_network_arp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
 
 uint16_t module_network_checksum( uint16_t *data, uint16_t length );
+
+void module_network_data_in( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uintptr_t packet );
 
 void module_network_ethernet_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
 
@@ -121,6 +132,8 @@ uint8_t module_network_ipv4( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 void module_network_ipv4_encapsulate( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
 
 void module_network_ipv4_exit( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint16_t length );
+
+void module_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet );
 
 // storage function for incomming packets
 void module_network_rx( uintptr_t frame );

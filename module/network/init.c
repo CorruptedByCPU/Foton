@@ -12,6 +12,7 @@ void module_network_init( void ) {
 	kernel -> network_tx = (void *) module_network_tx;
 
 	// share send/receive functions
+	kernel -> network_receive = (void *) module_network_receive;
 	kernel -> network_send = (void *) module_network_send;
 
 	// assign area for connection sockets

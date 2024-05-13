@@ -13,7 +13,38 @@ void module_network_icmp( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET *ether
 	struct MODULE_NETWORK_STRUCTURE_HEADER_ICMP *icmp = (struct MODULE_NETWORK_STRUCTURE_HEADER_ICMP *) ((uintptr_t) ethernet + sizeof( struct MODULE_NETWORK_STRUCTURE_HEADER_ETHERNET ) + ipv4_header_length);
 
 	// it's an answer?
-	if( icmp -> type == MODULE_NETWORK_HEADER_ICMP_TYPE_REPLY ) return;	// ignore, for now
+	if( icmp -> type == MODULE_NETWORK_HEADER_ICMP_TYPE_REPLY ) {
+		// search for open socket
+		for( uint64_t i = 0; i < MODULE_NETWORK_SOCKET_limit; i++ ) {
+			// socket with ICMP protocol?
+			if( module_network_socket_list[ i ].protocol != STD_NETWORK_PROTOCOL_icmp ) continue;	// no
+
+			// socket connected to target by MAC?
+			for( uint8_t j = 0; j < 6; j++ ) if( module_network_socket_list[ j ].ethernet_mac[ j ] != kernel -> network_interface.ethernet_mac[ j ] ) continue;	// no
+
+			// socket connected to target by IPv4?
+			if( module_network_socket_list[ i ].ipv4_target != ipv4 -> local ) continue;	// no
+
+			// socket IPv4 type is ICMP?
+			if( module_network_socket_list[ i ].ipv4_protocol != MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp ) continue;	// no
+
+			// seems to be correct socket :)
+
+			// move data content at beginning of area
+			uint8_t *data = (uint8_t *) icmp;
+			uint8_t *rewrite = (uint8_t *) ethernet;
+			for( uint64_t j = 0; j < length - ((uintptr_t) icmp - (uintptr_t) ethernet); j++ ) rewrite[ j ] = data[ j ];
+
+			// register inside socket
+			module_network_data_in( (struct MODULE_NETWORK_STRUCTURE_SOCKET *) &module_network_socket_list[ i ], (uintptr_t) rewrite | (length - ((uintptr_t) icmp - (uintptr_t) ethernet)) );
+
+			// IPv4 frame content transferred to process owning socket
+			return;
+		}
+
+		// not found, ignore packet
+		return;
+	}
 
 	//----------------------------------------------------------------------
 

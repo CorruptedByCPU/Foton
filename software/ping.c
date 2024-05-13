@@ -39,8 +39,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		return 0;
 	}
 
+	print( "Connecting... " );
+
 	// prepare connection with selected IPv4 address
 	int64_t socket = std_network_open( STD_NETWORK_PROTOCOL_icmp, ipv4, EMPTY, EMPTY );
+
+	print( "OK\n" );
 
 	// create ICMP request
 	struct PING_STRUCTURE_ICMP *icmp = (struct PING_STRUCTURE_ICMP *) malloc( sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );	// default 32 Bytes of data inside ICMP frame
@@ -66,10 +70,22 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	icmp -> checksum = lib_network_checksum( (uint16_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
 
 	while( TRUE ) {
+		volatile uint64_t sent = std_microtime();
+
 		// send request outside
 		std_network_send( socket, (uint8_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
-		
-		std_sleep( 1024 );
+
+		struct STD_NETWORK_STRUCTURE_DATA packet = { EMPTY };
+		volatile uint64_t microtime = std_microtime() + 1024;
+		while( microtime > std_microtime() && ! packet.length ) { std_network_receive( socket, (struct STD_NETWORK_STRUCTURE_DATA *) &packet ); std_sleep( TRUE ); }
+
+		printf( "Reply from %u.%u.%u.%u: ", (uint8_t) (ipv4 >> 24), (uint8_t) (ipv4 >> 16), (uint8_t) (ipv4 >> 8), (uint8_t) ipv4 );
+		if( ! packet.length ) { print( "Destination host unreachable.\n" ); continue; }
+
+		printf( "bytes=%u time=%ums\n", 32, std_microtime() - sent );
+
+		int64_t left = microtime - std_microtime();
+		if( left > 0 ) std_sleep( left );
 	}
 
 	// release ICMP request

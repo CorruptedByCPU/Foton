@@ -356,3 +356,11 @@ void std_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interfac
 	// return nothing
 	return std_syscall_empty();
 }
+
+void std_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *data ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_RECEIVE), "D" (socket), "S" (data) );
+
+	// return nothing
+	return std_syscall_empty();
+}

@@ -107,6 +107,7 @@ struct KERNEL {
 	struct STD_NETWORK_STRUCTURE_INTERFACE			network_interface;
 	uintptr_t						network_socket_offset;
 	// functions of Network management
+	void							(*network_receive)( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet );
 	void							(*network_rx)( uintptr_t packet );
 	uintptr_t						(*network_tx)( void );
 	struct MODULE_NETWORK_STRUCTURE_SOCKET			*(*network_socket)( void );
@@ -136,6 +137,9 @@ struct KERNEL {
 	uint8_t		stream_semaphore;
 	// functions of Stream management
 	void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
+
+	// function of Syscall management
+	uintptr_t						(*syscall_memory_alloc)( uint64_t page );
 
 	// variables of Task management functions
 	struct KERNEL_TASK_STRUCTURE				*task_base_address;

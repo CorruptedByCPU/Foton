@@ -106,6 +106,58 @@ uint16_t module_network_checksum( uint16_t *data, uint16_t length ) {
 	else return ~MACRO_ENDIANNESS_WORD( ((result >> STD_MOVE_WORD) + (result & STD_WORD_mask)) );
 }
 
+void module_network_data_in( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uintptr_t packet ) {
+	// block access to stack modification
+	MACRO_LOCK( socket -> data_in_semaphore );
+
+	// search for free entry
+	for( uint16_t i = 0; i < MODULE_NETWORK_SOCKET_DATA_limit; i++ ) {
+		// free?
+		if( socket -> data_in[ i ] ) continue;	// no
+
+		// insert data into entry
+		socket -> data_in[ i ] = packet;
+
+		// done
+		break;
+	}
+
+	kernel -> log( (uint8_t *) "%x\n", &module_network_receive );
+
+	// unlock
+	MACRO_UNLOCK( socket -> data_in_semaphore );
+}
+
+void module_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet ) {
+	// packet properties
+	uint8_t *data = (uint8_t *) (module_network_socket_list[ socket ].data_in[ 0 ] & STD_PAGE_mask);
+	uint64_t length = module_network_socket_list[ socket ].data_in[ 0 ] & ~STD_PAGE_mask;
+
+	// nothing to transfer?
+	if( ! length ) return;	// yep
+
+	// block access to stack modification
+	MACRO_LOCK( module_network_socket_list[ socket ].data_in_semaphore );
+
+	// remove packet from queue
+	for( uint64_t i = 0; i < MODULE_NETWORK_SOCKET_DATA_limit; i++ ) module_network_socket_list[ socket ].data_in[ i ] = module_network_socket_list[ socket ].data_in[ i + 1 ];
+
+	// unlock
+	MACRO_UNLOCK( module_network_socket_list[ socket ].data_in_semaphore );
+
+	// alloc memory inside process area
+	packet -> data = (uint8_t *) kernel -> syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( length ) >> STD_SHIFT_PAGE );
+
+	// move data content
+	for( uint64_t i = 0; i < length; i++ ) packet -> data[ i ] = data[ i ];
+
+	// inform about length of transffered data
+	packet -> length = length;
+
+	// release packet area from kernel memory
+	kernel -> memory_release( (uintptr_t) data, MACRO_PAGE_ALIGN_UP( length ) >> STD_SHIFT_PAGE );
+}
+
 void module_network_rx( uintptr_t frame ) {
 	// block access to stack modification
 	MACRO_LOCK( module_network_rx_semaphore );

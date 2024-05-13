@@ -273,6 +273,11 @@
 	#define	STD_NETWORK_PROTOCOL_udp			0x02
 	#define	STD_NETWORK_PROTOCOL_tcp			0x03
 
+	struct STD_NETWORK_STRUCTURE_DATA {
+		uint8_t		*data;
+		uint64_t	length;
+	};
+
 	struct STD_NETWORK_STRUCTURE_INTERFACE {
 		uint8_t		ethernet_mac[ 6 ];
 		uint32_t	ipv4_address;
@@ -368,6 +373,7 @@
 	#define	STD_SYSCALL_NETWORK_OPEN			0x24
 	#define	STD_SYSCALL_NETWORK_SEND			0x25
 	#define	STD_SYSCALL_NETWORK_INTERFACE_SET		0x26
+	#define	STD_SYSCALL_NETWORK_RECEIVE			0x27
 
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -551,6 +557,9 @@
 
 	// modify properties of interface
 	void std_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface );
+
+	// receive data from socket
+	void std_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *data );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

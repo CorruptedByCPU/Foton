@@ -787,3 +787,15 @@ void kernel_syscall_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFAC
 	// update IPv4 address
 	kernel -> network_interface.ipv4_address = interface -> ipv4_address;
 }
+
+void kernel_syscall_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet ) {
+	// socket can exist?
+	if( socket > MODULE_NETWORK_SOCKET_limit ) return;	// no
+
+	// socket exist and belongs to process?
+	struct MODULE_NETWORK_STRUCTURE_SOCKET *s = (struct MODULE_NETWORK_STRUCTURE_SOCKET *) kernel -> network_socket_offset;
+	if( s[ socket ].pid != kernel -> task_pid() ) return;	// no
+
+	// pass execution to Network module
+	kernel -> network_receive( socket, packet );
+}

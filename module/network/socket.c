@@ -17,6 +17,9 @@ struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void ) {
 		// unlock
 		MACRO_UNLOCK( module_network_socket_semaphore );
 
+		// assign incomming data area
+		module_network_socket_list[ i ].data_in = (uintptr_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_NETWORK_SOCKET_DATA_limit * sizeof( uintptr_t ) ) >> STD_SHIFT_PAGE );
+
 		// return socket pointer
 		return (struct MODULE_NETWORK_STRUCTURE_SOCKET *) &module_network_socket_list[ i ];
 	}
