@@ -54,6 +54,7 @@ You will be able to create your own system profiles, and build your own compilat
 |ip|Network Interface IPv4 show/change tool.|
 |ls|listing of files in current directory or selected one.|
 |moko|Text editor.|
+|ping|Connection check by IPv4 address.|
 |pwd|show current path of root directory|
 |shell|default command line interaction with operating system.|
 |soler|*{work in progress}* **calculator**|

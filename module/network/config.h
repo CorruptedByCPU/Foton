@@ -144,6 +144,8 @@ struct MODULE_NETWORK_STRUCTURE_SOCKET *module_network_socket( void );
 
 void module_network_socket_close( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket );
 
+void module_network_socket_close_by_pid( int64_t pid );
+
 uint8_t module_network_socket_port( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint16_t port );
 
 uint16_t module_network_socket_port_random( uint16_t limit );

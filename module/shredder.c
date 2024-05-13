@@ -41,6 +41,9 @@ void close( int64_t pid ) {
 	// wait for release by any AP
 	while( task -> flags & KERNEL_TASK_FLAG_exec );
 
+	// close all network sockets belonged to process
+	kernel -> network_socket_close_by_pid( task -> pid );
+
 	// prepare thread for decomission?
 	if( task -> flags & KERNEL_TASK_FLAG_thread ) {	// yes
 		// Paging Table properties

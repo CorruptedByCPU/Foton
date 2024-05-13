@@ -21,8 +21,8 @@ struct PING_STRUCTURE_ICMP {
 } __attribute__((packed));
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	// debug, do not use
-	return 0;
+	// request for at least 4 replies
+	uint64_t count = 4;
 
 	// nothing to do?
 	if( argc < 2 ) return 0;	// yes
@@ -39,12 +39,27 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		return 0;
 	}
 
-	print( "Connecting... " );
-
 	// prepare connection with selected IPv4 address
 	int64_t socket = std_network_open( STD_NETWORK_PROTOCOL_icmp, ipv4, EMPTY, EMPTY );
 
-	print( "OK\n" );
+	// status of socket
+	switch( socket ) {
+		case EMPTY: {
+			// error messaage
+			print( "Cannot open socket." );
+
+			// exit
+			return EMPTY;
+		}
+
+		case STD_ERROR_unavailable: {
+			// error messaage
+			print( "No connection." );
+
+			// exit
+			return STD_ERROR_unavailable;
+		}
+	}
 
 	// create ICMP request
 	struct PING_STRUCTURE_ICMP *icmp = (struct PING_STRUCTURE_ICMP *) malloc( sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );	// default 32 Bytes of data inside ICMP frame
@@ -69,23 +84,38 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	icmp -> checksum = EMPTY;	// always
 	icmp -> checksum = lib_network_checksum( (uint16_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
 
-	while( TRUE ) {
-		volatile uint64_t sent = std_microtime();
+	// request for N replies
+	while( count ) {
+		// start of timelapse
+		int64_t current_microtime = std_microtime();
+		int64_t end_microtime = current_microtime + 1000;	// at least 1 second
 
 		// send request outside
 		std_network_send( socket, (uint8_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
 
+		// properties of reply
 		struct STD_NETWORK_STRUCTURE_DATA packet = { EMPTY };
-		volatile uint64_t microtime = std_microtime() + 1024;
-		while( microtime > std_microtime() && ! packet.length ) { std_network_receive( socket, (struct STD_NETWORK_STRUCTURE_DATA *) &packet ); std_sleep( TRUE ); }
 
-		printf( "Reply from %u.%u.%u.%u: ", (uint8_t) (ipv4 >> 24), (uint8_t) (ipv4 >> 16), (uint8_t) (ipv4 >> 8), (uint8_t) ipv4 );
-		if( ! packet.length ) { print( "Destination host unreachable.\n" ); continue; }
+		// wait for incomming reply
+		while( end_microtime > current_microtime && ! packet.length ) {
+			// check for incommint reply
+			std_network_receive( socket, (struct STD_NETWORK_STRUCTURE_DATA *) &packet );
 
-		printf( "bytes=%u time=%ums\n", 32, std_microtime() - sent );
+			// still no reply, update current time
+			current_microtime = std_microtime();
+		}
 
-		int64_t left = microtime - std_microtime();
-		if( left > 0 ) std_sleep( left );
+		// didn't receive anything?
+		if( ! packet.length ) { print( "No answer.\n" ); count--; continue; }	// ignore request
+
+		// calculate waiting time
+		printf( "Reply from %u.%u.%u.%u in %ums\n", (uint8_t) (ipv4 >> 24), (uint8_t) (ipv4 >> 16), (uint8_t) (ipv4 >> 8), (uint8_t) ipv4, 1000 - (end_microtime - current_microtime) );
+
+		// release packet area
+		std_memory_release( (uintptr_t) packet.data, MACRO_PAGE_ALIGN_UP( packet.length ) >> STD_SHIFT_PAGE );
+
+		// no more replies required?
+		if( --count ) std_sleep( end_microtime - current_microtime );	// wait before sending next request
 	}
 
 	// release ICMP request

@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"280"
+#define	KERNEL_revision		"285"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -111,6 +111,8 @@ struct KERNEL {
 	void							(*network_rx)( uintptr_t packet );
 	uintptr_t						(*network_tx)( void );
 	struct MODULE_NETWORK_STRUCTURE_SOCKET			*(*network_socket)( void );
+	void							(*network_socket_close)( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket );
+	void							(*network_socket_close_by_pid)( int64_t pid );
 	uint8_t							(*network_socket_port)( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint16_t port );
 	int64_t							(*network_send)( int64_t socket, uint8_t *data, uint64_t length );
 

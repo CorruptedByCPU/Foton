@@ -36,6 +36,14 @@ void module_network_socket_close( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket
 	socket -> pid = EMPTY;
 }
 
+void module_network_socket_close_by_pid( int64_t pid ) {
+	// search for ant socket related to selected process
+	for( uint64_t i = 0; i < MODULE_NETWORK_SOCKET_limit; i++ ) {
+		// owned by selected process?
+		if( module_network_socket_list[ i ].pid == pid ) module_network_socket_close( (struct MODULE_NETWORK_STRUCTURE_SOCKET *) &module_network_socket_list[ i ] );	// yes, close it
+	}
+}
+
 uint8_t module_network_socket_port( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint16_t port ) {
 	// block access to socket list
 	MACRO_LOCK( module_network_socket_port_semaphore );

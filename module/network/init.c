@@ -20,6 +20,8 @@ void module_network_init( void ) {
 
 	// share socket function and offset
 	kernel -> network_socket = (void *) module_network_socket;
+	kernel -> network_socket_close = (void *) module_network_socket_close;
+	kernel -> network_socket_close_by_pid = (void *) module_network_socket_close_by_pid;
 	kernel -> network_socket_offset = (uintptr_t) module_network_socket_list;
 	kernel -> network_socket_port = (void *) module_network_socket_port;
 

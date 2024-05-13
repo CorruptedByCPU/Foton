@@ -2,6 +2,9 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+13.05.2024
+- ping - checking network connection with other hosts (only by IPv4)
+
 04.05.2024
 - network: ARP, ICMP, IP, UDP ready,
 - ip software to change/show current IPV4 address of network interface.

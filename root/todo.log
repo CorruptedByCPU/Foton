@@ -4,7 +4,6 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 
 started:
 - network (tcp, dhcp)
-- ping
 
 yet to be done:
 - hexedit software, show content of files in binary mode (with ASCII overview)
@@ -13,6 +12,6 @@ yet to be done:
   history, replenishment, inline edit
 - vfs - change file/directory data blocks structure
 - software: cal, cp, cut, date, df, du, echo, find, grep, halt, head, kill,
-  less/more, ln, mkdir, mv, ping, ps, reboot, rm, sleep, tail, time,
+  less/more, ln, mkdir, mv, ps, reboot, rm, sleep, tail, time,
   uname, uptime, wc
 - one instance of application code in memory (data per running task)

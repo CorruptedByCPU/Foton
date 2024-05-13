@@ -751,7 +751,17 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 			socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp;
 			
 			// wait for socket initialization
-			while( ! socket -> ethernet_mac_lease );
+			volatile uint64_t timeout = kernel -> time_unit + DRIVER_RTC_Hz;
+			while( timeout > kernel -> time_unit && ! socket -> ethernet_mac_lease );
+
+			// cannot resolve IPv4 address?
+			if( ! socket -> ethernet_mac_lease ) {
+				// close socket
+				kernel -> network_socket_close( socket );
+
+				// cannot create connection
+				return STD_ERROR_unavailable;
+			}
 
 			// ready
 			break;
