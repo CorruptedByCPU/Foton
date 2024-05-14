@@ -45,22 +45,31 @@ void _entry( uintptr_t kernel_ptr ) {
 		// get base address of network controller mmio
 		uint64_t mmio = (uint64_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_bar0 );
 
-		// base address can be 64 bit wide?
-		if( (uint8_t) mmio & DRIVER_PCI_REGISTER_FLAG_64 )
+		// unsupported method?
+		if( (uint8_t) mmio & DRIVER_PCI_REGISTER_BAR0_FLAG_io ) {
+			// initialization halted
+			kernel -> log( (uint8_t *) "[E1000] I/O is unsupported.\n" );
+
+			// hold the door
+			while( TRUE );
+		}
+
+		// base address is 64 bit wide?
+		if( (uint8_t) mmio & DRIVER_PCI_REGISTER_BAR0_FLAG_64bit )
 			// get older 32 bit part of full address
 			mmio |= (uint64_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_bar1 ) << STD_SHIFT_32;
 
-		// debug
-		kernel -> log( (uint8_t *) "[E1000] MMIO base address at 0x%X\n", mmio );
-
 		// remember mmio base address of network controller
 		module_e1000_mmio_base_address = (struct MODULE_E1000_STRUCTURE_MMIO *) ((mmio & ~0x0F) | KERNEL_PAGE_logical);
+
+		// debug
+		kernel -> log( (uint8_t *) "[E1000] MMIO base address at 0x%X\n", module_e1000_mmio_base_address );
 
 		// retrieve interrupt number of network controller
 		module_e1000_irq_number = (uint8_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_irq );
 
 		// map MMIO controller area
-		kernel -> page_map( kernel -> page_base_address, (uintptr_t) module_e1000_mmio_base_address & ~KERNEL_PAGE_logical, (uintptr_t) module_e1000_mmio_base_address, MACRO_PAGE_ALIGN_UP( STD_PAGE_byte << STD_SHIFT_4 ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+		kernel -> page_map( kernel -> page_base_address, (uintptr_t) module_e1000_mmio_base_address & ~KERNEL_PAGE_logical, (uintptr_t) module_e1000_mmio_base_address, MACRO_PAGE_ALIGN_UP( MODULE_E1000_MMIO_limit ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 		// retrieve network controller mac address
 		module_e1000_mac[ 0 ] = (uint8_t) (module_e1000_eeprom( 0x0001 ) >> 16);

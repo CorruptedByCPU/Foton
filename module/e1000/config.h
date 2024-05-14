@@ -136,6 +136,9 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
         #define	MODULE_E1000_TDLEN_default		0x80	// rozmiar przestrzeni kolejki: 128 Bajtów
         #define MODULE_E1000_TDLEN_SIZE_byte		MODULE_E1000_TDLEN_default
 
+	#define	MODULE_E1000_MMIO_CTRL			0x0000
+	#define	MODULE_E1000_MMIO_limit			0x4000
+
         struct	MODULE_E1000_STRUCTURE_MMIO {
                 uint32_t	ctrl;		// 0x0000 - 0x0003
 		uint32_t	unused_0[ 1 ];	// 0x0004 - 0x0007

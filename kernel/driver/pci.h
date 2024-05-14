@@ -18,7 +18,8 @@
         #define	DRIVER_PCI_REGISTER_bar4		0x20
         #define	DRIVER_PCI_REGISTER_bar5		0x24
         #define	DRIVER_PCI_REGISTER_irq			0x3C
-        #define	DRIVER_PCI_REGISTER_FLAG_64		0b00000010
+	#define	DRIVER_PCI_REGISTER_BAR0_FLAG_io	0b00000001
+        #define	DRIVER_PCI_REGISTER_BAR0_FLAG_64bit	0b00000100
 
         #define	DRIVER_PCI_CLASS_SUBCLASS_ide		0x0101
         #define	DRIVER_PCI_CLASS_SUBCLASS_ahci		0x0106
