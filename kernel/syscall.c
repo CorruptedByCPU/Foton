@@ -718,17 +718,14 @@ void kernel_syscall_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *i
 }
 
 int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_target, uint16_t port_local ) {
-	// if network module not available
-	if( ! kernel -> network_socket ) return STD_ERROR_unavailable;
-
 	// try to acquire socket
-	struct MODULE_NETWORK_STRUCTURE_SOCKET *socket = kernel -> network_socket();
+	struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = kernel_network_socket();
 
 	// connection limit reached?
 	if( ! socket ) return EMPTY;
 
 	// bind selected port
-	if( ! kernel -> network_socket_port( socket, port_local ) ) {
+	if( ! kernel_network_socket_port( socket, port_local ) ) {
 		// release socket
 		socket -> pid = EMPTY;
 
@@ -748,16 +745,16 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 		// ICMP
 		case STD_NETWORK_PROTOCOL_icmp: {
 			// fill IPv4 protocol field
-			socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_icmp;
-			
+			socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_icmp;
+
 			// wait for socket initialization
 			volatile uint64_t timeout = kernel -> time_unit + DRIVER_RTC_Hz;
-			while( timeout > kernel -> time_unit && ! socket -> ethernet_mac_lease );
+			while( timeout > kernel -> time_unit && ! socket -> ethernet_mac_lease ) kernel_time_sleep( TRUE );
 
 			// cannot resolve IPv4 address?
 			if( ! socket -> ethernet_mac_lease ) {
 				// close socket
-				kernel -> network_socket_close( socket );
+				kernel_network_socket_close( socket );
 
 				// cannot create connection
 				return STD_ERROR_unavailable;
@@ -768,29 +765,30 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 		}
 
 		// UDP
-		case STD_NETWORK_PROTOCOL_udp: { socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_udp; break; }
+		case STD_NETWORK_PROTOCOL_udp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_udp; break; }
 		
 		// TCP
-		case STD_NETWORK_PROTOCOL_tcp: { socket -> ipv4_protocol = MODULE_NETWORK_HEADER_IPV4_PROTOCOL_tcp; break; }
+		case STD_NETWORK_PROTOCOL_tcp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_tcp; break; }
 	}
 
 	// socket configures, initialize
-	socket -> flags = MODULE_NETWORK_SOCKET_FLAG_init;	// if socket is of type TCP, network module will try to establish connection with target
+	socket -> flags = KERNEL_NETWORK_SOCKET_FLAG_init;	// if socket is of type TCP, network module will try to establish connection with target
 
 	// return socket ID
-	return (int64_t) ((uintptr_t) socket - kernel -> network_socket_offset) / sizeof( struct MODULE_NETWORK_STRUCTURE_SOCKET );
+	return (int64_t) ((uintptr_t) socket - (uintptr_t) kernel -> network_socket_list) / sizeof( struct KERNEL_NETWORK_STRUCTURE_SOCKET );
 }
 
 int64_t kernel_syscall_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
+	kernel -> log( (uint8_t *) "SEND" );
+
 	// socket can exist?
-	if( socket > MODULE_NETWORK_SOCKET_limit ) return STD_ERROR_unavailable;	// no
+	if( socket > KERNEL_NETWORK_SOCKET_limit ) return STD_ERROR_unavailable;	// no
 
 	// socket exist and belongs to process?
-	struct MODULE_NETWORK_STRUCTURE_SOCKET *s = (struct MODULE_NETWORK_STRUCTURE_SOCKET *) kernel -> network_socket_offset;
-	if( s[ socket ].pid != kernel -> task_pid() ) return STD_ERROR_unavailable;	// no
+	if( kernel -> network_socket_list[ socket ].pid != kernel_task_pid() ) return STD_ERROR_unavailable;	// no
 
 	// pass execution to Network module
-	return kernel -> network_send( socket, data, length );
+	return kernel_network_send( socket, data, length );
 }
 
 void kernel_syscall_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
@@ -800,12 +798,36 @@ void kernel_syscall_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFAC
 
 void kernel_syscall_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet ) {
 	// socket can exist?
-	if( socket > MODULE_NETWORK_SOCKET_limit ) return;	// no
+	if( socket > KERNEL_NETWORK_SOCKET_limit ) return;	// no
 
 	// socket exist and belongs to process?
-	struct MODULE_NETWORK_STRUCTURE_SOCKET *s = (struct MODULE_NETWORK_STRUCTURE_SOCKET *) kernel -> network_socket_offset;
-	if( s[ socket ].pid != kernel -> task_pid() ) return;	// no
+	if( kernel -> network_socket_list[ socket ].pid != kernel -> task_pid() ) return;	// no
 
-	// pass execution to Network module
-	kernel -> network_receive( socket, packet );
+	// packet properties
+	uint8_t *data = (uint8_t *) (kernel -> network_socket_list[ socket ].data_in[ 0 ] & STD_PAGE_mask);
+	uint64_t length = kernel -> network_socket_list[ socket ].data_in[ 0 ] & ~STD_PAGE_mask;
+
+	// nothing to transfer?
+	if( ! length ) return;	// yep
+
+	// block access to stack modification
+	MACRO_LOCK( kernel -> network_socket_list[ socket ].data_in_semaphore );
+
+	// remove packet from queue
+	for( uint64_t i = 0; i < KERNEL_NETWORK_SOCKET_DATA_limit; i++ ) kernel -> network_socket_list[ socket ].data_in[ i ] = kernel -> network_socket_list[ socket ].data_in[ i + 1 ];
+
+	// unlock
+	MACRO_UNLOCK( kernel -> network_socket_list[ socket ].data_in_semaphore );
+
+	// alloc memory inside process area
+	packet -> data = (uint8_t *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( length ) >> STD_SHIFT_PAGE );
+
+	// move data content
+	for( uint64_t i = 0; i < length; i++ ) packet -> data[ i ] = data[ i ];
+
+	// inform about length of transffered data
+	packet -> length = length;
+
+	// release packet area from kernel memory
+	kernel_memory_release( (uintptr_t) data, MACRO_PAGE_ALIGN_UP( length ) >> STD_SHIFT_PAGE );
 }

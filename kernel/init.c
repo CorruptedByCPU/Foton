@@ -19,10 +19,6 @@
 	#include	"driver/serial.h"
 	#include	"driver/serial.c"
 	//----------------------------------------------------------------------
-	// modules
-	//----------------------------------------------------------------------
-	#include	"../module/network/config.h"
-	//----------------------------------------------------------------------
 	// variables, structures, definitions of limine
 	//----------------------------------------------------------------------
 	#include	"../limine/limine.h"
@@ -50,6 +46,7 @@
 	#include	"ipc.h"
 	#include	"stream.h"
 	#include	"log.h"
+	#include	"network.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -74,6 +71,7 @@
 	#include	"time.c"
 	#include	"rtc.c"
 	#include	"stream.c"
+	#include	"network.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
@@ -102,6 +100,7 @@
 	#include	"init/ipc.c"
 	#include	"init/stream.c"
 	#include	"init/cmd.c"
+	#include	"init/network.c"
 
 // our mighty init
 void _entry( void ) {
@@ -160,6 +159,9 @@ void _entry( void ) {
 
 	// prepare Inter Process communication
 	kernel_init_ipc();
+
+	// initialize network stack
+	kernel_init_network();
 
 	// load basic list of modules
 	kernel_init_module();

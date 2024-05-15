@@ -105,16 +105,19 @@ struct KERNEL {
 
 	// variables of Network management functions
 	struct STD_NETWORK_STRUCTURE_INTERFACE			network_interface;
-	uintptr_t						network_socket_offset;
+	uint64_t						*network_rx_base_address;
+	volatile uint64_t					network_rx_limit;
+	volatile uint8_t					network_rx_semaphore;
+	uint64_t						*network_tx_base_address;
+	volatile uint64_t					network_tx_limit;
+	volatile uint8_t					network_tx_semaphore;
+	struct KERNEL_NETWORK_STRUCTURE_SOCKET			*network_socket_list;
+	uint8_t							network_socket_semaphore;
+	uint8_t							network_socket_port_semaphore;
 	// functions of Network management
-	void							(*network_receive)( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet );
 	void							(*network_rx)( uintptr_t packet );
 	uintptr_t						(*network_tx)( void );
-	struct MODULE_NETWORK_STRUCTURE_SOCKET			*(*network_socket)( void );
-	void							(*network_socket_close)( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket );
 	void							(*network_socket_close_by_pid)( int64_t pid );
-	uint8_t							(*network_socket_port)( struct MODULE_NETWORK_STRUCTURE_SOCKET *socket, uint16_t port );
-	int64_t							(*network_send)( int64_t socket, uint8_t *data, uint64_t length );
 
 	// variables of Page management functions
 	uint64_t	*page_base_address;
@@ -139,9 +142,6 @@ struct KERNEL {
 	uint8_t		stream_semaphore;
 	// functions of Stream management
 	void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
-
-	// function of Syscall management
-	uintptr_t						(*syscall_memory_alloc)( uint64_t page );
 
 	// variables of Task management functions
 	struct KERNEL_TASK_STRUCTURE				*task_base_address;

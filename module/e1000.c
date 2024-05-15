@@ -196,10 +196,6 @@ void _entry( uintptr_t kernel_ptr ) {
 		// frame was sent?
 		while( module_e1000_mmio_base_address -> tdh == 0 && module_e1000_mmio_base_address -> tdt == 1 );
 
-		// frame sent
-		kernel -> network_interface.tx_frame++;
-		kernel -> network_interface.tx_byte += length;
-
 		// release page
 		kernel -> memory_release_page( data );
 	}
@@ -216,14 +212,10 @@ void driver_e1000( void ) {
 	// if descriptor has set Length
 	if( module_e1000_rx_base_address[ 0 ].length ) {
 		// storage function of network is available
-		if( kernel -> network_rx ) kernel -> network_rx( (uintptr_t) module_e1000_rx_base_address[ 0 ].address | module_e1000_rx_base_address[ 0 ].length | KERNEL_PAGE_logical );
+		kernel -> network_rx( (uintptr_t) module_e1000_rx_base_address[ 0 ].address | module_e1000_rx_base_address[ 0 ].length | KERNEL_PAGE_logical );
 
 		// insert clean page
 		module_e1000_rx_base_address[ 0 ].address = kernel -> memory_alloc_page();
-
-		// frame received
-		kernel -> network_interface.rx_frame++;
-		kernel -> network_interface.rx_byte += module_e1000_rx_base_address[ 0 ].length;
 
 		// tell network controller, packets are processed
 		module_e1000_mmio_base_address -> rdh = 0;	// identifier of first available descriptor on list

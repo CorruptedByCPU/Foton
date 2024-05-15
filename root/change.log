@@ -2,6 +2,9 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+15.05.2024
+- moved Network module to internal rountines of Kernel
+
 13.05.2024
 - ping - checking network connection with other hosts (only by IPv4)
 

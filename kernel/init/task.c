@@ -24,6 +24,9 @@ void kernel_init_task( void ) {
 	// this entry is part of further initialization of system environment
 	// so it MUST exist
 
+	// kernel paging structure
+	kernel -> task_base_address -> cr3 = (uintptr_t) kernel -> page_base_address;
+
 	// mark first entry of task queue as secured (in use)
 	kernel -> task_base_address -> flags = STD_TASK_FLAG_secured;
 
