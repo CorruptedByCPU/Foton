@@ -44,9 +44,6 @@
 
 	#define	LIB_INTERFACE_NAME_limit		LIB_INTERFACE_GLOBAL_NAME_limit
 
-	#define	LIB_INTERFACE_SHADOW_length		0
-	#define	LIB_INTERFACE_SHADOW_color		0x40000000
-
 	struct LIB_INTERFACE_STRUCTURE {
 		struct STD_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
 		uint8_t		*properties;
@@ -137,9 +134,6 @@
 
 	// rename window header
 	void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface );
-
-	//
-	void lib_interface_shadow( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// create window space accoring to JSON specification
 	uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );

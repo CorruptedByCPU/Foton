@@ -67,9 +67,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				console_interface = new;
 
 				// initialize new terminal library
-				console_terminal -> width		= console_interface -> width - ((LIB_INTERFACE_BORDER_pixel + console_interface -> descriptor -> offset) << STD_SHIFT_2);
-				console_terminal -> height		= console_interface -> height - (LIB_INTERFACE_HEADER_HEIGHT_pixel + 1 + (console_interface -> descriptor -> offset << STD_SHIFT_2));
-				console_terminal -> base_address	= (uint32_t *) ((uintptr_t) console_interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + ((LIB_INTERFACE_HEADER_HEIGHT_pixel + console_interface -> descriptor -> offset) * console_interface -> width) + LIB_INTERFACE_BORDER_pixel;
+				console_terminal -> width		= console_interface -> width - (LIB_INTERFACE_BORDER_pixel << STD_SHIFT_2);
+				console_terminal -> height		= console_interface -> height - (LIB_INTERFACE_HEADER_HEIGHT_pixel + 1);
+				console_terminal -> base_address	= (uint32_t *) ((uintptr_t) console_interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (LIB_INTERFACE_HEADER_HEIGHT_pixel * console_interface -> width) + LIB_INTERFACE_BORDER_pixel;
 				console_terminal -> scanline_pixel	= console_interface -> width;
 				lib_terminal_reload( console_terminal );
 

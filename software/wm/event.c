@@ -174,7 +174,7 @@ void wm_event( void ) {
 			wm_object_selected = wm_object_find( mouse.x, mouse.y, FALSE );
 
 			// if cursor over selected object is in place of possible header
-			if( wm_object_selected -> descriptor -> y > wm_object_selected -> descriptor -> offset && wm_object_selected -> descriptor -> y - wm_object_selected -> descriptor -> offset < LIB_INTERFACE_HEADER_HEIGHT_pixel && wm_object_selected -> descriptor -> x < wm_object_selected -> width - ((LIB_INTERFACE_HEADER_HEIGHT_pixel * 0x03) + wm_object_selected -> descriptor -> offset) ) wm_object_drag_semaphore = TRUE;
+			if( wm_object_selected -> descriptor -> y > 0 && wm_object_selected -> descriptor -> y < LIB_INTERFACE_HEADER_HEIGHT_pixel && wm_object_selected -> descriptor -> x < wm_object_selected -> width - ((LIB_INTERFACE_HEADER_HEIGHT_pixel * 0x03)) ) wm_object_drag_semaphore = TRUE;
 
 			// check if object can be moved along Z axis
 			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_status_alt_left ) {
@@ -302,6 +302,11 @@ void wm_event( void ) {
 					for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
 						hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x20008000;
 
+				// and point border
+				for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
+					for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
+						if( ! x || ! y || x == wm_object_hover -> width - 1 || y == wm_object_hover -> height - 1 ) hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x80008000;
+
 				// show object
 				wm_object_hover -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 			}
@@ -349,14 +354,17 @@ void wm_event( void ) {
 
 		// if hover object is created
 		if( wm_object_hover_semaphore && wm_object_hover ) {
-			// remove old instance from cache
-			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_hover, FALSE );
-
 			// block access to object array
 			MACRO_LOCK( wm_list_semaphore );
 
 			// block access to object array
 			MACRO_LOCK( wm_object_semaphore );
+
+			// remove old instance from cache
+			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_hover, FALSE );
+
+			// release old object area
+			std_memory_release( (uintptr_t) wm_object_hover -> descriptor, MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
 
 			// left zone?
 			if( wm_zone_modify.x && wm_zone_modify.width ) {
@@ -380,9 +388,6 @@ void wm_event( void ) {
 			if( wm_object_hover -> width < TRUE ) wm_object_hover -> width = TRUE;
 			if( wm_object_hover -> height < TRUE ) wm_object_hover -> height = TRUE;
 
-			// release old object area
-			std_memory_release( (uintptr_t) wm_object_hover -> descriptor, MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
-
 			// calculate new object area size in Bytes
 			wm_object_hover -> size_byte = ( wm_object_hover -> width * wm_object_hover -> height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR );
 
@@ -394,6 +399,11 @@ void wm_event( void ) {
 			for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
 				for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
 					hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x20008000;
+
+			// and point border
+			for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
+				for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
+					if( ! x || ! y || x == wm_object_hover -> width - 1 || y == wm_object_hover -> height - 1 ) hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x80008000;
 
 			// release access to object array
 			MACRO_UNLOCK( wm_object_semaphore );

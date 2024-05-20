@@ -35,7 +35,7 @@ int64_t wm_menu( void ) {
 	}
 
 	// create menu object
-	wm_object_menu = wm_object_create( -LIB_INTERFACE_SHADOW_length, wm_object_taskbar -> y - (menu_interface.height - LIB_INTERFACE_SHADOW_length), menu_interface.width, menu_interface.height );
+	wm_object_menu = wm_object_create( 0, wm_object_taskbar -> y - menu_interface.height, menu_interface.width, menu_interface.height );
 
 	// mark it as own
 	wm_object_menu -> pid = wm_pid;
@@ -45,12 +45,6 @@ int64_t wm_menu( void ) {
 
 	// update menu interface descriptor
 	menu_interface.descriptor = wm_object_menu -> descriptor;
-
-	// set shadow length
-	menu_interface.descriptor -> offset = LIB_INTERFACE_SHADOW_length;
-
-	// prepare shadow of window
-	lib_interface_shadow( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 
 	// clear window content
 	lib_interface_clear( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );

@@ -437,8 +437,6 @@
 		int16_t		new_y;
 		uint16_t	new_width;
 		uint16_t	new_height;
-		// TODO, shadow length, still thinking about removing it
-		uint8_t		offset;
 		// window name, it will appear at header and taskbar
 		uint8_t		name_length;
 		uint8_t		name[ 64 ];
