@@ -281,6 +281,8 @@
 	struct STD_NETWORK_STRUCTURE_INTERFACE {
 		uint8_t		ethernet_mac[ 6 ];
 		uint32_t	ipv4_address;
+		uint32_t	ipv4_mask;
+		uint32_t	ipv4_gateway;
 		// statistics: read only
 		uint64_t	rx_frame;
 		uint64_t	rx_byte;
