@@ -27,4 +27,8 @@ void kernel_init_network( void ) {
 	// start Network ARP thread
 	uint8_t network_string_thread_name_arp[] = "{network arp}";
 	kernel_module_thread( (uintptr_t) &kernel_network_arp_thread, (uint8_t *) &network_string_thread_name_arp, sizeof( network_string_thread_name_arp ) );
+
+	// start Network TCP thread
+	uint8_t network_string_thread_name_tcp[] = "{network tcp}";
+	kernel_module_thread( (uintptr_t) &kernel_network_tcp_thread, (uint8_t *) &network_string_thread_name_tcp, sizeof( network_string_thread_name_tcp ) );
 }

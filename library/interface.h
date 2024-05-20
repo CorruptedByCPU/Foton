@@ -142,5 +142,5 @@
 	void lib_interface_shadow( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// create window space accoring to JSON specification
-	void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );
+	uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );
 #endif

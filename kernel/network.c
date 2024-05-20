@@ -10,6 +10,7 @@
 	#include	"network/icmp.c"
 	#include	"network/ip.c"
 	#include	"network/socket.c"
+	#include	"network/tcp.c"
 	#include	"network/udp.c"
 
 void kernel_network( void ) {

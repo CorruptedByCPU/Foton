@@ -152,6 +152,8 @@ uint16_t kernel_network_socket_port_random( uint16_t limit );
 
 void kernel_network_arp_thread( void );
 
+void kernel_network_tcp_thread( void );
+
 // returns physical address and size of packet to transfer outside of host
 uintptr_t kernel_network_tx( void );
 

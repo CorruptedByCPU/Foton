@@ -2,6 +2,9 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+20.05.2024
+- window resize fix
+
 15.05.2024
 - moved Network module to internal rountines of Kernel
 

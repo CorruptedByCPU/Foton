@@ -542,7 +542,13 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		for( uint64_t i = 0; i < interface -> name_length; i++ ) new_interface -> name[ new_interface -> name_length++ ] = interface -> name[ i ];
 
 		// create new window
-		lib_interface_window( new_interface );
+		if( ! lib_interface_window( new_interface ) ) {
+			// release new interface area
+			free( new_interface );
+
+			// nothing to do
+			return EMPTY;
+		}
 
 		// show interface elements
 		lib_interface_draw( new_interface );
@@ -745,7 +751,7 @@ void lib_interface_shadow( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	lib_image_blur( pixel, interface -> descriptor -> offset, interface -> width, interface -> height );
 }
 
-void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
+uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// obtain information about kernel framebuffer
 	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
 	std_framebuffer( (struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *) &kernel_framebuffer );
@@ -754,11 +760,11 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	int64_t wm_pid = kernel_framebuffer.pid;
 
 	// allocate gui data container
-	uint8_t wm_data[ STD_IPC_SIZE_byte ];
+	uint8_t wm_data[ STD_IPC_SIZE_byte ] = { EMPTY };
 
 	// prepeare new window request
 	struct STD_IPC_STRUCTURE_WINDOW *request = (struct STD_IPC_STRUCTURE_WINDOW *) &wm_data;
-	struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *answer = EMPTY;	// answer will be in here
+	struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *answer = (struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *) &wm_data;
 
 	//----------------------------------------------------------------------
 
@@ -783,22 +789,15 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// wait for answer
 	uint64_t timeout = std_microtime() + 1024;	// TODO, HPET, RTC...
-	while( ! std_ipc_receive( (uint8_t *) wm_data ) ) if( timeout < std_microtime() ) {
-		// show error
-		print( "Could not connect to Window Manager." );
-
-		// failsafe exit
-		exit();
-	}
+	while( (! std_ipc_receive( (uint8_t *) wm_data ) || answer -> ipc.type != STD_IPC_TYPE_event) && timeout > std_microtime() );
 
 	// window assigned?
-	answer = (struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *) &wm_data;
 	if( ! answer -> descriptor ) {
 		// show error
 		print( "Window Manager denied request." );
 
-		// failsafe exit
-		exit();
+		// failed
+		return FALSE;
 	}
 
 	// properties of console window
@@ -815,4 +814,7 @@ void lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// show window name in header if set
 	lib_interface_name( interface );
+
+	// done
+	return TRUE;
 }
