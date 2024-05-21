@@ -37,6 +37,15 @@
 #define	KERNEL_NETWORK_HEADER_ICMP_TYPE_REQUEST				0x08
 #define	KERNEL_NETWORK_HEADER_ICMP_TYPE_REPLY				0x00
 
+#define	KERNEL_NETWORK_HEADER_TCP_HEADER_LENGTH_default			0x50	// 20 Bytes
+#define	KERNEL_NETWORK_HEADER_TCP_FLAG_FIN				0b00000001
+#define	KERNEL_NETWORK_HEADER_TCP_FLAG_SYN				0b00000010
+#define	KERNEL_NETWORK_HEADER_TCP_FLAG_RST				0b00000100
+#define	KERNEL_NETWORK_HEADER_TCP_FLAG_PSH				0b00001000
+#define	KERNEL_NETWORK_HEADER_TCP_FLAG_ACK				0b00010000
+#define	KERNEL_NETWORK_HEADER_TCP_FLAG_URG				0b00100000
+#define	KERNEL_NETWORK_HEADER_TCP_WINDOW_SIZE_default			0xB405	// Big-Endian
+
 struct	KERNEL_NETWORK_STRUCTURE_ARP {
 	uint64_t	lease_time;
 	uint32_t	ipv4_address;
@@ -95,6 +104,18 @@ struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP {
 	uint16_t	checksum;
 } __attribute__((packed));
 
+struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP {
+	uint16_t	port_source;
+	uint16_t	port_local;
+	uint32_t	sequence;
+	uint32_t	acknowledgment;
+	uint8_t		header_length;
+	uint8_t		flags;
+	uint16_t	window_size;
+	uint16_t	checksum;
+	uint16_t	urgent_pointer;
+} __attribute__((packed));
+
 struct	KERNEL_NETWORK_STRUCTURE_SOCKET {
 	int64_t		pid;
 	uint8_t		flags;
@@ -108,6 +129,10 @@ struct	KERNEL_NETWORK_STRUCTURE_SOCKET {
 	uint32_t	ipv4_target;
 	uint16_t	ipv4_id;
 	uint8_t		ipv4_ttl;
+	uint32_t	tcp_sequence;
+	uint32_t	tcp_aknowledgment;
+	uint8_t		tcp_flags;
+	uint16_t	tcp_window_size;
 	uintptr_t	*data_in;
 	uint8_t		data_in_semaphore;
 	uintptr_t	*data_out;
@@ -160,3 +185,5 @@ uintptr_t kernel_network_tx( void );
 void kernel_network_udp_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint64_t length );
 
 void kernel_network_udp_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+
+uint8_t kernel_network_ethernet_resolve( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket );

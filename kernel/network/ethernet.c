@@ -26,3 +26,15 @@ void kernel_network_ethernet_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET
 	// unlock
 	MACRO_UNLOCK( kernel -> network_tx_semaphore );
 }
+
+uint8_t kernel_network_ethernet_resolve( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket ) {
+	// wait for ARP thread to resolve destination MAC address
+	volatile uint64_t timeout = kernel -> time_unit + DRIVER_RTC_Hz;
+	while( timeout > kernel -> time_unit && ! socket -> ethernet_mac_lease ) kernel_time_sleep( TRUE );
+
+	// cannot resolve IPv4 address?
+	if( ! socket -> ethernet_mac_lease ) return FALSE;
+
+	// ok
+	return TRUE;
+}

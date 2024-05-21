@@ -121,6 +121,7 @@ int64_t kernel_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
 	switch( kernel -> network_socket_list[ socket ].protocol ) {
 		case STD_NETWORK_PROTOCOL_icmp: { kernel_network_ipv4_exit( (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ socket ], data, length ); break; }
 		// case STD_NETWORK_PROTOCOL_udp: { kernel_network_udp_exit( (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ socket ], data, length ); break; }
+		// case STD_NETWORK_PROTOCOL_tcp: { kernel_network_tcp_exit( (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ socket ], data, length ); break; }
 	}
 
 	// sent

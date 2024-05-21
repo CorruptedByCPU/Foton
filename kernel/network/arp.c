@@ -104,23 +104,23 @@ void kernel_network_arp_thread( void ) {
 			struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
 
 			// properties of ARP frame
-			struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *arp_frame = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ) );
+			struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *arp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ) );
 
 			// set ARP properties
-			arp_frame -> hardware_type	= KERNEL_NETWORK_HEADER_ARP_HARDWARE_TYPE_ethernet;
-			arp_frame -> protocol_type	= KERNEL_NETWORK_HEADER_ARP_PROTOCOL_TYPE_ipv4;
-			arp_frame -> hardware_length	= KERNEL_NETWORK_HEADER_ARP_HARDWARE_LENGTH_mac;
-			arp_frame -> protocol_length	= KERNEL_NETWORK_HEADER_ARP_PROTOCOL_LENGTH_ipv4;
-			arp_frame -> operation	= KERNEL_NETWORK_HEADER_ARP_OPERATION_request;
+			arp -> hardware_type	= KERNEL_NETWORK_HEADER_ARP_HARDWARE_TYPE_ethernet;
+			arp -> protocol_type	= KERNEL_NETWORK_HEADER_ARP_PROTOCOL_TYPE_ipv4;
+			arp -> hardware_length	= KERNEL_NETWORK_HEADER_ARP_HARDWARE_LENGTH_mac;
+			arp -> protocol_length	= KERNEL_NETWORK_HEADER_ARP_PROTOCOL_LENGTH_ipv4;
+			arp -> operation	= KERNEL_NETWORK_HEADER_ARP_OPERATION_request;
 
 			// set source MAC
-			for( uint8_t i = 0; i < 6; i++ ) arp_frame -> source_mac[ i ] = kernel -> network_interface.ethernet_mac[ i ];
+			for( uint8_t i = 0; i < 6; i++ ) arp -> source_mac[ i ] = kernel -> network_interface.ethernet_mac[ i ];
 
 			// set source IPv4
-			arp_frame -> source_ipv4 = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
+			arp -> source_ipv4 = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
 
 			// set target IPv4
-			arp_frame -> target_ipv4 = kernel -> network_socket_list[ i ].ipv4_target;
+			arp -> target_ipv4 = kernel -> network_socket_list[ i ].ipv4_target;
 
 			// encapsulate ARP frame and send
 			kernel_network_ethernet_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP ) );

@@ -740,32 +740,22 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 	// set sockets ipv4 protocol
 	switch( protocol ) {
 		// ICMP
-		case STD_NETWORK_PROTOCOL_icmp: {
-			// fill IPv4 protocol field
-			socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_icmp;
-
-			// wait for socket initialization
-			volatile uint64_t timeout = kernel -> time_unit + DRIVER_RTC_Hz;
-			while( timeout > kernel -> time_unit && ! socket -> ethernet_mac_lease ) kernel_time_sleep( TRUE );
-
-			// cannot resolve IPv4 address?
-			if( ! socket -> ethernet_mac_lease ) {
-				// close socket
-				kernel_network_socket_close( socket );
-
-				// cannot create connection
-				return STD_ERROR_unavailable;
-			}
-
-			// ready
-			break;
-		}
+		case STD_NETWORK_PROTOCOL_icmp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_icmp; break; }
 
 		// UDP
 		case STD_NETWORK_PROTOCOL_udp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_udp; break; }
 		
 		// TCP
 		case STD_NETWORK_PROTOCOL_tcp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_tcp; break; }
+	}
+
+	// wait for socket resolution
+	if( ! kernel_network_ethernet_resolve( socket ) ) {
+		// close socket
+		kernel_network_socket_close( socket );
+
+		// cannot create connection
+		return STD_ERROR_unavailable;
 	}
 
 	// socket configures, initialize
