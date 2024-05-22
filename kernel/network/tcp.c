@@ -23,10 +23,10 @@ void kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethern
 		// answer to SYN request?
 		if( socket -> tcp_flags == KERNEL_NETWORK_HEADER_TCP_FLAG_SYN && tcp -> flags == (KERNEL_NETWORK_HEADER_TCP_FLAG_SYN | KERNEL_NETWORK_HEADER_TCP_FLAG_ACK) ) {	// yes
 			// debug
-			socket -> tcp_sequence = socket -> tcp_acknowledgment_expected_value;
+			socket -> tcp_sequence = socket -> tcp_sequence_ack;
 		
 			// preserve connection properties
-			socket -> tcp_acknowledgment = MACRO_ENDIANNESS_DWORD( tcp -> sequence );
+			socket -> tcp_acknowledgment = MACRO_ENDIANNESS_DWORD( tcp -> sequence ) + 1;
 
 				// allocate area for ethernet/tcp frame
 				struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
@@ -45,7 +45,7 @@ void kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethern
 
 				// properties of TCP frame
 				tcp -> sequence		= MACRO_ENDIANNESS_DWORD( socket -> tcp_sequence );
-				tcp -> acknowledgment	= MACRO_ENDIANNESS_DWORD( (socket -> tcp_acknowledgment + 1) );
+				tcp -> acknowledgment	= MACRO_ENDIANNESS_DWORD( socket -> tcp_acknowledgment );
 				tcp -> header_length	= KERNEL_NETWORK_HEADER_TCP_HEADER_LENGTH_default;
 				tcp -> flags		= KERNEL_NETWORK_HEADER_TCP_FLAG_ACK;	// thank you
 
@@ -102,8 +102,17 @@ void kernel_network_tcp_thread( void ) {
 				// start connection initialiation
 				socket -> flags &= ~KERNEL_NETWORK_SOCKET_FLAG_init;
 
+				// set initial socket configuration of TCP protocol
+
+				// begin connection/synchronization
+				socket -> tcp_flags = KERNEL_NETWORK_HEADER_TCP_FLAG_SYN;
+
 				// generate new sequence number
 				socket -> tcp_sequence = EMPTY;	// DEBUG
+				socket -> tcp_sequence_ack = socket -> tcp_sequence + 1;
+
+				// default window size
+				socket -> tcp_window_size = KERNEL_NETWORK_HEADER_TCP_WINDOW_SIZE_default;
 
 				// allocate area for ethernet/tcp frame
 				struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
@@ -121,15 +130,10 @@ void kernel_network_tcp_thread( void ) {
 				struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *tcp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
 
 				// properties of TCP frame
+				tcp -> flags		= socket -> tcp_flags;
 				tcp -> sequence		= MACRO_ENDIANNESS_DWORD( socket -> tcp_sequence );
-				tcp -> acknowledgment	= EMPTY;
+				tcp -> acknowledgment	= EMPTY;	// we do not know it yet
 				tcp -> header_length	= KERNEL_NETWORK_HEADER_TCP_HEADER_LENGTH_default;
-				tcp -> flags		= KERNEL_NETWORK_HEADER_TCP_FLAG_SYN;	// started synchronization
-
-				// update socket properties
-				socket -> tcp_flags = KERNEL_NETWORK_HEADER_TCP_FLAG_SYN;
-				socket -> tcp_acknowledgment_expected_value = MACRO_ENDIANNESS_DWORD( (MACRO_ENDIANNESS_DWORD( tcp -> sequence ) + 1) );
-				socket -> tcp_window_size = KERNEL_NETWORK_HEADER_TCP_WINDOW_SIZE_default;
 
 				// encapsulate TCP frame and send
 				kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP ) );
