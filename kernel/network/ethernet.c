@@ -32,9 +32,9 @@ uint8_t kernel_network_ethernet_resolve( struct KERNEL_NETWORK_STRUCTURE_SOCKET 
 	volatile uint64_t timeout = kernel -> time_unit + DRIVER_RTC_Hz;
 	while( timeout > kernel -> time_unit && ! socket -> ethernet_mac_lease ) kernel_time_sleep( TRUE );
 
-	// cannot resolve IPv4 address?
-	if( ! socket -> ethernet_mac_lease ) return FALSE;
+	// IPv4 resolved?
+	if( socket -> ethernet_mac_lease ) return TRUE;	// yes
 
-	// ok
-	return TRUE;
+	// no
+	return FALSE;
 }

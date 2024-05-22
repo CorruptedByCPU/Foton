@@ -35,7 +35,11 @@ uint8_t kernel_network_ipv4( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 		}
 
 		case KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_tcp: {
-			// kernel -> network_tcp( ethernet, length );
+			// parse as TCP frame
+			kernel_network_tcp( ethernet, length );
+
+			// done
+			break;
 		}
 	}
 

@@ -130,7 +130,8 @@ struct	KERNEL_NETWORK_STRUCTURE_SOCKET {
 	uint16_t	ipv4_id;
 	uint8_t		ipv4_ttl;
 	uint32_t	tcp_sequence;
-	uint32_t	tcp_aknowledgment;
+	uint32_t	tcp_acknowledgment;
+	uint32_t	tcp_acknowledgment_expected_value;
 	uint8_t		tcp_flags;
 	uint16_t	tcp_window_size;
 	uintptr_t	*data_in;
@@ -187,3 +188,7 @@ void kernel_network_udp_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, ui
 void kernel_network_udp_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
 
 uint8_t kernel_network_ethernet_resolve( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket );
+
+void kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+
+void kernel_network_tcp_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
