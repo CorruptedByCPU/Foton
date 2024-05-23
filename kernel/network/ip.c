@@ -53,12 +53,12 @@ void kernel_network_ipv4_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *so
 	ipv4 -> version_and_header_length = KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default;
 	ipv4 -> ecn = KERNEL_NETWORK_HEADER_IPV4_ECN_default;
 	ipv4 -> length = MACRO_ENDIANNESS_WORD( (length + ((KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default & 0x0F) << STD_SHIFT_4)) );
-	ipv4 -> id = socket -> ipv4_id;
-	ipv4 -> flags_and_offset = KERNEL_NETWORK_HEADER_IPV4_FLAGS_AND_OFFSET_default;
+	ipv4 -> id = MACRO_ENDIANNESS_WORD( socket -> ipv4_id );
+	ipv4 -> flags_and_offset = MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_IPV4_FLAGS_AND_OFFSET_default );
 	ipv4 -> ttl = KERNEL_NETWORK_HEADER_IPV4_TTL_default;
 	ipv4 -> protocol = socket -> ipv4_protocol;
 	ipv4 -> local = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
-	ipv4 -> target = socket -> ipv4_target;
+	ipv4 -> target = MACRO_ENDIANNESS_DWORD( socket -> ipv4_target );
 
 	// calculate checksum
 	ipv4 -> checksum = EMPTY;	// always

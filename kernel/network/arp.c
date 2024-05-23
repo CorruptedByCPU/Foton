@@ -7,17 +7,17 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *arp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
 
 	// reply targeting us?
-	if( arp -> operation == KERNEL_NETWORK_HEADER_ARP_OPERATION_answer ) {
+	if( arp -> operation == MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ARP_OPERATION_answer ) ) {
 		// update all sockets with provided IPV4 address
 		for( uint64_t i = 0; i < KERNEL_NETWORK_SOCKET_limit; i++ ) {
 			// socket with destination IPv4 address?
-			if( kernel -> network_socket_list[ i ].ipv4_target == arp -> source_ipv4 ) {
-				// update
-				for( uint8_t j = 0; j < 6; j++ ) kernel -> network_socket_list[ i ].ethernet_mac[ j ] = arp -> source_mac[ j ];
+			if( arp -> source_ipv4 != MACRO_ENDIANNESS_DWORD( kernel -> network_socket_list[ i ].ipv4_target ) ) continue;	// no
+		
+			// update
+			for( uint8_t j = 0; j < 6; j++ ) kernel -> network_socket_list[ i ].ethernet_mac[ j ] = arp -> source_mac[ j ];
 
-				// lease time
-				kernel -> network_socket_list[ i ].ethernet_mac_lease = kernel -> time_unit + (300 * DRIVER_RTC_Hz);	// ~5 min
-			}
+			// lease time
+			kernel -> network_socket_list[ i ].ethernet_mac_lease = kernel -> time_unit + (300 * DRIVER_RTC_Hz);	// ~5 min
 		}
 
 		// answer parsed
@@ -25,7 +25,7 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	}
 
 	// inquiry about our IPv4 address?
-	if( arp -> operation == KERNEL_NETWORK_HEADER_ARP_OPERATION_request && arp -> target_ipv4 != MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address ) ) return TRUE;	// no, ignore message and release frame area
+	if( MACRO_ENDIANNESS_WORD( arp -> operation ) == KERNEL_NETWORK_HEADER_ARP_OPERATION_request && MACRO_ENDIANNESS_DWORD( arp -> target_ipv4 ) != kernel -> network_interface.ipv4_address ) return TRUE;	// no, ignore message and release frame area
 
 	//----------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	socket -> protocol = STD_NETWORK_PROTOCOL_arp;
 
 	// target IPv4 address
-	socket -> ipv4_target = arp -> source_ipv4;
+	socket -> ipv4_target = MACRO_ENDIANNESS_DWORD( arp -> source_ipv4 );
 
 	// target MAC address
 	for( uint8_t i = 0; i < 6; i++ ) socket -> ethernet_mac[ i ] = arp -> source_mac[ i ];
@@ -49,7 +49,7 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	//----------------------------------------------------------------------
 
 	// change ARP content to answer
-	arp -> operation = KERNEL_NETWORK_HEADER_ARP_OPERATION_answer;
+	arp -> operation = MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ARP_OPERATION_answer );
 
 	// set target MAC
 	for( uint8_t i = 0; i < 6; i++ ) arp -> target_mac[ i ] = socket -> ethernet_mac[ i ];
@@ -58,7 +58,7 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	for( uint8_t i = 0; i < 6; i++ ) arp -> source_mac[ i ] = kernel -> network_interface.ethernet_mac[ i ];
 	
 	// set target IPv4
-	arp -> target_ipv4 = socket -> ipv4_target;
+	arp -> target_ipv4 = MACRO_ENDIANNESS_DWORD( socket -> ipv4_target );
 
 	// set source IPv4
 	arp -> source_ipv4 = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
@@ -107,11 +107,11 @@ void kernel_network_arp_thread( void ) {
 			struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *arp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ) );
 
 			// set ARP properties
-			arp -> hardware_type	= KERNEL_NETWORK_HEADER_ARP_HARDWARE_TYPE_ethernet;
-			arp -> protocol_type	= KERNEL_NETWORK_HEADER_ARP_PROTOCOL_TYPE_ipv4;
+			arp -> hardware_type	= MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ARP_HARDWARE_TYPE_ethernet );
+			arp -> protocol_type	= MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ARP_PROTOCOL_TYPE_ipv4 );
 			arp -> hardware_length	= KERNEL_NETWORK_HEADER_ARP_HARDWARE_LENGTH_mac;
 			arp -> protocol_length	= KERNEL_NETWORK_HEADER_ARP_PROTOCOL_LENGTH_ipv4;
-			arp -> operation	= KERNEL_NETWORK_HEADER_ARP_OPERATION_request;
+			arp -> operation	= MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ARP_OPERATION_request );
 
 			// set source MAC
 			for( uint8_t i = 0; i < 6; i++ ) arp -> source_mac[ i ] = kernel -> network_interface.ethernet_mac[ i ];
@@ -120,7 +120,7 @@ void kernel_network_arp_thread( void ) {
 			arp -> source_ipv4 = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
 
 			// set target IPv4
-			arp -> target_ipv4 = kernel -> network_socket_list[ i ].ipv4_target;
+			arp -> target_ipv4 = MACRO_ENDIANNESS_DWORD( kernel -> network_socket_list[ i ].ipv4_target );
 
 			// encapsulate ARP frame and send
 			kernel_network_ethernet_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP ) );

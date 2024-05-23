@@ -9,8 +9,8 @@ void kernel_network_ethernet_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET
 
 	// set type of Ethernet header
 	switch( socket -> protocol ) {
-		case STD_NETWORK_PROTOCOL_arp: { ethernet -> type = KERNEL_NETWORK_HEADER_ETHERNET_TYPE_arp; break; }
-		default: { ethernet -> type = KERNEL_NETWORK_HEADER_ETHERNET_TYPE_ipv4; break; }
+		case STD_NETWORK_PROTOCOL_arp: { ethernet -> type = MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ETHERNET_TYPE_arp ); break; }
+		default: { ethernet -> type = MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ETHERNET_TYPE_ipv4 ); break; }
 	}
 
 	// block access to stack modification

@@ -733,9 +733,9 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 	// set socket properties
 	socket -> ethernet_mac_lease	= EMPTY;
 	socket -> protocol		= protocol;
-	socket -> ipv4_target		= MACRO_ENDIANNESS_DWORD( ipv4_target );
-	socket -> port_target		= MACRO_ENDIANNESS_WORD( port_target );
-	socket -> ipv4_id		= MACRO_ENDIANNESS_WORD( kernel_syscall_microtime() );
+	socket -> ipv4_target		= ipv4_target;
+	socket -> port_target		= port_target;
+	socket -> ipv4_id		= kernel_syscall_microtime();
 
 	// set sockets ipv4 protocol
 	switch( protocol ) {
@@ -766,8 +766,6 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 }
 
 int64_t kernel_syscall_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
-	kernel -> log( (uint8_t *) "SEND" );
-
 	// socket can exist?
 	if( socket > KERNEL_NETWORK_SOCKET_limit ) return STD_ERROR_unavailable;	// no
 

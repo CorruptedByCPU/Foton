@@ -23,7 +23,7 @@ void kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ether
 			for( uint8_t j = 0; j < 6; j++ ) if( kernel -> network_socket_list[ j ].ethernet_mac[ j ] != kernel -> network_interface.ethernet_mac[ j ] ) continue;	// no
 
 			// socket connected to target by IPv4?
-			if( kernel -> network_socket_list[ i ].ipv4_target != ipv4 -> local ) continue;	// no
+			if( kernel -> network_socket_list[ i ].ipv4_target != MACRO_ENDIANNESS_DWORD( ipv4 -> local ) ) continue;	// no
 
 			// socket IPv4 type is ICMP?
 			if( kernel -> network_socket_list[ i ].ipv4_protocol != KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_icmp ) continue;	// no
@@ -66,7 +66,7 @@ void kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ether
 	socket -> ethernet_type = KERNEL_NETWORK_HEADER_ETHERNET_TYPE_ipv4;
 
 	// target ID transmission
-	socket -> ipv4_id = ipv4 -> id;
+	socket -> ipv4_id = MACRO_ENDIANNESS_WORD( ipv4 -> id );
 
 	// target TTL decreased value
 	socket -> ipv4_ttl = --ipv4 -> ttl;
@@ -75,7 +75,7 @@ void kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ether
 	socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_icmp;
 
 	// target IPv4 address
-	socket -> ipv4_target = ipv4 -> local;
+	socket -> ipv4_target = MACRO_ENDIANNESS_DWORD( ipv4 -> local );
 
 	// socket configured, activate
 	socket -> flags = KERNEL_NETWORK_SOCKET_FLAG_active;

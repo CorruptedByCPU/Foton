@@ -31,7 +31,7 @@ void kernel_network( void ) {
 		uint8_t release = TRUE;	// yes, why not?
 
 		// choose action
-		switch( ethernet -> type ) {
+		switch( MACRO_ENDIANNESS_WORD( ethernet -> type ) ) {
 			case KERNEL_NETWORK_HEADER_ETHERNET_TYPE_arp: {
 				// parse as ARP frame
 				release = kernel_network_arp( ethernet, *kernel -> network_rx_base_address & ~STD_PAGE_mask );
