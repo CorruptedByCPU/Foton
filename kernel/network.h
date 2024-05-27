@@ -130,9 +130,10 @@ struct	KERNEL_NETWORK_STRUCTURE_SOCKET {
 	uint16_t	ipv4_id;
 	uint8_t		ipv4_ttl;
 	uint32_t	tcp_sequence;
-	uint32_t	tcp_sequence_ack;
+	uint32_t	tcp_sequence_required;
 	uint32_t	tcp_acknowledgment;
 	uint8_t		tcp_flags;
+	uint8_t		tcp_flags_required;
 	uint16_t	tcp_window_size;
 	uint64_t	tcp_keep_alive;
 	uintptr_t	*data_in;

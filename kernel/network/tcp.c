@@ -21,15 +21,16 @@ void kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethern
 		if( tcp -> port_local != MACRO_ENDIANNESS_WORD( socket -> port_local ) ) continue;	// no
 
 		// answer to SYN request?
-		if( socket -> tcp_flags == KERNEL_NETWORK_HEADER_TCP_FLAG_SYN && tcp -> flags == (KERNEL_NETWORK_HEADER_TCP_FLAG_SYN | KERNEL_NETWORK_HEADER_TCP_FLAG_ACK) ) {	// yes
-			// debug
-			socket -> tcp_sequence = socket -> tcp_sequence_ack;
+		if( tcp -> flags == socket -> tcp_flags_required || (tcp -> flags == KERNEL_NETWORK_HEADER_TCP_FLAG_ACK && socket -> tcp_flags_required == (KERNEL_NETWORK_HEADER_TCP_FLAG_SYN | KERNEL_NETWORK_HEADER_TCP_FLAG_ACK)) ) {	// yes
+			// change socket status to connected
+			socket -> tcp_flags = KERNEL_NETWORK_HEADER_TCP_FLAG_ACK;
+			socket -> tcp_flags_required = EMPTY;	// nothing more to do
+
+			// update sequence value
+			socket -> tcp_sequence = socket -> tcp_sequence_required;
 		
 			// preserve connection properties
 			socket -> tcp_acknowledgment = MACRO_ENDIANNESS_DWORD( tcp -> sequence ) + 1;
-
-			// keey-alive timeout
-			socket -> tcp_keep_alive = kernel -> time_unit + (1024 * 60);
 
 			// allocate area for ethernet/tcp frame
 			struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
@@ -100,22 +101,26 @@ void kernel_network_tcp_thread( void ) {
 			// ignore sockets other than TCP
 			if( socket -> protocol != STD_NETWORK_PROTOCOL_tcp ) continue;
 
-			// TCP socket waiting for initialization?
-			if( socket -> flags & KERNEL_NETWORK_SOCKET_FLAG_init ) {
+			// TCP socket waiting for initialization or previous initialization is outdated
+			if( socket -> flags & KERNEL_NETWORK_SOCKET_FLAG_init || (socket -> tcp_flags == KERNEL_NETWORK_HEADER_TCP_FLAG_SYN && socket -> tcp_keep_alive < kernel -> time_unit) ) {
 				// start connection initialiation
 				socket -> flags &= ~KERNEL_NETWORK_SOCKET_FLAG_init;
 
 				// set initial socket configuration of TCP protocol
 
 				// begin connection/synchronization
-				socket -> tcp_flags = KERNEL_NETWORK_HEADER_TCP_FLAG_SYN;
+				socket -> tcp_flags		= KERNEL_NETWORK_HEADER_TCP_FLAG_SYN;
+				socket -> tcp_flags_required	= KERNEL_NETWORK_HEADER_TCP_FLAG_SYN | KERNEL_NETWORK_HEADER_TCP_FLAG_ACK;
 
 				// generate new sequence number
-				socket -> tcp_sequence = EMPTY;	// DEBUG
-				socket -> tcp_sequence_ack = socket -> tcp_sequence + 1;
+				socket -> tcp_sequence		= EMPTY;	// DEBUG
+				socket -> tcp_sequence_required	= socket -> tcp_sequence + 1;
 
 				// default window size
 				socket -> tcp_window_size = KERNEL_NETWORK_HEADER_TCP_WINDOW_SIZE_default;
+
+				// SYN valid for ~1 second
+				socket -> tcp_keep_alive = kernel -> time_unit + DRIVER_RTC_Hz;
 
 				// allocate area for ethernet/tcp frame
 				struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
@@ -140,11 +145,6 @@ void kernel_network_tcp_thread( void ) {
 
 				// encapsulate TCP frame and send
 				kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP ) );
-			}
-
-			// TCP socket received synchronization approve?
-			if( socket -> tcp_flags == (KERNEL_NETWORK_HEADER_TCP_FLAG_SYN | KERNEL_NETWORK_HEADER_TCP_FLAG_ACK) ) {
-				MACRO_DEBUF();
 			}
 		}
 	}
