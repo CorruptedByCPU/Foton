@@ -46,7 +46,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	}
 
 	// create HTTP request
-	uint8_t dl_string_get[] = "GET / HTTP/1.0";
+	uint8_t dl_string_get[] = "GET / HTTP/1.0\r\n\r\n";
 	uint8_t *http = (uint8_t *) malloc( sizeof( dl_string_get ) - 1 );
 
 	// insert data
