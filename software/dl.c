@@ -72,8 +72,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		current_microtime = std_microtime();
 	}
 
-	MACRO_DEBUF();
-
 	// received answer?
 	if( packet.length ) {
 		// print content
@@ -87,9 +85,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// release HTTP request
 	free( http );
-
-	// hold th e door
-	while( TRUE );
 
 	// done
 	return 0;
