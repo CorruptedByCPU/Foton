@@ -47,20 +47,21 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// create HTTP request
 	uint8_t dl_string_get[] = "GET / HTTP/1.0\r\n\r\n";
-	uint8_t *http = (uint8_t *) malloc( sizeof( dl_string_get ) - 1 );
+	uint64_t dl_string_get_length = sizeof( dl_string_get ) - 1;
+	uint8_t *http = (uint8_t *) malloc( dl_string_get_length );
 
 	// insert data
-	for( uint8_t i = 0; i < sizeof( dl_string_get ); i++ ) http[ i ] = dl_string_get[ i ];
+	for( uint8_t i = 0; i < dl_string_get_length; i++ ) http[ i ] = dl_string_get[ i ];
 
 	// send request outside
-	std_network_send( socket, (uint8_t *) http, sizeof( dl_string_get ) - 1 );
+	std_network_send( socket, (uint8_t *) http, dl_string_get_length );
 
 	// properties of reply
 	struct STD_NETWORK_STRUCTURE_DATA packet = { EMPTY };
 
 	// start of timelapse
 	int64_t current_microtime = std_microtime();
-	int64_t end_microtime = current_microtime + 1000;	// at least 1 second
+	int64_t end_microtime = current_microtime + 1000;	// about 1 second
 
 	// wait for incomming reply
 	while( end_microtime > current_microtime && ! packet.length ) {
@@ -70,6 +71,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// still no reply, update current time
 		current_microtime = std_microtime();
 	}
+
+	MACRO_DEBUF();
 
 	// received answer?
 	if( packet.length ) {
@@ -84,6 +87,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// release HTTP request
 	free( http );
+
+	// hold th e door
+	while( TRUE );
 
 	// done
 	return 0;

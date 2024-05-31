@@ -20,7 +20,7 @@ uint8_t kernel_network_ipv4( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	switch( ipv4 -> protocol ) {
 		case KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_icmp: {
 			// parse as ICMP frame
-			kernel_network_icmp( ethernet, length );
+			return kernel_network_icmp( ethernet, length );
 
 			// done
 			break;
@@ -28,7 +28,7 @@ uint8_t kernel_network_ipv4( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 
 		case KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_udp: {
 			// parse as ICMP frame
-			// kernel -> network_udp( ethernet, length );
+			// return kernel_network_udp( ethernet, length );
 
 			// done
 			break;
@@ -36,7 +36,7 @@ uint8_t kernel_network_ipv4( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 
 		case KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_tcp: {
 			// parse as TCP frame
-			kernel_network_tcp( ethernet, length );
+			return kernel_network_tcp( ethernet, length );
 
 			// done
 			break;
@@ -44,7 +44,7 @@ uint8_t kernel_network_ipv4( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	}
 
 	// debug
-	return FALSE;
+	return TRUE;
 }
 
 void kernel_network_ipv4_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {

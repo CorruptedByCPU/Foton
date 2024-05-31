@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+uint8_t kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// properties of IPv4 header
 	struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
 
@@ -39,11 +39,11 @@ void kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ether
 			kernel_network_data_in( (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ i ], (uintptr_t) rewrite | (length - ((uintptr_t) icmp - (uintptr_t) ethernet)) );
 
 			// IPv4 frame content transferred to process owning socket
-			return;
+			return FALSE;
 		}
 
 		// not found, ignore packet
-		return;
+		return TRUE;
 	}
 
 	//----------------------------------------------------------------------
@@ -52,7 +52,7 @@ void kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ether
 	struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = kernel_network_socket();
 
 	// cannot open socket?
-	if( ! socket ) return;	// ignore request
+	if( ! socket ) return TRUE;	// ignore request
 
 	// set socket properties
 
@@ -94,4 +94,7 @@ void kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ether
 
 	// encapsulate ICMP frame and send
 	kernel_network_ipv4_encapsulate( socket, ethernet, icmp_frame_length );
+
+	// frame used in reply
+	return FALSE;
 }
