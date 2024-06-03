@@ -11,7 +11,8 @@
 	#define	MACRO_NOP( void ) __asm__ volatile( "nop" );
 
 	// exclusive access
-	#define	MACRO_LOCK( semaphore ) while( __sync_val_compare_and_swap( &semaphore, UNLOCK, LOCK ) ) { __asm__ volatile( "int $0x20" ); };
+	#define	MACRO_LOCK( semaphore ) while( __sync_val_compare_and_swap( &semaphore, UNLOCK, LOCK ) ) {};
+	// #define	MACRO_LOCK( semaphore ) while( __sync_val_compare_and_swap( &semaphore, UNLOCK, LOCK ) ) { __asm__ volatile( "int $0x20" ); };
 	#define	MACRO_UNLOCK( semaphore ) semaphore = UNLOCK;
 
 	#define	MACRO_PAGE_ALIGN_UP( value )( ((value) + STD_PAGE_byte - 1) & ~(STD_PAGE_byte - 1) )
