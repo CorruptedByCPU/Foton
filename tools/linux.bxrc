@@ -2,8 +2,8 @@ plugin_ctrl: voodoo=true, e1000=true, es1370=true, usb_uhci=true, usb_ohci=true,
 config_interface: textconfig
 display_library: x, options="gui_debug"
 memory: guest=MEM, host=MEM
-romimage: file="/opt/bochs/share/bochs/BIOS-bochs-latest", address=0x00000000, options=none
-vgaromimage: file="/opt/bochs/share/bochs/VGABIOS-lgpl-latest"
+romimage: file="/opt/bochs-dbg/share/bochs/BIOS-bochs-latest", address=0x00000000, options=none
+vgaromimage: file="/opt/bochs-dbg/share/bochs/VGABIOS-lgpl-latest"
 boot: cdrom
 ata0: enabled=true, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 ata0-master: type=cdrom, path="build/foton.iso", status=inserted, model="Generic 1234", biosdetect=auto
@@ -18,4 +18,4 @@ mouse: type=ps2, enabled=false, toggle=ctrl+mbutton
 sound: waveoutdrv=alsa, waveout=none, waveindrv=alsa, wavein=none, midioutdrv=alsa, midiout=none
 voodoo: enabled=true, model=voodoo1
 com1: enabled=true, mode=file, dev="serial.log"
-e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=vnet
+e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=linux, ethdev=eno1

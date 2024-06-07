@@ -98,6 +98,15 @@ void kernel_network_arp_thread( void ) {
 			// up to date?
 			if( kernel -> network_socket_list[ i ].ethernet_mac_lease > kernel -> time_unit ) continue;	// yes
 
+			// request to universal broadcast?
+			if( kernel -> network_socket_list[ i ].ipv4_target == 0xFFFFFFFF ) {
+				// lease time
+				kernel -> network_socket_list[ i ].ethernet_mac_lease = kernel -> time_unit + (300 * DRIVER_RTC_Hz);	// ~5 min
+
+				// nothing to do
+				continue;
+			}
+
 			//----------------------------------------------------------------------
 
 			// allocate area for ethernet/arp frame

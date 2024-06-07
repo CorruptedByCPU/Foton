@@ -3,41 +3,37 @@
 ===============================================================================*/
 
 void kernel_network_udp_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint64_t length ) {
-	// amount of data already sent
-	uint16_t data_sent = EMPTY;
+	// align data length to WORD
+	if( length % STD_SIZE_WORD_byte ) length++;
 
-	// send data in parts of 512 Bytes
-	while( data_sent < length ) {
-		// prepare ethernet header
-		struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
+	// allocate area for ethernet/udp frame
+	struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
 
-		// load data to UDP data frame
-		uint8_t *source = (uint8_t *) &data[ data_sent ];
-		uint8_t	*target = (uint8_t *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ) + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 ) + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP ) );
+	// properties of IPv4 header
+	struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
 
-		// length of data part
-		uint16_t data_length = 512;
-		if( length < 512 ) data_length = length;
+	// default IPv4 header properties
+	ipv4 -> version_and_header_length = KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default;
 
-		// round up length to parity
-		if( data_length % 2 ) data_length++;
+	// IPv4 header length
+	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
 
-		// copy part of data for send
-		for( uint64_t i = 0; i < data_length; i++ ) target[ i ] = source[ i ];
+	// properties of UDP header
+	struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP *udp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP *) ((uintptr_t) ipv4 + ipv4_header_length);
 
-		// wrap data into a UDP frame and send
-		kernel_network_udp_encapsulate( socket, ethernet, data_length );
+	// copy data
+	uint8_t *udp_data = (uint8_t *) ((uintptr_t) udp + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP ));
+	for( uint16_t i = 0; i < length; i++ ) udp_data[ i ] = data[ i ];
 
-		// part of data sent
-		data_sent += data_length;
-	}
+	// encapsulate UDP frame and send
+	kernel_network_udp_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP ) + length );
 }
 
 void kernel_network_udp_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// properties of UDP haeder
 	struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP *udp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ) + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 ));
-	udp -> local = socket -> port_local;
-	udp -> target = socket -> port_target;
+	udp -> local = MACRO_ENDIANNESS_WORD( socket -> port_local );
+	udp -> target = MACRO_ENDIANNESS_WORD( socket -> port_target );
 	udp -> length = MACRO_ENDIANNESS_WORD( (length + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP)) );
 
 	// properties of UDP Pseudo header
