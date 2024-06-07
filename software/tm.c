@@ -112,7 +112,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// release list
-		std_memory_release( (uintptr_t) task, MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * entry ) >> STD_SHIFT_PAGE );
+		std_memory_release( (uintptr_t) task, MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * ++entry ) >> STD_SHIFT_PAGE );
 
 		// set next update
 		top_update_next = std_uptime() + top_update_limit;
