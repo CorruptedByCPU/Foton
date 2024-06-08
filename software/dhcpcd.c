@@ -23,7 +23,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	uint8_t acquired = FALSE;	// by default no
 
 	// DHCPDiscover
-	printf( "Searching for DHCP server" );
+	printf( "Searching for DHCP server " );
 
 	// main loop
 	while( TRUE ) {
@@ -56,36 +56,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		option_request.length = MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_request, dhcp );
 		option_request.dhcp = DHCP_OPTION_TYPE_REQUEST_DHCPDISCOVER;
 		dhcp_option_add( (uint8_t *) &option_request );
-
-		// // add "max dhcp message size"
-		// struct DHCP_STRUCTURE_OPTION_max_dhcp_message_size option_max_dhcp_message_size = { EMPTY };
-		// option_max_dhcp_message_size.type = DHCP_OPTION_TYPE_MAX_DHCP_MESSAGE_SIZE;
-		// option_max_dhcp_message_size.length = MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_max_dhcp_message_size, byte );
-		// option_max_dhcp_message_size.byte = (uint16_t) MACRO_ENDIANNESS_WORD( 1024 );
-		// dhcp_option_add( (uint8_t *) &option_max_dhcp_message_size );
-
-		// // add "client identifier" option
-		// struct DHCP_STRUCTURE_OPTION_client_identifier option_client_identifier = { EMPTY };
-		// option_client_identifier.type = DHCP_OPTION_TYPE_CLIENT_IDENTIFIER;
-		// option_client_identifier.length = MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_client_identifier, hardware_type ) + MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_client_identifier, client_mac_address );
-		// option_client_identifier.hardware_type = DHCP_OPTION_TYPE_CLIENT_IDENTIFIER_HARDWARE_TYPE_ethernet;
-		// for( uint8_t i = 0; i < 6; i++ ) option_client_identifier.client_mac_address[ i ] = eth0.ethernet_mac[ i ];	// our network controller MAC address
-		// dhcp_option_add( (uint8_t *) &option_client_identifier );
-
-		// // add "parameter request list" option
-		// uint8_t option_parameter_request_list_entries = 5;
-		// struct DHCP_STRUCTURE_OPTION_parameter_request_list *option_parameter_request_list = (struct DHCP_STRUCTURE_OPTION_parameter_request_list *) malloc( sizeof( struct DHCP_STRUCTURE_OPTION_parameter_request_list ) + option_parameter_request_list_entries );
-		// option_parameter_request_list -> type = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST;
-		// option_parameter_request_list -> length = option_parameter_request_list_entries;
-		// uint8_t *option_parameter_request_list_entry = (uint8_t *) option_parameter_request_list + sizeof( struct DHCP_STRUCTURE_OPTION_parameter_request_list );
-		// *(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_subnet_mask;
-		// *(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_router;
-		// *(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_dns;
-		// *(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_ntp;
-		// *(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_lease_time;
-		// dhcp_option_add( (uint8_t *) option_parameter_request_list );
-		// // release option "parameter request list" area
-		// free( option_parameter_request_list );
 
 		// open file for read
 		FILE *file = fopen( (uint8_t *) "/system/etc/hostname" );
@@ -141,10 +111,116 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// received answer?
 			if( packet.length ) {
-				printf( "\nANSWER!" );
-				acquired = TRUE;	// debug
-				break;
+				// properties of DHCPOffer
+				struct DHCP_STRUCTURE *dhcp_offer = (struct DHCP_STRUCTURE *) packet.data;
 
+				// obtain IPv4 address of DHCP server
+				struct DHCP_STRUCTURE_OPTION_dhcp_server_identifier *offer_dhcp_server_identifier = (struct DHCP_STRUCTURE_OPTION_dhcp_server_identifier *) dhcp_option( (uint8_t *) &dhcp_offer -> option, DHCP_OPTION_TYPE_DHCP_SERVER_IDENTIFIER );
+
+				// some DHCP server responded!
+				printf( " \e[38;5;46mOK\e[0m [%u.%u.%u.%u]\n", (uint8_t) offer_dhcp_server_identifier -> address, (uint8_t) (offer_dhcp_server_identifier -> address >> 8), (uint8_t) (offer_dhcp_server_identifier -> address >> 16), (uint8_t) (offer_dhcp_server_identifier -> address >> 24) );
+
+				// change message type to Request
+				dhcp -> op_code = DHCP_OP_CODE_boot_request;
+
+				// remove old "request" option
+				dhcp_option_remove( DHCP_OPTION_TYPE_REQUEST );
+
+				// add new "request" option
+				struct DHCP_STRUCTURE_OPTION_request option_request = { EMPTY };
+				option_request.type = DHCP_OPTION_TYPE_REQUEST;
+				option_request.length = MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_request, dhcp );
+				option_request.dhcp = DHCP_OPTION_TYPE_REQUEST_DHCPREQUEST;
+				dhcp_option_add( (uint8_t *) &option_request );
+	
+				// add "max dhcp message size"
+				struct DHCP_STRUCTURE_OPTION_max_dhcp_message_size option_max_dhcp_message_size = { EMPTY };
+				option_max_dhcp_message_size.type = DHCP_OPTION_TYPE_MAX_DHCP_MESSAGE_SIZE;
+				option_max_dhcp_message_size.length = MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_max_dhcp_message_size, byte );
+				option_max_dhcp_message_size.byte = (uint16_t) MACRO_ENDIANNESS_WORD( 1024 );
+				dhcp_option_add( (uint8_t *) &option_max_dhcp_message_size );
+
+				// add "client identifier" option
+				struct DHCP_STRUCTURE_OPTION_client_identifier option_client_identifier = { EMPTY };
+				option_client_identifier.type = DHCP_OPTION_TYPE_CLIENT_IDENTIFIER;
+				option_client_identifier.length = MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_client_identifier, hardware_type ) + MACRO_SIZEOF( struct DHCP_STRUCTURE_OPTION_client_identifier, client_mac_address );
+				option_client_identifier.hardware_type = DHCP_OPTION_TYPE_CLIENT_IDENTIFIER_HARDWARE_TYPE_ethernet;
+				for( uint8_t i = 0; i < 6; i++ ) option_client_identifier.client_mac_address[ i ] = eth0.ethernet_mac[ i ];	// our network controller MAC address
+				dhcp_option_add( (uint8_t *) &option_client_identifier );
+
+				// add "parameter request list" option
+				uint8_t option_parameter_request_list_entries = 5;
+				struct DHCP_STRUCTURE_OPTION_parameter_request_list *option_parameter_request_list = (struct DHCP_STRUCTURE_OPTION_parameter_request_list *) malloc( sizeof( struct DHCP_STRUCTURE_OPTION_parameter_request_list ) + option_parameter_request_list_entries );
+				option_parameter_request_list -> type = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST;
+				option_parameter_request_list -> length = option_parameter_request_list_entries;
+				uint8_t *option_parameter_request_list_entry = (uint8_t *) option_parameter_request_list + sizeof( struct DHCP_STRUCTURE_OPTION_parameter_request_list );
+				*(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_subnet_mask;
+				*(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_router;
+				*(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_dns;
+				*(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_ntp;
+				*(option_parameter_request_list_entry++) = DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_lease_time;
+				dhcp_option_add( (uint8_t *) option_parameter_request_list );
+				// release option "parameter request list" area
+				free( option_parameter_request_list );
+
+				// add "requested IPv4 address" option
+				struct DHCP_STRUCTURE_OPTION_requested_ip_address option_requested_ip_address = { EMPTY };
+				option_requested_ip_address.type = DHCP_OPTION_TYPE_REQUESTED_IP_ADDRESS;
+				option_requested_ip_address.length = 4;
+				option_requested_ip_address.address = dhcp_offer -> your_ip_address;	// provided IPv4 address by DHCP server.
+				dhcp_option_add( (uint8_t *) &option_requested_ip_address );
+
+				// add "dhcp server identifier" option
+				struct DHCP_STRUCTURE_OPTION_dhcp_server_identifier option_dhcp_server_identifier = { EMPTY };
+				option_dhcp_server_identifier.type = DHCP_OPTION_TYPE_DHCP_SERVER_IDENTIFIER;
+				option_dhcp_server_identifier.length = 4;
+				option_dhcp_server_identifier.address = offer_dhcp_server_identifier -> address;
+				dhcp_option_add( (uint8_t *) &option_dhcp_server_identifier );
+
+				// send request outside
+				std_network_send( socket, (uint8_t *) dhcp, dhcp_length );
+
+				// release old packet data
+				// std_memory_release( (uintptr_t) packet.data, MACRO_PAGE_ALIGN_UP( packet.length ) );
+
+				// clean'up packet properties
+				packet.length = EMPTY;
+
+				// start of timelapse
+				current_microtime = std_microtime();
+				end_microtime = current_microtime + 512;
+
+				// wait for incomming reply
+				while( end_microtime > current_microtime && ! packet.length ) {
+					// check for incommint reply
+					std_network_receive( socket, (struct STD_NETWORK_STRUCTURE_DATA *) &packet );
+
+					// still no reply, update current time
+					current_microtime = std_microtime();
+				}
+
+				// received answer?
+				if( packet.length ) {
+					// properties of DHCPOffer
+					struct DHCP_STRUCTURE *dhcp_ack = (struct DHCP_STRUCTURE *) packet.data;
+
+					// show assigned IPv4 address
+					printf( "Assigned: %u.%u.%u.%u\n", (uint8_t) dhcp_ack -> your_ip_address, (uint8_t) (dhcp_ack -> your_ip_address >> 8), (uint8_t) (dhcp_ack -> your_ip_address >> 16), (uint8_t) (dhcp_ack -> your_ip_address >> 24) );
+
+					// update interface configuration
+					struct STD_NETWORK_STRUCTURE_INTERFACE eth0;
+					std_network_interface( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &eth0 );
+					eth0.ipv4_address = MACRO_ENDIANNESS_DWORD( dhcp_ack -> your_ip_address );
+					std_network_interface_set( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &eth0 );
+
+					// program closed properly
+					return 0;
+				}
+
+				// debug
+				acquired = FALSE;
+
+				break;
 			}
 			
 			// no answer, retry?
@@ -156,9 +232,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// error if cound't acquire IPv4
 	if( ! acquired ) print( "\nNo response from network." );
-
-	// debug
-	std_sleep( TRUE );
 
 	// program closed properly
 	return 0;

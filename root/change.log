@@ -2,6 +2,11 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+08.06.2024
+- TCP/IP (with UDP) stack already done (some improvements available),
+- dhcpcd software to acquire IPV4 address from local network
+  (clean'up required)
+
 20.05.2024
 - window resize fix
 
@@ -42,7 +47,7 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 
 10.04.2024
 - window resize enabled (enabled for console [moko fix, applied])
-  hold left ALT, and choose new dimension with Right Mouse Button
+  hold left ALT, and choose new dimension with Right Mouse Button,
 - Text-Mode enabled at boot menu.
 
 09.04.2024
@@ -58,14 +63,14 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 - vfs - don't allow to create more than 1 file with the same name
 
 02.04.2024
-- hostname - show or update system name
-- make.sh - update, correct processor flags
-- kernel - vfs > read requested more Bytes than available, read up to end of file
-- libstring.so - update, added support function for hostname
+- hostname - show or update system name,
+- make.sh - update, correct processor flags,
+- kernel - vfs > read requested more Bytes than available, read up to end of file,
+- libstring.so - update, added support function for hostname,
 - shell - now reports hostname
 
 31.03.2024
-- touch - create empty files
+- touch - create empty files,
 - ls - small fix, align size position and turn off decimals of Bytes
 
 30.03.2024

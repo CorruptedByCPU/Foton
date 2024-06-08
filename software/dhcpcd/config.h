@@ -32,6 +32,7 @@
 #define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_static_route		0x23
 #define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_ntp			0x2A
 #define	DHCP_OPTION_TYPE_PARAMETER_REQUEST_LIST_lease_time		0x33
+#define	DHCP_OPTION_TYPE_DHCP_SERVER_IDENTIFIER				0x36
 #define	DHCP_OPTION_TYPE_MAX_DHCP_MESSAGE_SIZE				0x39
 #define	DHCP_OPTION_TYPE_CLIENT_IDENTIFIER				0x3D
 #define	DHCP_OPTION_TYPE_CLIENT_IDENTIFIER_HARDWARE_TYPE_ethernet	0x01
@@ -103,6 +104,12 @@ struct DHCP_STRUCTURE_OPTION_request {
 } __attribute__( (packed) );
 
 struct DHCP_STRUCTURE_OPTION_requested_ip_address {
+	uint8_t 	type;
+	uint8_t		length;
+	uint32_t	address;
+} __attribute__( (packed) );
+
+struct DHCP_STRUCTURE_OPTION_dhcp_server_identifier {
 	uint8_t 	type;
 	uint8_t		length;
 	uint32_t	address;
