@@ -103,7 +103,7 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			// amount of data
 			uint64_t bytes = length - ((uintptr_t) tcp - (uintptr_t) ethernet) - sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP );
 
-			// IPv4 header length
+			// TCP header length
 			uint16_t tcp_header_length = tcp -> header_length >> STD_SHIFT_4;
 
 			// move data content at beginning of area
@@ -114,7 +114,7 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			// register inside socket
 			kernel_network_data_in( socket, (uintptr_t) rewrite | bytes );
 
-			// IPv4 frame content transferred to process owning socket
+			// TCP frame content transferred to process owning socket
 			return FALSE;
 		}
 

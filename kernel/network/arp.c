@@ -100,6 +100,9 @@ void kernel_network_arp_thread( void ) {
 
 			// request to universal broadcast?
 			if( kernel -> network_socket_list[ i ].ipv4_target == 0xFFFFFFFF ) {
+				// set target broadcast MAC
+				for( uint8_t j = 0; j < 6; j++ ) kernel -> network_socket_list[ i ].ethernet_mac[ j ] = 0xFF;
+
 				// lease time
 				kernel -> network_socket_list[ i ].ethernet_mac_lease = kernel -> time_unit + (300 * DRIVER_RTC_Hz);	// ~5 min
 

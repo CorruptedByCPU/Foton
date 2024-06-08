@@ -17,7 +17,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	int64_t socket = std_network_open( STD_NETWORK_PROTOCOL_udp, 0xFFFFFFFF, DHCP_PORT_target, DHCP_PORT_local );
 
 	// exit, if cannot find DHCP server at local network
-	uint8_t discover_attempts = 128;
+	uint8_t discover_attempts = 3;
+
+	// did we acquired IPv4 from local DHCP server?
+	uint8_t acquired = FALSE;	// by default no
+
+	// DHCPDiscover
+	printf( "Searching for DHCP server" );
 
 	// main loop
 	while( TRUE ) {
@@ -111,24 +117,48 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			free( hostname );
 		}
 
-		// request prepared
-		printf( "DHCPDiscover (%u).\n", discover_attempts );
+		// first attempt
+		printf( "." );
 
 		// send request outside
 		std_network_send( socket, (uint8_t *) dhcp, dhcp_length );
 
-		// release default message
-		free( dhcp );
+			// properties of reply
+			struct STD_NETWORK_STRUCTURE_DATA packet = { EMPTY };
 
-		// wait before sending next discover message
-		std_sleep( 16 );
+			// start of timelapse
+			int64_t current_microtime = std_microtime();
+			int64_t end_microtime = current_microtime + 512;
 
-		// cannot locate DHCP server?
-		if( ! --discover_attempts ) break;	// yep
+			// wait for incomming reply
+			while( end_microtime > current_microtime && ! packet.length ) {
+				// check for incommint reply
+				std_network_receive( socket, (struct STD_NETWORK_STRUCTURE_DATA *) &packet );
+
+				// still no reply, update current time
+				current_microtime = std_microtime();
+			}
+
+			// received answer?
+			if( packet.length ) {
+				printf( "\nANSWER!" );
+				acquired = TRUE;	// debug
+				break;
+
+			}
+			
+			// no answer, retry?
+			if( ! --discover_attempts ) break;	// hell, no
 	}
 
-	// error
-	print( "No response from network." );
+	// release default message
+	free( dhcp );
+
+	// error if cound't acquire IPv4
+	if( ! acquired ) print( "\nNo response from network." );
+
+	// debug
+	std_sleep( TRUE );
 
 	// program closed properly
 	return 0;

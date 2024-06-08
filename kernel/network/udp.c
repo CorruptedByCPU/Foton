@@ -2,6 +2,43 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+uint8_t kernel_network_udp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+	// properties of IPv4 header
+	struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+
+	// IPv4 header length
+	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
+
+	// properties of TCP header
+	struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP *udp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP *) ((uintptr_t) ipv4 + ipv4_header_length);
+
+	// search for corresponding socket
+	for( uint64_t i = 0; i < KERNEL_NETWORK_SOCKET_limit; i++ ) {
+		// properties of socket
+		struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ i ];
+
+		// designed port?
+		if( udp -> target != MACRO_ENDIANNESS_WORD( socket -> port_local ) ) continue;	// no
+
+		// amount of data
+		uint64_t bytes = length - ((uintptr_t) udp - (uintptr_t) ethernet) - sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP );
+
+		// move data content at beginning of area
+		uint8_t *data = (uint8_t *) udp + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP );
+		uint8_t *rewrite = (uint8_t *) ethernet;
+		for( uint64_t j = 0; j < bytes; j++ ) rewrite[ j ] = data[ j ];
+
+		// register inside socket
+		kernel_network_data_in( socket, (uintptr_t) rewrite | bytes );
+
+		// UDP frame content transferred to process owning socket
+		return FALSE;
+	}
+
+	// release frame
+	return TRUE;
+}
+
 void kernel_network_udp_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint64_t length ) {
 	// align data length to WORD
 	if( length % STD_SIZE_WORD_byte ) length++;
