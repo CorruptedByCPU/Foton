@@ -39,6 +39,8 @@
 #define	DHCP_OPTION_TYPE_AUTO_CONFIGURATION				0x74
 #define	DHCP_OPTION_TYPE_END						0xFF
 
+enum DHCP_ACTION { Discover, Offer, Request, Answer };
+
 struct DHCP_STRUCTURE {
 	uint8_t		op_code;
 	uint8_t		hardware_type;
@@ -55,7 +57,7 @@ struct DHCP_STRUCTURE {
 	uint8_t		server_name[ 64 ];
 	uint8_t		boot_file_name[ 128 ];
 	uint32_t	magic_cookie;
-	uint8_t		option;
+	uint8_t		options;
 } __attribute__( (packed) );
 
 struct DHCP_STRUCTURE_OPTION_DEFAULT {
