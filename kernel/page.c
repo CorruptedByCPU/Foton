@@ -14,10 +14,13 @@ uintptr_t kernel_page_address( uintptr_t *pml4, uintptr_t address ) {
 
 uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uint16_t flags ) {
 	// start with following array[ entries ]
-	uint16_t p4 = (address & ~KERNEL_PAGE_PML5_mask) / KERNEL_PAGE_PML3_byte;
-	uint16_t p3 = ((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) / KERNEL_PAGE_PML2_byte;
-	uint16_t p2 = (((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) / KERNEL_PAGE_PML1_byte;
-	uint16_t p1 = ((((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte;
+    //                        shift it to divide by 4096*512^(whichever p we need - 1)
+    //                           |       mask to limit it to <512 entries
+    //                           v       v
+	uint16_t p4 = (address >> (12+27)) & 0x1ff; 
+	uint16_t p3 = (address >> (12+18)) & 0x1ff;
+	uint16_t p2 = (address >> (12+9 )) & 0x1ff;
+	uint16_t p1 = (address >> (12   )) & 0x1ff;
 
 	// start with an entry representing given address in PML4 array
 	for( ; p4 < 512; p4++ ) {
