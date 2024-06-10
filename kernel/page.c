@@ -4,23 +4,23 @@
 
 uintptr_t kernel_page_address( uintptr_t *pml4, uintptr_t address ) {
 	// locate page table pointers
-	uintptr_t *pml3 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ (address & ~KERNEL_PAGE_PML5_mask) / (KERNEL_PAGE_PML3_byte)] ) | KERNEL_PAGE_logical);
-	uintptr_t *pml2 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ ((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) / KERNEL_PAGE_PML2_byte ] ) | KERNEL_PAGE_logical);
-	uintptr_t *pml1 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ (((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) / KERNEL_PAGE_PML1_byte ] ) | KERNEL_PAGE_logical);
+	uintptr_t *pml3 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1) ] ) | KERNEL_PAGE_logical);
+	uintptr_t *pml2 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1) ] ) | KERNEL_PAGE_logical);
+	uintptr_t *pml1 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1) ] ) | KERNEL_PAGE_logical);
 
 	// return address of physical page connected to area
-	return MACRO_PAGE_ALIGN_DOWN( pml1[ ((((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte ] );
+	return MACRO_PAGE_ALIGN_DOWN( pml1[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1) ] );
 }
 
 uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uint16_t flags ) {
 	// start with following array[ entries ]
-	uint16_t p4 = (address & ~KERNEL_PAGE_PML5_mask) / KERNEL_PAGE_PML3_byte;
-	uint16_t p3 = ((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) / KERNEL_PAGE_PML2_byte;
-	uint16_t p2 = (((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) / KERNEL_PAGE_PML1_byte;
-	uint16_t p1 = ((((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte;
+	uint16_t p4 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
+	uint16_t p3 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p2 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p1 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
 
 	// start with an entry representing given address in PML4 array
-	for( ; p4 < 512; p4++ ) {
+	for( ; p4 < KERNEL_PAGE_PML_records; p4++ ) {
 		// get PML3 array address (remove flags)
 		uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical);
 
@@ -40,7 +40,7 @@ uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uin
 		}
 
 		// start with an entry representing given address in PML3 array
-		for( ; p3 < 512; p3++ ) {
+		for( ; p3 < KERNEL_PAGE_PML_records; p3++ ) {
 			// get PML2 array address (remove flags)
 			uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical);
 	
@@ -60,7 +60,7 @@ uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uin
 			}
 
 			// start with an entry representing given address in PML2 array
-			for( ; p2 < 512; p2++ ) {
+			for( ; p2 < KERNEL_PAGE_PML_records; p2++ ) {
 				// get PML1 array address (remove flags)
 				uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical);
 	
@@ -80,7 +80,7 @@ uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uin
 				}
 
 				// start with an entry representing given address in PML1 array
-				for( ; p1 < 512; p1++ ) {
+				for( ; p1 < KERNEL_PAGE_PML_records; p1++ ) {
 					// empty entry?
 					if( ! pml1[ p1 ] ) {
 						// yes, allocate page to a logical address
@@ -121,13 +121,13 @@ uint8_t kernel_page_clang( uintptr_t *pml4, uintptr_t source_address, uintptr_t 
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// start with following array[ entries ]
-	uint16_t p4 = (target_address & ~KERNEL_PAGE_PML5_mask) / KERNEL_PAGE_PML3_byte;
-	uint16_t p3 = ((target_address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) / KERNEL_PAGE_PML2_byte;
-	uint16_t p2 = (((target_address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) / KERNEL_PAGE_PML1_byte;
-	uint16_t p1 = ((((target_address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte;
+	uint16_t p4 = ((target_address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
+	uint16_t p3 = ((target_address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p2 = ((target_address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p1 = ((target_address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
 
 	// start with an entry representing given address in PML4 array
-	for( ; p4 < 512; p4++ ) {
+	for( ; p4 < KERNEL_PAGE_PML_records; p4++ ) {
 		// get PML3 array address (remove flags)
 		uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical);
 
@@ -147,7 +147,7 @@ uint8_t kernel_page_clang( uintptr_t *pml4, uintptr_t source_address, uintptr_t 
 		}
 
 		// start with an entry representing given address in PML3 array
-		for( ; p3 < 512; p3++ ) {
+		for( ; p3 < KERNEL_PAGE_PML_records; p3++ ) {
 			// get PML2 array address (remove flags)
 			uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical);
 	
@@ -167,7 +167,7 @@ uint8_t kernel_page_clang( uintptr_t *pml4, uintptr_t source_address, uintptr_t 
 			}
 
 			// start with an entry representing given address in PML2 array
-			for( ; p2 < 512; p2++ ) {
+			for( ; p2 < KERNEL_PAGE_PML_records; p2++ ) {
 				// get PML1 array address (remove flags)
 				uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical);
 	
@@ -187,7 +187,7 @@ uint8_t kernel_page_clang( uintptr_t *pml4, uintptr_t source_address, uintptr_t 
 				}
 
 				// start with an entry representing given address in PML1 array
-				for( ; p1 < 512; p1++ ) {
+				for( ; p1 < KERNEL_PAGE_PML_records; p1++ ) {
 					// connect pages
 					pml1[ p1 ] = kernel_page_address( (uintptr_t *) task -> cr3, source_address ) | flags;
 
@@ -216,7 +216,7 @@ uint8_t kernel_page_clang( uintptr_t *pml4, uintptr_t source_address, uintptr_t 
 
 void kernel_page_deconstruct( uintptr_t *pml4 ) {
 	// for each entry of PML4 array
-	for( uint16_t p4 = 0; p4 < 512; p4++ ) {
+	for( uint16_t p4 = 0; p4 < KERNEL_PAGE_PML_records; p4++ ) {
 		// empty?
 		if( ! pml4[ p4 ] ) continue;	// skip
 
@@ -224,7 +224,7 @@ void kernel_page_deconstruct( uintptr_t *pml4 ) {
 		uintptr_t *pml3 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical);
 
 		// for each entry of PML3 array
-		for( uint16_t p3 = 0; p3 < 512; p3++ ) {
+		for( uint16_t p3 = 0; p3 < KERNEL_PAGE_PML_records; p3++ ) {
 			// empty?
 			if( ! pml3[ p3 ] ) continue;	// skip
 
@@ -232,7 +232,7 @@ void kernel_page_deconstruct( uintptr_t *pml4 ) {
 			uintptr_t *pml2 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical);
 
 			// for each entry of PML2 array
-			for( uint16_t p2 = 0; p2 < 512; p2++ ) {
+			for( uint16_t p2 = 0; p2 < KERNEL_PAGE_PML_records; p2++ ) {
 				// empty?
 				if( ! pml2[ p2 ] ) continue;	// skip
 
@@ -240,7 +240,7 @@ void kernel_page_deconstruct( uintptr_t *pml4 ) {
 				uintptr_t *pml1 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical);
 		
 				// for each entry of PML1 array
-				for( uint16_t p1 = 0; p1 < 512; p1++ ) {
+				for( uint16_t p1 = 0; p1 < KERNEL_PAGE_PML_records; p1++ ) {
 					// entry doesn't belongs to task or is shared?
 					if( ! (pml1[ p1 ] & KERNEL_PAGE_FLAG_process) || pml1[ p1 ] & KERNEL_PAGE_FLAG_shared ) continue;	// yes
 				
@@ -287,13 +287,13 @@ void kernel_page_deconstruct( uintptr_t *pml4 ) {
 
 void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 	// start with following array[ entries ]
-	uint16_t p4 = (address & ~KERNEL_PAGE_PML5_mask) / KERNEL_PAGE_PML3_byte;
-	uint16_t p3 = ((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) / KERNEL_PAGE_PML2_byte;
-	uint16_t p2 = (((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) / KERNEL_PAGE_PML1_byte;
-	uint16_t p1 = ((((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte;
+	uint16_t p4 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
+	uint16_t p3 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p2 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p1 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
 
 	// start with an entry representing given address in PML4 array
-	for( ; p4 < 512; p4++ ) {
+	for( ; p4 < KERNEL_PAGE_PML_records; p4++ ) {
 		// PML3 array doesn't exist?
 		if( ! pml4[ p4 ] ) return;	// no
 
@@ -301,7 +301,7 @@ void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 		uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical);
 
 		// start with an entry representing given address in PML3 array
-		for( ; p3 < 512; p3++ ) {
+		for( ; p3 < KERNEL_PAGE_PML_records; p3++ ) {
 			// PML2 array doesn't exist?
 			if( ! pml3[ p3 ] ) return;	// no
 
@@ -309,7 +309,7 @@ void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 			uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical);
 
 			// start with an entry representing given address in PML2 array
-			for( ; p2 < 512; p2++ ) {
+			for( ; p2 < KERNEL_PAGE_PML_records; p2++ ) {
 				// PML1 array doesn't exist?
 				if( ! pml2[ p2 ] ) return;	// no
 
@@ -317,7 +317,7 @@ void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 				uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical);
 
 				// start with an entry representing given address in PML1 array
-				for( ; p1 < 512; p1++ ) {
+				for( ; p1 < KERNEL_PAGE_PML_records; p1++ ) {
 					// remove entry
 					pml1[ p1 ] = EMPTY;
 
@@ -351,13 +351,13 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 	source &= ~KERNEL_PAGE_logical;
 
 	// start with following table[record]
-	uint16_t p4 = (target & ~KERNEL_PAGE_PML5_mask) / KERNEL_PAGE_PML3_byte;
-	uint16_t p3 = ((target & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) / KERNEL_PAGE_PML2_byte;
-	uint16_t p2 = (((target & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) / KERNEL_PAGE_PML1_byte;
-	uint16_t p1 = ((((target & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte;
+	uint16_t p4 = ((target & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
+	uint16_t p3 = ((target & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p2 = ((target & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p1 = ((target & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
 
 	// start with an entry representing given address in PML4 array
-	for( ; p4 < 512; p4++ ) {
+	for( ; p4 < KERNEL_PAGE_PML_records; p4++ ) {
 		// get PML3 array address (remove flags)
 		uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical);
 
@@ -377,7 +377,7 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 		}
 
 		// start with an entry representing given address in PML3 array
-		for( ; p3 < 512; p3++ ) {
+		for( ; p3 < KERNEL_PAGE_PML_records; p3++ ) {
 			// get PML2 array address (remove flags)
 			uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical);
 	
@@ -397,7 +397,7 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 			}
 
 			// start with an entry representing given address in PML2 array
-			for( ; p2 < 512; p2++ ) {
+			for( ; p2 < KERNEL_PAGE_PML_records; p2++ ) {
 				// get PML1 array address (remove flags)
 				uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical);
 	
@@ -417,7 +417,7 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 				}
 
 				// start with an entry representing given address in PML1 array
-				for( ; p1 < 512; p1++ ) {
+				for( ; p1 < KERNEL_PAGE_PML_records; p1++ ) {
 					// copy page from source to target with flags
 					pml1[ p1 ] = source | flags;
 
@@ -446,7 +446,7 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 
 void kernel_page_merge( uint64_t *pml4_kernel, uint64_t *pml4_process ) {
 	// start with PML4 level of both arrays
-	for( uint16_t p4 = 0; p4 < 512; p4++ ) {
+	for( uint16_t p4 = 0; p4 < KERNEL_PAGE_PML_records; p4++ ) {
 		// source entry exists?
 		if( pml4_kernel[ p4 ] ) {
 			// no target entry?
@@ -461,7 +461,7 @@ void kernel_page_merge( uint64_t *pml4_kernel, uint64_t *pml4_process ) {
 			// PML3
 			uint64_t *pml3_kernel = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4_kernel[ p4 ] ) | KERNEL_PAGE_logical);
 			uint64_t *pml3_process = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4_process[ p4 ] ) | KERNEL_PAGE_logical);
-			for( uint16_t p3 = 0; p3 < 512; p3++ ) {
+			for( uint16_t p3 = 0; p3 < KERNEL_PAGE_PML_records; p3++ ) {
 				// source entry exists?
 				if( pml3_kernel[ p3 ] ) {
 					// no target entry?
@@ -476,7 +476,7 @@ void kernel_page_merge( uint64_t *pml4_kernel, uint64_t *pml4_process ) {
 					// PML2
 					uint64_t *pml2_kernel = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3_kernel[ p3 ] ) | KERNEL_PAGE_logical);
 					uint64_t *pml2_process = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3_process[ p3 ] ) | KERNEL_PAGE_logical);
-					for( uint16_t p2 = 0; p2 < 512; p2++ ) {
+					for( uint16_t p2 = 0; p2 < KERNEL_PAGE_PML_records; p2++ ) {
 						// source entry exists?
 						if( pml2_kernel[ p2 ] ) {
 							// no target entry?
@@ -491,7 +491,7 @@ void kernel_page_merge( uint64_t *pml4_kernel, uint64_t *pml4_process ) {
 							// PML1
 							uint64_t *pml1_kernel = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2_kernel[ p2 ] ) | KERNEL_PAGE_logical);
 							uint64_t *pml1_process = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2_process[ p2 ] ) | KERNEL_PAGE_logical);
-							for( uint16_t p1 = 0; p1 < 512; p1++ ) {
+							for( uint16_t p1 = 0; p1 < KERNEL_PAGE_PML_records; p1++ ) {
 								// no target entry?
 								if( ! pml1_process[ p1 ] ) {
 									// reload space from source array to destination array
@@ -508,28 +508,28 @@ void kernel_page_merge( uint64_t *pml4_kernel, uint64_t *pml4_process ) {
 
 void kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 	// start with following array[ entries ]
-	uint16_t p4 = (address & ~KERNEL_PAGE_PML5_mask) / KERNEL_PAGE_PML3_byte;
-	uint16_t p3 = ((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) / KERNEL_PAGE_PML2_byte;
-	uint16_t p2 = (((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) / KERNEL_PAGE_PML1_byte;
-	uint16_t p1 = ((((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte;
+	uint16_t p4 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
+	uint16_t p3 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p2 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p1 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
 
 	// start with an entry representing given address in PML4 array
-	for( ; p4 < 512 && pages; p4++ ) {
+	for( ; p4 < KERNEL_PAGE_PML_records && pages; p4++ ) {
 		// get PML3 array address (remove flags)
 		uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical);
 
 		// start with an entry representing given address in PML3 array
-		for( ; p3 < 512 && pages; p3++ ) {
+		for( ; p3 < KERNEL_PAGE_PML_records && pages; p3++ ) {
 			// get PML2 array address (remove flags)
 			uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical);
 	
 			// start with an entry representing given address in PML2 array
-			for( ; p2 < 512 && pages; p2++ ) {
+			for( ; p2 < KERNEL_PAGE_PML_records && pages; p2++ ) {
 				// get PML1 array address (remove flags)
 				uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical);
 	
 				// start with an entry representing given address in PML1 array
-				for( ; p1 < 512 && pages; p1++ ) {
+				for( ; p1 < KERNEL_PAGE_PML_records && pages; p1++ ) {
 					// release memory area
 					kernel_memory_release( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) | KERNEL_PAGE_logical, TRUE );
 
@@ -585,18 +585,18 @@ void kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 
 uintptr_t kernel_page_remove( uintptr_t *pml4, uintptr_t address ) {
 	// locate page table pointers
-	uintptr_t *pml3 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ (address & ~KERNEL_PAGE_PML5_mask) / (KERNEL_PAGE_PML3_byte)] ) | KERNEL_PAGE_logical);
-	uintptr_t *pml2 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ ((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) / KERNEL_PAGE_PML2_byte ] ) | KERNEL_PAGE_logical);
-	uintptr_t *pml1 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ (((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) / KERNEL_PAGE_PML1_byte ] ) | KERNEL_PAGE_logical);
+	uintptr_t *pml3 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1) ] ) | KERNEL_PAGE_logical);
+	uintptr_t *pml2 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1) ] ) | KERNEL_PAGE_logical);
+	uintptr_t *pml1 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1) ] ) | KERNEL_PAGE_logical);
 
 	// which page will be removed?
-	uintptr_t removed = pml1[ ((((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte ];
+	uintptr_t removed = pml1[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1) ];
 
 	// is it shared?
 	if( removed & KERNEL_PAGE_FLAG_shared ) return EMPTY;	// do not allow
 
 	// remove page from paging
-	pml1[ ((((address & ~KERNEL_PAGE_PML5_mask) % KERNEL_PAGE_PML3_byte) % KERNEL_PAGE_PML2_byte) % KERNEL_PAGE_PML1_byte) / STD_PAGE_byte ] = EMPTY;
+	pml1[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1) ] = EMPTY;
 
 	// return removed page address
 	return MACRO_PAGE_ALIGN_DOWN( removed );

@@ -23,11 +23,12 @@
 	#define	KERNEL_PAGE_FLAG_shared			1 << 10
 	#define	KERNEL_PAGE_FLAG_external		1 << 11
 
-	// overall size of whole page
-	#define	KERNEL_PAGE_PML1_byte			0x0000000000200000
-	#define	KERNEL_PAGE_PML2_byte			0x0000000040000000
-	#define	KERNEL_PAGE_PML3_byte			0x0000008000000000
-	#define	KERNEL_PAGE_PML4_byte			0x0001000000000000
+	#define	KERNEL_PAGE_PML_records			512
+
+	#define	KERNEL_PAGE_PML1_shift			12
+	#define	KERNEL_PAGE_PML2_shift			21
+	#define	KERNEL_PAGE_PML3_shift			30
+	#define	KERNEL_PAGE_PML4_shift			39
 
 	#define	KERNEL_PAGE_ENTRY_stack			223
 	#define	KERNEL_PAGE_ENTRY_stack_context		511
