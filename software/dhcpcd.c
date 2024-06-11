@@ -178,15 +178,16 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					//--------------------------------------
 
 					// prepare option "Parameter Request List"
-					struct DHCP_STRUCTURE_OPTION_REQUEST_LIST *request_list = (struct DHCP_STRUCTURE_OPTION_REQUEST_LIST *) malloc( sizeof( struct DHCP_STRUCTURE_OPTION_REQUEST_LIST ) + 5 );
+					struct DHCP_STRUCTURE_OPTION_REQUEST_LIST *request_list = (struct DHCP_STRUCTURE_OPTION_REQUEST_LIST *) malloc( sizeof( struct DHCP_STRUCTURE_OPTION_REQUEST_LIST ) + 6 );
 					request_list -> option.type = DHCP_OPTION_TYPE_REQUEST_LIST;
-					request_list -> option.length = 5;
+					request_list -> option.length = 6;
 
 					// option ist entries
 					uint8_t *request_list_entry = (uint8_t *) request_list + sizeof( struct DHCP_STRUCTURE_OPTION_REQUEST_LIST );
 					*(request_list_entry++) = DHCP_OPTION_TYPE_SUBNET_MASK;
 					*(request_list_entry++) = DHCP_OPTION_TYPE_ROUTER;
 					*(request_list_entry++) = DHCP_OPTION_TYPE_DNS;
+					*(request_list_entry++) = DHCP_OPTION_TYPE_BROADCAST_ADDRESS;
 					*(request_list_entry++) = DHCP_OPTION_TYPE_NTP;
 					*(request_list_entry++) = DHCP_OPTION_TYPE_LEASE_TIME;
 
