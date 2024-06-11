@@ -675,6 +675,9 @@ uintptr_t kernel_syscall_task( void ) {
 		// current status of task
 		task[ entry ].flags = kernel -> task_base_address[ i ].flags;
 
+		// measured time
+		task[ entry ].time = kernel -> task_base_address[ i ].time;
+
 		// name of task with length
 		for( uint64_t j = 0; j < kernel -> task_base_address[ i ].name_length; j++ ) task[ entry ].name[ task[ entry ].name_length++ ] = kernel -> task_base_address[ i ].name[ j ]; task[ entry ].name[ task[ entry ].name_length ] = STD_ASCII_TERMINATOR;
 
@@ -700,8 +703,17 @@ void kernel_syscall_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *i
 	// IPv4 address
 	interface -> ipv4_address = kernel -> network_interface.ipv4_address;
 
+	// Mask address
+	interface -> ipv4_mask = kernel -> network_interface.ipv4_mask;
+
+	// Broadcast address
+	interface -> ipv4_broadcast = kernel -> network_interface.ipv4_broadcast;
+
+	// Gateway address
+	interface -> ipv4_gateway = kernel -> network_interface.ipv4_gateway;
+
 	// MAC address
-	for( uint8_t i = 0; i < 6; i++ ) interface -> ethernet_mac[ i ] = kernel -> network_interface.ethernet_mac[ i ];
+	for( uint8_t i = 0; i < 6; i++ ) interface -> ethernet_address[ i ] = kernel -> network_interface.ethernet_address[ i ];
 
 	// statistics
 
@@ -731,7 +743,7 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 	}
 
 	// set socket properties
-	socket -> ethernet_mac_lease	= EMPTY;
+	socket -> ethernet_lease_time	= EMPTY;
 	socket -> protocol		= protocol;
 	socket -> ipv4_target		= ipv4_target;
 	socket -> port_target		= port_target;
@@ -779,6 +791,15 @@ int64_t kernel_syscall_network_send( int64_t socket, uint8_t *data, uint64_t len
 void kernel_syscall_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
 	// update IPv4 address
 	kernel -> network_interface.ipv4_address = interface -> ipv4_address;
+
+	// update Mask address
+	kernel -> network_interface.ipv4_mask = interface -> ipv4_mask;
+
+	// update Broadcast address
+	kernel -> network_interface.ipv4_broadcast = interface -> ipv4_broadcast;
+
+	// update Gateway address
+	kernel -> network_interface.ipv4_gateway = interface -> ipv4_gateway;
 }
 
 void kernel_syscall_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet ) {

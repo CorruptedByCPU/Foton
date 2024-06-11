@@ -18,8 +18,14 @@ void kernel_task( void ) {
 
 	//----------------------------------------------------------------------
 
-	// convert task pointer to entry id
+	// stop time measuring
+	uint64_t rdtsc; __asm__ volatile( "push %%rax\npush %%rdx\nrdtsc\nshl $32, %%rdx\nor %%rdx, %%rax\nmov %%rax, %0\npop %%rdx\npop %%rax" : "=r" (rdtsc) ); current -> time = rdtsc - current -> rdtsc;
+
+	// select another process
 	struct KERNEL_TASK_STRUCTURE *next = kernel_task_select( (uint64_t) (((uint64_t) current - (uint64_t) kernel -> task_base_address) / sizeof( struct KERNEL_TASK_STRUCTURE )) );
+
+	// start time measuring
+	__asm__ volatile( "push %%rax\npush %%rdx\nrdtsc\nshl $32, %%rdx\nor %%rdx, %%rax\nmov %%rax, %0\npop %%rdx\npop %%rax" : "=r" (next -> rdtsc) );
 
 	//----------------------------------------------------------------------
 

@@ -4,7 +4,7 @@
 
 uint16_t dhcp_option_add( struct DHCP_STRUCTURE *dhcp, uint16_t length, uint8_t *option ) {
 	// option length in Bytes
-	uint16_t option_length = option[ TRUE ] + sizeof( struct DHCP_STRUCTURE_OPTION_DEFAULT );
+	uint16_t option_length = option[ TRUE ] + sizeof( struct DHCP_STRUCTURE_OPTION );
 
 	// extend area of dhcp message
 	dhcp = (struct DHCP_STRUCTURE *) realloc( dhcp, length + option_length );
@@ -13,7 +13,7 @@ uint16_t dhcp_option_add( struct DHCP_STRUCTURE *dhcp, uint16_t length, uint8_t 
 	uint8_t *options = (uint8_t *) &dhcp -> options;
 
 	// move pointer at end of all options
-	while( *options != DHCP_OPTION_TYPE_END ) options += options[ TRUE ] + sizeof( struct DHCP_STRUCTURE_OPTION_DEFAULT );
+	while( *options != DHCP_OPTION_TYPE_END ) options += options[ TRUE ] + sizeof( struct DHCP_STRUCTURE_OPTION );
 
 	// insert option at end of options list
 	for( uint16_t i = 0; i < option_length; i++ ) options[ i ] = option[ i ];
@@ -38,7 +38,7 @@ uint16_t dhcp_option_remove( struct DHCP_STRUCTURE *dhcp, uint16_t length, uint8
 	// search for option to remove
 	while( *option != DHCP_OPTION_TYPE_END ) {
 		// next option offset
-		offset = option[ TRUE ] + sizeof( struct DHCP_STRUCTURE_OPTION_DEFAULT );
+		offset = option[ TRUE ] + sizeof( struct DHCP_STRUCTURE_OPTION );
 
 		// selected option, found?
 		if( *option == type ) break;	// yes
@@ -50,7 +50,7 @@ uint16_t dhcp_option_remove( struct DHCP_STRUCTURE *dhcp, uint16_t length, uint8
 	// if found, remove option from options list
 	if( *option == type ) {
 		// option length for remove
-		option_length = option[ TRUE ] + sizeof( struct DHCP_STRUCTURE_OPTION_DEFAULT );
+		option_length = option[ TRUE ] + sizeof( struct DHCP_STRUCTURE_OPTION );
 
 		// remove option from options list
 		for( uint16_t i = 0; i <= (length - sizeof( struct DHCP_STRUCTURE )) - offset; i++ ) option[ i ] = option[ i + option_length ];
@@ -67,7 +67,7 @@ uint8_t *dhcp_option( uint8_t *options, uint8_t type ) {
 		if( *options == type ) return options;	// yes
 		
 		// move pointer to next option
-		options += options[ TRUE ] + sizeof( struct DHCP_STRUCTURE_OPTION_DEFAULT );
+		options += options[ TRUE ] + sizeof( struct DHCP_STRUCTURE_OPTION );
 	}
 
 	// not found

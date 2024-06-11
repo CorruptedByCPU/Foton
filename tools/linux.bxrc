@@ -18,4 +18,4 @@ mouse: type=ps2, enabled=false, toggle=ctrl+mbutton
 sound: waveoutdrv=alsa, waveout=none, waveindrv=alsa, wavein=none, midioutdrv=alsa, midiout=none
 voodoo: enabled=true, model=voodoo1
 com1: enabled=true, mode=file, dev="serial.log"
-e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=linux, ethdev=eno1
+e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=vnet

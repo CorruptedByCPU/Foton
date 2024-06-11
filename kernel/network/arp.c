@@ -14,10 +14,10 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			if( arp -> source_ipv4 != MACRO_ENDIANNESS_DWORD( kernel -> network_socket_list[ i ].ipv4_target ) ) continue;	// no
 		
 			// update
-			for( uint8_t j = 0; j < 6; j++ ) kernel -> network_socket_list[ i ].ethernet_mac[ j ] = arp -> source_mac[ j ];
+			for( uint8_t j = 0; j < 6; j++ ) kernel -> network_socket_list[ i ].ethernet_address[ j ] = arp -> source_mac[ j ];
 
 			// lease time
-			kernel -> network_socket_list[ i ].ethernet_mac_lease = kernel -> time_unit + (300 * DRIVER_RTC_Hz);	// ~5 min
+			kernel -> network_socket_list[ i ].ethernet_lease_time = kernel -> time_unit + (300 * DRIVER_RTC_Hz);	// ~5 min
 		}
 
 		// answer parsed
@@ -41,7 +41,7 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	socket -> ipv4_target = MACRO_ENDIANNESS_DWORD( arp -> source_ipv4 );
 
 	// target MAC address
-	for( uint8_t i = 0; i < 6; i++ ) socket -> ethernet_mac[ i ] = arp -> source_mac[ i ];
+	for( uint8_t i = 0; i < 6; i++ ) socket -> ethernet_address[ i ] = arp -> source_mac[ i ];
 
 	// socket configured, activate
 	socket -> flags = KERNEL_NETWORK_SOCKET_FLAG_active;
@@ -52,10 +52,10 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	arp -> operation = MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ARP_OPERATION_answer );
 
 	// set target MAC
-	for( uint8_t i = 0; i < 6; i++ ) arp -> target_mac[ i ] = socket -> ethernet_mac[ i ];
+	for( uint8_t i = 0; i < 6; i++ ) arp -> target_mac[ i ] = socket -> ethernet_address[ i ];
 
 	// set source MAC
-	for( uint8_t i = 0; i < 6; i++ ) arp -> source_mac[ i ] = kernel -> network_interface.ethernet_mac[ i ];
+	for( uint8_t i = 0; i < 6; i++ ) arp -> source_mac[ i ] = kernel -> network_interface.ethernet_address[ i ];
 	
 	// set target IPv4
 	arp -> target_ipv4 = MACRO_ENDIANNESS_DWORD( socket -> ipv4_target );
@@ -83,7 +83,7 @@ void kernel_network_arp_thread( void ) {
 	socket -> protocol = STD_NETWORK_PROTOCOL_arp;
 
 	// target MAC address
-	for( uint8_t i = 0; i < 6; i++ ) socket -> ethernet_mac[ i ] = 0xFF;	// broadcast
+	for( uint8_t i = 0; i < 6; i++ ) socket -> ethernet_address[ i ] = 0xFF;	// broadcast
 
 	// socket configured, activate
 	socket -> flags = KERNEL_NETWORK_SOCKET_FLAG_active;
@@ -96,15 +96,15 @@ void kernel_network_arp_thread( void ) {
 			if( ! kernel -> network_socket_list[ i ].pid || kernel -> network_socket_list[ i ].protocol == STD_NETWORK_PROTOCOL_arp ) continue;	// no need
 
 			// up to date?
-			if( kernel -> network_socket_list[ i ].ethernet_mac_lease > kernel -> time_unit ) continue;	// yes
+			if( kernel -> network_socket_list[ i ].ethernet_lease_time > kernel -> time_unit ) continue;	// yes
 
 			// request to universal broadcast?
 			if( kernel -> network_socket_list[ i ].ipv4_target == 0xFFFFFFFF ) {
 				// set target broadcast MAC
-				for( uint8_t j = 0; j < 6; j++ ) kernel -> network_socket_list[ i ].ethernet_mac[ j ] = 0xFF;
+				for( uint8_t j = 0; j < 6; j++ ) kernel -> network_socket_list[ i ].ethernet_address[ j ] = 0xFF;
 
 				// lease time
-				kernel -> network_socket_list[ i ].ethernet_mac_lease = kernel -> time_unit + (300 * DRIVER_RTC_Hz);	// ~5 min
+				kernel -> network_socket_list[ i ].ethernet_lease_time = kernel -> time_unit + (300 * DRIVER_RTC_Hz);	// ~5 min
 
 				// nothing to do
 				continue;
@@ -126,7 +126,7 @@ void kernel_network_arp_thread( void ) {
 			arp -> operation	= MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ARP_OPERATION_request );
 
 			// set source MAC
-			for( uint8_t i = 0; i < 6; i++ ) arp -> source_mac[ i ] = kernel -> network_interface.ethernet_mac[ i ];
+			for( uint8_t i = 0; i < 6; i++ ) arp -> source_mac[ i ] = kernel -> network_interface.ethernet_address[ i ];
 
 			// set source IPv4
 			arp -> source_ipv4 = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
