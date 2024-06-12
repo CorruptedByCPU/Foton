@@ -52,7 +52,7 @@ LDFLAGS="-nostdlib -static -no-dynamic-linker"
 # build kernel file
 ${C} -c kernel/init.c -o build/kernel.o ${CFLAGS} || exit 1;
 ${LD} ${EXT} build/kernel.o -o build/kernel -T tools/kernel.ld ${LDFLAGS} || exit 1;
-strip -R .comment -s build/kernel
+#strip -R .comment -s build/kernel
 
 # copy kernel file and limine files onto destined iso folder
 gzip -k build/kernel

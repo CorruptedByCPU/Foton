@@ -73,8 +73,9 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 
 	// TODO, disassembly?
 
-	// hold the door
-	while( TRUE ) { MACRO_DEBUF(); }
+	// time to hunt some BUGs
+	MACRO_DEBUF();
+	MACRO_DEBUF();
 }
 
 __attribute__ (( preserve_all ))

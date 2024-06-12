@@ -444,59 +444,59 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 	return FALSE;
 }
 
-void kernel_page_merge( uint64_t *pml4_kernel, uint64_t *pml4_process ) {
+void kernel_page_merge( uint64_t *pml4_parent, uint64_t *pml4_child ) {
 	// start with PML4 level of both arrays
 	for( uint16_t p4 = 0; p4 < KERNEL_PAGE_PML_records; p4++ ) {
 		// source entry exists?
-		if( pml4_kernel[ p4 ] ) {
+		if( pml4_parent[ p4 ] ) {
 			// no target entry?
-			if( ! pml4_process[ p4 ] ) {
+			if( ! pml4_child[ p4 ] ) {
 				// reload space from source array to destination array
-				pml4_process[ p4 ] = pml4_kernel[ p4 ];
+				pml4_child[ p4 ] = pml4_parent[ p4 ];
 
 				// next entry from source array
 				continue;
 			}
 
 			// PML3
-			uint64_t *pml3_kernel = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4_kernel[ p4 ] ) | KERNEL_PAGE_logical);
-			uint64_t *pml3_process = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4_process[ p4 ] ) | KERNEL_PAGE_logical);
+			uint64_t *pml3_parent = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4_parent[ p4 ] ) | KERNEL_PAGE_logical);
+			uint64_t *pml3_child = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4_child[ p4 ] ) | KERNEL_PAGE_logical);
 			for( uint16_t p3 = 0; p3 < KERNEL_PAGE_PML_records; p3++ ) {
 				// source entry exists?
-				if( pml3_kernel[ p3 ] ) {
+				if( pml3_parent[ p3 ] ) {
 					// no target entry?
-					if( ! pml3_process[ p3 ] ) {
+					if( ! pml3_child[ p3 ] ) {
 						// reload space from source array to destination array
-						pml3_process[ p3 ] = pml3_kernel[ p3 ];
+						pml3_child[ p3 ] = pml3_parent[ p3 ];
 
 						// next entry from source array
 						continue;
 					}
 
 					// PML2
-					uint64_t *pml2_kernel = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3_kernel[ p3 ] ) | KERNEL_PAGE_logical);
-					uint64_t *pml2_process = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3_process[ p3 ] ) | KERNEL_PAGE_logical);
+					uint64_t *pml2_parent = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3_parent[ p3 ] ) | KERNEL_PAGE_logical);
+					uint64_t *pml2_child = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3_child[ p3 ] ) | KERNEL_PAGE_logical);
 					for( uint16_t p2 = 0; p2 < KERNEL_PAGE_PML_records; p2++ ) {
 						// source entry exists?
-						if( pml2_kernel[ p2 ] ) {
+						if( pml2_parent[ p2 ] ) {
 							// no target entry?
-							if( ! pml2_process[ p2 ] ) {
+							if( ! pml2_child[ p2 ] ) {
 								// reload space from source array to destination array
-								pml2_process[ p2 ] = pml2_kernel[ p2 ];
+								pml2_child[ p2 ] = pml2_parent[ p2 ];
 
 								// next entry from source array
 								continue;
 							}
 
 							// PML1
-							uint64_t *pml1_kernel = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2_kernel[ p2 ] ) | KERNEL_PAGE_logical);
-							uint64_t *pml1_process = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2_process[ p2 ] ) | KERNEL_PAGE_logical);
+							uint64_t *pml1_parent = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2_parent[ p2 ] ) | KERNEL_PAGE_logical);
+							uint64_t *pml1_child = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2_child[ p2 ] ) | KERNEL_PAGE_logical);
 							for( uint16_t p1 = 0; p1 < KERNEL_PAGE_PML_records; p1++ ) {
-								// no target entry?
-								if( ! pml1_process[ p1 ] ) {
-									// reload space from source array to destination array
-									pml1_process[ p1 ] = pml1_kernel[ p1 ];
-								}
+								// target entry exist?
+								if( pml1_child[ p1 ] ) continue;	// yes
+
+								// reload space from source array to destination array
+								pml1_child[ p1 ] = pml1_parent[ p1 ];
 							}
 						}
 					}
