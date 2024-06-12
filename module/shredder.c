@@ -90,5 +90,8 @@ void _entry( uintptr_t kernel_ptr ) {
 				// close process tree
 				close( kernel -> task_base_address[ i ].pid );
 		}
+
+		// release AP time
+		kernel -> time_sleep( TRUE );
 	}
 }

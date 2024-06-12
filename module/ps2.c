@@ -282,5 +282,5 @@ void _entry( uintptr_t kernel_ptr ) {
 	module_ps2_init();
 
 	// hold the door
-	while( TRUE );
+	while( TRUE ) kernel -> time_sleep( TRUE );
 }

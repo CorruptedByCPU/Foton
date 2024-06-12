@@ -339,5 +339,8 @@ void kernel_network_tcp_thread( void ) {
 				kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP ) );
 			}
 		}
+
+		// release AP time
+		kernel -> time_sleep( TRUE );
 	}
 }

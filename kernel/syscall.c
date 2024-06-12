@@ -676,7 +676,7 @@ uintptr_t kernel_syscall_task( void ) {
 		task[ entry ].flags = kernel -> task_base_address[ i ].flags;
 
 		// measured time
-		task[ entry ].time = kernel -> task_base_address[ i ].time;
+		task[ entry ].rdtsc = kernel -> task_base_address[ i ].rdtsc;
 
 		// name of task with length
 		for( uint64_t j = 0; j < kernel -> task_base_address[ i ].name_length; j++ ) task[ entry ].name[ task[ entry ].name_length++ ] = kernel -> task_base_address[ i ].name[ j ]; task[ entry ].name[ task[ entry ].name_length ] = STD_ASCII_TERMINATOR;
