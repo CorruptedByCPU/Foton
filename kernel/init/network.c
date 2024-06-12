@@ -21,14 +21,14 @@ void kernel_init_network( void ) {
 	kernel_network_socket();
 
 	// start Network thread
-	uint8_t network_string_thread_name[] = "{network}";
+	uint8_t network_string_thread_name[] = "network";
 	kernel_module_thread( (uintptr_t) &kernel_network, (uint8_t *) &network_string_thread_name, sizeof( network_string_thread_name ) );
 
 	// start Network ARP thread
-	uint8_t network_string_thread_name_arp[] = "{network arp}";
+	uint8_t network_string_thread_name_arp[] = "network arp";
 	kernel_module_thread( (uintptr_t) &kernel_network_arp_thread, (uint8_t *) &network_string_thread_name_arp, sizeof( network_string_thread_name_arp ) );
 
 	// start Network TCP thread
-	uint8_t network_string_thread_name_tcp[] = "{network tcp}";
+	uint8_t network_string_thread_name_tcp[] = "network tcp";
 	kernel_module_thread( (uintptr_t) &kernel_network_tcp_thread, (uint8_t *) &network_string_thread_name_tcp, sizeof( network_string_thread_name_tcp ) );
 }

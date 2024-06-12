@@ -10,7 +10,7 @@ uint64_t top_line_selected = 0;
 
 uint8_t top_hide_modules = TRUE;
 
-uint64_t top_update_limit = 8192;	// ~1 second
+uint64_t top_update_limit = 1024;	// ~1 second
 
 uint64_t top_update_next = 0;	// as fast as possible
 

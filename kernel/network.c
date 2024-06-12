@@ -14,11 +14,6 @@
 	#include	"network/udp.c"
 
 void kernel_network( void ) {
-	// debug
-	// kernel -> network_interface.ipv4_address	= 0x0A000040;	// 10.0.0.64
-	// kernel -> network_interface.ipv4_mask		= 0xFFFFFF00;	// 255.255.255.0
-	// kernel -> network_interface.ipv4_gateway	= 0x0A000001;	// 10.0.0.1
-
 	// never ending story
 	while( TRUE ) {
 		// frame for translation?
