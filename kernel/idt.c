@@ -75,6 +75,8 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 
 	// time to hunt some BUGs
 	MACRO_DEBUF();
+	volatile uint8_t ok = FALSE;
+	while( ! ok ) { MACRO_DEBUF(); }
 	MACRO_DEBUF();
 }
 
