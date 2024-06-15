@@ -329,21 +329,24 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	// debug
 	kernel -> log( (uint8_t *) "Library: %s at 0x%X\n", name, library.base_address );
 
+	// ELF section properties
+	struct LIB_ELF_STRUCTURE_SECTION *elf_s = (struct LIB_ELF_STRUCTURE_SECTION *) ((uint64_t) elf + elf -> sections_offset);
+
 	// copy library segments in place
-	for( uint64_t i = 0; i < elf -> h_entry_count; i++ ) {
-		// ignore blank entry or not loadable
- 		if( elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_h[ i ].memory_size ) continue;
+	for( uint64_t i = 0; i < elf -> s_entry_count; i++ ) {
+		// ignore blank entries
+		if( ! elf_s[ i ].virtual_address || ! elf_s[ i ].size_byte ) continue;
+
+		// ignore not loadable entry
+ 		if( elf_s[ i ].type != LIB_ELF_SECTION_TYPE_progbits && elf_s[ i ].type != LIB_ELF_SECTION_TYPE_strtab && elf_s[ i ].type != LIB_ELF_SECTION_TYPE_dynsym && elf_s[ i ].type != LIB_ELF_SECTION_TYPE_rela && elf_s[ i ].type != LIB_ELF_SECTION_TYPE_rel ) continue;
 
 		// properties of loadable segment
-		uint8_t *source = (uint8_t *) library.workbench_address + elf_h[ i ].segment_offset;
-		uint8_t *target = (uint8_t *) library.base_address + elf_h[ i ].virtual_address;
+		uint8_t *source = (uint8_t *) library.workbench_address + elf_s[ i ].file_offset;
+		uint8_t *target = (uint8_t *) library.base_address + elf_s[ i ].virtual_address;
 
 		// copy segment content in place
-		for( uint64_t j = 0; j < elf_h[ i ].segment_size; j++ ) target[ j ] = source[ j ];
+		for( uint64_t j = 0; j < elf_s[ i ].size_byte; j++ ) target[ j ] = source[ j ];
 	}
-
-	// ELF section properties
-	struct LIB_ELF_STRUCTURE_SECTION *elf_s = (struct LIB_ELF_STRUCTURE_SECTION *) ((uintptr_t) elf + elf -> sections_offset);
 
 	// retrieve information about symbol and string tables
 	for( uint16_t i = 0; i < elf -> s_entry_count; i++ ) {
