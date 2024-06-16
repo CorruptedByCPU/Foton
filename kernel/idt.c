@@ -67,9 +67,30 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 	kernel -> log( (uint8_t *) "Task: '%s' near CR2: 0x%16X or RIP: 0x%16X)\n", task -> name, exception -> cr2, exception -> rip );
 
 	// memory dump
+	kernel -> log( (uint8_t *) "Memory:\n" );
 	uint8_t *memory = (uint8_t *) (exception -> rip & (uint64_t) ~0x0F );
 	for( uint8_t y = 0; y < 16; y++ )
 		kernel -> log( (uint8_t *) "%8X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X\n", (uintptr_t) &memory[ y * 16 ], memory[ (y * 16) + 0 ], memory[ (y * 16) + 1 ], memory[ (y * 16) + 2 ], memory[ (y * 16) + 3 ], memory[ (y * 16) + 4 ], memory[ (y * 16) + 5 ], memory[ (y * 16) + 6 ], memory[ (y * 16) + 7 ], memory[ (y * 16) + 8 ], memory[ (y * 16) + 9 ], memory[ (y * 16) + 10 ], memory[ (y * 16) + 11 ], memory[ (y * 16) + 12 ], memory[ (y * 16) + 13 ], memory[ (y * 16) + 14 ], memory[ (y * 16) + 15 ]);
+
+	// paging dump
+	kernel -> log( (uint8_t *) "Page:\n" );
+	uintptr_t *pml4 = (uintptr_t *) task -> cr3; uint64_t area = EMPTY; uint64_t length = EMPTY;
+	for( uint16_t p4 = 0; p4 < KERNEL_PAGE_PML_records >> STD_SHIFT_2; p4++ ) {
+		if( ! pml4[ p4 ] ) { if( length ) kernel -> log( (uint8_t *) "0x%16X - 0x%16X\n", area, area + length - 1 ); area += length + KERNEL_PAGE_PML3_byte; length = EMPTY; continue; }
+		uintptr_t *pml3 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_logical);
+		for( uint16_t p3 = 0; p3 < KERNEL_PAGE_PML_records; p3++ ) {
+			if( ! pml3[ p3 ] ) { if( length ) kernel -> log( (uint8_t *) "0x%16X - 0x%16X\n", area, area + length - 1 ); area += length + KERNEL_PAGE_PML2_byte; length = EMPTY; continue; }
+			uintptr_t *pml2 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_logical);
+			for( uint16_t p2 = 0; p2 < KERNEL_PAGE_PML_records; p2++ ) {
+				if( ! pml2[ p2 ] ) { if( length ) kernel -> log( (uint8_t *) "0x%16X - 0x%16X\n", area, area + length - 1 ); area += length + KERNEL_PAGE_PML1_byte; length = EMPTY; continue; }
+				uintptr_t *pml1 = (uintptr_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_logical);
+				for( uint16_t p1 = 0; p1 < KERNEL_PAGE_PML_records; p1++ ) {
+					if( ! pml1[ p1 ] ) { if( length ) kernel -> log( (uint8_t *) "0x%16X - 0x%16X\n", area, area + length - 1 ); area += length + STD_PAGE_byte; length = EMPTY; continue; }
+					length += STD_PAGE_byte;
+				}
+			}
+		}
+	}
 
 	// TODO, disassembly?
 

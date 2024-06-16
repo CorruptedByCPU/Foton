@@ -30,6 +30,10 @@
 	#define	KERNEL_PAGE_PML3_shift			30
 	#define	KERNEL_PAGE_PML4_shift			39
 
+	#define	KERNEL_PAGE_PML1_byte			0x0000000000200000
+	#define	KERNEL_PAGE_PML2_byte			0x0000000040000000
+	#define	KERNEL_PAGE_PML3_byte			0x0000008000000000
+
 	#define	KERNEL_PAGE_ENTRY_stack			223
 	#define	KERNEL_PAGE_ENTRY_stack_context		511
 
