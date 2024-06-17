@@ -4,6 +4,10 @@
 
 struct LIB_INTERFACE_STRUCTURE	d3_interface;
 
+struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
+
+uint8_t d3_the_master_of_puppets = FALSE;
+
 uint64_t fps = 0;
 uint64_t fps_average = 0;
 uint64_t fps_count = 1;

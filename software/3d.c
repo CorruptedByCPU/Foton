@@ -52,7 +52,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// main loop
 	while( TRUE ) {
 		// check events from interface
-		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &d3_interface );
+		if( ! d3_the_master_of_puppets ) lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &d3_interface );
 
 		// recieve key
 		uint16_t key = getkey();
@@ -123,14 +123,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( sc > 1 ) lib_rgl_sort_quick( sort, sc - 1, 1 );
 
 		// draw every triangle on workbench
-		// for( uint64_t i = 0; i < sc; i++ ) lib_rgl_triangle( rgl, sort[ i ], vp, material );
 		for( uint64_t i = 0; i < sc; i++ ) lib_rgl_fill( rgl, sort[ i ], vp, material );
 
 		// synchronize workbench with window
 		lib_rgl_flush( rgl );
 
 		// tell window manager to flush window
-		d3_interface.descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		if( ! d3_the_master_of_puppets ) d3_interface.descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 		// next frame ready
 		fps++;

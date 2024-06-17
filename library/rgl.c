@@ -382,9 +382,9 @@ void lib_rgl_scanline( struct LIB_RGL_STRUCTURE *rgl, double y, vector3f pa, vec
 void lib_rgl_fill( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material ) {
 	uint32_t color = lib_rgl_color( material[ t -> material ].Kd, t -> light );
 
-	vector3f p1 = { (vp[ t -> v[ 0 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> 1), -(vp[ t -> v[ 0 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> 1), vp[ t -> v[ 0 ] ].z };
-	vector3f p2 = { (vp[ t -> v[ 1 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> 1), -(vp[ t -> v[ 1 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> 1), vp[ t -> v[ 1 ] ].z };
-	vector3f p3 = { (vp[ t -> v[ 2 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> 1), -(vp[ t -> v[ 2 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> 1), vp[ t -> v[ 2 ] ].z };
+	vector3f p1 = { (vp[ t -> v[ 0 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> STD_SHIFT_2), -(vp[ t -> v[ 0 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> STD_SHIFT_2), vp[ t -> v[ 0 ] ].z };
+	vector3f p2 = { (vp[ t -> v[ 1 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> STD_SHIFT_2), -(vp[ t -> v[ 1 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> STD_SHIFT_2), vp[ t -> v[ 1 ] ].z };
+	vector3f p3 = { (vp[ t -> v[ 2 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> STD_SHIFT_2), -(vp[ t -> v[ 2 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> STD_SHIFT_2), vp[ t -> v[ 2 ] ].z };
 
 	// sort triangles in order P1 > P2 > P3 at Y axis
 	if( p1.y > p2.y ) { vector3f t = p2; p2 = p1; p1 = t; }
