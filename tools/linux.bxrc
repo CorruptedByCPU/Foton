@@ -11,7 +11,7 @@ pci: enabled=1, chipset=i440fx, slot1=pcivga, slot2=e1000, slot3=voodoo, slot4=n
 vga: extension=vbe, update_freq=30, realtime=0, ddc=builtin
 cpu: count=1:SMP:1, ips=64000000, model=corei7_sandy_bridge_2600k, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
 magic_break: enabled=1
-clock: sync=none, time0=local, rtc_sync=0
+clock: sync=realtime, time0=local, rtc_sync=1
 keyboard: type=mf, serial_delay=250, paste_delay=100000, user_shortcut=none
 mouse: type=ps2, enabled=false, toggle=ctrl+mbutton
 #usb_uhci: enabled=1, port1=keyboard, options1=none, port2=mouse, options2=none

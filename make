@@ -97,7 +97,7 @@ for library in path color elf integer string network input math json font std im
 	${C} -shared build/${library}.o -o build/root/system/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/system/lib/ ${lib} || exit 1
 
 	# we do not need any additional information
-	# strip -s build/root/system/lib/lib${library}.so > /dev/null 2>&1
+#	strip -s build/root/system/lib/lib${library}.so > /dev/null 2>&1
 
 	# update libraries list
 	lib="${lib} -l${library}"
@@ -116,7 +116,7 @@ for software in `(cd software && ls *.c)`; do
 	${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
 
 	# we do not need any additional information
-	# strip -s build/root/system/bin/${name} > /dev/null 2>&1
+#	strip -s build/root/system/bin/${name} > /dev/null 2>&1
 done
 
 #===============================================================================
