@@ -40,12 +40,6 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 		// allocate space inside process paging area
 		kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
 
-		// if( lib_string_compare( (uint8_t *) "wm ", task -> name, 3 ) ) {
-		// 	kernel -> log( (uint8_t *) "R %s of %u\n", task -> name, page );
-		// 	for( uint64_t x = 0; x < page; x++ )
-		// 		kernel -> log( (uint8_t *) " 0x%X\n", kernel_page_address( (uint64_t *) task -> cr3, ((allocated + x) << STD_SHIFT_PAGE) ) );
-		// }
-
 		// process memory usage
 		task -> page += page;
 
@@ -63,12 +57,6 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
-
-	// if( lib_string_compare( (uint8_t *) "wm ", task -> name, 3 ) ) {
-	// 	kernel -> log( (uint8_t *) "R %s of %u\n", task -> name, page );
-	// 	for( uint64_t x = 0; x < page; x++ )
-	// 		kernel -> log( (uint8_t *) " 0x%X\n", kernel_page_address( (uint64_t *) task -> cr3, target + (x << STD_SHIFT_PAGE) ) );
-	// }
 
 	// remove page from paging structure
 	kernel_page_release( (uint64_t *) task -> cr3, target, page );
