@@ -10,8 +10,8 @@ void kernel_syscall_exit( void ) {
 	task -> flags &= ~STD_TASK_FLAG_active;
 	task -> flags |= STD_TASK_FLAG_close;
 
-	// wait for task switch
-	while( TRUE );
+	// release left BS/A time
+	__asm__ volatile( "int $0x20" );
 }
 
 void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
