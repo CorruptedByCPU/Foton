@@ -10,8 +10,8 @@ void kernel_syscall_exit( void ) {
 	task -> flags &= ~STD_TASK_FLAG_active;
 	task -> flags |= STD_TASK_FLAG_close;
 
-	// release left BS/A time
-	__asm__ volatile( "int $0x20" );
+	// wait for task switch
+	while( TRUE );
 }
 
 void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
@@ -69,7 +69,6 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// 	for( uint64_t x = 0; x < page; x++ )
 	// 		kernel -> log( (uint8_t *) " 0x%X\n", kernel_page_address( (uint64_t *) task -> cr3, target + (x << STD_SHIFT_PAGE) ) );
 	// }
-
 
 	// remove page from paging structure
 	kernel_page_release( (uint64_t *) task -> cr3, target, page );
@@ -503,20 +502,20 @@ void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 }
 
 uint64_t kernel_syscall_sleep( uint64_t units ) {
-	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	// // current task properties
+	// struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-	// mark task as sleeping
-	task -> flags |= STD_TASK_FLAG_sleep;
+	// // mark task as sleeping
+	// task -> flags |= STD_TASK_FLAG_sleep;
 
-	// set release pointer
-	uint64_t stop = kernel -> time_unit + units;
+	// // set release pointer
+	// uint64_t stop = kernel -> time_unit + units;
 
-	// wait until we achieve awaited units of time
-	while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
+	// // wait until we achieve awaited units of time
+	// while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
 
-	// remove sleep status
-	task -> flags &= ~STD_TASK_FLAG_sleep;
+	// // remove sleep status
+	// task -> flags &= ~STD_TASK_FLAG_sleep;
 
 	// return remaining units (is sleep was broken)
 	return units;

@@ -534,7 +534,7 @@ void kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 				// start with an entry representing given address in PML1 array
 				for( ; p1 < KERNEL_PAGE_PML_records && pages; p1++ ) {
 					// release memory area
-					kernel_memory_release( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) | KERNEL_PAGE_logical, TRUE );
+					if( pml1[ p1 ] ) kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) );
 
 					// remove entry from PML1 array
 					pml1[ p1 ] = EMPTY;
