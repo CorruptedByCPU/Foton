@@ -340,7 +340,7 @@ void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 
 uint8_t kernel_page_empty( uint64_t *page, uint64_t N ) {
 	// check every entry
-	for( uint16_t i = 0; i < N << STD_SHIFT_512; i++ ) if( page[ i ] ) return FALSE;
+	for( uint64_t i = 0; i < N << STD_SHIFT_512; i++ ) if( page[ i ] ) return FALSE;
 
 	// page is empty
 	return TRUE;
@@ -535,9 +535,6 @@ void kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t pages ) {
 				for( ; p1 < KERNEL_PAGE_PML_records && pages; p1++ ) {
 					// release memory area
 					kernel_memory_release( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) | KERNEL_PAGE_logical, TRUE );
-
-					// debug
-					// kernel -> log( (uint8_t *) "KERNEL: release 0x%X\n", MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) );
 
 					// remove entry from PML1 array
 					pml1[ p1 ] = EMPTY;

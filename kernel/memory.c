@@ -17,7 +17,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N ) {
 		// check N (c)onsecutive pages
 		for( uint64_t c = p; c < p + N; c++ ) {
 			// broken continous?
-			if( ! (memory_map[ c >> STD_SHIFT_32 ] & 1 << (c & 0b0011111)) ) {
+			if( ! (memory_map[ c >> STD_SHIFT_32 ] & 1 << (c & 0b00011111)) ) {
 				// one of the bits is disabled
 				found = FALSE;
 
@@ -33,7 +33,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N ) {
 		if( found ) {
 			// mark pages as (r)eserved
 			for( uint64_t r = p; r < p + N; r++ )
-				memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b0011111) );
+				memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b00011111) );
 
 			// unlock access to binary memory map
 			MACRO_UNLOCK( *semaphore );
@@ -61,7 +61,7 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	kernel -> page_available -= N;
 
 	// convert page ID to logical address and return
-	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;;
+	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;
 }
 
 uintptr_t kernel_memory_alloc_page( void ) {
@@ -83,7 +83,7 @@ void kernel_memory_clean( uint64_t *address, uint64_t n ) {
 void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
 	// mark pages as available
 	for( uint64_t i = p; i < p + N; i++ )
-		memory_map[ i >> STD_SHIFT_32 ] |= 1 << (i & 0b0011111);
+		memory_map[ i >> STD_SHIFT_32 ] |= 1 << (i & 0b00011111);
 }
 
 void kernel_memory_release( uintptr_t address, uint64_t N ) {

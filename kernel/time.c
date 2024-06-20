@@ -11,9 +11,9 @@ uint64_t kernel_time_rdtsc( void ) {
 }
 
 void kernel_time_sleep( uint64_t t ) {
-	// set release pointer
-	uint64_t stop = kernel -> time_unit + t;
+	// // set release pointer
+	// uint64_t stop = kernel -> time_unit + t;
 
-	// wait until we achieve
-	while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );	// release unused AP time
+	// // wait until we achieve
+	// while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );	// release unused AP time
 }

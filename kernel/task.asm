@@ -38,15 +38,15 @@ kernel_task_entry:
 	push	r15
 
 	; keep "floating point" registers
-	mov	rbp,	-0x1000
-	FXSAVE64	[rbp]
+	mov	rax,	-0x1000
+	FXSAVE64	[rax]
 
 	; execute exception handler
 	call	kernel_task
 
 	; restore "floating point" registers
-	mov	rbp,	-0x1000
-	FXRSTOR64	[rbp]
+	mov	rax,	-0x1000
+	FXRSTOR64	[rax]
 
 	; restore ogirinal registers
 	pop	r15

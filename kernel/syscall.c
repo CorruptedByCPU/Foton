@@ -490,20 +490,20 @@ void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 }
 
 uint64_t kernel_syscall_sleep( uint64_t units ) {
-	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	// // current task properties
+	// struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-	// mark task as sleeping
-	task -> flags |= STD_TASK_FLAG_sleep;
+	// // mark task as sleeping
+	// task -> flags |= STD_TASK_FLAG_sleep;
 
-	// set release pointer
-	uint64_t stop = kernel -> time_unit + units;
+	// // set release pointer
+	// uint64_t stop = kernel -> time_unit + units;
 
-	// wait until we achieve awaited units of time
-	while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
+	// // wait until we achieve awaited units of time
+	// while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
 
-	// remove sleep status
-	task -> flags &= ~STD_TASK_FLAG_sleep;
+	// // remove sleep status
+	// task -> flags &= ~STD_TASK_FLAG_sleep;
 
 	// return remaining units (is sleep was broken)
 	return units;
