@@ -3,6 +3,8 @@
 # Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 #=================================================================================
 
+clear
+
 # default CPUs amount: 2
 SMP="${1}"
 if [ -z "${SMP}" ]; then SMP="2"; fi

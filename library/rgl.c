@@ -296,11 +296,11 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 	// show only visible triangles
 	if( lib_rgl_vector_product_dot( normal, camera_ray ) < 0.0f ) {
 		// light source position
-		vector3f light = { 1.0f, 1.0f, 1.0f };
+		vector3f light = { 1.0f, 1.0f, 0.0f };
 		light = lib_rgl_return_vector_normalize( light );
 
 		// dot product
-		parse -> light = maxf( 0.1f, lib_rgl_vector_product_dot( normal, light ) ) / 4.0f;
+		parse -> light = lib_rgl_vector_product_dot( normal, light ) / 3.0f;
 
 		// triangle visible
 		return TRUE;
