@@ -20,7 +20,7 @@ uint8_t kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 			if( kernel -> network_socket_list[ i ].protocol != STD_NETWORK_PROTOCOL_icmp ) continue;	// no
 
 			// socket connected to target by MAC?
-			for( uint8_t j = 0; j < 6; j++ ) if( kernel -> network_socket_list[ j ].ethernet_mac[ j ] != kernel -> network_interface.ethernet_mac[ j ] ) continue;	// no
+			for( uint8_t j = 0; j < 6; j++ ) if( kernel -> network_socket_list[ j ].ethernet_address[ j ] != kernel -> network_interface.ethernet_address[ j ] ) continue;	// no
 
 			// socket connected to target by IPv4?
 			if( kernel -> network_socket_list[ i ].ipv4_target != MACRO_ENDIANNESS_DWORD( ipv4 -> local ) ) continue;	// no
@@ -60,7 +60,7 @@ uint8_t kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	socket -> protocol = STD_NETWORK_PROTOCOL_icmp;
 
 	// target MAC address
-	for( uint8_t i = 0; i < 6; i++ ) socket -> ethernet_mac[ i ] = ethernet -> source[ i ];
+	for( uint8_t i = 0; i < 6; i++ ) socket -> ethernet_address[ i ] = ethernet -> source[ i ];
 
 	// ethernet type
 	socket -> ethernet_type = KERNEL_NETWORK_HEADER_ETHERNET_TYPE_ipv4;

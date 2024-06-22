@@ -28,8 +28,15 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// update interface configuration
 		std_network_interface_set( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &eth0 );
-	// no, show current
-	} else printf( "%u.%u.%u.%u", (uint8_t) (eth0.ipv4_address >> 0x18), (uint8_t) (eth0.ipv4_address >> 0x10), (uint8_t) (eth0.ipv4_address >> 0x08), (uint8_t) eth0.ipv4_address );
+	// no
+	} else {
+		// broadcast is set?
+		if( ! eth0.ipv4_broadcast ) eth0.ipv4_broadcast = (eth0.ipv4_address & eth0.ipv4_mask) | ~eth0.ipv4_mask;	// no, calculate default one
+
+		// show interface configuration
+		printf( "eth0:  Hardware Address %2X:%2X:%2X:%2X:%2X:%2X\n", eth0.ethernet_address[ 0 ], eth0.ethernet_address[ 1 ], eth0.ethernet_address[ 2 ], eth0.ethernet_address[ 3 ], eth0.ethernet_address[ 4 ], eth0.ethernet_address[ 5 ] );
+		printf( "       IPv4 %u.%u.%u.%u Subnet %u.%u.%u.%u Broadcast %u.%u.%u.%u\n", (uint8_t) (eth0.ipv4_address >> 0x18), (uint8_t) (eth0.ipv4_address >> 0x10), (uint8_t) (eth0.ipv4_address >> 0x08), (uint8_t) eth0.ipv4_address, (uint8_t) (eth0.ipv4_mask >> 0x18), (uint8_t) (eth0.ipv4_mask >> 0x10), (uint8_t) (eth0.ipv4_mask >> 0x08), (uint8_t) eth0.ipv4_mask, (uint8_t) (eth0.ipv4_broadcast >> 0x18), (uint8_t) (eth0.ipv4_broadcast >> 0x10), (uint8_t) (eth0.ipv4_broadcast >> 0x08), (uint8_t) eth0.ipv4_broadcast );
+	}
 
 	// program closed properly
 	return 0;

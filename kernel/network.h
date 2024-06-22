@@ -122,8 +122,8 @@ struct	KERNEL_NETWORK_STRUCTURE_SOCKET {
 	uint8_t		flags;
 	uint8_t		protocol;
 	uint16_t	ethernet_type;
-	uint8_t		ethernet_mac[ 6 ];
-	volatile uint64_t	ethernet_mac_lease;
+	uint8_t		ethernet_address[ 6 ];
+	uint64_t	ethernet_lease_time;
 	uint16_t	port_local;
 	uint16_t	port_target;
 	uint8_t		ipv4_protocol;

@@ -279,9 +279,10 @@
 	};
 
 	struct STD_NETWORK_STRUCTURE_INTERFACE {
-		uint8_t		ethernet_mac[ 6 ];
+		uint8_t		ethernet_address[ 6 ];
 		uint32_t	ipv4_address;
 		uint32_t	ipv4_mask;
+		uint32_t	ipv4_broadcast;
 		uint32_t	ipv4_gateway;
 		// statistics: read only
 		uint64_t	rx_frame;
@@ -399,6 +400,7 @@
 		uint64_t	page;
 		uint64_t	stack;
 		uint8_t		flags;
+		uint64_t	rdtsc;
 		uint8_t		name_length;
 		uint8_t		name[ 255 ];
 	};

@@ -4,8 +4,8 @@
 
 void kernel_network_ethernet_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// set target and host MAC addresses
-	for( uint8_t i = 0; i < 6; i++ ) ethernet -> target[ i ] = socket -> ethernet_mac[ i ];
-	for( uint8_t i = 0; i < 6; i++ ) ethernet -> source[ i ] = kernel -> network_interface.ethernet_mac[ i ];
+	for( uint8_t i = 0; i < 6; i++ ) ethernet -> target[ i ] = socket -> ethernet_address[ i ];
+	for( uint8_t i = 0; i < 6; i++ ) ethernet -> source[ i ] = kernel -> network_interface.ethernet_address[ i ];
 
 	// set type of Ethernet header
 	switch( socket -> protocol ) {
@@ -30,10 +30,10 @@ void kernel_network_ethernet_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET
 uint8_t kernel_network_ethernet_resolve( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket ) {
 	// wait for ARP thread to resolve destination MAC address
 	volatile uint64_t timeout = kernel -> time_unit + DRIVER_RTC_Hz;
-	while( timeout > kernel -> time_unit && ! socket -> ethernet_mac_lease ) kernel_time_sleep( TRUE );
+	while( timeout > kernel -> time_unit && ! socket -> ethernet_lease_time ) kernel_time_sleep( TRUE );
 
 	// IPv4 resolved?
-	if( socket -> ethernet_mac_lease ) return TRUE;	// yes
+	if( socket -> ethernet_lease_time ) return TRUE;	// yes
 
 	// no
 	return FALSE;

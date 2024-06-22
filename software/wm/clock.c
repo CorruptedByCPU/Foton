@@ -5,14 +5,11 @@
 int64_t wm_clock( void ) {
 	// infinite loop
 	while( TRUE ) {
-		// free up AP time
-		std_sleep( TRUE );
-
 		// check current date and time
 		uint64_t time = std_time();
 
-		// // it's different than previous?
-		if( time == wm_taskbar_clock_time ) continue;	// no
+		// it's different than previous?
+		if( time == wm_taskbar_clock_time ) { std_sleep( 512 ); continue; }	// no
 
 		// preserve current date and time
 		wm_taskbar_clock_time = time;

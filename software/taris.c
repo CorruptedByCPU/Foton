@@ -170,7 +170,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				if( key == STD_ASCII_SPACE ) break;	// yes
 
 				// end of game?
-				if( key == 'q' ) return 0;	// yes
+				if( key == STD_ASCII_ESC ) return 0;	// yes
 
 				// check events from interface
 				lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface );

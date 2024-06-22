@@ -6,6 +6,12 @@ void wm_cursor( void ) {
 	// requested redraw?
 	if( ! (wm_object_cursor -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) return;	// no
 
+	// remove current cursor position from workbench, because of shadows
+	wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_cursor, FALSE );
+
+	// assign objects to cursor zone and redraw on screen
+	wm_zone(); wm_fill();
+
 	// properties of areas
 	uint32_t *source = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	uint32_t *target = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));

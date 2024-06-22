@@ -36,6 +36,8 @@
 		uint64_t		directory;
 		uint64_t		page;	// amount of pages assigned to process
 		uint64_t		stack;	// size of stack in Pages
+		uint64_t		rdtsc;
+		uint64_t		rdtsc_previous;
 		struct KERNEL_STREAM_STRUCTURE *stream_in;
 		struct KERNEL_STREAM_STRUCTURE *stream_out;
 		uint32_t		*memory_map;

@@ -80,7 +80,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		module_e1000_mac[ 5 ] = (uint8_t) (module_e1000_eeprom( 0x0201 ) >> 24);
 
 		// share interaface MAC address with kernel
-		for( uint8_t i = 0; i < 6; i++ ) kernel -> network_interface.ethernet_mac[ i ] = module_e1000_mac[ i ];
+		for( uint8_t i = 0; i < 6; i++ ) kernel -> network_interface.ethernet_address[ i ] = module_e1000_mac[ i ];
 
 		// debug
 		kernel -> log( (uint8_t *) "[E1000] MAC address %2X:%2X:%2X:%2X:%2X:%2X\n", module_e1000_mac[ 0 ], module_e1000_mac[ 1 ], module_e1000_mac[ 2 ], module_e1000_mac[ 3 ], module_e1000_mac[ 4 ], module_e1000_mac[ 5 ] );
@@ -176,7 +176,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		uintptr_t frame = EMPTY;
 
 		// acquire data for transmission
-		while( ! (frame = kernel -> network_tx()) );
+		while( ! (frame = kernel -> network_tx()) ) kernel -> time_sleep( TRUE );
 
 		// resolve properties
 		uintptr_t data = frame & STD_PAGE_mask;
