@@ -111,9 +111,8 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// prepare Paging table for new process
-    exec.task -> cr3 = kernel_memory_alloc_page();
-	if( !exec.task->cr3 ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
-    exec.task -> cr3 |= KERNEL_PAGE_logical;
+	if( ! (exec.task -> cr3 = kernel_memory_alloc( TRUE )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+
 	// checkpoint reached: assigned default paging array
 	exec.level++;
 
