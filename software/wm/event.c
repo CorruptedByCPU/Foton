@@ -82,6 +82,12 @@ void wm_event( void ) {
 			// ctrl left released
 			case STD_KEY_CTRL_LEFT | 0x80: { wm_keyboard_status_ctrl_left = FALSE; break; }
 
+			// menu pressed
+			case STD_KEY_MENU: { wm_keyboard_status_menu = TRUE; break; }
+
+			// menu released
+			case STD_KEY_MENU | 0x80: { wm_keyboard_status_menu = FALSE; break; }
+
 			// tab pressed
 			case STD_KEY_TAB: {
 				// if left alt key is holded
@@ -112,10 +118,10 @@ void wm_event( void ) {
 				break;
 			}
 
-			// backslash pressed
-			case STD_ASCII_BACKSLASH: {
-				// left control key is on hold
-				if( wm_keyboard_status_ctrl_left ) {
+			// return pressed
+			case STD_ASCII_RETURN: {
+				// menu key is on hold
+				if( wm_keyboard_status_menu ) {
 					// execute console application
 					std_exec( (uint8_t *) "console", 7, EMPTY );
 

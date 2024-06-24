@@ -242,8 +242,8 @@
 	#define	STD_KEY_PAGE_DOWN				0xE051
 	#define	STD_KEY_INSERT					0xE052
 	#define	STD_KEY_DELETE					0xE053
-	#define	STD_KEY_WIN_LEFT				0xE058
-	#define	STD_KEY_MOUSE_RIGHT				0xE05D
+	#define	STD_KEY_MENU					0xE05B
+	#define	STD_KEY_SUBMENU					0xE05D
 
 	struct	STD_SYSCALL_STRUCTURE_MEMORY {
 		uint64_t	total;

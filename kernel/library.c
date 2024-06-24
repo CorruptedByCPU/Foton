@@ -327,7 +327,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.entry -> size_page = library.page;
 
 	// debug
-	kernel -> log( (uint8_t *) "Library: %s at 0x%X\n", name, library.base_address );
+	// kernel -> log( (uint8_t *) "Library: %s at 0x%X\n", name, library.base_address );
 
 	// ELF section properties
 	struct LIB_ELF_STRUCTURE_SECTION *elf_s = (struct LIB_ELF_STRUCTURE_SECTION *) ((uint64_t) elf + elf -> sections_offset);

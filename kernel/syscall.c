@@ -43,6 +43,9 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 		// process memory usage
 		task -> page += page;
 
+// debug
+if( lib_string_compare( (uint8_t *) "3d", task -> name, 2 ) ) kernel -> log( (uint8_t *) "%s allocated %u-%u\n", task -> name, allocated, allocated + page - 1 );
+
 		// return the address of the first page in the collection
 		return allocated << STD_SHIFT_PAGE;
 	}
@@ -66,6 +69,9 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 
 	// process memory usage
 	task -> page -= page;
+
+// debug
+if( lib_string_compare( (uint8_t *) "3d", task -> name, 2 ) ) kernel -> log( (uint8_t *) "%s freed     %u-%u\n", task -> name, target >> STD_SHIFT_PAGE, (target >> STD_SHIFT_PAGE) + page - 1 );
 }
 
 uint64_t kernel_syscall_uptime( void ) {
@@ -83,7 +89,7 @@ void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 
 int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
 	// debug
-	kernel -> log( (uint8_t *) "Thread: %s at 0x%X\n", name, function );
+	// kernel -> log( (uint8_t *) "Thread: %s at 0x%X\n", name, function );
 	
 	// create a new thread in task queue
 	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );

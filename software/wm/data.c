@@ -47,6 +47,7 @@ uint8_t wm_object_hover_semaphore		= FALSE;
 uint8_t wm_keyboard_status_alt_left	= FALSE;
 uint8_t	wm_keyboard_status_shift_left	= FALSE;
 uint8_t	wm_keyboard_status_ctrl_left	= FALSE;
+uint8_t wm_keyboard_status_menu		= FALSE;
 
 // semaphore used by event/object function which tells us to refresh taskbar object content
 uint8_t wm_taskbar_modified = FALSE;

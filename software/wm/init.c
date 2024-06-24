@@ -103,13 +103,16 @@ uint8_t wm_init( void ) {
 	wm_object_taskbar = wm_object_create( 0, wm_object_workbench -> height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_workbench -> width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
 
 	// mark object as taskbar and unmovable
-	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
+	wm_object_taskbar -> descriptor -> flags = STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
 
 	// fill taskbar with default background color
 	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	for( uint16_t y = 0; y < wm_object_taskbar -> height; y++ )
 		for( uint16_t x = 0; x < wm_object_taskbar -> width; x++ )
 			taskbar_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;
+
+	// object content ready for display
+	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
 	// show menu buton on taskbar
 	uint8_t test[ 3 ] = "|||";
@@ -192,9 +195,9 @@ uint8_t wm_init( void ) {
 	// std_exec( (uint8_t *) "console moko", 12, EMPTY );
 	// std_exec( (uint8_t *) "console moko change.log ", 23, EMPTY );
 	// std_exec( (uint8_t *) "console moko LICENSE.txt", 24, EMPTY );
-	// std_exec( (uint8_t *) "3d", 2, EMPTY );
+	std_exec( (uint8_t *) "3d", 2, EMPTY );
 	// std_exec( (uint8_t *) "console tm", 10, EMPTY );
-	// 
+	//
 	// FILE *file = fopen( "test.txt" );
 	// if( file ) { log( "OK\n" ); fclose( file ); }
 	// else log( "FAILED!\n" );
