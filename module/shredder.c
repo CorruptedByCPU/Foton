@@ -63,7 +63,7 @@ void close( int64_t pid ) {
 	}
 
 	// release paging structure of process
-	kernel -> page_deconstruct( (uintptr_t *) task -> cr3 );
+	kernel -> page_deconstruct( (uintptr_t *) task -> cr3, task -> page_type );
 
 	// clean up
 	task -> sleep	= EMPTY;

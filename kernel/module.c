@@ -54,10 +54,16 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	// prepare Paging table for new process
 	module -> cr3 = kernel_memory_alloc( TRUE );
 
+	// page used for structure
+	kernel -> page_structure++;
+
+	// all allocated pages, mark as type of MODULE
+	module -> page_type = KERNEL_PAGE_TYPE_MODULE;
+
 	//----------------------------------------------------------------------
 
 	// insert into paging, context stack
-	kernel_page_alloc( (uintptr_t *) module -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
+	kernel_page_alloc( (uintptr_t *) module -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// set initial startup configuration for new process
 	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) module -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
@@ -119,10 +125,10 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 
 	// insert into paging, module area
 	// uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_map_address, module_page ) << STD_SHIFT_PAGE);
-	// kernel_page_map( (uintptr_t *) module -> cr3, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_external );
+	// kernel_page_map( (uintptr_t *) module -> cr3, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// map module space to kernel space
-	// kernel_page_map( (uintptr_t *) kernel -> page_base_address, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_external );
+	// kernel_page_map( (uintptr_t *) kernel -> page_base_address, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// update module entry address
 	context -> rip += module_content;	// module_memory
@@ -159,10 +165,13 @@ int64_t kernel_module_thread( uintptr_t function, uint8_t *name, uint64_t length
 	// prepare Paging table for new process
 	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_logical;
 
+	// all allocated pages, mark as type of THREAD
+	thread -> page_type = KERNEL_PAGE_TYPE_THREAD;
+
 	//----------------------------------------------------------------------
 
 	// describe space under thread context stack
-	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
+	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// set initial startup configuration for new process
 	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));

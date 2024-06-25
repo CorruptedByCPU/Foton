@@ -128,7 +128,7 @@ struct KERNEL {
 	uint64_t	page_structure;
 	uint64_t	page_shared;
 	// functions of Page management
-	void							(*page_deconstruct)( uintptr_t *pml4 );
+	void							(*page_deconstruct)( uintptr_t *pml4, uint8_t type );
 	uint8_t							(*page_map)( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags );
 	uint8_t							(*page_release)( uint64_t *pml4, uint64_t address, uint64_t pages );
 

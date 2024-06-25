@@ -214,7 +214,7 @@ uint8_t kernel_page_clang( uintptr_t *pml4, uintptr_t source_address, uintptr_t 
 	return TRUE;
 }
 
-void kernel_page_deconstruct( uintptr_t *pml4 ) {
+void kernel_page_deconstruct( uintptr_t *pml4, uint8_t type ) {
 	// for each entry of PML4 array
 	for( uint16_t p4 = 0; p4 < KERNEL_PAGE_PML_records; p4++ ) {
 		// empty?
@@ -242,7 +242,7 @@ void kernel_page_deconstruct( uintptr_t *pml4 ) {
 				// for each entry of PML1 array
 				for( uint16_t p1 = 0; p1 < KERNEL_PAGE_PML_records; p1++ ) {
 					// entry doesn't belongs to task or is shared?
-					if( ! (pml1[ p1 ] & KERNEL_PAGE_FLAG_process) || pml1[ p1 ] & KERNEL_PAGE_FLAG_shared ) continue;	// yes
+					if( ((uint16_t) pml1[ p1 ] & KERNEL_PAGE_TYPE_mask) != (type << KERNEL_PAGE_TYPE_offset) ) continue;	// yes
 				
 					// release page from array
 					kernel_memory_release( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) | KERNEL_PAGE_logical, TRUE );
@@ -251,34 +251,34 @@ void kernel_page_deconstruct( uintptr_t *pml4 ) {
 					pml1[ p1 ] = EMPTY;
 				}
 
-				// if PML1 array belongs to task, release it
-				if( pml2[ p2 ] & KERNEL_PAGE_FLAG_process ) {
-					// release
-					kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) );
+				// if PML1 array doesn't belong to task, omit
+				if( ((uint16_t) pml2[ p2 ] & KERNEL_PAGE_TYPE_mask) != (type << KERNEL_PAGE_TYPE_offset) ) continue;
 
-					// remove entry from PML2 array
-					pml2[ p2 ] = EMPTY;
-				}
-			}
-
-			// if PML2 array belongs to task, release it
-			if( pml3[ p3 ] & KERNEL_PAGE_FLAG_process ) {
 				// release
-				kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) );
+				kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) );
 
-				// remove entry from PML3 array
-				pml3[ p3 ] = EMPTY;
+				// remove entry from PML2 array
+				pml2[ p2 ] = EMPTY;
 			}
-		}
 
-		// if PML3 array belongs to task, release it
-		if( pml4[ p4 ] & KERNEL_PAGE_FLAG_process ) {
+			// if PML2 array doesn't belong to task, omit
+			if( ((uint16_t) pml3[ p3 ] & KERNEL_PAGE_TYPE_mask) != (type << KERNEL_PAGE_TYPE_offset) ) continue;
+
 			// release
-			kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) );
+			kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) );
 
-			// remove entry from PML4 array
-			pml4[ p4 ] = EMPTY;
+			// remove entry from PML3 array
+			pml3[ p3 ] = EMPTY;
 		}
+
+		// if PML3 array doesn't belong to task, omit
+		if( ((uint16_t) pml4[ p4 ] & KERNEL_PAGE_TYPE_mask) != (type << KERNEL_PAGE_TYPE_offset) ) continue;
+
+		// release
+		kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) );
+
+		// remove entry from PML4 array
+		pml4[ p4 ] = EMPTY;
 	}
 
 	// release
@@ -593,7 +593,7 @@ uintptr_t kernel_page_remove( uintptr_t *pml4, uintptr_t address ) {
 	uintptr_t removed = pml1[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1) ];
 
 	// is it shared?
-	if( removed & KERNEL_PAGE_FLAG_shared ) return EMPTY;	// do not allow
+	if( ((uint16_t) removed & KERNEL_PAGE_TYPE_mask) != (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) ) return EMPTY;	// do not allow
 
 	// remove page from paging
 	pml1[ ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1) ] = EMPTY;

@@ -192,15 +192,8 @@ uint8_t wm_init( void ) {
 
 	// debug
 	// std_exec( (uint8_t *) "console", 7, EMPTY );
-	// std_exec( (uint8_t *) "console moko", 12, EMPTY );
-	// std_exec( (uint8_t *) "console moko change.log ", 23, EMPTY );
-	// std_exec( (uint8_t *) "console moko LICENSE.txt", 24, EMPTY );
-	std_exec( (uint8_t *) "3d", 2, EMPTY );
 	// std_exec( (uint8_t *) "console tm", 10, EMPTY );
-	//
-	// FILE *file = fopen( "test.txt" );
-	// if( file ) { log( "OK\n" ); fclose( file ); }
-	// else log( "FAILED!\n" );
+	// std_exec( (uint8_t *) "3d", 2, EMPTY );
 
 	// Window Manager initialized.
 	return TRUE;

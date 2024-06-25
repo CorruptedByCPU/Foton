@@ -39,13 +39,13 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 			// exception for process stack space?
 			if( MACRO_PAGE_ALIGN_UP( exception -> cr2 ) == KERNEL_TASK_STACK_pointer - (task -> stack << STD_SHIFT_PAGE) ) {
 				// describe additional space under process stack
-				kernel_page_alloc( (uintptr_t *) task -> cr3, KERNEL_TASK_STACK_pointer - (++task -> stack << STD_SHIFT_PAGE), 1, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
+				kernel_page_alloc( (uintptr_t *) task -> cr3, KERNEL_TASK_STACK_pointer - (++task -> stack << STD_SHIFT_PAGE), 1, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 				// done
 				return;
 			}
 
-			kernel -> log( (uint8_t *) "Page Fault\n" );
+			kernel -> log( (uint8_t *) "Page Fault" );
 
 			// done
 			break;
@@ -63,10 +63,10 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 	}
 
 	// debug
-	// kernel -> log( (uint8_t *) "RAX 0x%16X\nRBX 0x%16X\nRCX 0x%16X\nRDX 0x%16X\nRSI 0x%16X\nRDI 0x%16X\nRBP 0x%16X\nRSP 0x%16X\nR8  0x%16X\nR9  0x%16X\nR10 0x%16X\nR11 0x%16X\nR12 0x%16X\nR13 0x%16X\nR14 0x%16X\nR15 0x%16X\n", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rsi, exception -> rdi, exception -> rbp, exception -> rsp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
+	// kernel -> log( (uint8_t *) "\nRAX 0x%16X\nRBX 0x%16X\nRCX 0x%16X\nRDX 0x%16X\nRSI 0x%16X\nRDI 0x%16X\nRBP 0x%16X\nRSP 0x%16X\nR8  0x%16X\nR9  0x%16X\nR10 0x%16X\nR11 0x%16X\nR12 0x%16X\nR13 0x%16X\nR14 0x%16X\nR15 0x%16X", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rsi, exception -> rdi, exception -> rbp, exception -> rsp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
 	
 	// show task name
-	kernel -> log( (uint8_t *) "Task: '%s' near CR2: 0x%16X or RIP: 0x%16X)\n", task -> name, exception -> cr2, exception -> rip );
+	kernel -> log( (uint8_t *) "\nTask: '%s' near CR2: 0x%16X or RIP: 0x%16X)\n", task -> name, exception -> cr2, exception -> rip );
 
 	// // memory dump
 	// kernel -> log( (uint8_t *) "Memory:\n" );

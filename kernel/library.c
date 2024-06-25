@@ -317,7 +317,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.level++;
 
 	// map aquired memory space for library
-	if( ! kernel_page_alloc( kernel -> page_base_address, library.base_address, library.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_external ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return STD_ERROR_memory_low; }
+	if( ! kernel_page_alloc( kernel -> page_base_address, library.base_address, library.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_LIBRARY << KERNEL_PAGE_TYPE_offset) ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return STD_ERROR_memory_low; }
 
 	// checkpoint reached: library area registered in global paging array
 	library.level++;

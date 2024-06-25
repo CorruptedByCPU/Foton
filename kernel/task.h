@@ -35,6 +35,7 @@
 		uint64_t		storage;
 		uint64_t		directory;
 		uint64_t		page;	// amount of pages assigned to process
+		uint8_t			page_type;
 		uint64_t		stack;	// size of stack in Pages
 		uint64_t		rdtsc;
 		uint64_t		rdtsc_previous;

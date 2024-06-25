@@ -19,9 +19,16 @@
 	#define	KERNEL_PAGE_FLAG_cache_disable		1 << 4
 	#define	KERNEL_PAGE_FLAG_length			1 << 7
 	// and foton definied, for easier memory management
-	#define	KERNEL_PAGE_FLAG_process		1 << 9
-	#define	KERNEL_PAGE_FLAG_shared			1 << 10
-	#define	KERNEL_PAGE_FLAG_external		1 << 11
+	#define	KERNEL_PAGE_TYPE_mask			0b0000111000000000
+	#define	KERNEL_PAGE_TYPE_offset			9
+	#define	KERNEL_PAGE_TYPE_KERNEL			0b000
+	#define	KERNEL_PAGE_TYPE_MODULE			0b001
+	#define	KERNEL_PAGE_TYPE_PROCESS		0b010
+	#define	KERNEL_PAGE_TYPE_THREAD			0b011
+	#define	KERNEL_PAGE_TYPE_LIBRARY		0b100
+	#define	KERNEL_PAGE_TYPE_SHARED			0b101
+	// #define	KERNEL_PAGE_TYPE_			0b110
+	// #define	KERNEL_PAGE_TYPE_			0b111
 
 	#define	KERNEL_PAGE_PML_records			512
 

@@ -38,13 +38,10 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	uintptr_t allocated = EMPTY;
 	if( (allocated = kernel_memory_acquire( task -> memory_map, page )) ) {
 		// allocate space inside process paging area
-		kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
+		kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 		// process memory usage
 		task -> page += page;
-
-// debug
-if( lib_string_compare( (uint8_t *) "3d", task -> name, 2 ) ) kernel -> log( (uint8_t *) "%s allocated %u-%u\n", task -> name, allocated, allocated + page - 1 );
 
 		// return the address of the first page in the collection
 		return allocated << STD_SHIFT_PAGE;
@@ -69,9 +66,6 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 
 	// process memory usage
 	task -> page -= page;
-
-// debug
-if( lib_string_compare( (uint8_t *) "3d", task -> name, 2 ) ) kernel -> log( (uint8_t *) "%s freed     %u-%u\n", task -> name, target >> STD_SHIFT_PAGE, (target >> STD_SHIFT_PAGE) + page - 1 );
 }
 
 uint64_t kernel_syscall_uptime( void ) {
@@ -99,10 +93,13 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	// prepare Paging table for new process
 	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_logical;
 
+	// all allocated pages, mark as type of THREAD
+	thread -> page_type = KERNEL_PAGE_TYPE_THREAD;
+
 	//----------------------------------------------------------------------
 
 	// describe space under thread context stack
-	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_process );
+	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// set initial startup configuration for new process
 	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
@@ -134,7 +131,7 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
 
 	// map stack space to thread paging array
-	kernel_page_map( (uintptr_t *) thread -> cr3, (uintptr_t) process_stack, context -> rsp & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process );
+	kernel_page_map( (uintptr_t *) thread -> cr3, (uintptr_t) process_stack, context -> rsp & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	//----------------------------------------------------------------------
 
@@ -257,7 +254,7 @@ uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t p
 	uintptr_t target_pointer = kernel_memory_acquire( target -> memory_map, pages ) << STD_SHIFT_PAGE;
 
 	// connect memory space of parent process with child
-	kernel_page_clang( (uintptr_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | KERNEL_PAGE_FLAG_process | KERNEL_PAGE_FLAG_shared );
+	kernel_page_clang( (uintptr_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
 
 	// return the address of the first page in the collection
 	return target_pointer;
