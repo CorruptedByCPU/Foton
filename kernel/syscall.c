@@ -48,7 +48,7 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	}
 
 	// debug
-	kernel -> log( (uint8_t *) "KERNEL: low memory.\n" );
+	kernel -> log( (uint8_t *) "%s: low memory.\n", task -> name );
 
 	// no free space
 	return EMPTY;
@@ -62,7 +62,7 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	kernel_page_release( (uint64_t *) task -> cr3, target, page );
 
 	// release page in binary memory map of process
-	// kernel_memory_dispose( task -> memory_map, target >> STD_SHIFT_PAGE, page );
+	kernel_memory_dispose( task -> memory_map, target >> STD_SHIFT_PAGE, page );
 
 	// process memory usage
 	task -> page -= page;

@@ -2,19 +2,24 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+MACRO_IMPORT_FILE_AS_ARRAY( mtl, "./root/system/var/3d.mtl" );
+MACRO_IMPORT_FILE_AS_ARRAY( obj, "./root/system/var/3d.obj" );
+
 void object_load( void ) {
 	// open material file
-	FILE *file = fopen( (uint8_t *) "/system/var/3d.mtl" );
+	// FILE *file = fopen( (uint8_t *) "/system/var/3d.mtl" );
 	
 	// assign area for file content
-	uint8_t *file_material_start = malloc( file -> byte );
-	uint8_t *file_material_end = (uint8_t *) file_material_start + file -> byte;
+	// uint8_t *file_material_start = malloc( file -> byte );
+	// uint8_t *file_material_end = (uint8_t *) file_material_start + file -> byte;
+	uint8_t *file_material_start = (uint8_t *) &file_mtl_start;
+	uint8_t *file_material_end = (uint8_t *) &file_mtl_end;
 
 	// read file
-	fread( file, file_material_start, file -> byte );
+	// fread( file, file_material_start, file -> byte );
 
 	// close file
-	fclose( file );
+	// fclose( file );
 
 	// count materials
 	uint8_t *line = file_material_start;
@@ -83,20 +88,22 @@ void object_load( void ) {
 	}
 
 	// release file content
-	free( file_material_start );
+	// free( file_material_start );
 
 	// open object file
-	file = fopen( (uint8_t *) "/system/var/3d.obj" );
+	// file = fopen( (uint8_t *) "/system/var/3d.obj" );
 	
 	// assign area for file content
-	uint8_t *file_object_start = malloc( file -> byte );
-	uint8_t *file_object_end = (uint8_t *) file_object_start + file -> byte;
+	// uint8_t *file_object_start = malloc( file -> byte );
+	// uint8_t *file_object_end = (uint8_t *) file_object_start + file -> byte;
+	uint8_t *file_object_start = (uint8_t *) &file_obj_start;
+	uint8_t *file_object_end = (uint8_t *) &file_obj_end;
 
 	// read file
-	fread( file, file_object_start, file -> byte );
+	// fread( file, file_object_start, file -> byte );
 
 	// close file
-	fclose( file );
+	// fclose( file );
 
 	// count vectors and faces
 	line = file_object_start;
@@ -204,5 +211,5 @@ void object_load( void ) {
 	}
 
 	// release file content
-	free( file_object_start );
+	// free( file_object_start );
 }
