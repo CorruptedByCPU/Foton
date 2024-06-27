@@ -33,9 +33,9 @@
 
 	#define	WM_OBJECT_TASKBAR_CLOCK_pixel	50
 
-	#define	WM_TASKBAR_BG_default		0xFF000000
-	#define	WM_TASKBAR_BG_visible		0xE0101010
-	#define	WM_TASKBAR_BG_invisible		0xF0000000
+	#define	WM_TASKBAR_BG_default		0xE8000000
+	#define	WM_TASKBAR_BG_visible		0xFF101010
+	#define	WM_TASKBAR_BG_invisible		0xFF000000
 
 	struct	WM_STRUCTURE_OBJECT {
 		int16_t		x;

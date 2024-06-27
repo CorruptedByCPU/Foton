@@ -39,13 +39,13 @@ uint8_t wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
-	// // properties of file
-	// FILE *workbench_file;
+	// properties of file
+	FILE *workbench_file;
 
-	// // properties of image
-	// struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = EMPTY;
+	// properties of image
+	struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = EMPTY;
 
-	// // retrieve information file
+	// // retrieve file information
 	// if( (workbench_file = fopen( (uint8_t *) "/system/var/gfx/wallpapers/default.tga" )) ) {
 	// 	// assign area for file
 	// 	workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( workbench_file -> byte );
@@ -63,28 +63,28 @@ uint8_t wm_init( void ) {
 	// properties of workbench area content
 	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 
-	// // if default wallpaper file found
-	// if( workbench_image ) {
-	// 	// convert image to RGBA
-	// 	uint32_t *tmp_workbench_image = (uint32_t *) malloc( wm_object_workbench -> size_byte );
-	// 	lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file -> byte );
+	// if default wallpaper file found
+	if( workbench_image ) {
+		// convert image to RGBA
+		uint32_t *tmp_workbench_image = (uint32_t *) malloc( wm_object_workbench -> size_byte );
+		lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file -> byte );
 
-	// 	// copy scaled image content to workbench object
-	// 	float x_scale_factor = (float) ((float) workbench_image -> width / (float) wm_object_workbench -> width);
-	// 	float y_scale_factor = (float) ((float) workbench_image -> height / (float) wm_object_workbench -> height);
-	// 	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
-	// 		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
-	// 			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
+		// copy scaled image content to workbench object
+		float x_scale_factor = (float) ((float) workbench_image -> width / (float) wm_object_workbench -> width);
+		float y_scale_factor = (float) ((float) workbench_image -> height / (float) wm_object_workbench -> height);
+		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
+			for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
+				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
 
-	// 	// release temporary image
-	// 	free( tmp_workbench_image );
+		// release temporary image
+		free( tmp_workbench_image );
 
-	// 	// release file content
-	// 	free( workbench_image );
+		// release file content
+		free( workbench_image );
 
-	// 	// close file
-	// 	fclose( workbench_file );
-	// } else
+		// close file
+		fclose( workbench_file );
+	} else
 		// fill workbench with default color
 		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
 			for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
@@ -142,7 +142,7 @@ uint8_t wm_init( void ) {
 	// properties of image
 	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = EMPTY;
 
-	// retrieve information about module file
+	// retrieve file information
 	if( (cursor_file = fopen( (uint8_t *) "/system/var/gfx/cursors/default.tga" )) ) {
 		// assign area for file
 		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( cursor_file -> byte );
