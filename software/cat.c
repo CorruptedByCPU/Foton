@@ -23,11 +23,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// load file content
 	fread( file, content, file -> byte );
 
+	// show content
+	for( uint64_t i = 0; i < file -> byte; i++ ) printf( "%c", content[ i ] );
+
 	// close file
 	fclose( file );
-
-	// show content
-	printf( "%s", content );
 
 	// exit
 	return 0;

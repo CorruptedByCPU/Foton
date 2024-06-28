@@ -40,19 +40,23 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// properties of file
-	FILE *workbench_file;
+	struct STD_FILE_STRUCTURE workbench_file = { EMPTY };
 
 	// properties of image
 	struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = EMPTY;
 
-	// // retrieve file information
-	// if( (workbench_file = fopen( (uint8_t *) "/system/var/gfx/wallpapers/default.tga" )) ) {
-	// 	// assign area for file
-	// 	workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( workbench_file -> byte );
+	// retrieve file information
+	uint8_t wallpaper_path[] = "/system/var/gfx/wallpapers/default.tga";
+	if( (workbench_file.socket = std_file_open( (uint8_t *) &wallpaper_path, sizeof( wallpaper_path ) - 1 )) ) {
+		// retrieve file properties
+		std_file( (struct STD_FILE_STRUCTURE *) &workbench_file );
 
-	// 	// load file content
-	// 	if( workbench_image ) fread( workbench_file, (uint8_t *) workbench_image, workbench_file -> byte );
-	// }
+		// assign area for file
+		workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( workbench_file.byte ) >> STD_SHIFT_PAGE );
+
+		// load file content
+		std_file_read( (struct STD_FILE_STRUCTURE *) &workbench_file, (uint8_t *) workbench_image, workbench_file.byte );
+	}
 
 	// create workbench object
 	wm_object_workbench = wm_object_create( 0, 0, wm_object_cache.width, wm_object_cache.height );
@@ -67,7 +71,7 @@ uint8_t wm_init( void ) {
 	if( workbench_image ) {
 		// convert image to RGBA
 		uint32_t *tmp_workbench_image = (uint32_t *) malloc( wm_object_workbench -> size_byte );
-		lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file -> byte );
+		lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file.byte );
 
 		// copy scaled image content to workbench object
 		float x_scale_factor = (float) ((float) workbench_image -> width / (float) wm_object_workbench -> width);
@@ -80,10 +84,10 @@ uint8_t wm_init( void ) {
 		free( tmp_workbench_image );
 
 		// release file content
-		free( workbench_image );
+		std_memory_release( (uintptr_t) workbench_image, MACRO_PAGE_ALIGN_UP( workbench_file.byte ) >> STD_SHIFT_PAGE );
 
 		// close file
-		fclose( workbench_file );
+		std_file_close( workbench_file.socket );
 	} else
 		// fill workbench with default color
 		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
@@ -193,7 +197,7 @@ uint8_t wm_init( void ) {
 	// debug
 	// std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console tm", 10, EMPTY );
-	std_exec( (uint8_t *) "3d", 2, EMPTY );
+	// std_exec( (uint8_t *) "3d", 2, EMPTY );
 
 	// Window Manager initialized.
 	return TRUE;

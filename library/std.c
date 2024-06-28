@@ -626,7 +626,7 @@ FILE *fopen( uint8_t *path ) {
 	FILE *file = malloc( sizeof( FILE ) );
 
 	// open new socket for file
-	file -> socket = std_file_open( (uint8_t *) path, lib_string_length( (uint8_t *) path ) );
+	file -> socket = std_file_open( path, lib_string_trim( path, lib_string_length( path ) ) );
 
 	// if file doesn't exist
 	if( file -> socket < 0 ) {

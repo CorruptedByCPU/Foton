@@ -92,6 +92,6 @@ void _entry( uintptr_t kernel_ptr ) {
 		}
 
 		// release AP time
-		kernel -> time_sleep( TRUE );
+		// kernel -> time_sleep( TRUE );
 	}
 }
