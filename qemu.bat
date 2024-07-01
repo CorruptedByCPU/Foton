@@ -4,6 +4,11 @@ REM ============================================================================
 
 del Z:\home\wsl\foton\build\disk.raw.lock
 
-qemu\qemu-system-x86_64.exe -cpu max -cdrom Z:\home\wsl\foton\build\foton.iso -smp 2 -serial stdio -netdev user,id=u1 -device e1000,netdev=u1 -object filter-dump,id=f1,netdev=u1,file=dump.dat 
+qemu\qemu-system-x86_64.exe -cpu max -smp 2 -m 64 -cdrom Z:\home\wsl\foton\build\foton.iso -rtc base=localtime -audio driver=alsa,model=es1370,id=7 -serial stdio
+
+REM -usb -device usb-mouse,id=mouse
+REM -usb -device usb-kbd,id=keyboard
 
 del Z:\home\wsl\foton\bx_enh_dbg.ini
+
+

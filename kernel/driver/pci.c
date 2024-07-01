@@ -54,7 +54,7 @@ struct	DRIVER_PCI_STRUCTURE driver_pci_find_class_and_subclass( uint16_t class_a
 	struct DRIVER_PCI_STRUCTURE pci = { EMPTY };
 
 	// check every bus;device;function of PCI controller
-	for( pci.bus = 0; pci.bus <= 255; pci.bus++ )
+	for( pci.bus = 0; pci.bus <= 32; pci.bus++ )
 		for( pci.device = 0; pci.device < 32; pci.device++ )
 			for( pci.function = 0; pci.function < 8; pci.function++ ) {
 				// retrieve class and subclass

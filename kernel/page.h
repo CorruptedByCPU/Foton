@@ -12,12 +12,12 @@
 	#define	KERNEL_PAGE_PML5_mask	0xFFFF000000000000
 
 	// standard flags available for paging
-	#define	KERNEL_PAGE_FLAG_present		1 << 0
-	#define	KERNEL_PAGE_FLAG_write			1 << 1
-	#define	KERNEL_PAGE_FLAG_user			1 << 2
-	#define	KERNEL_PAGE_FLAG_write_through		1 << 3
-	#define	KERNEL_PAGE_FLAG_cache_disable		1 << 4
-	#define	KERNEL_PAGE_FLAG_length			1 << 7
+	#define	KERNEL_PAGE_FLAG_present		(1 << 0)
+	#define	KERNEL_PAGE_FLAG_write			(1 << 1)
+	#define	KERNEL_PAGE_FLAG_user			(1 << 2)
+	#define	KERNEL_PAGE_FLAG_write_through		(1 << 3)
+	#define	KERNEL_PAGE_FLAG_cache_disable		(1 << 4)
+	#define	KERNEL_PAGE_FLAG_length			(1 << 7)
 	// and foton definied, for easier memory management
 	#define	KERNEL_PAGE_TYPE_mask			0b0000111000000000
 	#define	KERNEL_PAGE_TYPE_offset			9

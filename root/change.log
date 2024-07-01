@@ -2,6 +2,11 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
+01.07.2024
+- found nasty bug about substitute fopen/fread/fclose function,
+  it taken a lot time/days to find that culprit,
+  changed to default syscall rountines
+
 08.06.2024
 - TCP/IP (with UDP) stack already done (some improvements available),
 - dhcpcd software to acquire IPV4 address from local network

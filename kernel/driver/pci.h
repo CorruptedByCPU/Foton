@@ -26,6 +26,7 @@
         #define	DRIVER_PCI_CLASS_SUBCLASS_scsi		0x0107
 	#define	DRIVER_PCI_CLASS_SUBCLASS_nvme		0x0108
         #define	DRIVER_PCI_CLASS_SUBCLASS_network	0x0200
+	#define	DRIVER_PCI_CLASS_SUBCLASS_audio		0x0401
 	#define	DRIVER_PCI_CLASS_SUBCLASS_usb		0x0C03
 
         struct	DRIVER_PCI_STRUCTURE {

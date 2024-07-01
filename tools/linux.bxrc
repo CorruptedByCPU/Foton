@@ -19,3 +19,4 @@ sound: waveoutdrv=alsa, waveout=none, waveindrv=alsa, wavein=none, midioutdrv=al
 voodoo: enabled=true, model=voodoo1
 com1: enabled=true, mode=file, dev="serial.log"
 e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=vnet
+es1370: enabled=true, wavedev=alsa
