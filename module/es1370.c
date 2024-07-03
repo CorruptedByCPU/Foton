@@ -41,19 +41,27 @@ void _entry( uintptr_t kernel_ptr ) {
 	if( driver_pci_read( pci, DRIVER_PCI_REGISTER_vendor_and_device ) != DRIVER_ES1370_VENDOR_AND_DEVICE ) return;	// no
 
 	// debug
-	kernel -> log( (uint8_t *) "[ES1370] PCI %2X:%2X.%u - Multimedia Audio Controller found.\n", pci.bus, pci.device, pci.function );
+	// kernel -> log( (uint8_t *) "[ES1370] PCI %2X:%2X.%u - Multimedia Audio Controller found.\n", pci.bus, pci.device, pci.function );
 
-	// get base address of mmio audio controller
-	module_es1370_port = (uint16_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_bar0 ) - TRUE;
+	// get I/O Port of audio controller
+	module_es1370_port = (uint16_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_bar0 ) & ~0b11;
 
 	// retrieve interrupt number of network controller
 	module_es1370_irq_number = (uint8_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_irq );
 
 	// debug
-	kernel -> log( (uint8_t *) "[ES1370] Port 0x%X, IRQ line %u\n", module_es1370_port, module_es1370_irq_number );
+	// kernel -> log( (uint8_t *) "[ES1370] Port 0x%X, IRQ line %u\n", module_es1370_port, module_es1370_irq_number );
 
-	// enable I/O Port, Interrupts
-	// uint16_t command = (uint16_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_status_and_command );
+	// obtain current PCI configuration
+	uint16_t command = (uint16_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_status_and_command );
+
+	// enable I/O Port access, Bus Master and Interrupts
+	command |= DRIVER_PCI_REGISTER_CONTROL_IO_SPACE;
+	command |= DRIVER_PCI_REGISTER_CONTROL_BUS_MASTER;
+	command &= ~DRIVER_PCI_REGISTER_CONTROL_IRQ_DISABLE;
+
+	// apply
+	driver_pci_write( pci, DRIVER_PCI_REGISTER_status_and_command, command );
 
 	// hold the door
 	while( TRUE );
