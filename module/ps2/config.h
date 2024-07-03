@@ -2,8 +2,8 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#ifndef	DRIVER_PS2
-	#define	DRIVER_PS2
+#ifndef	MODULE_PS2
+	#define	MODULE_PS2
 
 	#define	MODULE_PS2_KEYBOARD_IRQ_number			0x01
 	#define	MODULE_PS2_KEYBOARD_IO_APIC_register		KERNEL_IO_APIC_iowin + (MODULE_PS2_KEYBOARD_IRQ_number * 0x02)

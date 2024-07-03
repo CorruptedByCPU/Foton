@@ -10,7 +10,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N ) {
 	MACRO_LOCK( *semaphore );
 
 	// search binary memory map for N continuous (p)ages
-	for( uint64_t p = 0; p < kernel -> page_limit; p++ ) {
+	for( uint64_t p = 256; p < kernel -> page_limit; p++ ) {
 		// by default we found N enabled bits
 		uint8_t found = TRUE;
 

@@ -2,8 +2,8 @@
 Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ==============================================================================*/
 
-#ifndef	DRIVER_E1000
-	#define	DRIVER_E1000
+#ifndef	MODULE_E1000
+	#define	MODULE_E1000
 
         #define	MODULE_E1000_VENDOR_AND_DEVICE		0x100E8086
 

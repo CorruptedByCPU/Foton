@@ -1,0 +1,1381 @@
+ 003h           ASP Status                                          SB16ASP
+ 004h           DSP Status (Obsolete)                               SB2.0-Pro2
+ 004h           ASP ???                                             SB16ASP
+ 005h           ASP ???                                             SB16ASP
+ 010h           Direct DAC, 8-bit                                   SB
+ 014h           DMA DAC, 8-bit                                      SB
+ 016h           DMA DAC, 2-bit ADPCM                                SB
+ 017h           DMA DAC, 2-bit ADPCM Reference                      SB
+ 01Ch           Auto-Initialize DMA DAC, 8-bit                      SB2.0
+ 01Fh           Auto-Initialize DMA DAC, 2-bit ADPCM Reference      SB2.0
+ 020h           Direct ADC, 8-bit                                   SB
+ 024h           DMA ADC, 8-bit                                      SB
+ 028h           Direct ADC, 8-bit (Burst)                           SB-Pro2
+ 02Ch           Auto-Initialize DMA ADC, 8-bit                      SB2.0
+ 030h           MIDI Read Poll                                      SB
+ 031h           MIDI Read Interrupt                                 SB
+ 032h           MIDI Read Timestamp Poll                            SB???
+ 033h           MIDI Read Timestamp Interrupt                       SB???
+ 034h           MIDI Read Poll + Write Poll (UART)                  SB2.0
+ 035h           MIDI Read Interrupt + Write Poll (UART)             SB2.0???
+ 037h           MIDI Read Timestamp Interrupt + Write Poll (UART)   SB2.0???
+ 038h           MIDI Write Poll                                     SB
+ 040h           Set Time Constant                                   SB
+ 041h           Set Sample Rate                                     SB16
+ 045h           Continue Auto-Initialize DMA, 8-bit                 SB16
+ 047h           Continue Auto-Initialize DMA, 16-bit                SB16
+ 048h           Set DMA Block Size                                  SB2.0
+ 074h           DMA DAC, 4-bit ADPCM                                SB
+ 075h           DMA DAC, 4-bit ADPCM Reference                      SB
+ 076h           DMA DAC, 2.6-bit ADPCM                              SB
+ 077h           DMA DAC, 2.6-bit ADPCM Reference                    SB
+ 07Dh           Auto-Initialize DMA DAC, 4-bit ADPCM Reference      SB2.0
+ 07Fh           Auto-Initialize DMA DAC, 2.6-bit ADPCM Reference    SB2.0
+ 080h           Silence DAC                                         SB
+ 090h           Auto-Initialize DMA DAC, 8-bit (High Speed)         SB2.0-Pro2
+ 098h           Auto-Initialize DMA ADC, 8-bit (High Speed)         SB2.0-Pro2
+ 0A0h           Disable Stereo Input Mode                           SBPro Only
+ 0A8h           Enable Stereo Input Mode                            SBPro Only
+ 0Bxh/0Cxh      Generic DAC/ADC DMA (16-bit, 8-bit)                 SB16
+ 0D0h           Halt DMA Operation, 8-bit                           SB
+ 0D1h           Enable Speaker                                      SB
+ 0D3h           Disable Speaker                                     SB
+ 0D4h           Continue DMA Operation, 8-bit                       SB
+ 0D5h           Halt DMA Operation, 16-bit                          SB16
+ 0D6h           Continue DMA Operation, 16-bit                      SB16
+ 0D8h           Speaker Status                                      SB
+ 0D9h           Exit Auto-Initialize DMA Operation, 16-bit          SB16
+ 0DAh           Exit Auto-Initialize DMA Operation, 8-bit           SB2.0
+ 0E0h           DSP Identification                                  SB2.0
+ 0E1h           DSP Version                                         SB
+ 0E3h           DSP Copyright                                       SBPro2???
+ 0E4h           Write Test Register                                 SB2.0
+ 0E8h           Read Test Register                                  SB2.0
+ 0F0h           Sine Generator                                      SB
+ 0F1h           DSP Auxiliary Status (Obsolete)                     SB-Pro2
+ 0F2h           IRQ Request, 8-bit                                  SB
+ 0F3h           IRQ Request, 16-bit                                 SB16
+ 0FBh           DSP Status                                          SB16
+ 0FCh           DSP Auxiliary Status                                SB16
+ 0FDh           DSP Command Status                                  SB16
+
+------------------------------------------------------------------------------
+ 003h       ASP Status                                              SB16ASP
+    COMMAND <-STATUS
+
+    ???
+------------------------------------------------------------------------------
+ 004h       DSP Status (Obsolete)                                   SB2.0-Pro2
+    COMMAND <-STATUS
+
+    DESCRIPTION
+     Retrieves information about pending DSP operations.
+
+    STATUS BYTE
+     /===v===v===v===v===v===v===v===\
+     I 7 | 6 | 5 | 4 | 3 |[2]| 1 | 0 I
+     \=v=^=v=^=v=^=v=^=v=^=v=^=v=^=v=/
+       |   |   |   |   |   |   |   \--- Speaker Status           (1 = Active)
+       |   |   |   |   |   |   \------- Stereo ADC Status        (1 = Active)
+       |   |   |   |   |   \----------- Reserved (0)
+       |   |   |   |   \--------------- Direct ADC   8-bit Burst (1 = Active)
+       |   |   |   \------------------- DMA    DAC   2-bit ADPCM (1 = Active)
+       |   |   \----------------------- DMA    DAC 2.6-bit ADPCM (1 = Active)
+       |   \--------------------------- DMA    DAC   4-bit ADPCM (1 = Active)
+       \------------------------------- DMA    DAC   8-bit       (1 = Active)
+
+    NOTES
+     * SoundBlaster 2.0 implements only bit 3 and 7.
+     * SoundBlaster Pro models do not support bit 7.
+
+    SEE ALSO
+     0F1h   DSP Auxiliary Status (Obsolete)
+     -----------------------------------------------------
+     0FBh   DSP Status
+     0FCh   DSP Auxiliary Status
+     0FDh   DSP Command Status
+     -----------------------------------------------------
+     0D8h   Speaker Status
+------------------------------------------------------------------------------
+ 004h       ASP ???                                                 SB16ASP
+    COMMAND->???
+
+    ???
+------------------------------------------------------------------------------
+ 005h       ASP ???                                                 SB16ASP
+    COMMAND->DATAHIBYTE->DATALOBYTE
+
+    ???
+------------------------------------------------------------------------------
+ 010h       Direct DAC, 8-bit                                       SB
+    COMMAND->SAMPLEBYTE
+
+    DESCRIPTION
+     Outputs single sample.
+
+    PROCEDURE
+      a) Send Direct DAC, 8-bit command (010h) and sample
+      b) Wait for correct timing
+
+    NOTES
+     * Direct mode maximum sample rate is 23KHz.
+
+    SEE ALSO
+     020h   Direct ADC, 8-bit
+------------------------------------------------------------------------------
+ 014h       DMA DAC, 8-bit                                          SB
+    COMMAND->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Initiates 8-bit DMA transfer.
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Enable Speaker command (0D1h)
+      d) Setup DMA controller (mode = 048h + channel)
+      e) Perform DMA DAC, 8-bit command (014h)
+      f) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      g) Perform Disable Speaker command (0D3h)
+
+    LENGTH = SAMPLES - 1
+
+    NOTES
+     * Use command 0Cxh to avoid SoundBlaster 16 quantization errors.
+
+    SEE ALSO
+     0D0h   Halt DMA Operation, 8-bit
+     0D4h   Continue DMA Operation, 8-bit
+     -----------------------------------------------------
+     01Ch   Auto-Initialize DMA DAC, 8-bit                     
+     090h   Auto-Initialize DMA DAC, 8-bit (High Speed)        
+     0Cxh   Generic DAC/ADC DMA, 8-bit
+     -----------------------------------------------------
+     017h   DMA DAC, 2-bit ADPCM Reference
+     075h   DMA DAC, 4-bit ADPCM Reference
+     077h   DMA DAC, 2.6-bit ADPCM Reference         
+     -----------------------------------------------------
+     024h   DMA ADC, 8-bit                                          
+------------------------------------------------------------------------------
+ 016h       DMA DAC, 2-bit ADPCM                                    SB
+    COMMAND->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Initiates 2-bit ADPCM DMA transfer with accumulated reference byte.
+    This operation uses 8-bit DMA mode.
+
+    PROCEDURE (after command 017h)
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Enable Speaker command (0D1h)
+      d) Setup DMA controller (mode = 048h + channel)
+      e) Perform DMA DAC, 2-bit ADPCM command (016h)
+      f) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      g) Perform Disable Speaker command (0D3h)
+
+    LENGTH = (SAMPLES-1 + 3)/4
+
+    NOTES
+     * Supports up to 11KHz on SoundBlaster 1.x  
+     * Ensoniq Soundscape does not support ADPCM.
+
+    SEE ALSO
+     0D0h   Halt DMA Operation, 8-bit
+     0D4h   Continue DMA Operation, 8-bit
+     -----------------------------------------------------
+     017h   DMA DAC, 2-bit ADPCM Reference
+     -----------------------------------------------------
+     074h   DMA DAC, 4-bit ADPCM
+     076h   DMA DAC, 2.6-bit ADPCM
+------------------------------------------------------------------------------
+ 017h       DMA DAC, 2-bit ADPCM Reference                          SB
+    COMMAND->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Initiates 2-bit ADPCM DMA transfer with new reference byte.  This
+    operation uses 8-bit DMA mode.
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Enable Speaker command (0D1h)
+      d) Setup DMA controller (mode = 048h + channel)
+      e) Perform DMA DAC, 2-bit ADPCM Reference command (017h)
+      f) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      g) Perform Disable Speaker command (0D3h)
+
+    LENGTH = (SAMPLES-1 + 3)/4 + 1
+
+    NOTES
+     * Supports up to 11KHz on SoundBlaster 1.x
+     * Ensoniq Soundscape does not support ADPCM.
+
+    SEE ALSO
+     0D0h   Halt DMA Operation, 8-bit
+     0D4h   Continue DMA Operation, 8-bit
+     -----------------------------------------------------
+     016h   DMA DAC, 2-bit ADPCM
+     -----------------------------------------------------
+     075h   DMA DAC, 4-bit ADPCM Reference
+     077h   DMA DAC, 2.6-bit ADPCM Reference
+------------------------------------------------------------------------------
+ 01Ch       Auto-Initialize DMA DAC, 8-bit                          SB2.0
+    COMMAND
+
+    DESCRIPTION
+     Initiates auto-initialize 8-bit DMA transfer.
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Set DMA Block Size command (048h)
+      d) Perform Enable Speaker command (0D1h)
+      e) Setup DMA controller (mode = 058h + channel)
+      f) Perform Auto-Initialize DMA DAC, 8-bit command (01Ch)
+      g) IRQ: Prepare next half of buffer (not always in handler)
+      h) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 0x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      i) Loop to G until complete
+      j) Perform Disable Speaker command (0D3h)
+      k) Perform Halt DMA Operation, 8-bit command (0D0h - for virtual speaker)
+      l) Perform Exit Auto-Initialize DMA Operation, 8-bit command (0DAh)
+      m) Perform Halt DMA Operation, 8-bit command (0D0h - for virtual speaker)
+
+    NOTES
+     * Supports up to 23KHz (11.5KHz stereo???)
+     * Exit auto-initialized mode by programming single-cycle DMA output or
+        with Exit Auto-Initialize DMA Operation, 8-bit (0DAh).
+     * Use command 0Cxh to avoid SoundBlaster 16 quantization errors.     
+
+    LENGTH = (SAMPLES + 1)/2 - 1
+
+    SEE ALSO
+     048h   Set DMA Block Size                       
+     -----------------------------------------------------
+     0D0h   Halt DMA Operation, 8-bit
+     045h   Continue Auto-Initialize DMA Operation, 8-bit
+     0DAh   Exit Auto-Initialize DMA Operation, 8-bit       
+     -----------------------------------------------------
+     090h   Auto-Initialize DMA DAC, 8-bit (High Speed) 
+     0Cxh   Generic DAC/ADC DMA, 8-bit               
+------------------------------------------------------------------------------
+ 01Fh       Auto-Initialize DMA DAC, 2-bit ADPCM Reference          SB2.0
+    COMMAND
+
+    DESCRIPTION
+     Initiates auto-initialize 2-bit ADPCM DMA transfer with reference byte.     
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Set DMA Block Size command (048h)
+      d) Perform Enable Speaker command (0D1h)
+      e) Setup DMA controller (mode = 058h + channel)
+      f) Perform Auto-Initialize DMA DAC, 2-bit ADPCM command (01Fh)
+      g) IRQ: Prepare next half of buffer (not always in handler)
+      h) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      i) Loop to G until complete
+      j) Perform Disable Speaker command (0D3h)
+      k) Perform Halt DMA Operation, 8-bit command (0D0h - for virtual speaker)
+      l) Perform Exit Auto-Initialize DMA Operation, 8-bit command (0DAh)
+      m) Perform Halt DMA Operation, 8-bit command (0D0h - for virtual speaker)
+
+    NOTES
+     * Exit auto-initialized mode by programming single-cycle DMA output or
+        with Exit Auto-Initialize DMA Operation, 8-bit (0DAh).
+     * Ensoniq Soundscape does not support ADPCM.     
+
+    SAMPLEBYTES = (SAMPLES     + 3)/4 + 1
+    LENGTH      = (SAMPLEBYTES + 1)/2 - 1
+
+    SEE ALSO 
+     048h   Set DMA Block Size                       
+     -----------------------------------------------------
+     0D0h   Halt DMA Operation, 8-bit
+     045h   Continue Auto-Initialize DMA Operation, 8-bit
+     0DAh   Exit Auto-Initialize DMA Operation, 8-bit       
+     -----------------------------------------------------
+     017h   DMA DAC, 2-bit ADPCM Reference                     
+     -----------------------------------------------------
+     07Dh   Auto-Initialize DMA DAC, 4-bit ADPCM Reference      
+     07Fh   Auto-Initialize DMA DAC, 2.6-bit ADPCM Reference    
+------------------------------------------------------------------------------
+ 020h       Direct ADC, 8-bit                                       SB
+    COMMAND <-SAMPLEBYTE
+
+    DESCRIPTION
+     Inputs single sample.
+                                
+    PROCEDURE
+      a) Send Direct ADC, 8-bit command (020h)
+      b) Read sample
+      c) Wait for correct timing    
+
+    NOTES
+     * Direct mode maximum sample rate is 23KHz.
+
+    SEE ALSO
+     010h   Direct DAC, 8-bit                           
+------------------------------------------------------------------------------
+ 024h       DMA ADC, 8-bit                                          SB
+    COMMAND->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Initiates 8-bit DMA transfer (record).
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Enable Speaker command (0D1h)
+      d) Setup DMA controller (mode = 044h + channel)
+      e) Perform DMA ADC, 8-bit command (024h)
+      f) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      g) Perform Disable Speaker command (0D3h)
+
+    LENGTH = SAMPLES - 1
+
+    NOTES
+     * SoundBlasters prior to SB16 return the first sample in direct mode.
+
+    SEE ALSO                 
+     0D0h   Halt DMA Operation, 8-bit
+     0D4h   Continue DMA Operation, 8-bit
+     -----------------------------------------------------
+     02Ch   Auto-Initialize DMA ADC, 8-bit                    
+     098h   Auto-Initialize DMA ADC, 8-bit (High Speed)
+     0Cxh   Generic DAC/ADC DMA, 8-bit                  
+------------------------------------------------------------------------------
+ 028h       Direct ADC, 8-bit (Burst)                               SB-Pro2
+    COMMAND <-SAMPLEBYTE0...SAMPLEBYTEn
+
+    DESCRIPTION
+     ???
+
+    PROCEDURE
+     ???
+
+    NOTES
+     * Terminate operation with DSP reset.
+
+    SEE ALSO
+     020h   Direct ADC, 8-bit
+------------------------------------------------------------------------------
+ 02Ch           Auto-Initialize DMA ADC, 8-bit                      SB2.0
+    COMMAND
+
+    DESCRIPTION
+     Initiates auto-initialize 8-bit DMA transfer (record).
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Set DMA Block Size command (048h)
+      d) Perform Enable Speaker command (0D1h)
+      e) Setup DMA controller (mode = 054h + channel)
+      f) Perform Auto-Initialize DMA ADC, 8-bit command (02Ch)
+      g) IRQ: Prepare next half of buffer (not always in handler)
+      h) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      i) Loop to G until complete
+      j) Perform Disable Speaker command (0D3h)
+      k) Perform Halt DMA Operation, 8-bit command (0D0h - for virtual speaker)
+      l) Perform Exit Auto-Initialize DMA Operation, 8-bit command (0DAh)
+      m) Perform Halt DMA Operation, 8-bit command (0D0h - for virtual speaker)
+
+    NOTES
+     * Supports up to 23KHz (11.5KHz stereo???)
+     * Exit auto-initialized mode by programming single-cycle DMA output or
+        with Exit Auto-Initialize DMA Operation, 8-bit (0DAh).
+     * Use command 0Cxh to avoid SoundBlaster 16 quantization errors.     
+
+    LENGTH = (SAMPLES + 1)/2 - 1
+
+    SEE ALSO
+     048h   Set DMA Block Size                       
+     -----------------------------------------------------
+     0D0h   Halt DMA Operation, 8-bit
+     045h   Continue Auto-Initialize DMA Operation, 8-bit
+     0DAh   Exit Auto-Initialize DMA Operation, 8-bit       
+     -----------------------------------------------------
+     098h   Auto-Initialize DMA ADC, 8-bit (High Speed)
+     0Cxh   Generic DAC/ADC DMA, 8-bit               
+------------------------------------------------------------------------------
+ 030h       MIDI Read Poll                                          SB
+    COMMAND <-MIDICODE
+
+    DESCRIPTION
+     Reads MIDI code.
+
+    PROCEDURE
+      a) Send MIDI Read Poll command (030h)
+      b) Read MIDI code when available
+
+    NOTES
+     * SoundBlasters buffer up to 64bytes of MIDI data.
+
+    SEE ALSO
+     031h   MIDI Read Interrupt
+     -----------------------------------------------------
+     032h   MIDI Read Timestamp Poll
+     033h   MIDI Read Timestamp Interrupt
+     -----------------------------------------------------
+     034h   MIDI Read Poll + Write Poll (UART)
+     035h   MIDI Read Interrupt + Write Poll (UART)
+     037h   MIDI Read Timestamp Interrupt + Write Poll (UART)
+     -----------------------------------------------------
+     038h   MIDI Write Poll
+------------------------------------------------------------------------------
+ 031h       MIDI Read Interrupt                                     SB
+    COMMAND {<-MIDICODE}
+
+    DESCRIPTION
+     Generates interrupt when MIDI code is available.
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform MIDI Read Interrupt command (031h)
+      c) IRQ: Read MIDI code
+      d) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      e) Perform MIDI Read Interrupt command (031h) to terminate
+
+    NOTES
+     * SoundBlasters buffer up to 64bytes of MIDI data.
+
+    SEE ALSO
+     033h   MIDI Read Timestamp Interrupt
+     -----------------------------------------------------
+     035h   MIDI Read Interrupt + Write Poll (UART)
+     037h   MIDI Read Timestamp Interrupt + Write Poll (UART)
+     -----------------------------------------------------
+     030h   MIDI Read Poll
+-----------------------------------------------------------------------------
+ 032h       MIDI Read Timestamp Poll                                SB???
+    COMMAND <-TIMESTAMPLOBYTE<-TIMESTAMPMIDBYTE<-TIMESTAMPHIBYTE<-MIDICODE
+
+    DESCRIPTION
+     Reads MIDI code with timestamp.
+
+    PROCEDURE
+      a) Send MIDI Read Timestamp Poll command (032h)
+      b) Read timestamp and MIDI code when available
+
+    NOTES
+     * Timestamp if 24-bit value containing the time since the last MIDI
+        command in milliseconds.
+     * SoundBlasters buffer up to 64bytes of MIDI data.
+
+    SEE ALSO
+     033h   MIDI Read Timestamp Interrupt
+     -----------------------------------------------------
+     037h   MIDI Read Timestamp Interrupt + Write Poll (UART)
+------------------------------------------------------------------------------
+ 033h       MIDI Read Timestamp Interrupt                           SB???
+    COMMAND {<-TIMESTAMPLOBYTE<-TIMESTAMPMIDBYTE<-TIMESTAMPHIBYTE<-MIDICODE}
+
+    DESCRIPTION
+     Generates interrupt when MIDI code is available, includes timestamp.
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform MIDI Read Interrupt with Timestamp command (033h)
+      c) IRQ: Read MIDI code with timestamp
+      d) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      e) Perform MIDI Read Interrupt with Timestamp command (033h) to terminate
+
+    NOTES
+     * Timestamp if 24-bit value containing the time since the last MIDI
+        command in milliseconds.
+     * SoundBlasters buffer up to 64bytes of MIDI data.
+
+    SEE ALSO
+     032h   MIDI Read Timestamp Poll
+     -----------------------------------------------------
+     037h   MIDI Read Timestamp Interrupt + Write Poll (UART)
+------------------------------------------------------------------------------
+ 034h       MIDI Read Poll + Write Poll (UART)                      SB2.0
+    COMMAND [->MIDICODE] [<-MIDICODE]
+
+    DESCRIPTION
+     Enables UART mode, where all DSP read/writes are interpreted as MIDI codes.
+
+    PROCEDURE
+      a) Send MIDI Read Poll + Write Poll (UART) command (034h)
+      b) Send and receive MIDI codes
+      c) Reset DSP to terminate
+
+    NOTES
+     * Disable UART mode with DSP reset (port 02x06h)
+     * Read/write status must still be checked (port 02x0Eh/02x0Ch)
+     * SoundBlasters buffer up to 64bytes of MIDI data.
+
+    SEE ALSO
+     030h   MIDI Read Poll
+     038h   MIDI Write Poll
+     -----------------------------------------------------
+     035h   MIDI Read Interrupt + Write Poll (UART)
+     037h   MIDI Read Timestamp Interrupt + Write Poll (UART)
+------------------------------------------------------------------------------
+ 035h       MIDI Read Interrupt + Write Poll (UART)                 SB2.0???
+    COMMAND [->MIDICODE] {<-MIDICODE}
+
+    DESCRIPTION
+     Enables UART mode with interrupt, where all DSP writes are interpreted as
+      MIDI codes and interrupts are generated when a MIDI code is to be read.
+
+    PROCEDURE
+      a) Send MIDI Read Interrupt + Write Poll (UART) command (035h)
+      b) Send and receive MIDI codes (see command 031h)
+      c) Reset DSP to terminate
+
+    NOTES
+     * Disable UART mode with DSP reset (port 02x06h)
+     * Write buffer status must still be checked (port 02x0Ch)
+     * SoundBlasters buffer up to 64bytes of MIDI data.
+
+    SEE ALSO
+     034h   MIDI Read Poll + Write Poll (UART)
+     037h   MIDI Read Timestamp Interrupt + Write Poll (UART)
+     -----------------------------------------------------
+     031h   MIDI Read Interrupt
+------------------------------------------------------------------------------
+ 037h       MIDI Read Timestamp Interrupt + Write Poll (UART)       SB2.0???
+    COMMAND [->MIDICODE]
+             {<-TIMESTAMPLOBYTE<-TIMESTAMPMIDBYTE<-TIMESTAMPHIBYTE<-MIDICODE}
+
+    DESCRIPTION
+     Enables UART mode with interrupt, where all DSP writes are interpreted as
+      MIDI codes and interrupts are generated when a timestamped MIDI code is
+      to be read.
+
+    PROCEDURE
+      a) Send MIDI Read Timestamp Interrupt + Write Poll (UART) command (037h)
+      b) Send and receive MIDI codes with timestamps (see command 033h)
+      c) Reset DSP to terminate
+
+    NOTES
+     * Disable UART mode with DSP reset (port 02x06h)
+     * Write buffer status must still be checked (port 02x0Ch)
+     * SoundBlasters buffer up to 64bytes of MIDI data.
+
+    SEE ALSO
+     034h   MIDI Read Poll + Write Poll (UART)
+     035h   MIDI Read Interrupt + Write Poll (UART)
+     -----------------------------------------------------
+     038h   MIDI Write Poll
+------------------------------------------------------------------------------
+ 038h       MIDI Write Poll                                         SB
+    COMMAND->MIDICODE
+
+    DESCRIPTION
+     Writes MIDI code.
+
+    PROCEDURE
+      a) Send MIDI Write Poll command (038h) and data
+
+    SEE ALSO
+     034h   MIDI Read Poll + Write Poll (UART)
+     035h   MIDI Read Interrupt + Write Poll (UART)
+     037h   MIDI Read Timestamp Interrupt + Write Poll (UART)
+     -----------------------------------------------------
+     030h   MIDI Read Poll
+------------------------------------------------------------------------------
+ 040h       Set Time Constant                                       SB
+    COMMAND->TIMEBYTE
+
+    DESCRIPTION
+     Sets sample rate through internal I/O transfer timer.
+
+    FORMULA
+     TimeConstant = 256 - (1000000 / (SampleChannels * SampleRate))
+
+    NOTES
+     * For non-SoundBlaster Pro cards, always set SampleChannels equal to one.
+
+    SEE ALSO
+     041h   Set Sample Rate
+------------------------------------------------------------------------------
+ 041h       Set Sample Rate                                         SB16
+    COMMAND->RATEHIBYTE->RATELOBYTE
+
+    DESCRIPTION
+     Sets sample rate.
+
+    NOTES
+     * Sampling rate precision is truncated to nearest time constant.
+     * Sampling rate is programmed independent of stereo or monaural modes.
+
+    SEE ALSO
+     040h   Set Time Constant
+------------------------------------------------------------------------------
+ 045h       Continue Auto-Initialize DMA, 8-bit                     SB16
+    COMMAND
+
+    DESCRIPTION
+     Continues a halted auto-initialized 8-bit DMA operation.
+
+    SEE ALSO
+     0DAh   Exit Auto-Initialize DMA Operation, 8-bit
+     -----------------------------------------------------
+     0Cxh   Generic DAC/ADC, 8-bit
+     -----------------------------------------------------
+     01Ch   Auto-Initialize DMA DAC,   8-bit
+     01Fh   Auto-Initialize DMA DAC,   2-bit ADPCM
+     02Ch   Auto-Initialize DMA ADC,   8-bit
+     07Dh   Auto-Initialize DMA DAC,   4-bit ADPCM
+     07Fh   Auto-Initialize DMA DAC, 2.6-bit ADPCM
+     090h   Auto-Initialize DMA DAC,   8-bit (High Speed)
+     098h   Auto-Initialize DMA ADC,   8-bit (High Speed)
+------------------------------------------------------------------------------
+ 047h       Continue Auto-Initialize DMA, 16-bit                    SB16
+    COMMAND
+
+    DESCRIPTION
+     Continues a halted auto-initialized 16-bit DMA operation.
+
+    SEE ALSO
+     0D9h   Exit Auto-Initialize DMA, 16-bit
+     -----------------------------------------------------
+     0Bxh   Generic DAC/ADC, 16-bit
+------------------------------------------------------------------------------
+ 048h       Set DMA Block Size                                      SB2.0
+    COMMAND->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Set DMA transfer size for auto-initialize and high speed modes.
+
+    SAMPLEBYTES =  SAMPLES                    8-bit
+                  (SAMPLES-1   + 1)/2 + 1     4-bit ADPCM + Reference
+                  (SAMPLES-1   + 2)/3 + 1   2.6-bit ADPCM + Reference
+                  (SAMPLES-1   + 3)/4 + 1     2-bit ADPCM + Reference
+
+    LENGTH      =  SAMPLEBYTES        - 1  (Single Cycle)
+                  (SAMPLEBYTES + 1)/2 - 1  (Auto-Init   )
+
+    NOTES
+     * Length is always equal to the number of bytes to transfer minus one.
+
+    SEE ALSO
+     01Ch   Auto-Initialize DMA DAC,   8-bit
+     01Fh   Auto-Initialize DMA DAC,   2-bit ADPCM
+     02Ch   Auto-Initialize DMA ADC,   8-bit
+     07Dh   Auto-Initialize DMA DAC,   4-bit ADPCM
+     07Fh   Auto-Initialize DMA DAC, 2.6-bit ADPCM
+     090h   Auto-Initialize DMA DAC,   8-bit (High Speed)
+     098h   Auto-Initialize DMA ADC,   8-bit (High Speed)
+------------------------------------------------------------------------------
+ 074h       DMA DAC, 4-bit ADPCM                                    SB
+    COMMAND->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Initiates 4-bit ADPCM DMA transfer with accumulated reference byte.
+    This operation uses 8-bit DMA mode.
+
+    PROCEDURE (after command 075h)
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Enable Speaker command (0D1h)
+      d) Setup DMA controller (mode = 048h + channel)
+      e) Perform DMA DAC, 4-bit ADPCM command (074h)
+      f) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      g) Perform Disable Speaker command (0D3h)
+
+    LENGTH      = (SAMPLES-1   + 1)/2
+
+    NOTES
+     * Supports up to 12KHz on SoundBlaster 1.x  
+     * Ensoniq Soundscape does not support ADPCM.
+                                                          
+    SEE ALSO
+     0D0h   Halt DMA Operation, 8-bit
+     0D4h   Continue DMA Operation, 8-bit
+     -----------------------------------------------------
+     074h   DMA DAC, 4-bit ADPCM Reference
+     -----------------------------------------------------
+     016h   DMA DAC, 2-bit ADPCM
+     076h   DMA DAC, 2.6-bit ADPCM
+------------------------------------------------------------------------------
+ 075h       DMA DAC, 4-bit ADPCM Reference                          SB
+    COMMAND->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Initiates 4-bit ADPCM DMA transfer with new reference byte.  This
+    operation uses 8-bit DMA mode.
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Enable Speaker command (0D1h)
+      d) Setup DMA controller (mode = 048h + channel)
+      e) Perform DMA DAC, 4-bit ADPCM Reference command (075h)
+      f) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      g) Perform Disable Speaker command (0D3h)
+
+    LENGTH      = (SAMPLES-1   + 1)/2 + 1
+
+    NOTES
+     * Supports up to 12KHz on SoundBlaster 1.x  
+     * Ensoniq Soundscape does not support ADPCM.
+
+    SEE ALSO
+     0D0h   Halt DMA Operation, 8-bit
+     0D4h   Continue DMA Operation, 8-bit
+     -----------------------------------------------------
+     075h   DMA DAC, 4-bit ADPCM
+     -----------------------------------------------------
+     017h   DMA DAC, 2-bit ADPCM Reference
+     077h   DMA DAC, 2.6-bit ADPCM Reference
+------------------------------------------------------------------------------
+ 076h       DMA DAC, 2.6-bit ADPCM                                  SB
+    COMMAND->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Initiates 2.6-bit ADPCM DMA transfer with accumulated reference byte.
+    This operation uses 8-bit DMA mode.
+
+    PROCEDURE (after command 077h)
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Enable Speaker command (0D1h)
+      d) Setup DMA controller (mode = 048h + channel)
+      e) Perform DMA DAC, 2.6-bit ADPCM command (076h)
+      f) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      g) Perform Disable Speaker command (0D3h)
+
+    LENGTH      = (SAMPLES-1   + 2)/3
+
+    NOTES
+     * Supports up to 13KHz on SoundBlaster 1.x  
+     * Ensoniq Soundscape does not support ADPCM.
+
+    SEE ALSO
+     0D0h   Halt DMA Operation, 8-bit
+     0D4h   Continue DMA Operation, 8-bit
+     -----------------------------------------------------
+     077h   DMA DAC, 2.6-bit ADPCM Reference
+     -----------------------------------------------------
+     016h   DMA DAC, 2-bit ADPCM
+     074h   DMA DAC, 4-bit ADPCM
+------------------------------------------------------------------------------
+ 077h       DMA DAC, 2.6-bit ADPCM Reference                        SB
+    COMMAND->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Initiates 2.6-bit ADPCM DMA transfer with new reference byte.  This
+    operation uses 8-bit DMA mode.
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Enable Speaker command (0D1h)
+      d) Setup DMA controller (mode = 048h + channel)
+      e) Perform DMA DAC, 2.6-bit ADPCM Reference command (077h)
+      f) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      g) Perform Disable Speaker command (0D3h)
+
+    LENGTH      = (SAMPLES-1   + 2)/3 + 1
+
+    NOTES
+     * Supports up to 13KHz on SoundBlaster 1.x  
+     * Ensoniq Soundscape does not support ADPCM.
+
+    SEE ALSO
+     0D0h   Halt DMA Operation, 8-bit
+     0D4h   Continue DMA Operation, 8-bit
+     -----------------------------------------------------
+     076h   DMA DAC, 2.6-bit ADPCM
+     -----------------------------------------------------
+     017h   DMA DAC, 2-bit ADPCM Reference
+     075h   DMA DAC, 4-bit ADPCM Reference
+------------------------------------------------------------------------------
+ 07Dh       Auto-Initialize DMA DAC, 4-bit ADPCM Reference          SB2.0
+    COMMAND
+
+    DESCRIPTION
+     Initiates auto-initialize 4-bit ADPCM DMA transfer with reference byte.         
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Set DMA Block Size command (048h)
+      d) Perform Enable Speaker command (0D1h)
+      e) Setup DMA controller (mode = 058h + channel)
+      f) Perform Auto-Initialize DMA DAC, 4-bit ADPCM command (07Dh)
+      g) IRQ: Prepare next half of buffer (not always in handler)
+      h) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      i) Loop to G until complete
+      j) Perform Disable Speaker command (0D3h)
+      k) Perform Halt DMA Operation, 8-bit command (0D0h - for virtual speaker)
+      l) Perform Exit Auto-Initialize DMA Operation, 8-bit command (0DAh)
+      m) Perform Halt DMA Operation, 8-bit command (0D0h - for virtual speaker)
+
+    NOTES
+     * Exit auto-initialized mode by programming single-cycle DMA output or
+        with Exit Auto-Initialize DMA Operation, 8-bit (0DAh).
+     * Ensoniq Soundscape does not support ADPCM.
+
+    SAMPLEBYTES = (SAMPLES     + 1)/2 + 1
+    LENGTH      = (SAMPLEBYTES + 1)/2 - 1
+
+    SEE ALSO     
+     048h   Set DMA Block Size                       
+     -----------------------------------------------------
+     0D0h   Halt DMA Operation, 8-bit
+     045h   Continue Auto-Initialize DMA Operation, 8-bit
+     0DAh   Exit Auto-Initialize DMA Operation, 8-bit       
+     -----------------------------------------------------
+     075h   DMA DAC, 4-bit ADPCM Reference                   
+     -----------------------------------------------------
+     01Fh   Auto-Initialize DMA DAC, 2-bit ADPCM Reference      
+     07Fh   Auto-Initialize DMA DAC, 2.6-bit ADPCM Reference    
+------------------------------------------------------------------------------
+ 07Fh       Auto-Initialize DMA DAC, 2.6-bit ADPCM Reference        SB2.0
+    COMMAND
+
+    DESCRIPTION
+     Initiates auto-initialize 2.6-bit ADPCM DMA transfer with reference byte.          
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Set DMA Block Size command (048h)
+      d) Perform Enable Speaker command (0D1h)
+      e) Setup DMA controller (mode = 058h + channel)
+      f) Perform Auto-Initialize DMA DAC, 2.6-bit ADPCM command (07Fh)
+      g) IRQ: Prepare next half of buffer (not always in handler)
+      h) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      i) Loop to G until complete
+      j) Perform Disable Speaker command (0D3h)
+      k) Perform Halt DMA Operation, 8-bit command (0D0h - for virtual speaker)
+      l) Perform Exit Auto-Initialize DMA Operation, 8-bit command (0DAh)
+      m) Perform Halt DMA Operation, 8-bit command (0D0h - for virtual speaker)
+
+    NOTES
+     * Exit auto-initialized mode by programming single-cycle DMA output or
+        with Exit Auto-Initialize DMA Operation, 8-bit (0DAh).
+     * Ensoniq Soundscape does not support ADPCM.    
+
+    SAMPLEBYTES = (SAMPLES     + 2)/3 + 1
+    LENGTH      = (SAMPLEBYTES + 1)/2 - 1
+
+    SEE ALSO
+     048h   Set DMA Block Size                       
+     -----------------------------------------------------
+     0D0h   Halt DMA Operation, 8-bit
+     045h   Continue Auto-Initialize DMA Operation, 8-bit
+     0DAh   Exit Auto-Initialize DMA Operation, 8-bit       
+     -----------------------------------------------------
+     077h   DMA DAC, 2.6-bit ADPCM Reference            
+     -----------------------------------------------------
+     01Fh   Auto-Initialize DMA DAC, 2-bit ADPCM Reference      
+     07Dh   Auto-Initialize DMA DAC, 4-bit ADPCM Reference      
+------------------------------------------------------------------------------
+ 080h       Silence DAC                                             SB
+    COMMAND->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Outputs block of silent samples at current sample rate, and signals
+      IRQ when complete.
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Silence DAC command (080h)
+      d) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      e) Remove IRQ handler (restore vector, restore PIC mask)
+
+    LENGTH = SAMPLES - 1
+
+    SEE ALSO
+     040h   Set Time Constant
+------------------------------------------------------------------------------
+ 090h       Auto-Initialize DMA DAC, 8-bit (High Speed)             SB2.0-Pro2
+    COMMAND
+
+    DESCRIPTION
+     Initiates 8-bit DMA transfer (>23KHz).
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Set DMA Block Size command (048h)
+      d) Perform Enable Speaker command (0D1h)
+      e) Setup DMA controller (mode = 058h + channel)
+      f) Perform Auto-Initialize DMA DAC, 8-bit (HighSpeed) command (090h)
+      g) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      h) Reset DSP (or terminate normally on SB16+)
+
+    NOTES
+     * High speed mode ignores DSP commands during transfers (23KHz).
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Perform Set DMA Block Size command (048h)
+      d) Perform Enable Speaker command (0D1h)
+      e) Setup DMA controller (mode = 054h + channel)
+      f) Perform Auto-Initialize DMA ADC, 8-bit (HighSpeed) command (098h)
+      g) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      h) Reset DSP (or terminate normally on SB16+)
+
+    NOTES
+     * High speed mode ignores DSP commands during transfers (MODE->LENGTHLOBYTE->LENGTHHIBYTE
+
+    DESCRIPTION
+     Generalized sampling and playback command (includes 16-bit operations).
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform Set Time Constant command (040h), or otherwise set sample rate
+      c) Setup DMA controller (mode = mode + channel)
+      d) Perform Generic DAC/ADC DMA command (0Bxh/0Cxh)
+      e) IRQ: Acknowledge IRQ (input from IRQ Acknowledge port - 02x0Eh/02x0Fh;
+                               perform Generic EOI (020h) to appropriate PICs)
+      f) Terminate transfer, method dependent on mode
+
+    COMMAND BYTE
+     /===v===v===v===v===v===v===v===\
+     I(7)|(6)|(5)|(4)| 3 | 2 | 1 |[0]I
+     \=v=^=v=^=v=^=v=^=v=^=v=^=v=^=v=/
+       |   |   |   |   |   |   |   \--- Reserved (0)
+       |   |   |   |   |   |   \------- FIFO Mode (0 = Disable, 1 = Enable)
+       |   |   |   |   |   \----------- DMA Mode  (0 = Single, 1 = Auto-Init)
+       |   |   |   |   \--------------- Transfer Mode (0 = DAC, 1 = ADC)
+       |   |   |   \-----------------�
+       |   |   \---------------------�- Sampling Resolution
+       |   \-------------------------�   1011b = 16-bit, 1100b = 8-bit
+       \-----------------------------�
+
+    MODE BYTE
+     /===v===v===v===v===v===v===v===\
+     I[7]|[6]| 5 | 4 |[3]|[2]|[1]|[0]I
+     \=v=^=v=^=v=^=v=^=v=^=v=^=v=^=v=/
+       |   |   |   |   |   |   |   \-�- Reserved (0)
+       |   |   |   |   |   |   \-----�
+       |   |   |   |   |   \---------�
+       |   |   |   |   \-------------�
+       |   |   |   \------------------- Sample Mode (0 = Unsigned, 1 = Signed)
+       |   |   \----------------------- Stereo Mode (0 = Monaural, 1 = Stereo)
+       |   \-------------------------�- Reserved (0)
+       \-----------------------------�
+
+    LENGTH = SAMPLES - 1        (even for 16-bit samples)
+
+    NOTES
+     * Enable FIFO mode for high speed mode or large data transfers.
+     * BUG: SoundBlaster 16 ADC only accurate to 12-bits.
+
+    SEE ALSO
+     0D0h   Halt DMA Operation, 8-bit
+     0D4h   Continue DMA Operation, 8-bit
+     045h   Continue Auto-Initialize DMA Operation, 8-bit
+     0DAh   Exit Auto-Initialize DMA Operation, 8-bit       
+     -----------------------------------------------------
+     0D5h   Halt DMA Operation, 16-bit
+     0D6h   Continue DMA Operation, 16-bit
+     047h   Continue Auto-Initialize DMA, 16-bit
+     0D9h   Exit Auto-Initialize DMA Operation, 16-bit
+     -----------------------------------------------------
+     014h   DMA DAC, 8-bit
+     024h   DMA ADC, 8-bit
+     -----------------------------------------------------
+     01Ch   Auto-Initialize DMA DAC, 8-bit
+     02Ch   Auto-Initialize DMA ADC, 8-bit
+     -----------------------------------------------------
+     090h   Auto-Initialize DMA DAC, 8-bit (High Speed)
+     098h   Auto-Initialize DMA ADC, 8-bit (High Speed)
+------------------------------------------------------------------------------
+ 0D0h       Halt DMA Operation, 8-bit                               SB
+    COMMAND
+
+    DESCRIPTION
+     Pauses 8-bit single-cycle DMA operation.
+
+    NOTES
+     * Halts every 8-bit DMA mode on SoundBlaster 16.              
+     * BUG: Halts 16-bit DMA operation on early SoundBlaster 16s (4.04).     
+
+    SEE ALSO
+     0D4h   Continue DMA Operation, 8-bit             
+     0DAh   Exit Auto-Initialize DMA Operation, 8-bit 
+------------------------------------------------------------------------------
+ 0D1h       Enable Speaker                                          SB
+    COMMAND
+
+    DESCRIPTION
+     Enables speaker output.
+
+    NOTES
+     * Reset of DSP disables speaker.
+     * BUG: Halts pending DMA operations on SoundBlaster 1.x.
+     * BUG: Enabled speaker generates sampling noise on SoundBlaster 2.0.
+     * BUG: Speaker MUST be disabled before sampling on SoundBlaster Pro.
+     * BUG: Speaker state does NOT physically change on SoundBlaster 16.
+     * Originator of noisy 'pops' on some models (capacitor discharge).            
+
+    SEE ALSO
+     0D3h   Disable Speaker
+------------------------------------------------------------------------------
+ 0D3h       Disable Speaker                                         SB
+    COMMAND
+
+    DESCRIPTION
+     Disables speaker output.  
+
+    NOTES    
+     * Reset of DSP disables speaker.
+     * BUG: Halts pending DMA operations on SoundBlaster 1.x.
+     * BUG: Enabled speaker generates sampling noise on SoundBlaster 2.0.
+     * BUG: Speaker MUST be disabled before sampling on SoundBlaster Pro.
+     * BUG: Speaker state does NOT physically change on SoundBlaster 16.
+     * Originator of noisy 'pops' on some models (capacitor discharge).            
+
+    SEE ALSO
+     0D1h   Enable Speaker
+------------------------------------------------------------------------------
+ 0D4h       Continue DMA Operation, 8-bit                           SB
+    COMMAND
+
+    DESCRIPTION
+     Continues a halted 8-bit single-cycle DMA operation.
+
+    NOTES
+     * Continues every 8-bit DMA mode on SoundBlaster 16.           
+     * BUG: Continues 16-bit DMA operation on early SoundBlaster 16 (4.04).     
+
+    SEE ALSO
+     0D0h   Halt DMA Operation, 8-bit                 
+     0DAh   Exit Auto-Initialize DMA Operation, 8-bit 
+------------------------------------------------------------------------------
+ 0D5h       Halt DMA Operation, 16-bit                              SB16
+    COMMAND
+
+    DESCRIPTION
+     Pauses any 16-bit DMA operation.                        
+
+    SEE ALSO
+     0D6h   Continue DMA Operation, 16-bit                              
+     0D9h   Exit Auto-Initialize DMA Operation, 16-bit              
+------------------------------------------------------------------------------
+ 0D6h       Continue DMA Operation, 16-bit                          SB16
+    COMMAND
+
+    DESCRIPTION
+     Continues any halted 16-bit DMA operation.
+
+    SEE ALSO
+     0D5h   Halt DMA Operation, 16-bit
+     0D9h   Exit Auto-Initialize DMA Operation, 16-bit              
+------------------------------------------------------------------------------
+ 0D8h       Speaker Status                                          SB
+    COMMAND <-STATUS
+
+    DESCRIPTION
+     Determines current status of speaker.
+
+    STATUS BYTE
+     000h = Disabled
+     0FFh = Enabled
+
+    NOTES
+     * Reset of DSP disables speaker.
+
+    SEE ALSO
+     0D1h   Enable Speaker
+     0D3h   Disable Speaker
+     -----------------------------------------------------
+     004h   DSP Status (Obsolete)
+     0F1h   DSP Auxiliary Status (Obsolete)
+     -----------------------------------------------------
+     0FBh   DSP Status
+     0FCh   DSP Auxiliary Status
+     0FDh   DSP Command Status
+------------------------------------------------------------------------------
+ 0D9h       Exit Auto-Initialize DMA Operation, 16-bit              SB16
+    COMMAND
+
+    DESCRIPTION
+     Terminates auto-initialized 16-bit DMA operation after current block.
+
+    PROCEDURE                                  
+      a) Perform Disable Speaker command (0D3h)
+      b) Perform Halt DMA Operation, 16-bit command (0D5h - virtual speaker)
+      c) Perform Exit Auto-Initialize DMA Operation, 16-bit command (0D9h)
+      d) Perform Halt DMA Operation, 16-bit command (0D5h - virtual speaker)
+             
+    NOTES
+     * Halt commands are required for immediate termination and to quiet SB16.
+
+    SEE ALSO                                              
+     0D5h   Halt DMA Operation, 16-bit
+     047h   Continue Auto-Initialize DMA, 16-bit
+     -----------------------------------------------------
+     0D3h   Disable Speaker
+------------------------------------------------------------------------------
+ 0DAh       Exit Auto-Initialize DMA Operation, 8-bit               SB2.0
+    COMMAND
+
+    DESCRIPTION
+     Terminates auto-initialized 8-bit DMA operations after current block.
+
+    PROCEDURE                                  
+      a) Perform Disable Speaker command (0D3h)
+      b) Perform Halt DMA Operation, 8-bit command (0D0h - virtual speaker)
+      c) Perform Exit Auto-Initialize DMA Operation, 8-bit command (0DAh)
+      d) Perform Halt DMA Operation, 8-bit command (0D0h - virtual speaker)
+             
+    NOTES
+     * Halt commands are required for immediate termination and to quiet SB16.
+
+    SEE ALSO
+     0D0h   Halt DMA Operation, 8-bit                 
+     045h   Continue Auto-Initialize DMA, 8-bit
+     -----------------------------------------------------
+     0D3h   Disable Speaker
+------------------------------------------------------------------------------
+ 0E0h       DSP Identification                                      SB2.0
+    COMMAND->DATA <-NOT(DATA)
+
+    DESCRIPTION
+     Returns bitwise NOT of data byte.
+
+    NOTES
+     * Results reliable only after DSP reset on early models.
+
+    SEE ALSO
+     0E1h   DSP Version
+     0E3h   DSP Copyright
+------------------------------------------------------------------------------
+ 0E1h       DSP Version                                             SB
+    COMMAND <-MAJORVERSIONBYTE<-MINORVERSIONBYTE
+
+    DESCRIPTION
+     Determines DSP major and minor version.
+
+    MODEL                      VERSION
+     SoundBlaster 1.0           1.??  (1.05???)
+     SoundBlaster 1.5           1.??  (1.05???)
+     SoundBlaster 2.0           2.xx  (2.01)
+     SoundBlaster Pro           3.00  (???)
+     SoundBlaster Pro 2         3.01+ (3.01, 3.02)
+     SoundBlaster 16            4.0x  (4.04, 4.05)
+     SoundBlaster 16 SCSI-2     4.11  (4.11)
+     SoundBlaster AWE32         4.12+ (4.12)
+
+    NOTES
+     * Ensure that no other card is mapped at the same port address by
+         performing this command twice, checking for a consistent result.
+     * BUG: Some SB1.x clones errantly return version 2.00.
+     * BUG: Some SB16 SCSI-2s experience daughterboard communication errors.
+
+    SEE ALSO
+     0E0h   DSP Identification
+     0E3h   DSP Copyright
+------------------------------------------------------------------------------
+ 0E3h       DSP Copyright                                           SBPro2???
+    COMMAND <-ASCII0...ASCIIn<-000h
+
+    DESCRIPTION
+     Reads DSP copyright string.
+
+    PROCEDURE
+      a) Send DSP Copyright command byte (0E3h)
+      b) Read string byte
+      c) Loop to B while string byte is not zero
+
+    SEE ALSO
+     0E0h   DSP Identification
+     0E1h   DSP Version
+------------------------------------------------------------------------------
+ 0E4h       Write Test Register                                     SB2.0
+    COMMAND->TESTBYTE
+
+    DESCRIPTION
+     Writes diagnostic register.
+
+    NOTES
+     * DSP reset does not clear the test register.
+
+    SEE ALSO
+     0E8h   Read Test Register
+------------------------------------------------------------------------------
+ 0E8h       Read Test Register                                      SB2.0
+    COMMAND <-TESTBYTE
+
+    DESCRIPTION
+     Reads diagnostic register.
+
+    NOTES
+     * DSP reset does not clear the test register.
+
+    SEE ALSO
+     0E4h   Write Test Register
+------------------------------------------------------------------------------
+ 0F0h       Sine Generator                                          SB
+    COMMAND
+
+    DESCRIPTION
+     Diagnostic peak-to-peak sine wave generator.
+
+    NOTES
+     * Disable sound with DSP reset.
+     * Sinusodal frequency is about 2KHz.
+     * Sets time constant to approximately 0C0h (15625Hz).
+     * Enables speaker on models prior to SoundBlaster 16.
+------------------------------------------------------------------------------
+ 0F1h       DSP Auxiliary Status (Obsolete)                         SB-Pro2
+    COMMAND <-STATUS
+
+    DESCRIPTION
+     Retrieves auxiliary information about pending DSP operations.
+
+    STATUS BYTE
+     /===v===v===v===v===v===v===v===\
+     I 7 | 6 | 5 | 4 | 3 | 2 |[1]| 0 I
+     \=v=^=v=^=v=^=v=^=v=^=v=^=v=^=v=/
+       |   |   |   |   |   |   |   \--- Speaker Status  (0 = Enabled)
+       |   |   |   |   |   |   \------- Reserved (1)
+       |   |   |   |   |   \----------- DSPC 0ACh ???
+       |   |   |   |   \--------------- Stereo Input Mode (1 = Stereo)
+       |   |   |   \------------------- Reserved (1)
+       |   |   \----------------------- DSPC 020h-02Fh (SB1.x) ???
+       |   \--------------------------- DSPC 02Dh-02Fh (SB1.x) ???
+       \------------------------------- ???
+
+    NOTES
+     * SoundBlaster Pro introduces bit 3.
+
+    SEE ALSO
+     004h   DSP Status (Obsolete)
+     -----------------------------------------------------
+     0FBh   DSP Status
+     0FCh   DSP Auxiliary Status
+     0FDh   DSP Command Status
+     -----------------------------------------------------
+     0D8h   Speaker Status    
+------------------------------------------------------------------------------
+ 0F2h       IRQ Request, 8-bit                                      SB
+    COMMAND
+
+    DESCRIPTION
+     Triggers 8-bit interrupt.
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform IRQ Request, 8-bit command (0F2h)
+      c) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 8-bit port - 02x0Eh;
+                               perform Generic EOI (020h) to appropriate PICs)
+
+    SEE ALSO
+     0F3h   Interrupt Request, 16-bit
+------------------------------------------------------------------------------
+ 0F3h       IRQ Request, 16-bit                                     SB16
+    COMMAND
+
+    DESCRIPTION
+     Triggers 16-bit interrupt.
+
+    PROCEDURE
+      a) Install IRQ handler (hook vector, update PIC mask)
+      b) Perform IRQ Request, 16-bit command (0F3h)
+      c) IRQ: Acknowledge IRQ (input from IRQ Acknowledge, 16-bit port - 02x0Fh;
+                               perform Generic EOI (020h) to appropriate PICs)
+
+    SEE ALSO
+     0F2h   Interrupt Request, 8-bit
+------------------------------------------------------------------------------
+ 0FBh       DSP Status                                              SB16
+    COMMAND <-STATUS
+
+    DESCRIPTION
+     Retrieves information about pending DSP operations.
+
+    STATUS BYTE
+     /===v===v===v===v===v===v===v===\
+     I 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 I
+     \=v=^=v=^=v=^=v=^=v=^=v=^=v=^=v=/
+       |   |   |   |   |   |   |   \--- DMA DAC, 8-bit  (1 = Active)
+       |   |   |   |   |   |   \------- DMA ADC, 8-bit  (1 = Active)
+       |   |   |   |   |   \----------- DMA DAC, 16-bit (1 = Active)
+       |   |   |   |   \--------------- DMA ADC, 16-bit (1 = Active)
+       |   |   |   \------------------- Virtual Speaker (1 = Active)
+       |   |   \----------------------- ???
+       |   \--------------------------- DSPC 04Fh ???
+       \------------------------------- Time Constant   (1 = Modified)
+
+    NOTES
+     * Time Constant bit will not be set if too large a time constant was
+        programmed (low sample rate).
+     * MediaVision 3D-series cards use this command for DMA and IRQ selection.
+
+    SEE ALSO
+     0FCh   DSP Auxiliary Status
+     0FDh   DSP Command Status
+     -----------------------------------------------------
+     004h   DSP Status (Obsolete)
+     0F1h   DSP Auxiliary Status (Obsolete)
+     -----------------------------------------------------
+     0D8h   Speaker Status     
+------------------------------------------------------------------------------
+ 0FCh       DSP Auxiliary Status                                    SB16
+    COMMAND <-STATUS
+
+    DESCRIPTION
+     Retrieves auxiliary information about pending DMA operations.
+
+    STATUS BYTE
+     /===v===v===v===v===v===v===v===\
+     I 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 I
+     \=v=^=v=^=v=^=v=^=v=^=v=^=v=^=v=/
+       |   |   |   |   |   |   |   \--- ???
+       |   |   |   |   |   |   \------- DAC/ADC DMA           (1 = Synchronous)
+       |   |   |   |   |   \----------- Auto-Init DMA, 8-bit  (1 = Active)
+       |   |   |   |   \--------------- ???
+       |   |   |   \------------------- Auto-Init DMA, 16-bit (1 = Active)
+       |   |   \----------------------- ???
+       |   \--------------------------- ???
+       \------------------------------- ???
+
+    SEE ALSO
+     0FBh   DSP Status
+     0FDh   DSP Command Status
+     -----------------------------------------------------
+     004h   DSP Status (Obsolete)
+     0F1h   DSP Auxiliary Status (Obsolete)
+     -----------------------------------------------------
+     0D8h   Speaker Status    
+------------------------------------------------------------------------------
+ 0FDh       DSP Command Status                                      SB16
+    COMMAND <-COMMANDSTATUS
+
+    DESCRIPTION
+     Retrieves most recently successful DSP command.
+
+    NOTES
+     * Reseting the DSP clears this variable.
+     * Command does not support all valid DSP commands, but most.
+     * MediaVision 3D-series cards use this command for DMA and IRQ detection.
+
+    SEE ALSO
+     0FBh   DSP Status
+     0FCh   DSP Auxiliary Status
+     -----------------------------------------------------
+     004h   DSP Status (Obsolete)
+     0F1h   DSP Auxiliary Status (Obsolete)
+     -----------------------------------------------------
+     0D8h   Speaker Status    

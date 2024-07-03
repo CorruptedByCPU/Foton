@@ -24,44 +24,33 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of module
 	//----------------------------------------------------------------------
-	#include	"./es1370/config.h"
+	#include	"./sb16/config.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
-	#include	"./es1370/data.c"
+	#include	"./sb16/data.c"
 
 void _entry( uintptr_t kernel_ptr ) {
 	// preserve kernel structure pointer
 	kernel = (struct KERNEL *) kernel_ptr;
 
-	// find device of type "multimedia audio controller"
-	struct DRIVER_PCI_STRUCTURE pci = driver_pci_find_class_and_subclass( DRIVER_PCI_CLASS_SUBCLASS_audio );
+	// try to reset audio controller
+	driver_port_out_byte( MODULE_SB16_PORT_RESET, TRUE );
+	kernel -> time_sleep( 3 );	// wait about ~3ms
+	driver_port_out_byte( MODULE_SB16_PORT_RESET, FALSE );
+	kernel -> time_sleep( 1 );	// wait about ~1ms
 
-	// Ensoniq AudioPCI found?
-	if( driver_pci_read( pci, DRIVER_PCI_REGISTER_vendor_and_device ) != MODULE_ES1370_VENDOR_AND_DEVICE ) return;	// no
-
-	// debug
-	// kernel -> log( (uint8_t *) "[ES1370] PCI %2X:%2X.%u - Multimedia Audio Controller found.\n", pci.bus, pci.device, pci.function );
-
-	// get I/O Port of audio controller
-	module_es1370_port = (uint16_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_bar0 ) & ~0b11;
-
-	// retrieve interrupt number of network controller
-	module_es1370_irq_number = (uint8_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_irq );
+	// doesn't exist?
+	if( driver_port_in_byte( MODULE_SB16_PORT_READ ) != 0xAA ) while( TRUE );
 
 	// debug
-	// kernel -> log( (uint8_t *) "[ES1370] Port 0x%X, IRQ line %u\n", module_es1370_port, module_es1370_irq_number );
+	kernel -> log( (uint8_t *) "[SB16] Controller found.\n" );
 
-	// obtain current PCI configuration
-	uint16_t command = (uint16_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_status_and_command );
+	// speaker on
+	driver_port_out_byte( MODULE_SB16_PORT_WRITE, 0xD1 );
 
-	// enable I/O Port access, Bus Master and Interrupts
-	command |= DRIVER_PCI_REGISTER_CONTROL_IO_SPACE;
-	command |= DRIVER_PCI_REGISTER_CONTROL_BUS_MASTER;
-	command &= ~DRIVER_PCI_REGISTER_CONTROL_IRQ_DISABLE;
-
-	// apply
-	driver_pci_write( pci, DRIVER_PCI_REGISTER_status_and_command, command );
+	// driver_port_out_byte( MODULE_SB16_PORT_MIXER, 0x80 );
+	// driver_port_in_byte( MODULE_SB16_PORT_DATA );
 
 	// hold the door
 	while( TRUE );

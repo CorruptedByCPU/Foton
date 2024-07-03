@@ -1,4 +1,4 @@
-plugin_ctrl: voodoo=true, e1000=true, es1370=true, usb_uhci=true, usb_ohci=true, usb_ehci=true, usb_xhci=true
+plugin_ctrl: voodoo=true, e1000=true, sb16=true, es1370=true, usb_uhci=true, usb_ohci=true, usb_ehci=true, usb_xhci=true
 config_interface: textconfig
 display_library: x, options="gui_debug"
 memory: guest=MEM, host=MEM
@@ -16,7 +16,8 @@ keyboard: type=mf, serial_delay=250, paste_delay=100000, user_shortcut=none
 mouse: type=ps2, enabled=false, toggle=ctrl+mbutton
 #usb_uhci: enabled=1, port1=keyboard, options1=none, port2=mouse, options2=none
 sound: waveoutdrv=alsa, waveout=none, waveindrv=alsa, wavein=none, midioutdrv=alsa, midiout=none
-voodoo: enabled=true, model=voodoo1
+#voodoo: enabled=true, model=voodoo1
 com1: enabled=true, mode=file, dev="serial.log"
 e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=vnet
-es1370: enabled=true, wavedev=alsa
+#es1370: enabled=true, wavedev=alsa
+sb16: enabled=true, midimode=0, wavemode=1

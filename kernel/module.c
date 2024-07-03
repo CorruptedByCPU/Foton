@@ -134,7 +134,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	context -> rip += module_content;	// module_memory
 
 	// debug
-	// kernel -> log( (uint8_t *) "Module: %s at 0x%X\n", name, context -> rip );
+	kernel -> log( (uint8_t *) "Module: %s at 0x%X\n", name, context -> rip );
 
 	//----------------------------------------------------------------------
 
