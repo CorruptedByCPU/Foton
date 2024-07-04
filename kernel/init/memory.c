@@ -29,9 +29,6 @@ void kernel_init_memory( void ) {
 				// keep size information
 				local_largest_byte = limine_memmap_request.response -> entries[ i ] -> length;
 			}
-
-			// we guarantee clean memory area at first use
-			kernel_memory_clean( (uint64_t *) MACRO_PAGE_ALIGN_DOWN( limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_logical ), MACRO_PAGE_ALIGN_DOWN( limine_memmap_request.response -> entries[ i ] -> length ) >> STD_SHIFT_PAGE );
 		}
 	}
 
@@ -87,21 +84,4 @@ void kernel_init_memory( void ) {
 
 	// unlock access to binary memory map
 	MACRO_UNLOCK( *semaphore );
-}
-
-void kernel_init_memory_low_level( void ) {
-	// describe all memory areas marked as AVAILABLE inside binary memory map
-	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
-		// omit memory map itself
-		if( limine_memmap_request.response -> entries[ i ] -> base == (uint64_t) limine_memmap_request.response -> entries ) continue;
-
-		// RECLAIMABLE memory area?
-		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE ) continue;	// no
-
-		// we guarantee clean memory area at first use
-		// kernel_memory_clean( (uint64_t *) MACRO_PAGE_ALIGN_DOWN( limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_logical ), MACRO_PAGE_ALIGN_DOWN( limine_memmap_request.response -> entries[ i ] -> length ) >> STD_SHIFT_PAGE );
-
-		// register pages that are part of USABLE memory area
-		// for( uint64_t j = limine_memmap_request.response -> entries[ i ] -> base >> STD_SHIFT_PAGE; j < (limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length) >> STD_SHIFT_PAGE; j++ ) kernel -> memory_base_address[ j >> STD_SHIFT_32 ] |= 1 << (j & 0b00011111);
-	}
 }

@@ -31,9 +31,5 @@ void kernel_init_smp( void ) {
 	}
 
 	// show information about initialized CPUs
-	if( kernel -> cpu_count++ ) kernel -> log( (uint8_t *) "+%u AP(s) initialized.\n", kernel -> cpu_count - 1 );
-
-	// after all CPUs leaved bootloader area space
-	// we can register other available memory areas inside out binary memory map
-	kernel_init_memory_low_level();
+	if( kernel -> cpu_count++ ) kernel -> log( (uint8_t *) "+%u CPU(s) initialized.\n", kernel -> cpu_count - 1 );
 }

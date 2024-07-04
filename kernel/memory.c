@@ -60,6 +60,9 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	// less available pages
 	kernel -> page_available -= N;
 
+	// we guarantee clean memory area at first use
+	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical), N );
+
 	// convert page ID to logical address and return
 	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;
 }
