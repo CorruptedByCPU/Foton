@@ -311,7 +311,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	}
 
 	// acquire memory space inside library environment
-	if( ! (library.base_address = (kernel_memory_acquire( kernel -> library_map_address, library.page ) << STD_SHIFT_PAGE) + KERNEL_LIBRARY_base_address) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return STD_ERROR_memory_low; }
+	if( ! (library.base_address = (kernel_memory_acquire( kernel -> library_map_address, library.page, KERNEL_MEMORY_LOW, kernel -> page_limit ) << STD_SHIFT_PAGE) + KERNEL_LIBRARY_base_address) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return STD_ERROR_memory_low; }
 
 	// checkpoint reached: assigned area for library
 	library.level++;

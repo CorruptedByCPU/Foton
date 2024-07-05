@@ -183,7 +183,7 @@ void wm_event( void ) {
 			if( wm_object_selected -> descriptor -> y > 0 && wm_object_selected -> descriptor -> y < LIB_INTERFACE_HEADER_HEIGHT_pixel && wm_object_selected -> descriptor -> x < wm_object_selected -> width - ((LIB_INTERFACE_HEADER_HEIGHT_pixel * 0x03)) ) wm_object_drag_semaphore = TRUE;
 
 			// check if object can be moved along Z axis
-			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_status_alt_left ) {
+			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_status_menu ) {
 				// move object up inside list
 				if( wm_object_move_up( wm_object_selected ) ) {
 					// redraw object
@@ -194,8 +194,8 @@ void wm_event( void ) {
 				}
 			}
 
-			// if left ALT key is not holded
-			if( ! wm_keyboard_status_alt_left ) {
+			// if left MENU key is not holded
+			if( ! wm_keyboard_status_menu ) {
 				// selected object is menu?
 				if( wm_object_selected == wm_object_menu )
 					// check incomming interface events
@@ -235,8 +235,8 @@ void wm_event( void ) {
 
 			// substitute of menu
 			//--------------------
-			// if left ALT key is not holded
-			if( ! wm_keyboard_status_alt_left )
+			// if left MENU key is not holded
+			if( ! wm_keyboard_status_menu )
 				// menu button click?
 				if( mouse.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse.y >= wm_object_taskbar -> y )
 					// generate and show menu window
@@ -270,8 +270,8 @@ void wm_event( void ) {
 
 	// right mouse button pressed?
 	if( mouse.status & STD_IPC_MOUSE_BUTTON_right ) {
-		// left ALT key is in hold
-		if( wm_keyboard_status_alt_left && ! wm_object_hover_semaphore ) {
+		// left MENU key is in hold
+		if( wm_keyboard_status_menu && ! wm_object_hover_semaphore ) {
 			// first initialization executed
 			wm_object_hover_semaphore = TRUE;
 
@@ -353,8 +353,8 @@ void wm_event( void ) {
 		// redisplay cursor at new location
 		wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
-		// if object selected and left mouse button is held with left alt key
-		if( wm_object_drag_semaphore || (wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_alt_left) )
+		// if object selected and left mouse button is held with left MENU key
+		if( wm_object_drag_semaphore || (wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_menu) )
 			// move object along with cursor pointer
 			wm_object_move( delta_x, delta_y );
 

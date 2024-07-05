@@ -5,11 +5,16 @@
 #ifndef	KERNEL_MEMORY
 	#define	KERNEL_MEMORY
 
+	#define	KERNEL_MEMORY_LOW	256
+
 	// returns number of first page with a continuum of N consecutive allocated pages
-	uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t N );
+	uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N, uint64_t p, uint64_t limit );
 
 	// returns logical address of an N-page area
 	uintptr_t kernel_memory_alloc( uint64_t pages );
+
+	// return logical addres of an N-page area from low memory region
+	uintptr_t kernel_memory_alloc_low( uint64_t N );
 
 	// returns physical address of allocated page
 	uintptr_t kernel_memory_alloc_page( void );

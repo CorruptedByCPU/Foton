@@ -101,6 +101,7 @@
 	#include	"init/stream.c"
 	#include	"init/cmd.c"
 	#include	"init/network.c"
+	#include	"init/clean.c"
 
 // our mighty init
 void _entry( void ) {
@@ -168,6 +169,9 @@ void _entry( void ) {
 
 	// execute first process
 	kernel_init_cmd();
+
+	// some clean up
+	kernel_init_clean();
 
 	// reload BSP configuration
 	kernel_init_ap();

@@ -229,7 +229,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	for( uint64_t i = (MACRO_PAGE_ALIGN_DOWN( KERNEL_EXEC_base_address ) >> STD_SHIFT_PAGE) >> STD_SHIFT_32; i < kernel -> page_limit >> STD_SHIFT_32; i++ ) exec.task -> memory_map[ i ] = -1;
 
 	// mark as occupied pages used by the executable
-	kernel_memory_acquire( exec.task -> memory_map, exec.page );
+	kernel_memory_acquire( exec.task -> memory_map, exec.page, KERNEL_EXEC_base_address >> STD_SHIFT_PAGE, kernel -> page_limit );
 
 	// define memory semaphore location
 	uint8_t *semaphore = (uint8_t *) exec.task -> memory_map + MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) - STD_SIZE_BYTE_byte;

@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N ) {
+uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N, uint64_t p, uint64_t limit ) {
 	// define memory semaphore location
 	uint8_t *semaphore = (uint8_t *) memory_map + MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) - STD_SIZE_BYTE_byte;
 
@@ -10,7 +10,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N ) {
 	MACRO_LOCK( *semaphore );
 
 	// search binary memory map for N continuous (p)ages
-	for( uint64_t p = 256; p < kernel -> page_limit; p++ ) {
+	for( ; p < limit; p++ ) {
 		// by default we found N enabled bits
 		uint8_t found = TRUE;
 
@@ -55,7 +55,24 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	uintptr_t p = EMPTY;
 
 	// search for requested length of area
-	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N )) ) return p;
+	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) return EMPTY;
+
+	// less available pages
+	kernel -> page_available -= N;
+
+	// we guarantee clean memory area at first use
+	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical), N );
+
+	// convert page ID to logical address and return
+	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;
+}
+
+uintptr_t kernel_memory_alloc_low( uint64_t N ) {
+	// initialize value
+	uintptr_t p = EMPTY;
+
+	// search for requested length of area
+	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, 0, KERNEL_MEMORY_LOW )) ) return EMPTY;
 
 	// less available pages
 	kernel -> page_available -= N;
@@ -90,9 +107,6 @@ void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
 }
 
 void kernel_memory_release( uintptr_t address, uint64_t N ) {
-	// we need to guarantee clean memory inside binary memory map
-	kernel_memory_clean( (uint64_t *) address, N );
-
 	// release occupied pages inside kernels binary memory map
 	kernel_memory_dispose( kernel -> memory_base_address, (address & ~KERNEL_PAGE_logical) >> STD_SHIFT_PAGE, N );
 
@@ -114,7 +128,7 @@ uintptr_t kernel_memory_share( uintptr_t address, uint64_t page ) {
 
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
-	if( (allocated = kernel_memory_acquire( task -> memory_map, page )) ) {
+	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
 		// map memory area to process
 		kernel_page_map( (uintptr_t *) task -> cr3, address, (uintptr_t) (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
 
