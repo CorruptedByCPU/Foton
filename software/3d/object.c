@@ -2,24 +2,32 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-MACRO_IMPORT_FILE_AS_ARRAY( mtl, "./root/system/var/3d.mtl" );
-MACRO_IMPORT_FILE_AS_ARRAY( obj, "./root/system/var/3d.obj" );
-
 void object_load( void ) {
-	// open material file
-	// FILE *file = fopen( (uint8_t *) "/system/var/3d.mtl" );
-	
+	// assign area for file structure
+	FILE *file_material = (FILE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( FILE ) ) >> STD_SHIFT_PAGE );
+
+	// open new socket for file
+	uint8_t file_material_path[] = "/system/var/3d.mtl";
+	file_material -> socket = std_file_open( (uint8_t *) &file_material_path, lib_string_trim( (uint8_t *) &file_material_path, lib_string_length( (uint8_t *) &file_material_path ) ) );
+
+	// if file doesn't exist
+	if( file_material -> socket < 0 ) {
+		// release file pointer
+		std_memory_release( (uintptr_t) file_material, MACRO_PAGE_ALIGN_UP( sizeof( FILE ) ) >> STD_SHIFT_PAGE );
+
+		// cannot open such file
+		exit();
+	}
+
+	// retrieve properties of opened file
+	std_file( file_material );
+
 	// assign area for file content
-	// uint8_t *file_material_start = malloc( file -> byte );
-	// uint8_t *file_material_end = (uint8_t *) file_material_start + file -> byte;
-	uint8_t *file_material_start = (uint8_t *) &file_mtl_start;
-	uint8_t *file_material_end = (uint8_t *) &file_mtl_end;
+	uint8_t *file_material_start = (uint8_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( file_material -> byte ) >> STD_SHIFT_PAGE );
+	uint8_t *file_material_end = (uint8_t *) file_material_start + file_material -> byte;
 
 	// read file
-	// fread( file, file_material_start, file -> byte );
-
-	// close file
-	// fclose( file );
+	fread( file_material, file_material_start, file_material -> byte );
 
 	// count materials
 	uint8_t *line = file_material_start;
@@ -32,7 +40,7 @@ void object_load( void ) {
 	}
 
 	// alloc area for materials
-	material = (struct LIB_RGL_STRUCTURE_MATERIAL *) malloc( sizeof( struct LIB_RGL_STRUCTURE_MATERIAL ) * mc );
+	material = (struct LIB_RGL_STRUCTURE_MATERIAL *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_RGL_STRUCTURE_MATERIAL ) * mc ) >> STD_SHIFT_PAGE );
 
 	// register materials
 	line = file_material_start;
@@ -88,22 +96,36 @@ void object_load( void ) {
 	}
 
 	// release file content
-	// free( file_material_start );
-
-	// open object file
-	// file = fopen( (uint8_t *) "/system/var/3d.obj" );
-	
-	// assign area for file content
-	// uint8_t *file_object_start = malloc( file -> byte );
-	// uint8_t *file_object_end = (uint8_t *) file_object_start + file -> byte;
-	uint8_t *file_object_start = (uint8_t *) &file_obj_start;
-	uint8_t *file_object_end = (uint8_t *) &file_obj_end;
-
-	// read file
-	// fread( file, file_object_start, file -> byte );
+	std_memory_release( (uintptr_t) file_material_start, MACRO_PAGE_ALIGN_UP( file_material -> byte ) >> STD_SHIFT_PAGE );
 
 	// close file
-	// fclose( file );
+	std_memory_release( (uintptr_t) file_material, MACRO_PAGE_ALIGN_UP( sizeof( FILE ) ) >> STD_SHIFT_PAGE );
+
+	// assign area for file structure
+	FILE *file_object = (FILE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( FILE ) ) >> STD_SHIFT_PAGE );
+
+	// open new socket for file
+	uint8_t file_object_path[] = "/system/var/3d.obj";
+	file_object -> socket = std_file_open( (uint8_t *) &file_object_path, lib_string_trim( (uint8_t *) &file_object_path, lib_string_length( (uint8_t *) &file_object_path ) ) );
+
+	// if file doesn't exist
+	if( file_object -> socket < 0 ) {
+		// release file pointer
+		std_memory_release( (uintptr_t) file_object, MACRO_PAGE_ALIGN_UP( sizeof( FILE ) ) >> STD_SHIFT_PAGE );
+
+		// cannot open such file
+		exit();
+	}
+
+	// retrieve properties of opened file
+	std_file( file_object );
+
+	// assign area for file content
+	uint8_t *file_object_start = (uint8_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( file_object -> byte ) >> STD_SHIFT_PAGE );
+	uint8_t *file_object_end = (uint8_t *) file_object_start + file_object -> byte;
+
+	// read file
+	fread( file_object, file_object_start, file_object -> byte );
 
 	// count vectors and faces
 	line = file_object_start;
@@ -119,10 +141,10 @@ void object_load( void ) {
 	}
 
 	// alloc area for points and faces
-	vector = (vector3f *) malloc( sizeof( vector3f ) * vc );
-	vr = (vector3f *) malloc( sizeof( vector3f ) * vc );
-	vp = (vector3f *) malloc( sizeof( vector3f ) * vc );
-	face = (struct LIB_RGL_STRUCTURE_TRIANGLE *) malloc( sizeof( struct LIB_RGL_STRUCTURE_TRIANGLE ) * fc );
+	vector = (vector3f *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( vector3f ) * vc ) >> STD_SHIFT_PAGE );
+	vr = (vector3f *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( vector3f ) * vc ) >> STD_SHIFT_PAGE );
+	vp = (vector3f *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( vector3f ) * vc ) >> STD_SHIFT_PAGE );
+	face = (struct LIB_RGL_STRUCTURE_TRIANGLE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_RGL_STRUCTURE_TRIANGLE ) * fc ) >> STD_SHIFT_PAGE );
 
 	// register default material properties
 	material[ 0 ].Kd = STD_COLOR_WHITE;
@@ -211,5 +233,8 @@ void object_load( void ) {
 	}
 
 	// release file content
-	// free( file_object_start );
+	std_memory_release( (uintptr_t) file_object_start, MACRO_PAGE_ALIGN_UP( file_object -> byte ) >> STD_SHIFT_PAGE );
+
+	// close file
+	std_memory_release( (uintptr_t) file_object, MACRO_PAGE_ALIGN_UP( sizeof( FILE ) ) >> STD_SHIFT_PAGE );
 }

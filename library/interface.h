@@ -135,6 +135,9 @@
 	// rename window header
 	void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface );
 
+	// update name on window interface
+	void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface );
+
 	// create window space accoring to JSON specification
 	uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );
 #endif

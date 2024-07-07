@@ -29,7 +29,7 @@ void lib_rgl_clean( struct LIB_RGL_STRUCTURE *rgl ) {
 
 struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, uint32_t scanline_pixel, uint32_t *base_address ) {
 	// prepare space for RGL structure
-	struct LIB_RGL_STRUCTURE *rgl = (struct LIB_RGL_STRUCTURE *) malloc( sizeof( struct LIB_RGL_STRUCTURE ) );
+	struct LIB_RGL_STRUCTURE *rgl = (struct LIB_RGL_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_RGL_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 
 	// set properties of RGL
 	rgl -> width_pixel = width_pixel;
@@ -41,10 +41,10 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 	rgl -> size_byte = (rgl -> width_pixel * rgl -> height_pixel) << STD_VIDEO_DEPTH_shift;
 
 	// prepare workbench area
-	rgl -> workbench_base_address = (uint32_t *) malloc( rgl -> size_byte );
+	rgl -> workbench_base_address = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> size_byte ) >> STD_SHIFT_PAGE );
 
 	// prepare workbench area
-	rgl -> depth_base_address = (double *) malloc( rgl -> width_pixel * rgl -> height_pixel * sizeof( double ) );
+	rgl -> depth_base_address = (double *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> width_pixel * rgl -> height_pixel * sizeof( double ) ) >> STD_SHIFT_PAGE );
 
 	// set default color of RGL area
 	rgl -> color_background = STD_COLOR_BLACK;

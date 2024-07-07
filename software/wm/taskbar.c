@@ -16,14 +16,7 @@ uint8_t wm_taskbar_insert( struct WM_STRUCTURE_OBJECT *object ) {
 			return TRUE;
 		}
 
-	// try to extend objects list
-	struct WM_STRUCTURE_OBJECT **wm_taskbar_base_address_tmp = (struct WM_STRUCTURE_OBJECT **) realloc( wm_taskbar_base_address, sizeof( struct WM_STRUCTURE_OBJECT * ) * (wm_taskbar_limit + 1) );
-	if( ! wm_taskbar_base_address_tmp ) { MACRO_UNLOCK( wm_taskbar_semaphore ); return FALSE; }	// cannot do that
-
-	// update new object list pointer
-	wm_taskbar_base_address = wm_taskbar_base_address_tmp;
-
-	// taskbar list extended, insert object pointer
+	// insert object pointer
 	wm_taskbar_base_address[ wm_taskbar_limit++ ] = object;
 
 	// release access to object list

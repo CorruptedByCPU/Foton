@@ -48,7 +48,7 @@ uint8_t moko_key_ctrl( uint16_t key ) {
 					if( file_save_as ) {
 						// opened for write the same file?
 						if( file_save_as -> socket == file -> socket ) {
-							// clsoe file
+							// close file
 							fclose( file_save_as );
 
 							// allow file save as current file name

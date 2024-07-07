@@ -301,29 +301,32 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				// icon
 				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_icon ) ) {
 					// properties of file
-					FILE *icon_file;
+					struct STD_FILE_STRUCTURE icon_file = { EMPTY };
 
 					// properties of image
 					struct LIB_IMAGE_TGA_STRUCTURE *icon_image = EMPTY;
 
 					// retrieve information about module file
 					uint8_t *icon_file_string = (uint8_t *) menu.value; icon_file_string[ menu.length ] = STD_ASCII_TERMINATOR;
-					if( (icon_file = fopen( (uint8_t *) menu.value )) ) {
+					if( (icon_file.socket = std_file_open( (uint8_t *) menu.value, menu.length )) ) {
+						// retrieve properties of file
+						std_file( (struct STD_FILE_STRUCTURE *) &icon_file );
+
 						// assign area for file
-						icon_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( icon_file -> byte );
+						icon_image = (struct LIB_IMAGE_TGA_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( icon_file.byte ) >> STD_SHIFT_PAGE );
 
 						// load file content
-						fread( icon_file, (uint8_t *) icon_image, icon_file -> byte );
+						std_file_read( (struct STD_FILE_STRUCTURE *) &icon_file, (uint8_t *) icon_image, icon_file.byte );
 
 						// copy image content to cursor object
-						element -> icon = (uint32_t *) malloc( icon_image -> width * icon_image -> height * STD_VIDEO_DEPTH_byte );
-						lib_image_tga_parse( (uint8_t *) icon_image, element -> icon, icon_file -> byte );
+						element -> icon = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( icon_image -> width * icon_image -> height * STD_VIDEO_DEPTH_byte ) >> STD_SHIFT_PAGE );
+						lib_image_tga_parse( (uint8_t *) icon_image, element -> icon, icon_file.byte );
 
 						// release file content
-						free( icon_image );
+						std_memory_release( (uintptr_t) icon_image, MACRO_PAGE_ALIGN_UP( icon_file.byte ) >> STD_SHIFT_PAGE );
 
 						// close file
-						fclose( icon_file );
+						std_file_close( icon_file.socket );
 					}
 				}
 			// next key
@@ -720,6 +723,18 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// window name set?
 	if( ! interface -> name_length ) return;	// no
 
+	// draw new header name
+	lib_interface_name_rewrite( interface );
+
+	// synchronize header name with window
+	interface -> descriptor -> name_length = interface -> name_length;
+	for( uint8_t i = 0; i < interface -> name_length; i++ ) interface -> descriptor -> name[ i ] = interface -> name[ i ];
+
+	// inform Window Manager about new window name
+	interface -> descriptor -> flags |= STD_WINDOW_FLAG_name;
+}
+
+void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	for( uint16_t y = 0; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
@@ -732,13 +747,6 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// print new header
 	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> name_length, STD_COLOR_WHITE, pixel + (4 * interface -> width) + 4, interface -> width, LIB_FONT_ALIGN_left );
-
-	// synchronize header name with window
-	interface -> descriptor -> name_length = interface -> name_length;
-	for( uint8_t i = 0; i < interface -> name_length; i++ ) interface -> descriptor -> name[ i ] = interface -> name[ i ];
-
-	// inform Window Manager about new window name
-	interface -> descriptor -> flags |= STD_WINDOW_FLAG_name;
 }
 
 uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {

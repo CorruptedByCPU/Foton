@@ -70,6 +70,7 @@
 	#define	STD_ASCII_BACKSLASH				0x5C
 	#define	STD_ASCII_BRACKET_SQUARE_CLOSE			0x5D
 	#define	STD_ASCII_CARET					0x5E
+	#define	STD_ASCII_GRAVE					0x60
 	#define	STD_ASCII_LETTER_a				0x61
 	#define	STD_ASCII_LETTER_b				0x62
 	#define	STD_ASCII_LETTER_c				0x63
@@ -94,6 +95,7 @@
 
 	#define	STD_COLOR_mask					0xFF000000
 	#define	STD_COLOR_BLACK					0xFF000000
+	#define	STD_COLOR_DARK					0xFF272727
 	#define	STD_COLOR_RED					0xFF800000
 	#define	STD_COLOR_GREEN					0xFF008000
 	#define	STD_COLOR_BROWN					0xFF808000

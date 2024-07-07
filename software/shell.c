@@ -22,7 +22,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	shell_command = (uint8_t *) malloc( SHELL_COMMAND_limit + 1 );
 
 	// assign area for hostname
-	hostname = (uint8_t *) calloc( 63 + 1 );
+	hostname = (uint8_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( 63 + 1 ) >> STD_SHIFT_PAGE );
 
 	// set header
 	print( "\eXShell\e\\" );
@@ -37,16 +37,19 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( stream_meta.x ) print( "\n" );	// no, move cursor to next line
 
 		// open current directory properties
-		dir = fopen( (uint8_t *) "." );
+		struct STD_FILE_STRUCTURE dir = { EMPTY };
+		dir.socket = std_file_open( (uint8_t *) ".", TRUE );
+		std_file( (struct STD_FILE_STRUCTURE *) &dir );
 
 		// open hostname file
-		FILE *file = fopen( (uint8_t *) "/system/etc/hostname" );
-		if( file ) {
+		struct STD_FILE_STRUCTURE file = { EMPTY };
+		uint8_t hostname_path[] = "/system/etc/hostname";
+		if( (file.socket = std_file_open( (uint8_t *) &hostname_path, sizeof( hostname_path ) - 1 )) ) {
 			// load file content
-			fread( file, hostname, 63 );
+			std_file_read( (struct STD_FILE_STRUCTURE *) &file, hostname, 63 );
 
 			// close file
-			fclose( file );
+			std_file_close( file.socket );
 
 			// remove "white" characters from first line
 			lib_string_trim( hostname, lib_string_length( hostname ) );
@@ -56,10 +59,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// show prompt
-		printf( "\e[0m\e[P\e[38;5;47m%s \e[38;5;15m%s \e[38;5;47m%%\e[0m ", hostname, dir -> name );
+		printf( "\e[0m\e[P\e[38;5;47m%s \e[38;5;15m%s \e[38;5;47m%%\e[0m ", hostname, (uint8_t *) &dir.name );
 
 		// close directory
-		fclose( dir );
+		std_file_close( dir.socket );
 
 		// receive command from user
 		uint64_t shell_command_length = lib_input( shell_command, SHELL_COMMAND_limit, EMPTY, TRUE, (uint8_t *) &shell_key_ctrl_left_semaphore );

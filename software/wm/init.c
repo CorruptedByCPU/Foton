@@ -70,7 +70,7 @@ uint8_t wm_init( void ) {
 	// if default wallpaper file found
 	if( workbench_image ) {
 		// convert image to RGBA
-		uint32_t *tmp_workbench_image = (uint32_t *) malloc( wm_object_workbench -> size_byte );
+		uint32_t *tmp_workbench_image = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_workbench -> size_byte ) >> STD_SHIFT_PAGE );
 		lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file.byte );
 
 		// copy scaled image content to workbench object
@@ -81,7 +81,7 @@ uint8_t wm_init( void ) {
 				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
 
 		// release temporary image
-		free( tmp_workbench_image );
+		std_memory_release( (uintptr_t) tmp_workbench_image, MACRO_PAGE_ALIGN_UP( wm_object_workbench -> size_byte ) >> STD_SHIFT_PAGE );
 
 		// release file content
 		std_memory_release( (uintptr_t) workbench_image, MACRO_PAGE_ALIGN_UP( workbench_file.byte ) >> STD_SHIFT_PAGE );
@@ -141,18 +141,22 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// properties of file
-	FILE *cursor_file;
+	struct STD_FILE_STRUCTURE cursor_file = { EMPTY };
 
 	// properties of image
 	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = EMPTY;
 
 	// retrieve file information
-	if( (cursor_file = fopen( (uint8_t *) "/system/var/gfx/cursors/default.tga" )) ) {
+	uint8_t cursor_path[] = "/system/var/gfx/cursors/default.tga";
+	if( (cursor_file.socket = std_file_open( (uint8_t *) &cursor_path, sizeof( cursor_path ) - 1 )) ) {
+		// retrieve properties of file
+		std_file( (struct STD_FILE_STRUCTURE *) &cursor_file );
+
 		// assign area for file
-		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) malloc( cursor_file -> byte );
+		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( cursor_file.byte ) >> STD_SHIFT_PAGE );
 
 		// load file content
-		if( cursor_image ) fread( cursor_file, (uint8_t *) cursor_image, cursor_file -> byte );
+		if( cursor_image ) std_file_read( (struct STD_FILE_STRUCTURE *) &cursor_file, (uint8_t *) cursor_image, cursor_file.byte );
 
 		// create cursor object
 		wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
@@ -174,13 +178,13 @@ uint8_t wm_init( void ) {
 	// if default cursor file found
 	if( cursor_image ) {
 		// copy image content to cursor object
-		lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file -> byte );
+		lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file.byte );
 
 		// release file content
-		free( cursor_image );
+		std_memory_release( (uintptr_t) cursor_image, MACRO_PAGE_ALIGN_UP( cursor_file.byte ) >> STD_SHIFT_PAGE );
 
 		// close file
-		fclose( cursor_file );
+		std_file_close( cursor_file.socket );
 	}
 
 	// mark window as cursor, so Window Manager will treat it different than others
