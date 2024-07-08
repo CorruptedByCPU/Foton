@@ -36,12 +36,12 @@ DEFAULT_FLAGS="-march=${ARCH} -mtune=generic -O${OPT} -m64 -ffreestanding -nostd
 
 # build subroutines required by kernel
 EXT=""
-${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o & EXT="${EXT} build/gdt.o"
-${ASM} -f elf64 kernel/idt.asm		-o build/idt.o & EXT="${EXT} build/idt.o"
-${ASM} -f elf64 kernel/task.asm		-o build/task.o & EXT="${EXT} build/task.o"
-${ASM} -f elf64 kernel/rtc.asm		-o build/rtc.o & EXT="${EXT} build/rtc.o"
+# ${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o & EXT="${EXT} build/gdt.o"
+# ${ASM} -f elf64 kernel/idt.asm		-o build/idt.o & EXT="${EXT} build/idt.o"
+# ${ASM} -f elf64 kernel/task.asm		-o build/task.o & EXT="${EXT} build/task.o"
+# ${ASM} -f elf64 kernel/rtc.asm		-o build/rtc.o & EXT="${EXT} build/rtc.o"
 # ${ASM} -f elf64 kernel/hpet.asm		-o build/hpet.o & EXT="${EXT} build/hpet.o"
-${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o & EXT="${EXT} build/syscall.o"
+# ${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o & EXT="${EXT} build/syscall.o"
 
 # default configuration of clang for kernel making
 if [ ! -z "${2}" ]; then DEBUG="-DDEBUG"; fi
@@ -60,29 +60,29 @@ cp build/kernel.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd
 
 #===============================================================================
 
-for submodule in `(cd module && ls *.asm)`; do
-	# module name
-	name=${submodule%.*}
+# for submodule in `(cd module && ls *.asm)`; do
+# 	# module name
+# 	name=${submodule%.*}
 
-	# build
-	${ASM} -f elf64 module/${name}.asm -o build/${name}.ao
-done
+# 	# build
+# 	${ASM} -f elf64 module/${name}.asm -o build/${name}.ao
+# done
 
-for modules in `(cd module && ls *.c)`; do
-	# module name
-	module=${modules%.*}
+# for modules in `(cd module && ls *.c)`; do
+# 	# module name
+# 	module=${modules%.*}
 
-	# build
-	${C} -c -fpic -DMODULE module/${module}.c -o build/${module}.o ${CFLAGS} || exit 1
+# 	# build
+# 	${C} -c -fpic -DMODULE module/${module}.c -o build/${module}.o ${CFLAGS} || exit 1
 
-	# connect with libraries (if necessery)
-	SUB=""
-	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
-	${LD} ${SUB} build/${module}.o -o build/root/system/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
+# 	# connect with libraries (if necessery)
+# 	SUB=""
+# 	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
+# 	${LD} ${SUB} build/${module}.o -o build/root/system/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
 
-	# we do not need any additional information
-	strip -s build/root/system/lib/modules/${module}.ko > /dev/null 2>&1
-done
+# 	# we do not need any additional information
+# 	strip -s build/root/system/lib/modules/${module}.ko > /dev/null 2>&1
+# done
 
 #===============================================================================
 

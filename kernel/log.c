@@ -3,9 +3,6 @@
 ===============================================================================*/
 
 void kernel_log( uint8_t *string, ... ) {
-	// lock access to error output
-	MACRO_LOCK( kernel -> log_semaphore );
-
 	// properties of argument list
 	va_list argv;
 
@@ -120,7 +117,4 @@ void kernel_log( uint8_t *string, ... ) {
 
 	// end of arguemnt list
 	va_end( argv );
-
-	// unlock access to error output
-	MACRO_UNLOCK( kernel -> log_semaphore );
 }
