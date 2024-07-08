@@ -3,8 +3,8 @@
 ===============================================================================*/
 
 void kernel_syscall_exit( void ) {
-	// properties of current task
-	struct KERNEL_TASK_STRUCTURE *task = kernel -> task_cpu_address[ kernel_lapic_id() ];
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// mark task as not active and ready to close
 	task -> flags &= ~STD_TASK_FLAG_active;
