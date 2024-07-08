@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"344"
+#define	KERNEL_revision		"345"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -90,10 +90,10 @@ struct KERNEL {
 	// uint8_t		log_semaphore;
 
 	// variables of Memory management functions
-	// uint32_t	*memory_base_address;
+	uint32_t	*memory_base_address;
 	// functions of Memory management
-	// uintptr_t						(*memory_alloc)( uint64_t N );
-	// uintptr_t						(*memory_alloc_page)( void );
+	uintptr_t						(*memory_alloc)( uint64_t N );
+	uintptr_t						(*memory_alloc_page)( void );
 	// void							(*memory_clean)( uint64_t *address, uint64_t n );
 	// void							(*memory_release)( uintptr_t address, uint64_t N );
 	// void							(*memory_release_page)( uintptr_t address );

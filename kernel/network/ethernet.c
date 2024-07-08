@@ -21,7 +21,7 @@ void kernel_network_ethernet_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET
 	// free entry available?
 	if( kernel -> network_tx_limit < KERNEL_NETWORK_YX_limit )
 		// insert frame properties
-		kernel -> network_tx_base_address[ kernel -> network_tx_limit++ ] = ((uintptr_t) ethernet & ~KERNEL_PAGE_logical) | length + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET );
+		kernel -> network_tx_base_address[ kernel -> network_tx_limit++ ] = ((uintptr_t) ethernet & ~KERNEL_PAGE_mirror) | length + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET );
 
 	// unlock
 	MACRO_UNLOCK( kernel -> network_tx_semaphore );

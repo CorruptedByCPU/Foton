@@ -12,28 +12,26 @@ void kernel_init_memory( void ) {
 		while( TRUE );
 	}
 
-	// // find largest available area
-	// uint64_t local_largest_byte = EMPTY;
+	// remember largest chunk of physical memory
+	uint64_t local_largest_byte = EMPTY;
 
-	// // all available memory areas should be clean at kernel initialization
-	// for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
-	// 	// USABLE memory area?
-	// 	if( limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_USABLE ) {
-	// 		// inside largest continous memory area we will create kernel environment metadata and a binary memory map next to it
+	// search through all memory map entries
+	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
+		// USABLE memory area?
+		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE ) continue;	// no
+		
+		// this area is larger than previous one?
+		if( local_largest_byte > limine_memmap_request.response -> entries[ i ] -> length ) continue;	// no
 
-	// 		// this area is larger than previous one?
-	// 		if( local_largest_byte < limine_memmap_request.response -> entries[ i ] -> length ) {
-	// 			// keep logical address of largest continous memory area (reflected in Higher Half)
-	// 			kernel = (struct KERNEL *) (limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_logical);
+		// keep logical address of largest contiguous memory area (reflected in Higher Half)
+		kernel = (struct KERNEL *) (limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_mirror);
 
-	// 			// keep size information
-	// 			local_largest_byte = limine_memmap_request.response -> entries[ i ] -> length;
-	// 		}
-	// 	}
-	// }
+		// keep size information
+		local_largest_byte = limine_memmap_request.response -> entries[ i ] -> length;
+	}
 
-	// // binary memory map base address will be placed after kernel environment variables/functions/rountines
-	// kernel -> memory_base_address = (uint32_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
+	// binary memory map base address will be placed after global kernel environment variables/functions/rountines
+	kernel -> memory_base_address = (uint32_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
 
 	// // describe all memory areas marked as USBALE inside binary memory map
 	// for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
@@ -68,7 +66,7 @@ void kernel_init_memory( void ) {
 	// }
 
 	// // mark pages used by kernel environment variables/functions and binary memory map itself as unavailable
-	// for( uint64_t i = ((uint64_t) kernel & ~KERNEL_PAGE_logical) >> STD_SHIFT_PAGE; i < MACRO_PAGE_ALIGN_UP( (((uint64_t) kernel -> memory_base_address & ~KERNEL_PAGE_logical) + (kernel -> page_limit >> STD_SHIFT_8)) ) >> STD_SHIFT_PAGE; i++ ) {
+	// for( uint64_t i = ((uint64_t) kernel & ~KERNEL_PAGE_mirror) >> STD_SHIFT_PAGE; i < MACRO_PAGE_ALIGN_UP( (((uint64_t) kernel -> memory_base_address & ~KERNEL_PAGE_mirror) + (kernel -> page_limit >> STD_SHIFT_8)) ) >> STD_SHIFT_PAGE; i++ ) {
 	// 	// mark page as unavailable
 	// 	kernel -> memory_base_address[ i >> STD_SHIFT_32 ] &= ~(1 << (i & 0b00011111));
 

@@ -75,7 +75,7 @@ uint64_t kernel_syscall_uptime( void ) {
 
 void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 	// if string pointer is above software environment memory area
-	if( (uint64_t) string > KERNEL_PAGE_logical ) return;	// do not allow it
+	if( (uint64_t) string > KERNEL_PAGE_mirror ) return;	// do not allow it
 
 	// show content of string
 	for( uint64_t i = 0; i < length; i++ ) kernel -> log( (uint8_t *) "%c", (uint64_t) string[ i ] );
@@ -91,7 +91,7 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	//----------------------------------------------------------------------
 
 	// prepare Paging table for new process
-	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_logical;
+	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_mirror;
 
 	// all allocated pages, mark as type of THREAD
 	thread -> page_type = KERNEL_PAGE_TYPE_THREAD;
@@ -102,7 +102,7 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// set initial startup configuration for new process
-	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
 
 	// code descriptor
 	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring3 ) | 0x03;

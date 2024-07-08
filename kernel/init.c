@@ -35,10 +35,10 @@
 	// #include	"lapic.h"
 	// #include	"hpet.h"
 	// #include	"io_apic.h"
-	// #include	"config.h"
+	#include	"config.h"
 	// #include	"lapic.h"
 	// #include	"memory.h"
-	// #include	"page.h"
+	#include	"page.h"
 	// #include	"task.h"
 	// #include	"exec.h"
 	// #include	"tss.h"
@@ -132,7 +132,7 @@ void _entry( void ) {
 	// kernel_init_page();
 
 	// reload new kernel environment paging array
-	// __asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_logical), "r" ((uintptr_t) KERNEL_STACK_pointer) );
+	// __asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) );
 
 	// create Global Descriptor Table
 	// kernel_init_gdt();

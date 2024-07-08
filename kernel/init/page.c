@@ -7,23 +7,23 @@ void kernel_init_page( void ) {
 	__asm__ volatile( "movq %cr0, %rax\nandq $~(1 << 16), %rax\nmovq %rax, %cr0" );
 
 	// alloc 1 page for PML4 kernel environment array
-	kernel -> page_base_address = (uint64_t *) (kernel_memory_alloc_page() | KERNEL_PAGE_logical);
+	kernel -> page_base_address = (uint64_t *) (kernel_memory_alloc_page() | KERNEL_PAGE_mirror);
 
 	// map all memory areas marked as USABLE, KERNEL_AND_MODULES, FRAMEBUFFER, BOOTLOADER_RECLAIMABLE, ACPI_RECLAIMABLE
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ )
 		// USABLE, KERNEL_AND_MODULES, FRAMEBUFFER, BOOTLOADER_RECLAIMABLE or ACPI_RECLAIMABLE memory area?
 		if( limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_USABLE || limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_KERNEL_AND_MODULES || limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE || limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_FRAMEBUFFER || limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_ACPI_RECLAIMABLE )
 			// map memory area to kernel paging arrays
-			kernel_page_map( kernel -> page_base_address, limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_logical, MACRO_PAGE_ALIGN_UP( limine_memmap_request.response -> entries[ i ] -> length ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+			kernel_page_map( kernel -> page_base_address, limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_mirror, MACRO_PAGE_ALIGN_UP( limine_memmap_request.response -> entries[ i ] -> length ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// map LAPIC controller area
-	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> lapic_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> lapic_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> lapic_base_address & ~KERNEL_PAGE_mirror, (uintptr_t) kernel -> lapic_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// map I/O APIC controller area
-	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> io_apic_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> io_apic_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> io_apic_base_address & ~KERNEL_PAGE_mirror, (uintptr_t) kernel -> io_apic_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// map HPET controller area
-	// kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> hpet_base_address & ~KERNEL_PAGE_logical, (uintptr_t) kernel -> hpet_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	// kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> hpet_base_address & ~KERNEL_PAGE_mirror, (uintptr_t) kernel -> hpet_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// now something harder ------------------------------------------------
 

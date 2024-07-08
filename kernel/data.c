@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-// kernel environment variables/functions
+// global kernel environment variables/functions
 struct KERNEL *kernel = EMPTY;
 
 // our limine requests

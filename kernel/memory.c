@@ -61,10 +61,10 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	kernel -> page_available -= N;
 
 	// we guarantee clean memory area at first use
-	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical), N );
+	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror), N );
 
 	// convert page ID to logical address and return
-	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;
+	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror;
 }
 
 uintptr_t kernel_memory_alloc_low( uint64_t N ) {
@@ -78,15 +78,15 @@ uintptr_t kernel_memory_alloc_low( uint64_t N ) {
 	kernel -> page_available -= N;
 
 	// we guarantee clean memory area at first use
-	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical), N );
+	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror), N );
 
 	// convert page ID to logical address and return
-	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_logical;
+	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror;
 }
 
 uintptr_t kernel_memory_alloc_page( void ) {
 	// acquire single physical page
-	uintptr_t page = kernel_memory_alloc( TRUE ) & ~KERNEL_PAGE_logical;
+	uintptr_t page = kernel_memory_alloc( TRUE ) & ~KERNEL_PAGE_mirror;
 
 	// page used for structure
 	kernel -> page_structure++;
@@ -108,7 +108,7 @@ void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
 
 void kernel_memory_release( uintptr_t address, uint64_t N ) {
 	// release occupied pages inside kernels binary memory map
-	kernel_memory_dispose( kernel -> memory_base_address, (address & ~KERNEL_PAGE_logical) >> STD_SHIFT_PAGE, N );
+	kernel_memory_dispose( kernel -> memory_base_address, (address & ~KERNEL_PAGE_mirror) >> STD_SHIFT_PAGE, N );
 
 	// more available pages
 	kernel -> page_available += N;
@@ -116,7 +116,7 @@ void kernel_memory_release( uintptr_t address, uint64_t N ) {
 
 void kernel_memory_release_page( uintptr_t page ) {
 	// release single physical page
-	kernel_memory_release( page | KERNEL_PAGE_logical, TRUE );
+	kernel_memory_release( page | KERNEL_PAGE_mirror, TRUE );
 
 	// page released from structure
 	kernel -> page_structure--;
