@@ -1,6 +1,18 @@
 **[Polish]**
 
-Główny failover odnośnie printk to RS 232 (driver\serial.c).
+Ilość materiału do opisu jest zatrważająca, nie wiadomo czego się chycić i jaką kolejnośc przyjąć, aby miało to ręce i nogi.
+
+Dokument powstawał będzie kawałek po kawałku, a changelog znajduje się na końcu pliku.
+
+### Menu
+[Binary Memory Map](#binary-memory-map)
+
+# Binary Memory Map
+Przyjęta struktura binarnej mapy pamięci zakłada - wbudowany semafor odpowiedzialny za sygnalizację użycia w 
+
+**Draft**
+---
+Główny failover odnośnie printk to RS 232 (**driver/serial.c**).
 
 Fizyczna pamięć RAM podzielona jest na strony o rozmiarze 4 KiB każda.
 
@@ -38,3 +50,9 @@ Przed binarną mapą pamięci, znajduje się przestrzeń zmiennych globalnych o 
 
 2. początek największego niepodzielnego zbioru stron będzie zarazem lokalizacją zmiennych globalnych **kernel/init/memory.c** linia 27
 
+3. binarna mapa pamięci stron fizycznych znajduje się od razu za przestrzenią zmiennych globalnych
+
+Każda struktura binarnej mapy pamięci ma wbudowany w siebie semafor, określający jej przetwarzanie w danym momencie. Lokalizacja tegoż semafora znajduje się zawsze na samym końcu binarnej mapy pamięci
+
+**Changelog**
+---
