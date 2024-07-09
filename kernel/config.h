@@ -74,7 +74,7 @@ struct KERNEL {
 	// uint8_t		ipc_semaphore;
 
 	// variables of Log management functions
-	// void							(*log)( uint8_t *string, ... );
+	void							(*log)( uint8_t *string, ... );
 
 	// variables of APIC management functions
 	// volatile struct KERNEL_LAPIC_STRUCTURE			*lapic_base_address;
@@ -92,8 +92,8 @@ struct KERNEL {
 	// variables of Memory management functions
 	uint32_t	*memory_base_address;
 	// functions of Memory management
-	uintptr_t						(*memory_alloc)( uint64_t N );
-	uintptr_t						(*memory_alloc_page)( void );
+	// uintptr_t						(*memory_alloc)( uint64_t N );
+	// uintptr_t						(*memory_alloc_page)( void );
 	// void							(*memory_clean)( uint64_t *address, uint64_t n );
 	// void							(*memory_release)( uintptr_t address, uint64_t N );
 	// void							(*memory_release_page)( uintptr_t address );
@@ -122,9 +122,9 @@ struct KERNEL {
 	// variables of Page management functions
 	// uint64_t	*page_base_address;
 	// uint8_t		page_semaphore;
-	// uint64_t	page_total;
-	// uint64_t	page_available;
-	// uint64_t	page_limit;
+	uint64_t	page_total;
+	uint64_t	page_available;
+	uint64_t	page_limit;
 	// uint64_t	page_structure;
 	// uint64_t	page_shared;
 	// functions of Page management

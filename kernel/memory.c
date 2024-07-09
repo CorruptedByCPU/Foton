@@ -102,8 +102,7 @@ void kernel_memory_clean( uint64_t *address, uint64_t n ) {
 
 void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
 	// mark pages as available
-	for( uint64_t i = p; i < p + N; i++ )
-		memory_map[ i >> STD_SHIFT_32 ] |= 1 << (i & 0b00011111);
+	for( uint64_t i = p; i < p + N; i++ ) __sync_or_and_fetch( &memory_map[ i >> STD_SHIFT_32 ], 1 << (i & 0b00011111) );
 }
 
 void kernel_memory_release( uintptr_t address, uint64_t N ) {

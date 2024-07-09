@@ -182,9 +182,6 @@ void _entry( void ) {
 	// reload BSP configuration
 	// kernel_init_ap();
 
-	// debug
-	driver_serial_char( '#' );
-
 	// hold the door
 	while( TRUE );
 }
