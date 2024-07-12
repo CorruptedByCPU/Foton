@@ -36,7 +36,7 @@ DEFAULT_FLAGS="-march=${ARCH} -mtune=generic -O${OPT} -m64 -ffreestanding -nostd
 
 # build subroutines required by kernel
 EXT=""
-# ${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o & EXT="${EXT} build/gdt.o"
+${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o & EXT="${EXT} build/gdt.o"
 # ${ASM} -f elf64 kernel/idt.asm		-o build/idt.o & EXT="${EXT} build/idt.o"
 # ${ASM} -f elf64 kernel/task.asm		-o build/task.o & EXT="${EXT} build/task.o"
 # ${ASM} -f elf64 kernel/rtc.asm		-o build/rtc.o & EXT="${EXT} build/rtc.o"

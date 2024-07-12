@@ -44,7 +44,7 @@ struct KERNEL {
 	int64_t		framebuffer_pid;
 
 	// variables of GDT management functions
-	// struct KERNEL_GDT_STRUCTURE_HEADER			gdt_header;
+	struct KERNEL_GDT_STRUCTURE_HEADER			gdt_header;
 
 	// variables of HPET management functions
 	// volatile struct KERNEL_HPET_STRUCTURE_REGISTER		*hpet_base_address;
@@ -158,7 +158,7 @@ struct KERNEL {
 	// struct KERNEL_TASK_STRUCTURE				*(*task_by_id)( int64_t pid );
 
 	// variables of TSS management functions
-	// struct KERNEL_TSS_STRUCTURE				tss_table;
+	struct KERNEL_TSS_STRUCTURE				tss_table;
 
 	// variables of Terminal Library management functions
 	struct LIB_TERMINAL_STRUCTURE				terminal;

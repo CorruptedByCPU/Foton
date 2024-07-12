@@ -7,20 +7,20 @@ void kernel_init_gdt( void ) {
 	kernel -> gdt_header.base_address = (struct KERNEL_GDT_STRUCTURE_ENTRY *) kernel_memory_alloc( TRUE );
 
 	// create code descriptor ring0 (CS)
-	kernel -> gdt_header.base_address[ 1 ].access = 0x98;
-	kernel -> gdt_header.base_address[ 1 ].flags_and_limit_high = 0x20;
+	kernel -> gdt_header.base_address[ 1 ].access = KERNEL_GDT_FIELD_ACCESS_read_or_write | KERNEL_GDT_FIELD_ACCESS_executable | KERNEL_GDT_FIELD_ACCESS_code_or_data | KERNEL_GDT_FIELD_ACCESS_present;
+	kernel -> gdt_header.base_address[ 1 ].flags_and_limit_high = KERNEL_GDT_FIELD_FLAGS_long_mode << STD_MOVE_BYTE_half;
 
 	// create data descriptor ring0 (DS)
-	kernel -> gdt_header.base_address[ 2 ].access = 0x92;
-	kernel -> gdt_header.base_address[ 2 ].flags_and_limit_high = 0x20;
+	kernel -> gdt_header.base_address[ 2 ].access = KERNEL_GDT_FIELD_ACCESS_read_or_write | KERNEL_GDT_FIELD_ACCESS_code_or_data | KERNEL_GDT_FIELD_ACCESS_present;
+	kernel -> gdt_header.base_address[ 2 ].flags_and_limit_high = KERNEL_GDT_FIELD_FLAGS_long_mode << STD_MOVE_BYTE_half;
 
 	// create data descriptor ring3 (DS)
-	kernel -> gdt_header.base_address[ 4 ].access = 0xF2;
-	kernel -> gdt_header.base_address[ 4 ].flags_and_limit_high = 0x20;
+	kernel -> gdt_header.base_address[ 4 ].access = KERNEL_GDT_FIELD_ACCESS_read_or_write | KERNEL_GDT_FIELD_ACCESS_code_or_data | KERNEL_GDT_FIELD_ACCESS_level_3 | KERNEL_GDT_FIELD_ACCESS_present;
+	kernel -> gdt_header.base_address[ 4 ].flags_and_limit_high = KERNEL_GDT_FIELD_FLAGS_long_mode << STD_MOVE_BYTE_half;
 
 	// create code descriptor ring3 (CS)
-	kernel -> gdt_header.base_address[ 5 ].access = 0xF8;
-	kernel -> gdt_header.base_address[ 5 ].flags_and_limit_high = 0x20;
+	kernel -> gdt_header.base_address[ 5 ].access = KERNEL_GDT_FIELD_ACCESS_read_or_write | KERNEL_GDT_FIELD_ACCESS_executable | KERNEL_GDT_FIELD_ACCESS_code_or_data | KERNEL_GDT_FIELD_ACCESS_level_3 | KERNEL_GDT_FIELD_ACCESS_present;
+	kernel -> gdt_header.base_address[ 5 ].flags_and_limit_high = KERNEL_GDT_FIELD_FLAGS_long_mode << STD_MOVE_BYTE_half;
 
 	// configure header of Global Descriptor Table
 	kernel -> gdt_header.limit = STD_PAGE_byte;
@@ -33,7 +33,4 @@ void kernel_init_gdt( void ) {
 
 	// initialize stack pointer inside TSS table
 	kernel -> tss_table.rsp0 = KERNEL_STACK_pointer;
-
-	// show GDT properties
-	// kernel_log( (uint8_t *) "GDT base address 0x%X\n", kernel -> gdt_header.base_address );
 }

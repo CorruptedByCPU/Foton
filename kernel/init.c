@@ -31,8 +31,8 @@
 	// #include	"vfs.h"
 	// #include	"time.h"
 	// #include	"idt.h"
-	// #include	"gdt.h"
-	// #include	"tss.h"
+	#include	"gdt.h"
+	#include	"tss.h"
 	// #include	"lapic.h"
 	// #include	"hpet.h"
 	// #include	"io_apic.h"
@@ -86,7 +86,7 @@
 	//----------------------------------------------------------------------
 	#include	"init/acpi.c"
 	#include	"init/environment.c"
-	// #include	"init/gdt.c"
+	#include	"init/gdt.c"
 	// #include	"init/hpet.c"
 	// #include	"init/idt.c"
 	// #include	"init/lapic.c"
@@ -127,7 +127,7 @@ void _entry( void ) {
 	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) );
 
 	// create Global Descriptor Table
-	// kernel_init_gdt();
+	kernel_init_gdt();
 
 	// create Interrupt Descriptor Table
 	// kernel_init_idt();

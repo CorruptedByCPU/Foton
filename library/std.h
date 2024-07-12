@@ -266,6 +266,7 @@
 		uint8_t		status;
 	};
 
+	#define	STD_MOVE_BYTE_half				4
 	#define	STD_MOVE_BYTE					8
 	#define	STD_MOVE_WORD					16
 	#define	STD_MOVE_DWORD					32
