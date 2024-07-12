@@ -17,8 +17,14 @@ global	driver_rtc_entry
 ; align routine to full address
 align	0x08,	db	0x00
 driver_rtc_entry:
+	; preserve original register
+	push	r11
+
 	; execute driver handler
 	call	kernel_rtc
+
+	; restore original register
+	pop	r11
 
 	; return from the procedure
 	iretq

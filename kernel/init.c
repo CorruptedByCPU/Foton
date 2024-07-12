@@ -30,17 +30,16 @@
 	//----------------------------------------------------------------------
 	// #include	"vfs.h"
 	// #include	"time.h"
-	// #include	"idt.h"
+	#include	"idt.h"	
 	#include	"gdt.h"
 	#include	"tss.h"
-	// #include	"lapic.h"
 	// #include	"hpet.h"
 	// #include	"io_apic.h"
 	#include	"config.h"
-	// #include	"lapic.h"
+	#include	"lapic.h"
 	#include	"memory.h"
 	#include	"page.h"
-	// #include	"task.h"
+	#include	"task.h"
 	// #include	"exec.h"
 	// #include	"tss.h"
 	// #include	"storage.h"
@@ -58,13 +57,13 @@
 	// kernel routines, procedures
 	//----------------------------------------------------------------------
 	#include	"log.c"
-	// #include	"lapic.c"
+	#include	"lapic.c"
 	// #include	"hpet.c"
-	// #include	"idt.c"
+	#include	"idt.c"
 	// #include	"io_apic.c"
 	#include	"memory.c"
 	#include	"page.c"
-	// #include	"task.c"
+	#include	"task.c"
 	// #include	"vfs.c"
 	// #include	"storage.c"
 	// #include	"syscall.c"
@@ -88,11 +87,11 @@
 	#include	"init/environment.c"
 	#include	"init/gdt.c"
 	// #include	"init/hpet.c"
-	// #include	"init/idt.c"
+	#include	"init/idt.c"
 	// #include	"init/lapic.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
-	// #include	"init/task.c"
+	#include	"init/task.c"
 	// #include	"init/ap.c"
 	// #include	"init/smp.c"
 	// #include	"init/vfs.c"
@@ -130,10 +129,10 @@ void _entry( void ) {
 	kernel_init_gdt();
 
 	// create Interrupt Descriptor Table
-	// kernel_init_idt();
+	kernel_init_idt();
 
 	// create Task queue and insert kernel into it
-	// kernel_init_task();
+	kernel_init_task();
 
 	// initialize stream set
 	// kernel_init_stream();

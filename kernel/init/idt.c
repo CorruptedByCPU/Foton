@@ -32,17 +32,13 @@ void kernel_init_idt( void ) {
 	kernel_idt_mount( 30, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) &kernel_idt_exception_security );
 
 	// attach default hardware interrupt handler
-	for( uint8_t i = 32; i < 48; i++ )
-		kernel_idt_mount( i, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) &kernel_idt_interrupt_default );
+	for( uint8_t i = 32; i < 48; i++ ) kernel_idt_mount( i, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) &kernel_idt_interrupt );
 
 	// attach interrupt handler for "spurious interrupt"
 	kernel_idt_mount( 255, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) &kernel_idt_spurious_interrupt );
 
 	// configure header of Interrupt Descriptor Table
 	kernel -> idt_header.limit = STD_PAGE_byte;
-
-	// show IDT properties
-	// kernel_log( (uint8_t *) "IDT base address 0x%X\n", kernel -> idt_header.base_address );
 
 	// load new Interrupt Descriptor Table
 	__asm__ volatile( "lidt (%0)" :: "r" (&kernel -> idt_header) );

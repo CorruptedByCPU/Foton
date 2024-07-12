@@ -62,7 +62,7 @@ void kernel_init_ap( void ) {
 	//--------------------------------------------------------------------------
 
 	// initialize LAPIC of BS/A processor
-	kernel_lapic_init();
+	kernel_init_lapic();
 
 	// reload cpu cycle counter in LAPIC controller
 	kernel_lapic_reload();

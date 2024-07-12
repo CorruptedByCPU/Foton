@@ -57,7 +57,7 @@ struct KERNEL {
 	// void							(*time_sleep)( uint64_t t );	// miliseconds
 
 	// variables of IDT management functions
-	// struct KERNEL_IDT_STRUCTURE_HEADER			idt_header;
+	struct KERNEL_IDT_STRUCTURE_HEADER			idt_header;
 	// functions of IDT management
 	// void							(*idt_mount)( uint8_t id, uint16_t type, uintptr_t address );
 
@@ -92,11 +92,11 @@ struct KERNEL {
 	// variables of Memory management functions
 	uint64_t						*memory_base_address;
 	// functions of Memory management
-	uintptr_t						(*memory_alloc)( uint64_t N );
-	uintptr_t						(*memory_alloc_page)( void );
+	// uintptr_t						(*memory_alloc)( uint64_t N );
+	// uintptr_t						(*memory_alloc_page)( void );
 	// void							(*memory_clean)( uint64_t *address, uint64_t n );
-	void							(*memory_release)( uintptr_t address, uint64_t N );
-	void							(*memory_release_page)( uintptr_t address );
+	// void							(*memory_release)( uintptr_t address, uint64_t N );
+	// void							(*memory_release_page)( uintptr_t address );
 
 	// variables of Modules management functions
 	// uint32_t	*module_map_address;
@@ -145,11 +145,11 @@ struct KERNEL {
 	// void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
 
 	// variables of Task management functions
-	// struct KERNEL_TASK_STRUCTURE				*task_base_address;
-	// struct KERNEL_TASK_STRUCTURE				**task_cpu_address;	// contains pointers to task inside queue by specified CPU id
+	struct KERNEL_TASK_STRUCTURE				*task_base_address;
+	struct KERNEL_TASK_STRUCTURE				**task_cpu_address;	// contains pointers to task inside queue by specified CPU id
 	// uint8_t		task_cpu_semaphore;
 	// uint8_t		task_add_semaphore;
-	// uint64_t	task_limit;
+	uint64_t						task_limit;
 	// uint64_t	task_count;
 	// int64_t		task_id;
 	// functions of Task management
