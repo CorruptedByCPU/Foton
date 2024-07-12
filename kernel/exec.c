@@ -146,7 +146,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	context -> rip = elf -> entry_ptr;
 
 	// debug
-	// kernel -> log( (uint8_t *) "Exec: %s at 0x%X\n", name, elf -> entry_ptr );
+	// kernel_log( (uint8_t *) "Exec: %s at 0x%X\n", name, elf -> entry_ptr );
 
 	//----------------------------------------------------------------------
 

@@ -77,5 +77,5 @@
 	void lib_terminal_string( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *string, uint64_t length );
 
 	// convert value to string (regarded of base 2, 8, 10, 16 etc.) and draw on screen
-	void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value, uint8_t base, uint8_t prefix );
+	void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value, uint8_t base, uint8_t prefix, uint8_t character );
 #endif

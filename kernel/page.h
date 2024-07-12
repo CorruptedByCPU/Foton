@@ -9,15 +9,15 @@
 	#define	KERNEL_PAGE_mirror	0xFFFF800000000000
 
 	// // i really doesn't see any good reason to use 5-level paging for this project
-	// #define	KERNEL_PAGE_PML5_mask	0xFFFF000000000000
+	#define	KERNEL_PAGE_PML5_mask	0xFFFF000000000000
 
 	// // standard flags available for paging
-	// #define	KERNEL_PAGE_FLAG_present		(1 << 0)
-	// #define	KERNEL_PAGE_FLAG_write			(1 << 1)
-	// #define	KERNEL_PAGE_FLAG_user			(1 << 2)
-	// #define	KERNEL_PAGE_FLAG_write_through		(1 << 3)
-	// #define	KERNEL_PAGE_FLAG_cache_disable		(1 << 4)
-	// #define	KERNEL_PAGE_FLAG_length			(1 << 7)
+	#define	KERNEL_PAGE_FLAG_present		(1 << 0)
+	#define	KERNEL_PAGE_FLAG_write			(1 << 1)
+	#define	KERNEL_PAGE_FLAG_user			(1 << 2)
+	#define	KERNEL_PAGE_FLAG_write_through		(1 << 3)
+	#define	KERNEL_PAGE_FLAG_cache_disable		(1 << 4)
+	#define	KERNEL_PAGE_FLAG_length			(1 << 7)
 	// // and foton definied, for easier memory management
 	// #define	KERNEL_PAGE_TYPE_mask			0b0000111000000000
 	// #define	KERNEL_PAGE_TYPE_offset			9
@@ -30,12 +30,12 @@
 	// // #define	KERNEL_PAGE_TYPE_			0b110
 	// // #define	KERNEL_PAGE_TYPE_			0b111
 
-	// #define	KERNEL_PAGE_PML_records			512
+	#define	KERNEL_PAGE_PML_records			512
 
-	// #define	KERNEL_PAGE_PML1_shift			12
-	// #define	KERNEL_PAGE_PML2_shift			21
-	// #define	KERNEL_PAGE_PML3_shift			30
-	// #define	KERNEL_PAGE_PML4_shift			39
+	#define	KERNEL_PAGE_PML1_shift			12
+	#define	KERNEL_PAGE_PML2_shift			21
+	#define	KERNEL_PAGE_PML3_shift			30
+	#define	KERNEL_PAGE_PML4_shift			39
 
 	// #define	KERNEL_PAGE_PML1_byte			0x0000000000200000
 	// #define	KERNEL_PAGE_PML2_byte			0x0000000040000000

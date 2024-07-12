@@ -5,10 +5,11 @@
 	//----------------------------------------------------------------------
 	// library as build-in
 	//----------------------------------------------------------------------
-	// #include	"../library/elf.c"
+	#include	"../library/elf.c"
 	#include	"../library/string.c"
-	// #include	"../library/font.c"
-	// #include	"../library/terminal.c"
+	#include	"../library/color.c"
+	#include	"../library/font.c"
+	#include	"../library/terminal.c"
 	//----------------------------------------------------------------------
 	// drivers
 	//----------------------------------------------------------------------
@@ -37,7 +38,7 @@
 	// #include	"io_apic.h"
 	#include	"config.h"
 	// #include	"lapic.h"
-	// #include	"memory.h"
+	#include	"memory.h"
 	#include	"page.h"
 	// #include	"task.h"
 	// #include	"exec.h"
@@ -61,8 +62,8 @@
 	// #include	"hpet.c"
 	// #include	"idt.c"
 	// #include	"io_apic.c"
-	// #include	"memory.c"
-	// #include	"page.c"
+	#include	"memory.c"
+	#include	"page.c"
 	// #include	"task.c"
 	// #include	"vfs.c"
 	// #include	"storage.c"
@@ -77,20 +78,20 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
-	// #include	"init/acpi.h"
+	#include	"init/acpi.h"
 	// #include	"init/lapic.h"
 	// #include	"init/ap.h"
 	//----------------------------------------------------------------------
 	// kernel environment initialization routines, procedures
 	//----------------------------------------------------------------------
-	// #include	"init/acpi.c"
-	// #include	"init/env.c"
+	#include	"init/acpi.c"
+	#include	"init/environment.c"
 	// #include	"init/gdt.c"
 	// #include	"init/hpet.c"
 	// #include	"init/idt.c"
 	// #include	"init/lapic.c"
 	#include	"init/memory.c"
-	// #include	"init/page.c"
+	#include	"init/page.c"
 	// #include	"init/task.c"
 	// #include	"init/ap.c"
 	// #include	"init/smp.c"
@@ -110,29 +111,20 @@ void _entry( void ) {
 	// initialize default debug output
 	driver_serial_init();
 
-	// linear framebuffer is available (with 32 bits per pixel)?
-	if( limine_framebuffer_request.response == NULL || ! limine_framebuffer_request.response -> framebuffer_count || limine_framebuffer_request.response -> framebuffers[ 0 ] -> bpp != STD_VIDEO_DEPTH_bit ) {
-		// invalid framebuffer properties
-		kernel_log( (uint8_t *) "KERNEL: Invalid framebuffer properties.\n" );
-
-		// no, hold the door (screen will be black)
-		while( TRUE );
-	}
+	// initialize global kernel environment variables/functions/rountines
+	kernel_init_environment();
 
 	// create binary memory map
 	kernel_init_memory();
 
-	// fill in remaining necessary variables / functions
-	// kernel_init_env();
-
 	// parse ACPI tables
-	// kernel_init_acpi();
+	kernel_init_acpi();
 
 	// recreate kernel's paging structures
-	// kernel_init_page();
+	kernel_init_page();
 
 	// reload new kernel environment paging array
-	// __asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) );
+	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) );
 
 	// create Global Descriptor Table
 	// kernel_init_gdt();

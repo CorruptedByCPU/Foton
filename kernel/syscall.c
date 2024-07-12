@@ -48,7 +48,7 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	}
 
 	// debug
-	kernel -> log( (uint8_t *) "%s: low memory.\n", task -> name );
+	kernel_log( (uint8_t *) "%s: low memory.\n", task -> name );
 
 	// no free space
 	return EMPTY;
@@ -78,12 +78,12 @@ void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 	if( (uint64_t) string > KERNEL_PAGE_mirror ) return;	// do not allow it
 
 	// show content of string
-	for( uint64_t i = 0; i < length; i++ ) kernel -> log( (uint8_t *) "%c", (uint64_t) string[ i ] );
+	for( uint64_t i = 0; i < length; i++ ) kernel_log( (uint8_t *) "%c", (uint64_t) string[ i ] );
 }
 
 int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
 	// debug
-	// kernel -> log( (uint8_t *) "Thread: %s at 0x%X\n", name, function );
+	// kernel_log( (uint8_t *) "Thread: %s at 0x%X\n", name, function );
 	
 	// create a new thread in task queue
 	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );
