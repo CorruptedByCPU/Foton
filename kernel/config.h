@@ -37,11 +37,11 @@ struct KERNEL {
 	// uint16_t	device_keyboard[ 8 ];	// cache size of 8 keys
 
 	// variables of Framebuffer functions
-	uint32_t	*framebuffer_base_address;
-	uint16_t	framebuffer_width_pixel;
-	uint16_t	framebuffer_height_pixel;
-	uint32_t	framebuffer_pitch_byte;
-	int64_t		framebuffer_pid;
+	uint32_t						*framebuffer_base_address;
+	uint16_t						framebuffer_width_pixel;
+	uint16_t						framebuffer_height_pixel;
+	uint32_t						framebuffer_pitch_byte;
+	int64_t							framebuffer_pid;
 
 	// variables of GDT management functions
 	struct KERNEL_GDT_STRUCTURE_HEADER			gdt_header;
@@ -50,11 +50,6 @@ struct KERNEL {
 	// volatile struct KERNEL_HPET_STRUCTURE_REGISTER		*hpet_base_address;
 	// volatile uint64_t	hpet_miliseconds;
 	// uint8_t		hpet_timers;
-
-	// variables of Time management functions
-	// volatile uint64_t	time_unit;
-	// functions of Time management
-	// void							(*time_sleep)( uint64_t t );	// miliseconds
 
 	// variables of IDT management functions
 	struct KERNEL_IDT_STRUCTURE_HEADER			idt_header;
@@ -139,8 +134,8 @@ struct KERNEL {
 	// uint8_t		storage_semaphore;
 
 	// variables of Stream management functions
-	// struct KERNEL_STREAM_STRUCTURE				*stream_base_address;
-	// uint8_t		stream_semaphore;
+	struct KERNEL_STREAM_STRUCTURE				*stream_base_address;
+	uint8_t							stream_semaphore;
 	// functions of Stream management
 	// void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
 
@@ -156,6 +151,11 @@ struct KERNEL {
 	// struct KERNEL_TASK_STRUCTURE 				*(*task_active)( void );
 	// int64_t							(*task_pid)( void );
 	// struct KERNEL_TASK_STRUCTURE				*(*task_by_id)( int64_t pid );
+
+	// variables of Time management functions
+	volatile uint64_t					time_unit;
+	// functions of Time management
+	// void							(*time_sleep)( uint64_t t );	// miliseconds
 
 	// variables of TSS management functions
 	struct KERNEL_TSS_STRUCTURE				tss_table;

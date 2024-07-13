@@ -36,6 +36,16 @@ void kernel_init_task( void ) {
 	// set memory map of kernel
 	kernel -> task_base_address -> memory_map = kernel -> memory_base_address;
 
+	// prepare stream[s] for kernel
+	struct KERNEL_STREAM_STRUCTURE *local_stream = kernel_stream();
+
+	// as a kernel, both stream[s] are of type null
+	local_stream -> flags = KERNEL_STREAM_FLAG_null;
+
+	// assign stream[s] to kernel entry
+	kernel -> task_base_address -> stream_out = local_stream;
+	kernel -> task_base_address -> stream_in = local_stream;
+
 	// each CPU needs to know which task he is currently executing
 	// that information is stored on CPU list
 	kernel -> task_cpu_address[ kernel_lapic_id() ] = kernel -> task_base_address;

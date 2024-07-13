@@ -4,7 +4,7 @@
 
 uint64_t kernel_memory_acquire( uint64_t *memory_map, uint64_t N, uint64_t p, uint64_t limit ) {
 	// define memory semaphore location
-	uint8_t *semaphore = (uint8_t *) memory_map + MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) - STD_SIZE_BYTE_byte;
+	uint8_t *semaphore = (uint8_t *) memory_map + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) - STD_SIZE_BYTE_byte;
 
 	// block access to binary memory map (only one at a time)
 	MACRO_LOCK( *semaphore );

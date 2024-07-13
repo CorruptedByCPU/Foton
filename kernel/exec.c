@@ -232,7 +232,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	kernel_memory_acquire( exec.task -> memory_map, exec.page, KERNEL_EXEC_base_address >> STD_SHIFT_PAGE, kernel -> page_limit );
 
 	// define memory semaphore location
-	uint8_t *semaphore = (uint8_t *) exec.task -> memory_map + MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) - STD_SIZE_BYTE_byte;
+	uint8_t *semaphore = (uint8_t *) exec.task -> memory_map + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) - STD_SIZE_BYTE_byte;
 
 	// unlock access to binary memory map
 	MACRO_UNLOCK( *semaphore );

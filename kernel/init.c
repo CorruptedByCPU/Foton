@@ -17,8 +17,8 @@
 	#include	"driver/port.c"
 	// #include	"driver/pci.h"
 	// #include	"driver/pci.c"
-	// #include	"driver/rtc.h"
-	// #include	"driver/rtc.c"
+	#include	"driver/rtc.h"
+	#include	"driver/rtc.c"
 	#include	"driver/serial.h"
 	#include	"driver/serial.c"
 	//----------------------------------------------------------------------
@@ -34,7 +34,7 @@
 	#include	"gdt.h"
 	#include	"tss.h"
 	// #include	"hpet.h"
-	// #include	"io_apic.h"
+	#include	"io_apic.h"
 	#include	"config.h"
 	#include	"lapic.h"
 	#include	"memory.h"
@@ -46,7 +46,7 @@
 	// #include	"library.h"
 	// #include	"module.h"
 	// #include	"ipc.h"
-	// #include	"stream.h"
+	#include	"stream.h"
 	// #include	"log.h"
 	// #include	"network.h"
 	//----------------------------------------------------------------------
@@ -60,7 +60,7 @@
 	#include	"lapic.c"
 	// #include	"hpet.c"
 	#include	"idt.c"
-	// #include	"io_apic.c"
+	#include	"io_apic.c"
 	#include	"memory.c"
 	#include	"page.c"
 	#include	"task.c"
@@ -71,8 +71,8 @@
 	// #include	"exec.c"
 	// #include	"module.c"
 	// #include	"time.c"
-	// #include	"rtc.c"
-	// #include	"stream.c"
+	#include	"rtc.c"
+	#include	"stream.c"
 	// #include	"network.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
@@ -98,9 +98,9 @@
 	// #include	"init/storage.c"
 	// #include	"init/library.c"
 	// #include	"init/module.c"
-	// #include	"init/rtc.c"
+	#include	"init/rtc.c"
 	// #include	"init/ipc.c"
-	// #include	"init/stream.c"
+	#include	"init/stream.c"
 	// #include	"init/cmd.c"
 	// #include	"init/network.c"
 	// #include	"init/clean.c"
@@ -131,17 +131,14 @@ void _entry( void ) {
 	// create Interrupt Descriptor Table
 	kernel_init_idt();
 
+	// initialize stream set
+	kernel_init_stream();
+
 	// create Task queue and insert kernel into it
 	kernel_init_task();
 
-	// initialize stream set
-	// kernel_init_stream();
-
 	// configure RTC
-	// kernel_init_rtc();
-
-	// configure HPET
-	// kernel_init_hpet();
+	kernel_init_rtc();
 
 	// initialize other CPUs
 	// kernel_init_smp();

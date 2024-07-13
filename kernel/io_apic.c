@@ -2,35 +2,35 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint8_t kernel_io_apic_line( uint8_t irq ) {
-	// check if irq line is available for use
-	return kernel -> io_apic_irq_lines & (1 << irq);
-}
+// uint8_t kernel_io_apic_line( uint8_t irq ) {
+// 	// check if irq line is available for use
+// 	return kernel -> io_apic_irq_lines & (1 << irq);
+// }
 
-uint8_t kernel_io_apic_line_acquire( void ) {
-	// lock access to lines
-	MACRO_LOCK( kernel -> io_apic_semaphore );
+// uint8_t kernel_io_apic_line_acquire( void ) {
+// 	// lock access to lines
+// 	MACRO_LOCK( kernel -> io_apic_semaphore );
 
-	// check every line
-	for( uint8_t i = 0; i < 24; i++ )
-		// available?
-		if( kernel_io_apic_line( i ) ) {
-			// change line status
-			kernel -> io_apic_irq_lines &= ~(1 << i);
+// 	// check every line
+// 	for( uint8_t i = 0; i < 24; i++ )
+// 		// available?
+// 		if( kernel_io_apic_line( i ) ) {
+// 			// change line status
+// 			kernel -> io_apic_irq_lines &= ~(1 << i);
 
-			// unlock
-			MACRO_UNLOCK( kernel -> io_apic_semaphore );
+// 			// unlock
+// 			MACRO_UNLOCK( kernel -> io_apic_semaphore );
 
-			// acquired
-			return i;
-		}
+// 			// acquired
+// 			return i;
+// 		}
 
-	// unlock
-	MACRO_UNLOCK( kernel -> io_apic_semaphore );
+// 	// unlock
+// 	MACRO_UNLOCK( kernel -> io_apic_semaphore );
 
-	// unavailable
-	return EMPTY;
-}
+// 	// unavailable
+// 	return EMPTY;
+// }
 
 void kernel_io_apic_connect( uint8_t line, uint32_t io_apic_register ) {
 	// lower part of register
