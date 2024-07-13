@@ -15,31 +15,28 @@ void kernel_init_task( void ) {
 	// attach task switch routine to APIC timer interrupt handler
 	kernel_idt_mount( KERNEL_IDT_IRQ_offset, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) kernel_task_entry );
 
-	// // mark IRQ line as used
-	// kernel -> io_apic_irq_lines &= ~(1 << 0);
+	// mark IRQ line as used
+	kernel -> io_apic_irq_lines &= ~(1 << 0);
 
-	// // we need to create first entry inside task queue for kernel itself
+	//----------------------------------------------------------------------
+	// we need to create first entry inside task queue for kernel itself
+	// that entry will never be *active*, none of BSP/AP CPUs will ever run it
+	// so why we still need it? each CPU exiting initialization state (file: ap.c)
+	// will go stright into task selection procedure, and as we know (later)
+	// all registers/flags needs to be stored somewhere before choosing next task
+	// thats the purpose of kernel entry :)
+	//----------------------------------------------------------------------
 
-	// // although kernel will die a natural death on first task switch,
-	// // this entry is part of further initialization of system environment
-	// // so it MUST exist
+	// mark first entry of task queue as secured (in use)
+	kernel -> task_base_address -> flags = STD_TASK_FLAG_secured;
 
-	// // kernel paging structure
-	// kernel -> task_base_address -> cr3 = (uintptr_t) kernel -> page_base_address;
+	// kernel paging structure
+	kernel -> task_base_address -> cr3 = (uintptr_t) kernel -> page_base_address;
 
-	// // mark first entry of task queue as secured (in use)
-	// kernel -> task_base_address -> flags = STD_TASK_FLAG_secured;
+	// set memory map of kernel
+	kernel -> task_base_address -> memory_map = kernel -> memory_base_address;
 
-	// // register memory map of kernel
-	// kernel -> task_base_address -> memory_map = kernel -> memory_base_address;
-
-	// // define memory semaphore location
-	// uint8_t *semaphore = (uint8_t *) kernel -> task_base_address -> memory_map + MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) - STD_SIZE_BYTE_byte;
-
-	// // unlock access to binary memory map
-	// MACRO_UNLOCK( *semaphore );
-
-	// // when BSP (Bootstrap Processor) will end with initialization of every system aspect,
-	// // he needs to know which is his current task entry point
-	// kernel -> task_cpu_address[ kernel_lapic_id() ] = kernel -> task_base_address;
+	// each CPU needs to know which task he is currently executing
+	// that information is stored on CPU list
+	kernel -> task_cpu_address[ kernel_lapic_id() ] = kernel -> task_base_address;
 }

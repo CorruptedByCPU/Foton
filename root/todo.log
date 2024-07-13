@@ -3,9 +3,10 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
 started:
-- audio controller ES1370
+- refactoring code
 
 yet to be done:
+- audio controller SB16
 - hexedit software, show content of files in binary mode (with ASCII overview)
 - kernels internal debugger
 - libinput.so library (alike libreadline from GNU/Linux)
@@ -15,3 +16,4 @@ yet to be done:
   less/more, ln, mkdir, mv, ps, reboot, rm, sleep, tail, time,
   uname, uptime, wc
 - one instance of application code in memory (data per running task)
+- lock screen (gaussian blur), something like sway is doing

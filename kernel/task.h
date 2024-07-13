@@ -41,21 +41,21 @@
 		uint64_t		rdtsc_previous;
 		struct KERNEL_STREAM_STRUCTURE *stream_in;
 		struct KERNEL_STREAM_STRUCTURE *stream_out;
-		uint32_t		*memory_map;
+		uint64_t		*memory_map;
 		volatile uint16_t	flags;
 		uint8_t			name_length;
 		uint8_t			name[ KERNEL_TASK_NAME_limit + 1 ];
 	};
 
-	// returns pointer to structure of currently executed task
-	struct KERNEL_TASK_STRUCTURE *kernel_task_active();
-
 	// external routine (assembly language)
 	extern void kernel_task_entry( void );
 
+	// returns pointer to structure of currently executed task
+	// struct KERNEL_TASK_STRUCTURE *kernel_task_active();
+
 	// returns current task PID number
-	int64_t kernel_task_pid( void );
+	// int64_t kernel_task_pid( void );
 
 	// selecting new task to execute by BS/A
-	struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i );
+	// struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i );
 #endif
