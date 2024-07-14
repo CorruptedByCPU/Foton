@@ -28,7 +28,7 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
-	// #include	"vfs.h"
+	#include	"vfs.h"
 	// #include	"time.h"
 	#include	"idt.h"	
 	#include	"gdt.h"
@@ -42,10 +42,10 @@
 	#include	"task.h"
 	// #include	"exec.h"
 	// #include	"tss.h"
-	// #include	"storage.h"
+	#include	"storage.h"
 	// #include	"library.h"
 	// #include	"module.h"
-	// #include	"ipc.h"
+	#include	"ipc.h"
 	#include	"stream.h"
 	// #include	"log.h"
 	// #include	"network.h"
@@ -64,8 +64,8 @@
 	#include	"memory.c"
 	#include	"page.c"
 	#include	"task.c"
-	// #include	"vfs.c"
-	// #include	"storage.c"
+	#include	"vfs.c"
+	#include	"storage.c"
 	// #include	"syscall.c"
 	// #include	"library.c"
 	// #include	"exec.c"
@@ -96,11 +96,11 @@
 	// #include	"init/ap.c"
 	// #include	"init/smp.c"
 	// #include	"init/vfs.c"
-	// #include	"init/storage.c"
+	#include	"init/storage.c"
 	// #include	"init/library.c"
 	// #include	"init/module.c"
 	#include	"init/rtc.c"
-	// #include	"init/ipc.c"
+	#include	"init/ipc.c"
 	#include	"init/stream.c"
 	// #include	"init/cmd.c"
 	// #include	"init/network.c"
@@ -147,23 +147,23 @@ void _entry( void ) {
 	// create Task queue and insert kernel into it
 	kernel_init_task();
 
+	// prepare Inter Process communication
+	kernel_init_ipc();
+
 	// configure RTC
 	kernel_init_rtc();
 
+	// initialize network stack
+	// kernel_init_network();
+
 	// register all available storage devices
-	// kernel_init_storage();
+	kernel_init_storage();
 
 	// initialize VFS storages
 	// kernel_init_vfs();
 
 	// create library management space
 	// kernel_init_library();
-
-	// prepare Inter Process communication
-	// kernel_init_ipc();
-
-	// initialize network stack
-	// kernel_init_network();
 
 	// load basic list of modules
 	// kernel_init_module();

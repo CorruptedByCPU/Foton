@@ -65,8 +65,8 @@ struct KERNEL {
 	// void							(*io_apic_connect)( uint8_t line, uint32_t io_apic_register );
 
 	// // variables of IPC management functions
-	// struct STD_IPC_STRUCTURE				*ipc_base_address;
-	// uint8_t		ipc_semaphore;
+	struct STD_IPC_STRUCTURE				*ipc_base_address;
+	uint8_t							ipc_semaphore;
 
 	// variables of Log management functions
 	void							(*log)( uint8_t *string, ... );
@@ -129,9 +129,9 @@ struct KERNEL {
 	// uint8_t							(*page_release)( uint64_t *pml4, uint64_t address, uint64_t pages );
 
 	// variables of Storage management functions
-	// struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;
+	struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;
 	// uint64_t	storage_root;
-	// uint8_t		storage_semaphore;
+	uint8_t							storage_semaphore;
 
 	// variables of Stream management functions
 	struct KERNEL_STREAM_STRUCTURE				*stream_base_address;
