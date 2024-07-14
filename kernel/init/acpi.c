@@ -3,15 +3,6 @@
 ===============================================================================*/
 
 void kernel_init_acpi( void ) {
-	// RSDP pointer available?
-	if( limine_rsdp_request.response == NULL || ! limine_rsdp_request.response -> address ) {
-		// show error
-		kernel_log( (uint8_t *) "Hello Darkness, My Old Friend." );
-
-		// hold the door
-		while( TRUE );
-	}
-
 	// RSDP or XSDP header properties
 	struct KERNEL_INIT_ACPI_STRUCTURE_RSDP_OR_XSDP_HEADER *local_rsdp_or_xsdp_header = (struct KERNEL_INIT_ACPI_STRUCTURE_RSDP_OR_XSDP_HEADER *) limine_rsdp_request.response -> address;
 

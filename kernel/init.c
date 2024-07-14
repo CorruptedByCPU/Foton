@@ -83,6 +83,7 @@
 	//----------------------------------------------------------------------
 	// kernel environment initialization routines, procedures
 	//----------------------------------------------------------------------
+	#include	"init/limine.c"
 	#include	"init/acpi.c"
 	#include	"init/environment.c"
 	#include	"init/gdt.c"
@@ -107,8 +108,15 @@
 
 // our mighty init
 void _entry( void ) {
+	// DEBUG ---------------------------------------------------------------
+
 	// initialize default debug output
 	driver_serial_init();
+
+	// check passed variables/structures by Limine bootloader
+	kernel_init_limine();
+
+	// BASE ----------------------------------------------------------------
 
 	// initialize global kernel environment variables/functions/rountines
 	kernel_init_environment();
@@ -131,6 +139,8 @@ void _entry( void ) {
 	// create Interrupt Descriptor Table
 	kernel_init_idt();
 
+	// ESSENTIAL -----------------------------------------------------------
+
 	// initialize stream set
 	kernel_init_stream();
 
@@ -139,9 +149,6 @@ void _entry( void ) {
 
 	// configure RTC
 	kernel_init_rtc();
-
-	// initialize other CPUs
-	// kernel_init_smp();
 
 	// register all available storage devices
 	// kernel_init_storage();
@@ -164,12 +171,19 @@ void _entry( void ) {
 	// execute first process
 	// kernel_init_cmd();
 
+	// EXTRA ---------------------------------------------------------------
+
+	// initialize other CPUs
+	// kernel_init_smp();
+
 	// some clean up
 	// kernel_init_clean();
+
+	// FINISH --------------------------------------------------------------
 
 	// reload BSP configuration
 	// kernel_init_ap();
 
-	// hold the door
+	// hold the door (remove at end of refactoring)
 	while( TRUE );
 }

@@ -3,15 +3,6 @@
 ===============================================================================*/
 
 void kernel_init_environment( void ) {
-	// limine shared with us a memory map?
-	if( limine_memmap_request.response == NULL || ! limine_memmap_request.response -> entry_count ) {	// no
-		// Houston, we have a problem.
-		kernel_log( (uint8_t *) "KERNEL: Memory map not available.\n" );
-
-		// hold the door
-		while( TRUE );
-	}
-
 	// remember largest chunk of physical memory
 	uint64_t local_entry_length = EMPTY;
 
@@ -28,15 +19,6 @@ void kernel_init_environment( void ) {
 
 		// set kernel environment variables/functions/routines inside largest contiguous memory area (reflected in Higher Half)
 		kernel = (struct KERNEL *) (limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_mirror);
-	}
-
-	// linear framebuffer is available (with 32 bits per pixel)?
-	if( limine_framebuffer_request.response == NULL || ! limine_framebuffer_request.response -> framebuffer_count || limine_framebuffer_request.response -> framebuffers[ 0 ] -> bpp != STD_VIDEO_DEPTH_bit ) {
-		// invalid framebuffer properties
-		kernel_log( (uint8_t *) "KERNEL: Invalid framebuffer properties.\n" );
-
-		// no, hold the door (screen will be black)
-		while( TRUE );
 	}
 
 	//----------------------------------------------------------------------
