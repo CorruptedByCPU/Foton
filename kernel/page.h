@@ -19,16 +19,16 @@
 	#define	KERNEL_PAGE_FLAG_cache_disable		(1 << 4)
 	#define	KERNEL_PAGE_FLAG_length			(1 << 7)
 	// // and foton definied, for easier memory management
-	// #define	KERNEL_PAGE_TYPE_mask			0b0000111000000000
-	// #define	KERNEL_PAGE_TYPE_offset			9
-	// #define	KERNEL_PAGE_TYPE_KERNEL			0b000
-	// #define	KERNEL_PAGE_TYPE_MODULE			0b001
-	// #define	KERNEL_PAGE_TYPE_PROCESS		0b010
-	// #define	KERNEL_PAGE_TYPE_THREAD			0b011
-	// #define	KERNEL_PAGE_TYPE_LIBRARY		0b100
-	// #define	KERNEL_PAGE_TYPE_SHARED			0b101
-	// // #define	KERNEL_PAGE_TYPE_			0b110
-	// // #define	KERNEL_PAGE_TYPE_			0b111
+	#define	KERNEL_PAGE_TYPE_mask			0b0000111000000000
+	#define	KERNEL_PAGE_TYPE_offset			9
+	#define	KERNEL_PAGE_TYPE_KERNEL			0b000
+	#define	KERNEL_PAGE_TYPE_MODULE			0b001
+	#define	KERNEL_PAGE_TYPE_PROCESS		0b010
+	#define	KERNEL_PAGE_TYPE_THREAD			0b011
+	#define	KERNEL_PAGE_TYPE_LIBRARY		0b100
+	#define	KERNEL_PAGE_TYPE_SHARED			0b101
+	// #define	KERNEL_PAGE_TYPE_			0b110
+	// #define	KERNEL_PAGE_TYPE_			0b111
 
 	#define	KERNEL_PAGE_PML_records			512
 
@@ -47,8 +47,8 @@
 	// // alloc N pages for process
 	// uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uint16_t flags );
 
-	// // disconnects memory area from paging structure (doesn't release it!)
-	// void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages );
+	// disconnects memory area from paging structure (doesn't release it!)
+	uint8_t kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t N );
 
 	// // checks if page is empty of entries
 	// uint8_t kernel_page_empty( uint64_t *page, uint64_t N );

@@ -28,7 +28,7 @@
 
 struct KERNEL {
 	// variables of Kernel management functions
-	// volatile uint64_t	cpu_count;
+	uint64_t						cpu_count;
 
 	// variables of Input devices
 	// uint8_t		device_mouse_status;
@@ -78,8 +78,8 @@ struct KERNEL {
 	// void							(*lapic_accept)( void );
 
 	// variables of Library management functions
-	// struct KERNEL_LIBRARY_STRUCTURE				*library_base_address;
-	// uint32_t	*library_map_address;
+	struct KERNEL_LIBRARY_STRUCTURE				*library_base_address;
+	uint64_t						*library_map_address;
 
 	// variables of Log management functions
 	// uint8_t		log_semaphore;
@@ -94,7 +94,7 @@ struct KERNEL {
 	// void							(*memory_release_page)( uintptr_t address );
 
 	// variables of Modules management functions
-	// uint32_t	*module_map_address;
+	// uint64_t	*module_map_address;
 	// functions of Module management
 	// int64_t							(*module_thread)( uintptr_t function, uint8_t *name, uint64_t length );
 
@@ -124,13 +124,13 @@ struct KERNEL {
 	uint64_t						page_shared;
 	// functions of Page management
 	// uint8_t							(*page_alloc)( uint64_t *pml4, uintptr_t address, uint64_t pages, uint16_t flags );
-	// void							(*page_deconstruct)( uintptr_t *pml4, uint8_t type );
+	// void							(*page_deconstruct)( uint64_t *pml4, uint8_t type );
 	// uint8_t							(*page_map)( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags );
 	// uint8_t							(*page_release)( uint64_t *pml4, uint64_t address, uint64_t pages );
 
 	// variables of Storage management functions
 	struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;
-	// uint64_t	storage_root;
+	uint64_t						storage_root;
 	uint8_t							storage_semaphore;
 
 	// variables of Stream management functions
@@ -142,18 +142,18 @@ struct KERNEL {
 	// variables of Task management functions
 	struct KERNEL_TASK_STRUCTURE				*task_base_address;
 	struct KERNEL_TASK_STRUCTURE				**task_cpu_address;	// contains pointers to task inside queue by specified CPU id
-	// uint8_t		task_cpu_semaphore;
-	// uint8_t		task_add_semaphore;
+	uint8_t							task_cpu_semaphore;
+	uint8_t							task_semaphore;
 	uint64_t						task_limit;
-	// uint64_t	task_count;
-	// int64_t		task_id;
+	uint64_t						task_count;
+	int64_t							task_id;
 	// functions of Task management
 	// struct KERNEL_TASK_STRUCTURE 				*(*task_active)( void );
 	// int64_t							(*task_pid)( void );
 	// struct KERNEL_TASK_STRUCTURE				*(*task_by_id)( int64_t pid );
 
 	// variables of Time management functions
-	volatile uint64_t					time_unit;
+	uint64_t						time_unit;
 	// functions of Time management
 	// void							(*time_sleep)( uint64_t t );	// miliseconds
 
@@ -165,7 +165,6 @@ struct KERNEL {
 	uint8_t							terminal_semaphore;
 
 	// variables of VFS management functions
-	// struct KERNEL_VFS_STRUCTURE				*vfs_base_address;
-	// uint64_t	vfs_root;
-	// uint8_t		vfs_semaphore;
+	struct KERNEL_VFS_STRUCTURE				*vfs_base_address;
+	uint8_t							vfs_semaphore;
 };

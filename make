@@ -4,7 +4,7 @@
 #=================================================================================
 
 # external resources initialization
-git submodule update --init
+#git submodule update --init
 
 # for clear view
 clear
@@ -41,7 +41,7 @@ ${ASM} -f elf64 kernel/idt.asm		-o build/idt.o & EXT="${EXT} build/idt.o"
 ${ASM} -f elf64 kernel/task.asm		-o build/task.o & EXT="${EXT} build/task.o"
 ${ASM} -f elf64 kernel/rtc.asm		-o build/rtc.o & EXT="${EXT} build/rtc.o"
 # ${ASM} -f elf64 kernel/hpet.asm		-o build/hpet.o & EXT="${EXT} build/hpet.o"
-# ${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o & EXT="${EXT} build/syscall.o"
+${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o & EXT="${EXT} build/syscall.o"
 
 # default configuration of clang for kernel making
 if [ ! -z "${2}" ]; then DEBUG="-DDEBUG"; fi

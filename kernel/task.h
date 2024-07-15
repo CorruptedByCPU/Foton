@@ -37,8 +37,8 @@
 		uint64_t		page;	// amount of pages assigned to process
 		uint8_t			page_type;
 		uint64_t		stack;	// size of stack in Pages
-		uint64_t		rdtsc;
-		uint64_t		rdtsc_previous;
+		uint64_t		time;
+		uint64_t		time_previous;
 		struct KERNEL_STREAM_STRUCTURE *stream_in;
 		struct KERNEL_STREAM_STRUCTURE *stream_out;
 		uint64_t		*memory_map;
@@ -51,11 +51,11 @@
 	extern void kernel_task_entry( void );
 
 	// returns pointer to structure of currently executed task
-	// struct KERNEL_TASK_STRUCTURE *kernel_task_active();
+	inline struct KERNEL_TASK_STRUCTURE *kernel_task_active();
 
 	// returns current task PID number
-	// int64_t kernel_task_pid( void );
+	int64_t kernel_task_pid( void );
 
 	// selecting new task to execute by BS/A
-	// struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i );
+	struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i );
 #endif

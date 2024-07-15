@@ -21,13 +21,13 @@
 		uint8_t		name[ LIB_VFS_NAME_limit ];
 	};
 
-	// void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket );
+	void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket );
 
-	// struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length );
+	struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length );
 
-	// void kernel_vfs_file_properties( struct KERNEL_VFS_STRUCTURE *socket, struct KERNEL_VFS_STRUCTURE_PROPERTIES *properties );
+	void kernel_vfs_file_properties( struct KERNEL_VFS_STRUCTURE *socket, struct KERNEL_VFS_STRUCTURE_PROPERTIES *properties );
 
-	// void kernel_vfs_file_read( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *target, uint64_t seek, uint64_t length_byte );
+	void kernel_vfs_file_read( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *target, uint64_t seek, uint64_t length_byte );
 
 	// struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_touch( uint8_t *path, uint8_t type );
 
@@ -35,7 +35,7 @@
 
 	uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte );
 
-	// struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length );
+	struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length );
 
-	// uint64_t kernel_vfs_socket_add( uint64_t knot );
+	uint64_t kernel_vfs_socket_add( uint64_t knot );
 #endif

@@ -2,12 +2,9 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#ifndef	KERNEL_TIME
-	#define	KERNEL_TIME
+int64_t _main( uint64_t argc, uint8_t *argv[] ) {
+	MACRO_DEBUF();
 
-	// returns current cycle count of AP
-	// uint64_t kernel_time_rdtsc( void );
-
-	// releases CPU after ~t miliseconds
-	void kernel_time_sleep( uint64_t t );
-#endif
+	// hold the door
+	while( TRUE );
+}

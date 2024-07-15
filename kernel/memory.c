@@ -100,26 +100,26 @@ void kernel_memory_clean( uint64_t *address, uint64_t n ) {
 	for( uint64_t i = 0; i < n << STD_SHIFT_512; i++ ) address[ i ] = EMPTY;
 }
 
-// void kernel_memory_dispose( uint64_t *memory_map, uint64_t p, uint64_t N ) {
-// 	// mark pages as available
-// 	for( uint64_t i = p; i < p + N; i++ ) __sync_or_and_fetch( &memory_map[ i >> STD_SHIFT_64 ], 1 << (i & 0b00111111) );
-// }
+void kernel_memory_dispose( uint64_t *memory_map, uint64_t p, uint64_t N ) {
+	// mark pages as available
+	for( uint64_t i = p; i < p + N; i++ ) __sync_or_and_fetch( &memory_map[ i >> STD_SHIFT_64 ], 1 << (i & 0b00111111) );
+}
 
-// void kernel_memory_release( uintptr_t address, uint64_t N ) {
-// 	// release occupied pages inside kernels binary memory map
-// 	kernel_memory_dispose( kernel -> memory_base_address, (address & ~KERNEL_PAGE_mirror) >> STD_SHIFT_PAGE, N );
+void kernel_memory_release( uintptr_t address, uint64_t N ) {
+	// release occupied pages inside kernels binary memory map
+	kernel_memory_dispose( kernel -> memory_base_address, (address & ~KERNEL_PAGE_mirror) >> STD_SHIFT_PAGE, N );
 
-// 	// more available pages
-// 	kernel -> page_available += N;
-// }
+	// more available pages
+	kernel -> page_available += N;
+}
 
-// void kernel_memory_release_page( uintptr_t page ) {
-// 	// release single physical page
-// 	kernel_memory_release( page | KERNEL_PAGE_mirror, TRUE );
+void kernel_memory_release_page( uintptr_t page ) {
+	// release single physical page
+	kernel_memory_release( page | KERNEL_PAGE_mirror, TRUE );
 
-// 	// page released from structure
-// 	kernel -> page_structure--;
-// }
+	// page released from structure
+	kernel -> page_structure--;
+}
 
 // uintptr_t kernel_memory_share( uintptr_t address, uint64_t page ) {
 // 	// task properties
@@ -129,7 +129,7 @@ void kernel_memory_clean( uint64_t *address, uint64_t n ) {
 // 	uintptr_t allocated = EMPTY;
 // 	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
 // 		// map memory area to process
-// 		kernel_page_map( (uintptr_t *) task -> cr3, address, (uintptr_t) (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
+// 		kernel_page_map( (uint64_t *) task -> cr3, address, (uintptr_t) (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
 
 // 		// shared pages
 // 		kernel -> page_shared += page;

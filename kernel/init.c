@@ -28,6 +28,7 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
+	#include	"task.h"
 	#include	"vfs.h"
 	// #include	"time.h"
 	#include	"idt.h"	
@@ -39,11 +40,10 @@
 	#include	"lapic.h"
 	#include	"memory.h"
 	#include	"page.h"
-	#include	"task.h"
-	// #include	"exec.h"
+	#include	"exec.h"
 	// #include	"tss.h"
 	#include	"storage.h"
-	// #include	"library.h"
+	#include	"library.h"
 	// #include	"module.h"
 	#include	"ipc.h"
 	#include	"stream.h"
@@ -66,9 +66,9 @@
 	#include	"task.c"
 	#include	"vfs.c"
 	#include	"storage.c"
-	// #include	"syscall.c"
-	// #include	"library.c"
-	// #include	"exec.c"
+	#include	"syscall.c"
+	#include	"library.c"
+	#include	"exec.c"
 	// #include	"module.c"
 	// #include	"time.c"
 	#include	"rtc.c"
@@ -78,8 +78,7 @@
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
 	#include	"init/acpi.h"
-	// #include	"init/lapic.h"
-	// #include	"init/ap.h"
+	#include	"init/ap.h"
 	//----------------------------------------------------------------------
 	// kernel environment initialization routines, procedures
 	//----------------------------------------------------------------------
@@ -89,22 +88,22 @@
 	#include	"init/gdt.c"
 	// #include	"init/hpet.c"
 	#include	"init/idt.c"
-	// #include	"init/lapic.c"
+	#include	"init/lapic.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
 	#include	"init/task.c"
-	// #include	"init/ap.c"
+	#include	"init/ap.c"
 	// #include	"init/smp.c"
-	// #include	"init/vfs.c"
+	#include	"init/vfs.c"
 	#include	"init/storage.c"
-	// #include	"init/library.c"
+	#include	"init/library.c"
 	// #include	"init/module.c"
 	#include	"init/rtc.c"
 	#include	"init/ipc.c"
 	#include	"init/stream.c"
-	// #include	"init/cmd.c"
+	#include	"init/cmd.c"
 	// #include	"init/network.c"
-	// #include	"init/clean.c"
+	#include	"init/clean.c"
 
 // our mighty init
 void _entry( void ) {
@@ -160,16 +159,16 @@ void _entry( void ) {
 	kernel_init_storage();
 
 	// initialize VFS storages
-	// kernel_init_vfs();
+	kernel_init_vfs();
 
 	// create library management space
-	// kernel_init_library();
+	kernel_init_library();
 
 	// load basic list of modules
 	// kernel_init_module();
 
 	// execute first process
-	// kernel_init_cmd();
+	kernel_init_cmd();
 
 	// EXTRA ---------------------------------------------------------------
 
@@ -177,12 +176,12 @@ void _entry( void ) {
 	// kernel_init_smp();
 
 	// some clean up
-	// kernel_init_clean();
+	kernel_init_clean();
 
 	// FINISH --------------------------------------------------------------
 
 	// reload BSP configuration
-	// kernel_init_ap();
+	kernel_init_ap();
 
 	// hold the door (remove at end of refactoring)
 	while( TRUE );

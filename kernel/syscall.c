@@ -99,10 +99,10 @@
 // 	//----------------------------------------------------------------------
 
 // 	// describe space under thread context stack
-// 	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
+// 	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 // 	// set initial startup configuration for new process
-// 	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+// 	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
 
 // 	// code descriptor
 // 	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring3 ) | 0x03;
@@ -131,7 +131,7 @@
 // 	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
 
 // 	// map stack space to thread paging array
-// 	kernel_page_map( (uintptr_t *) thread -> cr3, (uintptr_t) process_stack, context -> rsp & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
+// 	kernel_page_map( (uint64_t *) thread -> cr3, (uintptr_t) process_stack, context -> rsp & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 // 	//----------------------------------------------------------------------
 
@@ -198,7 +198,7 @@
 // 			kernel -> ipc_base_address[ i ].target = pid;
 
 // 			// sent from
-// 			kernel -> ipc_base_address[ i ].source = kernel -> task_pid();
+// 			kernel -> ipc_base_address[ i ].source = kernel_task_pid();
 
 // 			// load data into message
 // 			for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
@@ -226,7 +226,7 @@
 // 		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
 // 		// message for us?
-// 		if( kernel -> ipc_base_address[ i ].target != kernel -> task_pid() ) continue;	// no
+// 		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
 
 // 		// load data into message
 // 		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
@@ -254,7 +254,7 @@
 // 	uintptr_t target_pointer = kernel_memory_acquire( target -> memory_map, pages, KERNEL_MEMORY_LOW, kernel -> page_limit ) << STD_SHIFT_PAGE;
 
 // 	// connect memory space of parent process with child
-// 	kernel_page_clang( (uintptr_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
+// 	kernel_page_clang( (uint64_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
 
 // 	// return the address of the first page in the collection
 // 	return target_pointer;
@@ -282,7 +282,7 @@
 // 		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
 // 		// message for us?
-// 		if( kernel -> ipc_base_address[ i ].target != kernel -> task_pid() ) continue;	// no
+// 		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
 
 // 		// message from specific process?
 // 		if( kernel -> ipc_base_address[ i ].source != pid ) continue;	// no
@@ -551,7 +551,7 @@
 // 		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
 // 		// message for us?
-// 		if( kernel -> ipc_base_address[ i ].target != kernel -> task_pid() ) continue;	// no
+// 		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
 
 // 		// message of requested type?
 // 		struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &kernel -> ipc_base_address[ i ].data;
@@ -679,7 +679,7 @@
 // 		task[ entry ].flags = kernel -> task_base_address[ i ].flags;
 
 // 		// measured time
-// 		task[ entry ].rdtsc = kernel -> task_base_address[ i ].rdtsc;
+// 		task[ entry ].time = kernel -> task_base_address[ i ].time;
 
 // 		// name of task with length
 // 		for( uint64_t j = 0; j < kernel -> task_base_address[ i ].name_length; j++ ) task[ entry ].name[ task[ entry ].name_length++ ] = kernel -> task_base_address[ i ].name[ j ]; task[ entry ].name[ task[ entry ].name_length ] = STD_ASCII_TERMINATOR;
@@ -810,7 +810,7 @@
 // 	if( socket > KERNEL_NETWORK_SOCKET_limit ) return;	// no
 
 // 	// socket exist and belongs to process?
-// 	if( kernel -> network_socket_list[ socket ].pid != kernel -> task_pid() ) return;	// no
+// 	if( kernel -> network_socket_list[ socket ].pid != kernel_task_pid() ) return;	// no
 
 // 	// packet properties
 // 	uint8_t *data = (uint8_t *) (kernel -> network_socket_list[ socket ].data_in[ 0 ] & STD_PAGE_mask);

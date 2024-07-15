@@ -2,62 +2,62 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-// void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket ) {
-// 	// can we close file?
-// 	if( socket -> pid != kernel_task_pid() ) return;	// no! TODO: something nasty
+void kernel_vfs_file_close( struct KERNEL_VFS_STRUCTURE *socket ) {
+	// can we close file?
+	if( socket -> pid != kernel_task_pid() ) return;	// no! TODO: something nasty
 
-// 	// release socket
-// 	if( socket -> lock ) socket -> lock--;
-// }
+	// release socket
+	if( socket -> lock ) socket -> lock--;
+}
 
-// struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length ) {
-// 	// properties of found file
-// 	struct LIB_VFS_STRUCTURE *vfs;
-// 	if( ! (vfs = kernel_vfs_path( path, length )) ) return EMPTY;	// file not found
+struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t length ) {
+	// properties of found file
+	struct LIB_VFS_STRUCTURE *vfs;
+	if( ! (vfs = kernel_vfs_path( path, length )) ) return EMPTY;	// file not found
 
-// 	// open socket
-// 	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) vfs ) ];
+	// open socket
+	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) vfs ) ];
 
-// 	// file located on definied storage
-// 	socket -> storage = kernel -> storage_root;
+	// file located on definied storage
+	socket -> storage = kernel -> storage_root;
 
-// 	// file identificator
-// 	socket -> knot = (uint64_t) vfs;
+	// file identificator
+	socket -> knot = (uint64_t) vfs;
 
-// 	// socket opened by process with ID
-// 	socket -> pid = kernel -> task_pid();
+	// socket opened by process with ID
+	socket -> pid = kernel_task_pid();
 
-// 	// file found
-// 	return socket;
-// }
+	// file found
+	return socket;
+}
 
-// void kernel_vfs_file_properties( struct KERNEL_VFS_STRUCTURE *socket, struct KERNEL_VFS_STRUCTURE_PROPERTIES *properties ) {
-// 	// properties of file
-// 	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
+void kernel_vfs_file_properties( struct KERNEL_VFS_STRUCTURE *socket, struct KERNEL_VFS_STRUCTURE_PROPERTIES *properties ) {
+	// properties of file
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
 
-// 	// retrun file size in Bytes
-// 	properties -> byte = file -> byte;
+	// retrun file size in Bytes
+	properties -> byte = file -> byte;
 
-// 	// return file name
-// 	properties -> name_length = file -> name_length;
-// 	for( uint64_t i = 0; i < file -> name_length; i++ ) properties -> name[ i ] = file -> name[ i ];
-// }
+	// return file name
+	properties -> name_length = file -> name_length;
+	for( uint64_t i = 0; i < file -> name_length; i++ ) properties -> name[ i ] = file -> name[ i ];
+}
 
-// void kernel_vfs_file_read( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *target, uint64_t seek, uint64_t byte ) {
-// 	// properties of file
-// 	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
+void kernel_vfs_file_read( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *target, uint64_t seek, uint64_t byte ) {
+	// properties of file
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
 
-// 	// invalid read request?
-// 	if( seek + byte > file -> byte ) {
-// 		// read up to end of file?
-// 		if( seek < file -> byte ) byte = file -> byte - seek;
-// 		else return;	// no, ignore
-// 	}
+	// invalid read request?
+	if( seek + byte > file -> byte ) {
+		// read up to end of file?
+		if( seek < file -> byte ) byte = file -> byte - seek;
+		else return;	// no, ignore
+	}
 
-// 	// copy content of file to destination
-// 	uint8_t *source = (uint8_t *) file -> offset + seek;
-// 	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
-// }
+	// copy content of file to destination
+	uint8_t *source = (uint8_t *) file -> offset + seek;
+	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
+}
 
 // struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_touch( uint8_t *path, uint8_t type ) {
 // 	// retrieve path length
@@ -126,7 +126,7 @@
 // 	socket -> knot = (uint64_t) &file[ entry ];
 
 // 	// socket opened by process with ID
-// 	socket -> pid = kernel -> task_pid();
+// 	socket -> pid = kernel_task_pid();
 
 // 	// file found
 // 	return socket;
@@ -142,7 +142,7 @@
 // 	// invalid write request?
 // 	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> byte ) ) {
 // 		// prepare new file content area
-// 		uint8_t *new = (uint8_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
+// 		uint8_t *new = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
 
 // 		// if file content exist
 // 		if( file -> offset ) {
@@ -151,7 +151,7 @@
 // 			if( ! seek ) for( uint64_t i = 0; i < file -> byte; i++ ) new[ i ] = old[ i ];
 
 // 			// release old file content
-// 			kernel -> memory_release( file -> offset, MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
+// 			kernel_memory_release( file -> offset, MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
 // 		}
 
 // 		// update file properties with new content location
@@ -172,7 +172,7 @@
 // 			uint64_t blocks = (MACRO_PAGE_ALIGN_UP( file -> byte ) - MACRO_PAGE_ALIGN_UP( byte )) >> STD_SHIFT_PAGE;
 
 // 			// remove unused blocks from file
-// 			kernel -> memory_release( file -> offset + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
+// 			kernel_memory_release( file -> offset + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
 // 		}
 
 // 		// new file size
@@ -196,99 +196,98 @@ uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte ) {
 	return FALSE;
 }
 
-// struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
-// 	// properties of current file
-// 	struct LIB_VFS_STRUCTURE *file;
+struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
+	// properties of current file
+	struct LIB_VFS_STRUCTURE *file;
 
-// 	// start from current file?
-// 	if( *path != STD_ASCII_SLASH ) {
-// 		// properties of task
-// 		struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	// start from current file?
+	if( *path != STD_ASCII_SLASH ) {
+		// properties of task
+		struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 	
-// 		// choose task current file
-// 		file = (struct LIB_VFS_STRUCTURE *) task -> directory;
-// 	} else
-// 		// start from default file
-// 		file = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].device_block;
+		// choose task current file
+		file = (struct LIB_VFS_STRUCTURE *) task -> directory;
+	} else
+		// start from default file
+		file = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].device_block;
 
-// 	// if path is empty
-// 	if( ! length )
-// 		// acquired VFS root file
-// 		return file;
+	// if path is empty
+	if( ! length )
+		// acquired VFS root file
+		return file;
 
-// 	// properties of current directory
-// 	struct LIB_VFS_STRUCTURE *directory = file;
+	// properties of current directory
+	struct LIB_VFS_STRUCTURE *directory = file;
 
-// 	// parse path
-// 	while( TRUE ) {
-// 		// start from current file
-// 		file = (struct LIB_VFS_STRUCTURE *) file -> offset;
+	// parse path
+	while( TRUE ) {
+		// start from current file
+		file = (struct LIB_VFS_STRUCTURE *) file -> offset;
 
-// 		// remove leading '/', if exist
-// 		while( *path == '/' ) { path++; length--; }
+		// remove leading '/', if exist
+		while( *path == '/' ) { path++; length--; }
 
-// 		// select file name from path
-// 		uint64_t file_length = lib_string_word_end( path, length, '/' );
+		// select file name from path
+		uint64_t file_length = lib_string_word_end( path, length, '/' );
 
-// 		// search file inside current file
-// 		do { if( file_length == file -> name_length && lib_string_compare( path, (uint8_t *) file -> name, file_length ) ) break;
-// 		} while( (++file) -> name_length );
+		// search file inside current file
+		do { if( file_length == file -> name_length && lib_string_compare( path, (uint8_t *) file -> name, file_length ) ) break;
+		} while( (++file) -> name_length );
 
-// 		// file not found?
-// 		if( ! file -> name_length ) return EMPTY;
+		// file not found?
+		if( ! file -> name_length ) return EMPTY;
 
-// 		// last file from path and requested one?
-// 		if( length == file_length ) {
-// 			// follow symbolic links (if possible)
-// 			while( file -> type & STD_FILE_TYPE_link ) file = (struct LIB_VFS_STRUCTURE *) file -> offset;
+		// last file from path and requested one?
+		if( length == file_length ) {
+			// follow symbolic links (if possible)
+			while( file -> type & STD_FILE_TYPE_link ) file = (struct LIB_VFS_STRUCTURE *) file -> offset;
 
-// 			// acquired file
-// 			return file;
-// 		}
+			// acquired file
+			return file;
+		}
 
-// 		// preserve current directory
-// 		directory = file;
+		// preserve current directory
+		directory = file;
 
-// 		// follow symbolic links (if possible)
-// 		while( file -> type & STD_FILE_TYPE_link ) { directory = file; file = (struct LIB_VFS_STRUCTURE *) file -> offset; }
+		// follow symbolic links (if possible)
+		while( file -> type & STD_FILE_TYPE_link ) { directory = file; file = (struct LIB_VFS_STRUCTURE *) file -> offset; }
 
-// 		// remove parsed file from path
-// 		path += file_length; length -= file_length;
-// 	}
+		// remove parsed file from path
+		path += file_length; length -= file_length;
+	}
 
-// 	// file not found
-// 	return EMPTY;
-// }
+	// file not found
+	return EMPTY;
+}
 
-// uint64_t kernel_vfs_socket_add( uint64_t knot ) {
-// 	// lock exclusive access
-// 	MACRO_LOCK( kernel -> vfs_semaphore );
+uint64_t kernel_vfs_socket_add( uint64_t knot ) {
+	// lock exclusive access
+	MACRO_LOCK( kernel -> vfs_semaphore );
 
-// 	// available entry, doesn't exist by default
-// 	uint64_t available = -1;
+	// available entry, doesn't exist by default
+	uint64_t available = EMPTY;
 
-// 	// search thru all sockets
-// 	for( uint64_t i = 0; i < KERNEL_VFS_limit; i++ ) {
-// 		// if available for use, remember it
-// 		if( ! kernel -> vfs_base_address[ i ].lock ) available = i;
+	// search thru all sockets
+	for( uint64_t i = TRUE; i < KERNEL_VFS_limit; i++ ) {
+		// if available for use, remember it
+		if( ! kernel -> vfs_base_address[ i ].lock ) available = i;
 
-// 		// file already opened?
-// 		if( kernel -> vfs_base_address[ i ].knot == knot ) {
-// 			// set entry for use
-// 			available = i;
+		// file already opened?
+		if( kernel -> vfs_base_address[ i ].knot == knot ) {
+			// set entry for use
+			available = i;
 
-// 			// done
-// 			break;
-// 		}
-// 	}
+			// done
+			break;
+		}
+	}
 
-// 	// increase lock level of socket
-// 	if( available != -1 ) kernel -> vfs_base_address[ available ].lock++;
-// 	else available = EMPTY;	// not found
+	// increase lock level of socket
+	if( available ) kernel -> vfs_base_address[ available ].lock++;
 
-// 	// unlock access
-// 	MACRO_UNLOCK( kernel -> vfs_semaphore );
+	// unlock access
+	MACRO_UNLOCK( kernel -> vfs_semaphore );
 
-// 	// all sockets reserved
-// 	return available;
-// }
+	// all sockets reserved
+	return available;
+}
