@@ -31,10 +31,10 @@ struct KERNEL {
 	uint64_t						cpu_count;
 
 	// variables of Input devices
-	// uint8_t		device_mouse_status;
-	// uint16_t	device_mouse_x;
-	// uint16_t	device_mouse_y;
-	// uint16_t	device_keyboard[ 8 ];	// cache size of 8 keys
+	// uint8_t							device_mouse_status;
+	// uint16_t						device_mouse_x;
+	// uint16_t						device_mouse_y;
+	// uint16_t						device_keyboard[ 8 ];	// cache size of 8 keys
 
 	// variables of Framebuffer functions
 	uint32_t						*framebuffer_base_address;
@@ -79,13 +79,13 @@ struct KERNEL {
 
 	// variables of Library management functions
 	struct KERNEL_LIBRARY_STRUCTURE				*library_base_address;
-	uint64_t						*library_map_address;
+	uint32_t						*library_map_address;
 
 	// variables of Log management functions
 	// uint8_t		log_semaphore;
 
 	// variables of Memory management functions
-	uint64_t						*memory_base_address;
+	uint32_t						*memory_base_address;
 	// functions of Memory management
 	// uintptr_t						(*memory_alloc)( uint64_t N );
 	// uintptr_t						(*memory_alloc_page)( void );

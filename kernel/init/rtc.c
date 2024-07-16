@@ -53,7 +53,7 @@ void kernel_init_rtc( void ) {
 	// remove overdue interrupts
 	//----------------------------------------------------------------------
 
-	// receive pending interrupt of real-time controller
+	// retrieve pending interrupt of real-time controller
 	driver_port_out_byte( DRIVER_RTC_PORT_command, DRIVER_RTC_STATUS_REGISTER_C );
 	driver_port_in_byte( DRIVER_RTC_PORT_data );
 

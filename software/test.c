@@ -3,7 +3,7 @@
 ===============================================================================*/
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	MACRO_DEBUF();
+	log( "OK\n" );
 
 	// hold the door
 	while( TRUE );

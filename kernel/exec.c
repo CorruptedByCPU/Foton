@@ -134,9 +134,6 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// set the process entry address
 	context -> rip = elf -> entry_ptr;
 
-	// debug
-	// kernel_log( (uint8_t *) "Exec: %s at 0x%X\n", name, elf -> entry_ptr );
-
 	//----------------------------------------------------------------------
 
 	// length of name with arguments properties
@@ -157,7 +154,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	for( uint64_t i = 0; i < length; i++ ) exec.stack[ MACRO_PAGE_ALIGN_UP( exec.stack_byte ) - exec.stack_byte + 0x08 + i ] = name[ i ];
 
 	// map stack space to process paging array
-	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, (uintptr_t) exec.stack, MACRO_PAGE_ALIGN_DOWN( context -> rsp ), MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.stack, MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE ); kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, (uintptr_t) exec.stack & ~KERNEL_PAGE_mirror, MACRO_PAGE_ALIGN_DOWN( context -> rsp ), MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.stack, MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE ); kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// process stack size
 	exec.task -> stack += MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE;
@@ -195,18 +192,18 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	}
 
 	// map executable space to paging array
-	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, exec.base_address, KERNEL_EXEC_base_address, exec.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.base_address, exec.page ); kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, exec.base_address & ~KERNEL_PAGE_mirror, KERNEL_EXEC_base_address, exec.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.base_address, exec.page ); kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	//----------------------------------------------------------------------
 
 	// create virtual memory map for process, no less than kernels
-	if( ! (exec.task -> memory_map = (uint64_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! (exec.task -> memory_map = (uint32_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// checkpoint reached: assigned memory map
 	exec.level++;
 
 	// fill in binary memory map
-	for( uint64_t i = (MACRO_PAGE_ALIGN_DOWN( KERNEL_EXEC_base_address ) >> STD_SHIFT_PAGE) >> STD_SHIFT_64; i < kernel -> page_limit >> STD_SHIFT_64; i++ ) exec.task -> memory_map[ i ] = STD_MAX_unsigned;
+	for( uint64_t i = (MACRO_PAGE_ALIGN_DOWN( KERNEL_EXEC_base_address ) >> STD_SHIFT_PAGE) >> STD_SHIFT_32; i < kernel -> page_limit >> STD_SHIFT_32; i++ ) exec.task -> memory_map[ i ] = STD_MAX_unsigned;
 
 	// mark as occupied pages used by the executable
 	kernel_memory_acquire( exec.task -> memory_map, exec.page, KERNEL_EXEC_base_address >> STD_SHIFT_PAGE, kernel -> page_limit );

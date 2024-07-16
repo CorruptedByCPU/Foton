@@ -14,45 +14,65 @@
 // 	__asm__ volatile( "int $0x20" );
 // }
 
-// void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
-// 	// return information about existing framebuffer
-// 	framebuffer -> base_address	= kernel -> framebuffer_base_address;
-// 	framebuffer -> width_pixel	= kernel -> framebuffer_width_pixel;
-// 	framebuffer -> height_pixel	= kernel -> framebuffer_height_pixel;
-// 	framebuffer -> pitch_byte	= kernel -> framebuffer_pitch_byte;
+void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
+	// return information about existing framebuffer
+	framebuffer -> base_address	= kernel -> framebuffer_base_address;
+	framebuffer -> width_pixel	= kernel -> framebuffer_width_pixel;
+	framebuffer -> height_pixel	= kernel -> framebuffer_height_pixel;
+	framebuffer -> pitch_byte	= kernel -> framebuffer_pitch_byte;
 
-// 	// change framebuffer owner if possible
-// 	if( ! __sync_val_compare_and_swap( &kernel -> framebuffer_pid, EMPTY, kernel_task_pid() ) )
-// 		// approved
-// 		framebuffer -> base_address = (uint32_t *) kernel_memory_share( (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_PAGE_PML5_mask, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE );
+	// change framebuffer owner if possible
+	if( ! __sync_val_compare_and_swap( &kernel -> framebuffer_pid, EMPTY, kernel_task_pid() ) ) {
+		// current task properties
+		struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
 
-// 	// return information about framebuffer owner
-// 	framebuffer -> pid = kernel -> framebuffer_pid;
-// }
+		// acquire N continuous pages
+		uintptr_t allocated = EMPTY;
+		if( (allocated = kernel_memory_acquire( task -> memory_map, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
+			// map memory area to process
+			kernel_page_map( (uint64_t *) task -> cr3, (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_PAGE_mirror, (uintptr_t) (allocated << STD_SHIFT_PAGE), MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
 
-// uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
-// 	// current task properties
-// 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+			// shared pages
+			kernel -> page_shared += MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE;
 
-// 	// acquire N continuous pages
-// 	uintptr_t allocated = EMPTY;
-// 	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
-// 		// allocate space inside process paging area
-// 		kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) );
+			// return the address of the first page in the collection
+			framebuffer -> base_address = (uint32_t *) (allocated << STD_SHIFT_PAGE);
+		}
+	}
 
-// 		// process memory usage
-// 		task -> page += page;
+	// return information about framebuffer owner
+	framebuffer -> pid = kernel -> framebuffer_pid;
+}
 
-// 		// return the address of the first page in the collection
-// 		return allocated << STD_SHIFT_PAGE;
-// 	}
+uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// 	// debug
-// 	kernel_log( (uint8_t *) "%s: low memory.\n", task -> name );
+	// acquire N continuous pages
+	uintptr_t allocated = EMPTY;
+	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
+		// allocate space inside process paging area
+		if( ! kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) {
+			// debug
+			kernel_log( (uint8_t *) "%s: memory allocation conflict!\n" );
 
-// 	// no free space
-// 	return EMPTY;
-// }
+			// no asssignment
+			return EMPTY;
+		}
+
+		// process memory usage
+		task -> page += page;
+
+		// return the address of the first page in the collection
+		return allocated << STD_SHIFT_PAGE;
+	}
+
+	// debug
+	kernel_log( (uint8_t *) "%s: low memory.\n", task -> name );
+
+	// no free space
+	return EMPTY;
+}
 
 // void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 // 	// current task properties
@@ -73,13 +93,13 @@
 // 	return kernel -> time_unit;
 // }
 
-// void kernel_syscall_log( uint8_t *string, uint64_t length ) {
-// 	// if string pointer is above software environment memory area
-// 	if( (uint64_t) string > KERNEL_PAGE_mirror ) return;	// do not allow it
+void kernel_syscall_log( uint8_t *string, uint64_t length ) {
+	// if string pointer is above software environment memory area
+	if( (uintptr_t) string > KERNEL_PAGE_mirror || ((uintptr_t) string + length) > KERNEL_PAGE_mirror ) return;	// do not allow it
 
-// 	// show content of string
-// 	for( uint64_t i = 0; i < length; i++ ) kernel_log( (uint8_t *) "%c", (uint64_t) string[ i ] );
-// }
+	// show content of string
+	for( uint64_t i = 0; i < length; i++ ) kernel_log( (uint8_t *) "%c", (uint64_t) string[ i ] );
+}
 
 // int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
 // 	// debug
@@ -153,13 +173,13 @@
 // 	return thread -> pid;
 // }
 
-// int64_t kernel_syscall_pid( void ) {
-// 	// task properties
-// 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+int64_t kernel_syscall_pid( void ) {
+	// task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// 	// return task ID
-// 	return task -> pid;
-// }
+	// return task ID
+	return task -> pid;
+}
 
 // int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 // 	// return new process ID

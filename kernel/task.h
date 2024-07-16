@@ -41,7 +41,7 @@
 		uint64_t		time_previous;
 		struct KERNEL_STREAM_STRUCTURE *stream_in;
 		struct KERNEL_STREAM_STRUCTURE *stream_out;
-		uint64_t		*memory_map;
+		uint32_t		*memory_map;
 		volatile uint16_t	flags;
 		uint8_t			name_length;
 		uint8_t			name[ KERNEL_TASK_NAME_limit + 1 ];

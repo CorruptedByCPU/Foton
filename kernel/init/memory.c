@@ -4,7 +4,7 @@
 
 void kernel_init_memory( void ) {
 	// binary memory map base address will be placed after global kernel environment variables/functions/rountines
-	kernel -> memory_base_address = (uint64_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
+	kernel -> memory_base_address = (uint32_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
 
 	// describe all memory areas marked as USBALE inside binary memory map
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
@@ -23,7 +23,7 @@ void kernel_init_memory( void ) {
 
 				// register pages that are part of USABLE memory area
 				for( uint64_t j = limine_memmap_request.response -> entries[ i ] -> base >> STD_SHIFT_PAGE; j < (limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length) >> STD_SHIFT_PAGE; j++ )
-					kernel -> memory_base_address[ j >> STD_SHIFT_64 ] |= 1 << (j & 0b00111111);
+					kernel -> memory_base_address[ j >> STD_SHIFT_32 ] |= 1 << (j & 0b00011111);
 			}
 
 			// debug
@@ -44,7 +44,7 @@ void kernel_init_memory( void ) {
 	// mark pages used by global kernel environment variables/functions/rountines and binary memory map itself as unavailable
 	for( uint64_t i = ((uintptr_t) kernel & ~KERNEL_PAGE_mirror) >> STD_SHIFT_PAGE; i < (((uintptr_t) kernel -> memory_base_address & ~KERNEL_PAGE_mirror) + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE )) >> STD_SHIFT_PAGE; i++ ) {
 		// mark page as unavailable
-		kernel -> memory_base_address[ i >> STD_SHIFT_64 ] &= ~(1 << (i & 0b00111111));
+		kernel -> memory_base_address[ i >> STD_SHIFT_32 ] &= ~(1 << (i & 0b00011111));
 
 		// available pages
 		kernel -> page_available--;

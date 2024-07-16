@@ -5,46 +5,46 @@
 ;------------------------------------------------------------------------------
 ; get pointers from kernel environment
 ;------------------------------------------------------------------------------
-extern	kernel_syscall_exit
+; extern	kernel_syscall_exit
 extern	kernel_syscall_framebuffer
 extern	kernel_syscall_memory_alloc
-extern	kernel_syscall_memory_release
-extern	kernel_syscall_uptime
+; extern	kernel_syscall_memory_release
+; extern	kernel_syscall_uptime
 extern	kernel_syscall_log
-extern	kernel_syscall_thread
+; extern	kernel_syscall_thread
 extern	kernel_syscall_pid
-extern	kernel_syscall_exec
-extern	kernel_syscall_pid_check
-extern	kernel_syscall_ipc_send
-extern	kernel_syscall_ipc_receive
-extern	kernel_syscall_memory_share
-extern	kernel_syscall_mouse
-extern	kernel_syscall_framebuffer_change
-extern	kernel_syscall_ipc_receive_by_pid
-extern	kernel_syscall_stream_out
-extern	kernel_syscall_stream_in
-extern	kernel_syscall_keyboard
-extern	kernel_syscall_stream_set
-extern	kernel_syscall_stream_get
-extern	kernel_syscall_memory
-extern	kernel_syscall_sleep
-extern	kernel_syscall_file_open
-extern	kernel_syscall_file_close
-extern	kernel_syscall_cd
-extern	kernel_syscall_ipc_receive_by_type
-extern	kernel_syscall_microtime
-extern	kernel_syscall_time
-extern	kernel_syscall_file_read
-extern	kernel_syscall_file
-extern	kernel_syscall_file_write
-extern	kernel_syscall_file_touch
-extern	kernel_syscall_task
-extern	kernel_syscall_kill
-extern	kernel_syscall_network_interface
-extern	kernel_syscall_network_open
-extern	kernel_syscall_network_send
-extern	kernel_syscall_network_interface_set
-extern	kernel_syscall_network_receive
+; extern	kernel_syscall_exec
+; extern	kernel_syscall_pid_check
+; extern	kernel_syscall_ipc_send
+; extern	kernel_syscall_ipc_receive
+; extern	kernel_syscall_memory_share
+; extern	kernel_syscall_mouse
+; extern	kernel_syscall_framebuffer_change
+; extern	kernel_syscall_ipc_receive_by_pid
+; extern	kernel_syscall_stream_out
+; extern	kernel_syscall_stream_in
+; extern	kernel_syscall_keyboard
+; extern	kernel_syscall_stream_set
+; extern	kernel_syscall_stream_get
+; extern	kernel_syscall_memory
+; extern	kernel_syscall_sleep
+; extern	kernel_syscall_file_open
+; extern	kernel_syscall_file_close
+; extern	kernel_syscall_cd
+; extern	kernel_syscall_ipc_receive_by_type
+; extern	kernel_syscall_microtime
+; extern	kernel_syscall_time
+; extern	kernel_syscall_file_read
+; extern	kernel_syscall_file
+; extern	kernel_syscall_file_write
+; extern	kernel_syscall_file_touch
+; extern	kernel_syscall_task
+; extern	kernel_syscall_kill
+; extern	kernel_syscall_network_interface
+; extern	kernel_syscall_network_open
+; extern	kernel_syscall_network_send
+; extern	kernel_syscall_network_interface_set
+; extern	kernel_syscall_network_receive
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -58,14 +58,14 @@ section	.rodata
 ; align routine to full address
 align	0x08,	db	0x00
 kernel_syscall_list:
-	; dq	kernel_syscall_exit			; 0x00
-	; dq	kernel_syscall_framebuffer		; 0x01
-	; dq	kernel_syscall_memory_alloc		; 0x02
-	; dq	kernel_syscall_memory_release		; 0x03
-	; dq	kernel_syscall_uptime			; 0x04
-	; dq	kernel_syscall_log			; 0x05
-	; dq	kernel_syscall_thread			; 0x06
-	; dq	kernel_syscall_pid			; 0x07
+	dq	0x00	; kernel_syscall_exit			; 0x00
+	dq	kernel_syscall_framebuffer		; 0x01
+	dq	kernel_syscall_memory_alloc		; 0x02
+	dq	0x00	; kernel_syscall_memory_release		; 0x03
+	dq	0x00	; kernel_syscall_uptime			; 0x04
+	dq	kernel_syscall_log			; 0x05
+	dq	0x00	; kernel_syscall_thread			; 0x06
+	dq	kernel_syscall_pid			; 0x07
 	; dq	kernel_syscall_exec			; 0x08
 	; dq	kernel_syscall_pid_check		; 0x09
 	; dq	kernel_syscall_ipc_send			; 0x0A

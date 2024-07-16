@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint64_t kernel_memory_acquire( uint64_t *memory_map, uint64_t N, uint64_t p, uint64_t limit ) {
+uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N, uint64_t p, uint64_t limit ) {
 	// define memory semaphore location
 	uint8_t *semaphore = (uint8_t *) memory_map + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) - STD_SIZE_BYTE_byte;
 
@@ -10,37 +10,37 @@ uint64_t kernel_memory_acquire( uint64_t *memory_map, uint64_t N, uint64_t p, ui
 	MACRO_LOCK( *semaphore );
 
 	// search binary memory map for N continuous (p)ages
-	for( ; p < limit; p++ ) {
+	for( ; p + N < limit; p++ ) {
 		// by default we found N enabled bits
 		uint8_t found = TRUE;
 
 		// check N (c)onsecutive pages
 		for( uint64_t c = p; c < p + N; c++ ) {
-			// broken continous?
-			if( ! (memory_map[ c >> STD_SHIFT_64 ] & 1 << (c & 0b00111111)) ) {
-				// one of the bits is disabled
-				found = FALSE;
+			// continous?
+			if( memory_map[ c >> STD_SHIFT_32 ] & 1 << (c & 0b00011111) ) continue;
 
-				// start looking from next position
-				p = c;
+			// one of the bits is disabled
+			found = FALSE;
 
-				// restart
-				break;
-			}
+			// start looking from next position
+			p = c;
+
+			// restart
+			break;
 		}
 
 		// if N consecutive pages have been found
-		if( found ) {
-			// mark pages as (r)eserved
-			for( uint64_t r = p; r < p + N; r++ )
-				memory_map[ r >> STD_SHIFT_64 ] &= ~(1 << (r & 0b00111111) );
+		if( ! found ) continue;	// nope
 
-			// unlock access to binary memory map
-			MACRO_UNLOCK( *semaphore );
+		// mark pages as (r)eserved
+		for( uint64_t r = p; r < p + N; r++ )
+			memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b00011111) );
 
-			// return address of acquired memory area
-			return p;
-		}
+		// unlock access to binary memory map
+		MACRO_UNLOCK( *semaphore );
+
+		// return address of acquired memory area
+		return p;
 	}
 
 	// unlock access to binary memory map
@@ -100,9 +100,9 @@ void kernel_memory_clean( uint64_t *address, uint64_t n ) {
 	for( uint64_t i = 0; i < n << STD_SHIFT_512; i++ ) address[ i ] = EMPTY;
 }
 
-void kernel_memory_dispose( uint64_t *memory_map, uint64_t p, uint64_t N ) {
+void kernel_memory_dispose( uint32_t *memory_map, uint64_t p, uint64_t N ) {
 	// mark pages as available
-	for( uint64_t i = p; i < p + N; i++ ) __sync_or_and_fetch( &memory_map[ i >> STD_SHIFT_64 ], 1 << (i & 0b00111111) );
+	for( uint64_t i = p; i < p + N; i++ ) __sync_or_and_fetch( &memory_map[ i >> STD_SHIFT_32 ], 1 << (i & 0b00011111) );
 }
 
 void kernel_memory_release( uintptr_t address, uint64_t N ) {
@@ -120,24 +120,3 @@ void kernel_memory_release_page( uintptr_t page ) {
 	// page released from structure
 	kernel -> page_structure--;
 }
-
-// uintptr_t kernel_memory_share( uintptr_t address, uint64_t page ) {
-// 	// task properties
-// 	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
-
-// 	// acquire N continuous pages
-// 	uintptr_t allocated = EMPTY;
-// 	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
-// 		// map memory area to process
-// 		kernel_page_map( (uint64_t *) task -> cr3, address, (uintptr_t) (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
-
-// 		// shared pages
-// 		kernel -> page_shared += page;
-
-// 		// return the address of the first page in the collection
-// 		return (allocated << STD_SHIFT_PAGE);
-// 	}
-
-// 	// no free space
-// 	return EMPTY;
-// }
