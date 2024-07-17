@@ -10,7 +10,7 @@ void kernel_init_environment( void ) {
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
 		// USABLE memory area?
 		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE ) continue;	// no
-		
+
 		// this area is larger than previous one?
 		if( local_entry_length > limine_memmap_request.response -> entries[ i ] -> length ) continue;	// no
 

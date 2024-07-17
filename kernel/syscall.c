@@ -2,17 +2,17 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-// void kernel_syscall_exit( void ) {
-// 	// current task properties
-// 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+void kernel_syscall_exit( void ) {
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// 	// mark task as not active and ready to close
-// 	task -> flags &= ~STD_TASK_FLAG_active;
-// 	task -> flags |= STD_TASK_FLAG_close;
+	// mark task as not active and ready to close
+	task -> flags &= ~STD_TASK_FLAG_active;
+	task -> flags |= STD_TASK_FLAG_close;
 
-// 	// release left BS/A time
-// 	__asm__ volatile( "int $0x20" );
-// }
+	// release left BS/A time
+	__asm__ volatile( "int $0x20" );
+}
 
 void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
 	// return information about existing framebuffer
@@ -51,6 +51,15 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
 	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
+	// 	kernel_log( (uint8_t *) "a %u, p %u   ", page, allocated );
+
+	// uint16_t p4 = ((allocated << STD_SHIFT_PAGE) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
+	// uint16_t p3 = ((allocated << STD_SHIFT_PAGE) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
+	// uint16_t p2 = ((allocated << STD_SHIFT_PAGE) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
+	// uint16_t p1 = ((allocated << STD_SHIFT_PAGE) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
+
+	// 	kernel_log( (uint8_t *) "[4:%u, 3:%u, 2:%u, 1:%u]\n", p4, p3, p2, p1 );
+
 		// allocate space inside process paging area
 		if( ! kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) {
 			// debug
@@ -78,8 +87,23 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
+	// kernel_log( (uint8_t *) "r %u, p %u   ", page, target >> STD_SHIFT_PAGE );
+	// uint16_t p4 = ((target) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
+	// uint16_t p3 = ((target) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
+	// uint16_t p2 = ((target) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
+	// uint16_t p1 = ((target) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
+	// kernel_log( (uint8_t *) "[4:%u, 3:%u, 2:%u, 1:%u]\n", p4, p3, p2, p1 );
+
+	// MACRO_DEBUF();
+
 	// remove page from paging structure
-	kernel_page_release( (uint64_t *) task -> cr3, target, page, task -> page_type );
+	if( ! kernel_page_release( (uint64_t *) task -> cr3, target, page, task -> page_type ) ) {
+		// debug
+		kernel_log( (uint8_t *) "%s: memory allocation conflict!\n" );
+
+		// no asssignment
+		return;
+	}
 
 	// release page in binary memory map of process
 	kernel_memory_dispose( task -> memory_map, target >> STD_SHIFT_PAGE, page );

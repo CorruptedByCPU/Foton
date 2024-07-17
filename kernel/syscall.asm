@@ -5,7 +5,7 @@
 ;------------------------------------------------------------------------------
 ; get pointers from kernel environment
 ;------------------------------------------------------------------------------
-; extern	kernel_syscall_exit
+extern	kernel_syscall_exit
 extern	kernel_syscall_framebuffer
 extern	kernel_syscall_memory_alloc
 extern	kernel_syscall_memory_release
@@ -58,7 +58,7 @@ section	.rodata
 ; align routine to full address
 align	0x08,	db	0x00
 kernel_syscall_list:
-	dq	0x00	; kernel_syscall_exit			; 0x00
+	dq	kernel_syscall_exit			; 0x00
 	dq	kernel_syscall_framebuffer		; 0x01
 	dq	kernel_syscall_memory_alloc		; 0x02
 	dq	kernel_syscall_memory_release		; 0x03
