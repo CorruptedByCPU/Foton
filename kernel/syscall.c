@@ -74,19 +74,19 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	return EMPTY;
 }
 
-// void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
-// 	// current task properties
-// 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// 	// remove page from paging structure
-// 	kernel_page_release( (uint64_t *) task -> cr3, target, page );
+	// remove page from paging structure
+	kernel_page_release( (uint64_t *) task -> cr3, target, page, task -> page_type );
 
-// 	// release page in binary memory map of process
-// 	kernel_memory_dispose( task -> memory_map, target >> STD_SHIFT_PAGE, page );
+	// release page in binary memory map of process
+	kernel_memory_dispose( task -> memory_map, target >> STD_SHIFT_PAGE, page );
 
-// 	// process memory usage
-// 	task -> page -= page;
-// }
+	// process memory usage
+	task -> page -= page;
+}
 
 // uint64_t kernel_syscall_uptime( void ) {
 // 	// return uptime
@@ -602,54 +602,54 @@ int64_t kernel_syscall_pid( void ) {
 // 	return driver_rtc_time();
 // }
 
-// int64_t kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
-// 	// retrieve information about module file
-// 	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
+int64_t kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
+	// retrieve information about module file
+	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
 
-// 	// if file doesn't exist
-// 	if( ! socket ) return STD_ERROR_file_not_found;
+	// if file doesn't exist
+	if( ! socket ) return STD_ERROR_file_not_found;
 
-// 	// return socket ID
-// 	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_VFS_STRUCTURE );
-// }
+	// return socket ID
+	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_VFS_STRUCTURE );
+}
 
-// void kernel_syscall_file_close( int64_t socket ) {
-// 	// invalid socket value?
-// 	if( socket > KERNEL_VFS_limit ) return;	// yep, ignore
+void kernel_syscall_file_close( int64_t socket ) {
+	// invalid socket value?
+	if( socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
-// 	// close connection to file
-// 	kernel_vfs_file_close( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ socket ] );
-// }
+	// close connection to file
+	kernel_vfs_file_close( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ socket ] );
+}
 
-// void kernel_syscall_file( struct STD_FILE_STRUCTURE *file ) {
-// 	// by default no properties (eg. invalid socket)
-// 	struct KERNEL_VFS_STRUCTURE_PROPERTIES properties = { EMPTY };
+void kernel_syscall_file( struct STD_FILE_STRUCTURE *file ) {
+	// by default no properties (eg. invalid socket)
+	struct KERNEL_VFS_STRUCTURE_PROPERTIES properties = { EMPTY };
 
-// 	// invalid socket value?
-// 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
+	// invalid socket value?
+	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
-// 	// retrieve information about file
-// 	kernel_vfs_file_properties( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ file -> socket ], (struct KERNEL_VFS_STRUCTURE_PROPERTIES *) &properties );
+	// retrieve information about file
+	kernel_vfs_file_properties( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ file -> socket ], (struct KERNEL_VFS_STRUCTURE_PROPERTIES *) &properties );
 
-// 	// copy important values
+	// copy important values
 
-// 	// file size in Bytes
-// 	file -> byte = properties.byte;
+	// file size in Bytes
+	file -> byte = properties.byte;
 
-// 	// file name
-// 	for( uint64_t i = 0; i < properties.name_length; i++ ) file -> name[ file -> name_length++ ] = properties.name[ i ];
-// }
+	// file name
+	for( uint64_t i = 0; i < properties.name_length; i++ ) file -> name[ file -> name_length++ ] = properties.name[ i ];
+}
 
-// void kernel_syscall_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte ) {
-// 	// invalid socket value?
-// 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
+void kernel_syscall_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte ) {
+	// invalid socket value?
+	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
-// 	// pass file content to process memory
-// 	kernel_vfs_file_read( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ file -> socket ], target, file -> seek, byte );
+	// pass file content to process memory
+	kernel_vfs_file_read( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ file -> socket ], target, file -> seek, byte );
 
-// 	// next file Bytes content
-// 	file -> seek += byte;
-// }
+	// next file Bytes content
+	file -> seek += byte;
+}
 
 // void kernel_syscall_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t byte ) {
 // 	// invalid socket value?

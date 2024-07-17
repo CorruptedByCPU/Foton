@@ -8,7 +8,7 @@
 ; extern	kernel_syscall_exit
 extern	kernel_syscall_framebuffer
 extern	kernel_syscall_memory_alloc
-; extern	kernel_syscall_memory_release
+extern	kernel_syscall_memory_release
 ; extern	kernel_syscall_uptime
 extern	kernel_syscall_log
 ; extern	kernel_syscall_thread
@@ -28,14 +28,14 @@ extern	kernel_syscall_pid
 ; extern	kernel_syscall_stream_get
 ; extern	kernel_syscall_memory
 ; extern	kernel_syscall_sleep
-; extern	kernel_syscall_file_open
-; extern	kernel_syscall_file_close
+extern	kernel_syscall_file_open
+extern	kernel_syscall_file_close
 ; extern	kernel_syscall_cd
 ; extern	kernel_syscall_ipc_receive_by_type
 ; extern	kernel_syscall_microtime
 ; extern	kernel_syscall_time
-; extern	kernel_syscall_file_read
-; extern	kernel_syscall_file
+extern	kernel_syscall_file_read
+extern	kernel_syscall_file
 ; extern	kernel_syscall_file_write
 ; extern	kernel_syscall_file_touch
 ; extern	kernel_syscall_task
@@ -61,34 +61,34 @@ kernel_syscall_list:
 	dq	0x00	; kernel_syscall_exit			; 0x00
 	dq	kernel_syscall_framebuffer		; 0x01
 	dq	kernel_syscall_memory_alloc		; 0x02
-	dq	0x00	; kernel_syscall_memory_release		; 0x03
+	dq	kernel_syscall_memory_release		; 0x03
 	dq	0x00	; kernel_syscall_uptime			; 0x04
 	dq	kernel_syscall_log			; 0x05
 	dq	0x00	; kernel_syscall_thread			; 0x06
 	dq	kernel_syscall_pid			; 0x07
-	; dq	kernel_syscall_exec			; 0x08
-	; dq	kernel_syscall_pid_check		; 0x09
-	; dq	kernel_syscall_ipc_send			; 0x0A
-	; dq	kernel_syscall_ipc_receive		; 0x0B
-	; dq	kernel_syscall_memory_share		; 0x0C
-	; dq	kernel_syscall_mouse			; 0x0D
-	; dq	kernel_syscall_framebuffer_change	; 0x0E
-	; dq	kernel_syscall_ipc_receive_by_pid	; 0x0F
-	; dq	kernel_syscall_stream_out		; 0x10
-	; dq	kernel_syscall_stream_in		; 0x11
-	; dq	kernel_syscall_keyboard			; 0x12
-	; dq	kernel_syscall_stream_set		; 0x13
-	; dq	kernel_syscall_stream_get		; 0x14
-	; dq	kernel_syscall_memory			; 0x15
-	; dq	kernel_syscall_sleep			; 0x16
-	; dq	kernel_syscall_file_open		; 0x17
-	; dq	kernel_syscall_file_close		; 0x18
-	; dq	kernel_syscall_cd			; 0x19
-	; dq	kernel_syscall_ipc_receive_by_type	; 0x1A
-	; dq	kernel_syscall_microtime		; 0x1B
-	; dq	kernel_syscall_time			; 0x1C
-	; dq	kernel_syscall_file_read		; 0x1D
-	; dq	kernel_syscall_file			; 0x1E
+	dq	0x00	; kernel_syscall_exec			; 0x08
+	dq	0x00	; kernel_syscall_pid_check		; 0x09
+	dq	0x00	; kernel_syscall_ipc_send			; 0x0A
+	dq	0x00	; kernel_syscall_ipc_receive		; 0x0B
+	dq	0x00	; kernel_syscall_memory_share		; 0x0C
+	dq	0x00	; kernel_syscall_mouse			; 0x0D
+	dq	0x00	; kernel_syscall_framebuffer_change	; 0x0E
+	dq	0x00	; kernel_syscall_ipc_receive_by_pid	; 0x0F
+	dq	0x00	; kernel_syscall_stream_out		; 0x10
+	dq	0x00	; kernel_syscall_stream_in		; 0x11
+	dq	0x00	; kernel_syscall_keyboard			; 0x12
+	dq	0x00	; kernel_syscall_stream_set		; 0x13
+	dq	0x00	; kernel_syscall_stream_get		; 0x14
+	dq	0x00	; kernel_syscall_memory			; 0x15
+	dq	0x00	; kernel_syscall_sleep			; 0x16
+	dq	kernel_syscall_file_open		; 0x17
+	dq	kernel_syscall_file_close		; 0x18
+	dq	0x00	; kernel_syscall_cd			; 0x19
+	dq	0x00	; kernel_syscall_ipc_receive_by_type	; 0x1A
+	dq	0x00	; kernel_syscall_microtime		; 0x1B
+	dq	0x00	; kernel_syscall_time			; 0x1C
+	dq	kernel_syscall_file_read		; 0x1D
+	dq	kernel_syscall_file			; 0x1E
 	; dq	kernel_syscall_file_write		; 0x1F
 	; dq	kernel_syscall_file_touch		; 0x20
 	; dq	kernel_syscall_task			; 0x21

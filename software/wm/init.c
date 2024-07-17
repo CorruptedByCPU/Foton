@@ -45,88 +45,88 @@ uint8_t wm_init( void ) {
 	// properties of image
 	struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = EMPTY;
 
-	// // retrieve file information
-	// uint8_t wallpaper_path[] = "/system/var/gfx/wallpapers/default.tga";
-	// if( (workbench_file.socket = std_file_open( (uint8_t *) &wallpaper_path, sizeof( wallpaper_path ) - 1 )) ) {
-	// 	// retrieve file properties
-	// 	std_file( (struct STD_FILE_STRUCTURE *) &workbench_file );
+	// retrieve file information
+	uint8_t wallpaper_path[] = "/system/var/gfx/wallpapers/default.tga";
+	if( (workbench_file.socket = std_file_open( (uint8_t *) &wallpaper_path, sizeof( wallpaper_path ) - 1 )) ) {
+		// retrieve file properties
+		std_file( (struct STD_FILE_STRUCTURE *) &workbench_file );
 
-	// 	// assign area for file
-	// 	workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( workbench_file.byte ) >> STD_SHIFT_PAGE );
+		// assign area for file
+		workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( workbench_file.byte ) >> STD_SHIFT_PAGE );
 
-	// 	// load file content
-	// 	std_file_read( (struct STD_FILE_STRUCTURE *) &workbench_file, (uint8_t *) workbench_image, workbench_file.byte );
-	// }
+		// load file content
+		std_file_read( (struct STD_FILE_STRUCTURE *) &workbench_file, (uint8_t *) workbench_image, workbench_file.byte );
+	}
 
-	// // create workbench object
-	// wm_object_workbench = wm_object_create( 0, 0, wm_object_cache.width, wm_object_cache.height );
+	// create workbench object
+	wm_object_workbench = wm_object_create( 0, 0, wm_object_cache.width, wm_object_cache.height );
 
-	// // mark it as our
-	// wm_object_workbench -> pid = wm_pid;
+	// mark it as our
+	wm_object_workbench -> pid = wm_pid;
 
-	// // properties of workbench area content
-	// uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	// properties of workbench area content
+	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 
-	// // if default wallpaper file found
-	// if( workbench_image ) {
-	// 	// convert image to RGBA
-	// 	uint32_t *tmp_workbench_image = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_workbench -> size_byte ) >> STD_SHIFT_PAGE );
-	// 	lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file.byte );
+	// if default wallpaper file found
+	if( workbench_image ) {
+		// convert image to RGBA
+		uint32_t *tmp_workbench_image = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_workbench -> size_byte ) >> STD_SHIFT_PAGE );
+		lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file.byte );
 
-	// 	// copy scaled image content to workbench object
-	// 	float x_scale_factor = (float) ((float) workbench_image -> width / (float) wm_object_workbench -> width);
-	// 	float y_scale_factor = (float) ((float) workbench_image -> height / (float) wm_object_workbench -> height);
-	// 	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
-	// 		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
-	// 			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
+		// copy scaled image content to workbench object
+		float x_scale_factor = (float) ((float) workbench_image -> width / (float) wm_object_workbench -> width);
+		float y_scale_factor = (float) ((float) workbench_image -> height / (float) wm_object_workbench -> height);
+		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
+			for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
+				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
 
-	// 	// release temporary image
-	// 	std_memory_release( (uintptr_t) tmp_workbench_image, MACRO_PAGE_ALIGN_UP( wm_object_workbench -> size_byte ) >> STD_SHIFT_PAGE );
+		// release temporary image
+		std_memory_release( (uintptr_t) tmp_workbench_image, MACRO_PAGE_ALIGN_UP( wm_object_workbench -> size_byte ) >> STD_SHIFT_PAGE );
 
-	// 	// release file content
-	// 	std_memory_release( (uintptr_t) workbench_image, MACRO_PAGE_ALIGN_UP( workbench_file.byte ) >> STD_SHIFT_PAGE );
+		// release file content
+		std_memory_release( (uintptr_t) workbench_image, MACRO_PAGE_ALIGN_UP( workbench_file.byte ) >> STD_SHIFT_PAGE );
 
-	// 	// close file
-	// 	std_file_close( workbench_file.socket );
-	// } else
-	// 	// fill workbench with default color
-	// 	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
-	// 		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
-	// 			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = 0xFF101010;
+		// close file
+		std_file_close( workbench_file.socket );
+	} else
+		// fill workbench with default color
+		for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
+			for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
+				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = 0xFF101010;
 
-	// // show debug information
-	// uint8_t build_version[] = "System build on "__DATE__" "__TIME__;
-	// lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, build_version, sizeof( build_version ) - 1, STD_COLOR_GRAY, workbench_pixel, wm_object_workbench -> width, LIB_FONT_ALIGN_right );
+	// show debug information
+	uint8_t build_version[] = "System build on "__DATE__" "__TIME__;
+	lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, build_version, sizeof( build_version ) - 1, STD_COLOR_GRAY, workbench_pixel, wm_object_workbench -> width, LIB_FONT_ALIGN_right );
 
-	// // object content ready for display
-	// wm_object_workbench -> descriptor -> flags |= STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+	// object content ready for display
+	wm_object_workbench -> descriptor -> flags |= STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
-	// //----------------------------------------------------------------------
+	//----------------------------------------------------------------------
 
-	// // create taskbar object
-	// wm_object_taskbar = wm_object_create( 0, wm_object_workbench -> height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_workbench -> width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
+	// create taskbar object
+	wm_object_taskbar = wm_object_create( 0, wm_object_workbench -> height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_workbench -> width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
 
-	// // mark object as taskbar and unmovable
-	// wm_object_taskbar -> descriptor -> flags = STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
+	// mark object as taskbar and unmovable
+	wm_object_taskbar -> descriptor -> flags = STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
 
-	// // fill taskbar with default background color
-	// uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	// for( uint16_t y = 0; y < wm_object_taskbar -> height; y++ )
-	// 	for( uint16_t x = 0; x < wm_object_taskbar -> width; x++ )
-	// 		taskbar_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;
+	// fill taskbar with default background color
+	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	for( uint16_t y = 0; y < wm_object_taskbar -> height; y++ )
+		for( uint16_t x = 0; x < wm_object_taskbar -> width; x++ )
+			taskbar_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;
 
-	// // show menu buton on taskbar
+	// show menu buton on taskbar
 	// uint8_t test[ 3 ] = "|||";
 	// lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), 0xFFFFFFFF, taskbar_pixel + (((WM_OBJECT_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) * wm_object_taskbar -> width) + (22 >> STD_SHIFT_2), wm_object_taskbar -> width, LIB_FONT_ALIGN_center );
 
-	// // object content ready for display
-	// wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+	// object content ready for display
+	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
-	// // execute taskbar function as thread
+	// execute taskbar function as thread
 	// uint8_t wm_string_taskbar[] = "wm taskbar";
 	// wm_object_taskbar -> pid = std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
 
-	// //----------------------------------------------------------------------
+	//----------------------------------------------------------------------
 
 	// // execute menu function as thread
 	// uint8_t wm_string_menu[] = "wm menu";
@@ -161,11 +161,11 @@ uint8_t wm_init( void ) {
 	// 	// create cursor object
 	// 	wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
 	// } else
-	// 	// create default object
-	// 	wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, 16, 32 );
+		// create default object
+		wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, 16, 32 );
 
-	// // mark it as our
-	// wm_object_cursor -> pid = wm_pid;
+	// mark it as our
+	wm_object_cursor -> pid = wm_pid;
 
 	// // properties of cursor area content
 	// uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));

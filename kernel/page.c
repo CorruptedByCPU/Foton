@@ -332,13 +332,13 @@ uint8_t kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t N ) {
 	return FALSE;
 }
 
-// uint8_t kernel_page_empty( uint64_t *page, uint64_t N ) {
-// 	// check every entry
-// 	for( uint64_t i = 0; i < N << STD_SHIFT_512; i++ ) if( page[ i ] ) return FALSE;
+uint8_t kernel_page_empty( uint64_t *page, uint64_t N ) {
+	// check every entry
+	for( uint64_t i = 0; i < N << STD_SHIFT_512; i++ ) if( page[ i ] ) return FALSE;
 
-// 	// page is empty
-// 	return TRUE;
-// }
+	// page is empty
+	return TRUE;
+}
 
 uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags ) {
 	// start with following table[record]
@@ -494,79 +494,91 @@ void kernel_page_merge( uint64_t *pml4_parent, uint64_t *pml4_child ) {
 	}
 }
 
-// void kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t N ) {
-// 	// start with following array[ entries ]
-// 	uint16_t p4 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
-// 	uint16_t p3 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
-// 	uint16_t p2 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
-// 	uint16_t p1 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
+uint8_t kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t N, uint16_t flag ) {
+	// start with following array[ entries ]
+	uint16_t p4 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
+	uint16_t p3 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p2 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
+	uint16_t p1 = ((address & ~KERNEL_PAGE_PML5_mask) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
 
-// 	// start with an entry representing given address in PML4 array
-// 	for( ; p4 < KERNEL_PAGE_PML_records && N; p4++ ) {
-// 		// get PML3 array address (remove flags)
-// 		uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_mirror);
+	// start with an entry representing given address in PML4 array
+	for( ; p4 < KERNEL_PAGE_PML_records && N; p4++ ) {
+		// PML3 array doesn't exist?
+		if( ! pml4[ p4 ] ) return FALSE;	// not good...
 
-// 		// start with an entry representing given address in PML3 array
-// 		for( ; p3 < KERNEL_PAGE_PML_records && N; p3++ ) {
-// 			// get PML2 array address (remove flags)
-// 			uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_mirror);
+		// get PML3 array address (remove flags)
+		uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_mirror);
+
+		// start with an entry representing given address in PML3 array
+		for( ; p3 < KERNEL_PAGE_PML_records && N; p3++ ) {
+			// PML2 array doesn't exist?
+			if( ! pml3[ p3 ] ) return FALSE;	// not good...
+
+			// get PML2 array address (remove flags)
+			uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_mirror);
 	
-// 			// start with an entry representing given address in PML2 array
-// 			for( ; p2 < KERNEL_PAGE_PML_records && N; p2++ ) {
-// 				// get PML1 array address (remove flags)
-// 				uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_mirror);
+			// start with an entry representing given address in PML2 array
+			for( ; p2 < KERNEL_PAGE_PML_records && N; p2++ ) {
+				// PML1 array doesn't exist?
+				if( ! pml2[ p2 ] ) return FALSE;	// not good...
+
+				// get PML1 array address (remove flags)
+				uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_mirror);
 	
-// 				// start with an entry representing given address in PML1 array
-// 				for( ; p1 < KERNEL_PAGE_PML_records && N; p1++ ) {
-// 					// release memory area
-// 					kernel_memory_release( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) | KERNEL_PAGE_mirror, TRUE );
+				// start with an entry representing given address in PML1 array
+				for( ; p1 < KERNEL_PAGE_PML_records && N--; p1++ ) {
+					// PAGE doesn't exist?
+					if( ! pml1[ p1 ] ) return FALSE;	// not good...
 
-// 					// remove entry from PML1 array
-// 					pml1[ p1 ] = EMPTY;
+					// release memory area
+					kernel_memory_release( MACRO_PAGE_ALIGN_DOWN( pml1[ p1 ] ) | KERNEL_PAGE_mirror, TRUE );
 
-// 					// page released
-// 					N--;
-// 				}
+					// remove entry from PML1 array
+					pml1[ p1 ] = EMPTY;
+				}
 
-// 				// if page is empty
-// 				if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_mirror), TRUE ) ) {
-// 					// release
-// 					kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) );
+				// if page is empty
+				if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_mirror), TRUE ) ) {
+					// release
+					kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) );
 
-// 					// remove entry from PML2 array
-// 					pml2[ p2 ] = EMPTY;
-// 				}
+					// remove entry from PML2 array
+					pml2[ p2 ] = EMPTY;
+				}
 
-// 				// first entry of next PML1 array
-// 				p1 = 0;
-// 			}
+				// first entry of next PML1 array
+				p1 = 0;
+			}
 
-// 			// if page is empty
-// 			if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_mirror), TRUE ) ) {
-// 				// release
-// 				kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) );
+			// if page is empty
+			if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_mirror), TRUE ) ) {
+				// release
+				kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) );
 
-// 				// remove entry from PML3 array
-// 				pml3[ p3 ] = EMPTY;
-// 			}
+				// remove entry from PML3 array
+				pml3[ p3 ] = EMPTY;
+			}
 
-// 			// first entry of next PML2 array
-// 			p2 = 0;
-// 		}
+			// first entry of next PML2 array
+			p2 = 0;
+		}
 
-// 		// if page is empty
-// 		if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_mirror), TRUE ) ) {
-// 			// release
-// 			kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) );
+		// if page is empty
+		if( kernel_page_empty( (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_mirror), TRUE ) ) {
+			// release
+			kernel_memory_release_page( MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) );
 
-// 			// remove entry from PML4 array
-// 			pml4[ p4 ] = EMPTY;
-// 		}
+			// remove entry from PML4 array
+			pml4[ p4 ] = EMPTY;
+		}
 
-// 		// first entry of next PML3 array
-// 		p3 = 0;
-// 	}
-// }
+		// first entry of next PML3 array
+		p3 = 0;
+	}
+
+	// done
+	return TRUE;
+}
 
 // uintptr_t kernel_page_remove( uint64_t *pml4, uintptr_t address ) {
 // 	// locate page table pointers
