@@ -11,7 +11,7 @@ extern	kernel_syscall_memory_alloc
 extern	kernel_syscall_memory_release
 ; extern	kernel_syscall_uptime
 extern	kernel_syscall_log
-; extern	kernel_syscall_thread
+extern	kernel_syscall_thread
 extern	kernel_syscall_pid
 ; extern	kernel_syscall_exec
 ; extern	kernel_syscall_pid_check
@@ -32,8 +32,8 @@ extern	kernel_syscall_file_open
 extern	kernel_syscall_file_close
 ; extern	kernel_syscall_cd
 ; extern	kernel_syscall_ipc_receive_by_type
-; extern	kernel_syscall_microtime
-; extern	kernel_syscall_time
+extern	kernel_syscall_microtime
+extern	kernel_syscall_time
 extern	kernel_syscall_file_read
 extern	kernel_syscall_file
 ; extern	kernel_syscall_file_write
@@ -64,7 +64,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_memory_release		; 0x03
 	dq	0x00	; kernel_syscall_uptime			; 0x04
 	dq	kernel_syscall_log			; 0x05
-	dq	0x00	; kernel_syscall_thread			; 0x06
+	dq	kernel_syscall_thread			; 0x06
 	dq	kernel_syscall_pid			; 0x07
 	dq	0x00	; kernel_syscall_exec			; 0x08
 	dq	0x00	; kernel_syscall_pid_check		; 0x09
@@ -85,8 +85,8 @@ kernel_syscall_list:
 	dq	kernel_syscall_file_close		; 0x18
 	dq	0x00	; kernel_syscall_cd			; 0x19
 	dq	0x00	; kernel_syscall_ipc_receive_by_type	; 0x1A
-	dq	0x00	; kernel_syscall_microtime		; 0x1B
-	dq	0x00	; kernel_syscall_time			; 0x1C
+	dq	kernel_syscall_microtime		; 0x1B
+	dq	kernel_syscall_time			; 0x1C
 	dq	kernel_syscall_file_read		; 0x1D
 	dq	kernel_syscall_file			; 0x1E
 	; dq	kernel_syscall_file_write		; 0x1F

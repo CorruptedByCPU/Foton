@@ -29,6 +29,7 @@
 	#define	DRIVER_RTC_STATUS_REGISTER_A_update_in_progress		0b10000000
 
 	#define	DRIVER_RTC_STATUS_REGISTER_B_24_hour_mode		0b00000010
+	#define	DRIVER_RTC_STATUS_REGISTER_B_data_mode_binary		0b00000100
 	#define	DRIVER_RTC_STATUS_REGISTER_B_periodic_interrupt		0b01000000
 	#define	DRIVER_RTC_STATUS_REGISTER_B_update_in_progress		0b10000000
 
@@ -36,5 +37,5 @@
 	extern void driver_rtc_entry( void );
 
 	// uint64_t driver_rtc_time( void );
-	// uint8_t driver_rtc_register( uint8_t mode );
+	uint8_t driver_rtc_register( uint8_t mode );
 #endif

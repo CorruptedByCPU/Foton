@@ -10,12 +10,12 @@ uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N, uint64_t p, ui
 	MACRO_LOCK( *semaphore );
 
 	// search binary memory map for N continuous (p)ages
-	for( ; p + N < limit; p++ ) {
+	for( ; (p + N) < limit; p++ ) {
 		// by default we found N enabled bits
 		uint8_t found = TRUE;
 
 		// check N (c)onsecutive pages
-		for( uint64_t c = p; c < p + N; c++ ) {
+		for( uint64_t c = p; c < (p + N); c++ ) {
 			// continous?
 			if( memory_map[ c >> STD_SHIFT_32 ] & 1 << (c & 0b00011111) ) continue;
 
@@ -33,7 +33,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N, uint64_t p, ui
 		if( ! found ) continue;	// nope
 
 		// mark pages as (r)eserved
-		for( uint64_t r = p; r < p + N; r++ )
+		for( uint64_t r = p; r < (p + N); r++ )
 			memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b00011111) );
 
 		// unlock access to binary memory map

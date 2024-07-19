@@ -51,15 +51,6 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
 	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
-	// 	kernel_log( (uint8_t *) "a %u, p %u   ", page, allocated );
-
-	// uint16_t p4 = ((allocated << STD_SHIFT_PAGE) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
-	// uint16_t p3 = ((allocated << STD_SHIFT_PAGE) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
-	// uint16_t p2 = ((allocated << STD_SHIFT_PAGE) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
-	// uint16_t p1 = ((allocated << STD_SHIFT_PAGE) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
-
-	// 	kernel_log( (uint8_t *) "[4:%u, 3:%u, 2:%u, 1:%u]\n", p4, p3, p2, p1 );
-
 		// allocate space inside process paging area
 		if( ! kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) {
 			// debug
@@ -87,19 +78,10 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-	// kernel_log( (uint8_t *) "r %u, p %u   ", page, target >> STD_SHIFT_PAGE );
-	// uint16_t p4 = ((target) >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 
-	// uint16_t p3 = ((target) >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PML_records - 1);
-	// uint16_t p2 = ((target) >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PML_records - 1);
-	// uint16_t p1 = ((target) >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PML_records - 1);
-	// kernel_log( (uint8_t *) "[4:%u, 3:%u, 2:%u, 1:%u]\n", p4, p3, p2, p1 );
-
-	// MACRO_DEBUF();
-
 	// remove page from paging structure
 	if( ! kernel_page_release( (uint64_t *) task -> cr3, target, page, task -> page_type ) ) {
 		// debug
-		kernel_log( (uint8_t *) "%s: memory allocation conflict!\n" );
+		kernel_log( (uint8_t *) "%s: memory release voidness!\n" );
 
 		// no asssignment
 		return;
@@ -125,77 +107,74 @@ void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 	for( uint64_t i = 0; i < length; i++ ) kernel_log( (uint8_t *) "%c", (uint64_t) string[ i ] );
 }
 
-// int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
-// 	// debug
-// 	// kernel_log( (uint8_t *) "Thread: %s at 0x%X\n", name, function );
-	
-// 	// create a new thread in task queue
-// 	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );
+int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
+	// debug
+	// kernel_log( (uint8_t *) "Thread: %s at 0x%X\n", name, function );
 
-// 	//----------------------------------------------------------------------
+	// create a new thread in task queue
+	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );
 
-// 	// prepare Paging table for new process
-// 	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_mirror;
+	//----------------------------------------------------------------------
 
-// 	// all allocated pages, mark as type of THREAD
-// 	thread -> page_type = KERNEL_PAGE_TYPE_THREAD;
+	// prepare Paging table for new process
+	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_mirror;
 
-// 	//----------------------------------------------------------------------
+	// all allocated pages, mark as type of THREAD
+	thread -> page_type = KERNEL_PAGE_TYPE_THREAD;
 
-// 	// describe space under thread context stack
-// 	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
+	//----------------------------------------------------------------------
 
-// 	// set initial startup configuration for new process
-// 	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+	// describe area under thread context stack
+	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
-// 	// code descriptor
-// 	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring3 ) | 0x03;
+	// set initial startup configuration for new process
+	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
 
-// 	// basic processor state flags
-// 	context -> eflags = KERNEL_TASK_EFLAGS_default;
+	// code descriptor
+	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring3 ) | 0x03;
 
-// 	// stack descriptor
-// 	context -> ss = offsetof( struct KERNEL_GDT_STRUCTURE, ds_ring3 ) | 0x03;
+	// basic processor state flags
+	context -> eflags = KERNEL_TASK_EFLAGS_default;
 
-// 	// stack pointer of process
-// 	context -> rsp = KERNEL_TASK_STACK_pointer - 0x18;	// no args
+	// stack descriptor
+	context -> ss = offsetof( struct KERNEL_GDT_STRUCTURE, ds_ring3 ) | 0x03;
 
-// 	// set thread entry address
-// 	context -> rip = function;
+	// stack pointer of process
+	context -> rsp = KERNEL_TASK_STACK_pointer - 0x18;	// no args
 
-// 	//----------------------------------------------------------------------
+	// set thread entry address
+	context -> rip = function;
 
-// 	// prepare space for stack of thread
-// 	uint8_t *process_stack = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE );
+	//----------------------------------------------------------------------
 
-// 	// page used
-// 	thread -> stack++;
+	// map stack space to thread paging array
+	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_TASK_STACK_pointer - KERNEL_TASK_STACK_limit, KERNEL_TASK_STACK_limit >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
-// 	// context stack top pointer
-// 	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
+	// page used
+	thread -> stack++;
 
-// 	// map stack space to thread paging array
-// 	kernel_page_map( (uint64_t *) thread -> cr3, (uintptr_t) process_stack, context -> rsp & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
+	// context stack top pointer
+	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
 
-// 	//----------------------------------------------------------------------
+	//----------------------------------------------------------------------
 
-// 	// aquire parent task properties
-// 	struct KERNEL_TASK_STRUCTURE *parent = kernel_task_active();
+	// aquire parent task properties
+	struct KERNEL_TASK_STRUCTURE *parent = kernel_task_active();
 
-// 	// threads use same memory map as parent
-// 	thread -> memory_map = parent -> memory_map;
+	// threads use same memory map as parent
+	thread -> memory_map = parent -> memory_map;
 
-// 	//----------------------------------------------------------------------
+	//----------------------------------------------------------------------
 
-// 	// map parent space to thread
-// 	kernel_page_merge( (uint64_t *) parent -> cr3, (uint64_t *) thread -> cr3 );
+	// map parent space to thread
+	kernel_page_merge( (uint64_t *) parent -> cr3, (uint64_t *) thread -> cr3 );
 
-// 	// thread ready to run
-// 	thread -> flags |= STD_TASK_FLAG_active | STD_TASK_FLAG_thread | STD_TASK_FLAG_init;
+	// thread ready to run
+	thread -> flags |= STD_TASK_FLAG_active | STD_TASK_FLAG_thread | STD_TASK_FLAG_init;
 
-// 	// return process ID of new thread
-// 	return thread -> pid;
-// }
+	// return process ID of new thread
+	return thread -> pid;
+}
 
 int64_t kernel_syscall_pid( void ) {
 	// task properties
@@ -616,15 +595,15 @@ int64_t kernel_syscall_pid( void ) {
 // 	return EMPTY;
 // }
 
-// uint64_t kernel_syscall_microtime( void ) {
-// 	// return microtime
-// 	return kernel -> time_unit;
-// }
+uint64_t kernel_syscall_microtime( void ) {
+	// return microtime
+	return kernel -> time_unit;
+}
 
-// uint64_t kernel_syscall_time( void ) {
-// 	// return current date and time
-// 	return driver_rtc_time();
-// }
+uint64_t kernel_syscall_time( void ) {
+	// return current date and time
+	return driver_rtc_time();
+}
 
 int64_t kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
 	// retrieve information about module file

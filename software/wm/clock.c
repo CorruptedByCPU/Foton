@@ -3,6 +3,8 @@
 ===============================================================================*/
 
 int64_t wm_clock( void ) {
+	MACRO_DEBUF();
+
 	// infinite loop
 	while( TRUE ) {
 		// check current date and time
