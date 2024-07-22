@@ -51,6 +51,10 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
 	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
+
+// debug
+kernel_time_sleep( TRUE );
+
 		// allocate space inside process paging area
 		if( ! kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) {
 			// debug
@@ -77,6 +81,9 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+
+// debug
+kernel_time_sleep( TRUE );
 
 	// remove page from paging structure
 	if( ! kernel_page_release( (uint64_t *) task -> cr3, target, page, task -> page_type ) ) {
@@ -515,25 +522,27 @@ int64_t kernel_syscall_pid( void ) {
 // 	memory -> shared = kernel -> page_shared << STD_SHIFT_PAGE;
 // }
 
-// uint64_t kernel_syscall_sleep( uint64_t units ) {
-// 	// // current task properties
-// 	// struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+uint64_t kernel_syscall_sleep( uint64_t units ) {
+	// current task properties
+	// struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// 	// // mark task as sleeping
-// 	// task -> flags |= STD_TASK_FLAG_sleep;
+	// // mark task as sleeping
+	// task -> flags |= STD_TASK_FLAG_sleep;
 
-// 	// // set release pointer
-// 	// uint64_t stop = kernel -> time_unit + units;
+	// // set release pointer
+	// uint64_t stop = kernel -> time_unit + units;
 
-// 	// // wait until we achieve awaited units of time
-// 	// while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
+	// // wait until we achieve awaited units of time
+	// while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
 
-// 	// // remove sleep status
-// 	// task -> flags &= ~STD_TASK_FLAG_sleep;
+	// // remove sleep status
+	// task -> flags &= ~STD_TASK_FLAG_sleep;
 
-// 	// return remaining units (is sleep was broken)
-// 	return units;
-// }
+	// // return remaining units (is sleep was broken)
+	// return units;
+
+	return EMPTY;
+}
 
 // uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 // 	// try to open provided path

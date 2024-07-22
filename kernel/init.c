@@ -30,7 +30,7 @@
 	//----------------------------------------------------------------------
 	#include	"task.h"
 	#include	"vfs.h"
-	// #include	"time.h"
+	#include	"time.h"
 	#include	"idt.h"	
 	#include	"gdt.h"
 	#include	"tss.h"
@@ -70,7 +70,7 @@
 	#include	"library.c"
 	#include	"exec.c"
 	// #include	"module.c"
-	// #include	"time.c"
+	#include	"time.c"
 	#include	"rtc.c"
 	#include	"stream.c"
 	// #include	"network.c"

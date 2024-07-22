@@ -138,65 +138,63 @@ uint8_t wm_init( void ) {
 	uint8_t wm_string_clock[] = "wm clock";
 	std_thread( (uintptr_t) &wm_clock, (uint8_t *) &wm_string_clock, sizeof( wm_string_clock ) );
 
-MACRO_DEBUF();
-
 	// //----------------------------------------------------------------------
 
-	// // properties of file
-	// struct STD_FILE_STRUCTURE cursor_file = { EMPTY };
+	// properties of file
+	struct STD_FILE_STRUCTURE cursor_file = { EMPTY };
 
-	// // properties of image
-	// struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = EMPTY;
+	// properties of image
+	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = EMPTY;
 
-	// // retrieve file information
-	// uint8_t cursor_path[] = "/system/var/gfx/cursors/default.tga";
-	// if( (cursor_file.socket = std_file_open( (uint8_t *) &cursor_path, sizeof( cursor_path ) - 1 )) ) {
-	// 	// retrieve properties of file
-	// 	std_file( (struct STD_FILE_STRUCTURE *) &cursor_file );
+	// retrieve file information
+	uint8_t cursor_path[] = "/system/var/gfx/cursors/default.tga";
+	if( (cursor_file.socket = std_file_open( (uint8_t *) &cursor_path, sizeof( cursor_path ) - 1 )) ) {
+		// retrieve properties of file
+		std_file( (struct STD_FILE_STRUCTURE *) &cursor_file );
 
-	// 	// assign area for file
-	// 	cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( cursor_file.byte ) >> STD_SHIFT_PAGE );
+		// assign area for file
+		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( cursor_file.byte ) >> STD_SHIFT_PAGE );
 
-	// 	// load file content
-	// 	if( cursor_image ) std_file_read( (struct STD_FILE_STRUCTURE *) &cursor_file, (uint8_t *) cursor_image, cursor_file.byte );
+		// load file content
+		if( cursor_image ) std_file_read( (struct STD_FILE_STRUCTURE *) &cursor_file, (uint8_t *) cursor_image, cursor_file.byte );
 
-	// 	// create cursor object
-	// 	wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
-	// } else
+		// create cursor object
+		wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
+	} else
 		// create default object
 		wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, 16, 32 );
 
 	// mark it as our
 	wm_object_cursor -> pid = wm_pid;
 
-	// // properties of cursor area content
-	// uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	// properties of cursor area content
+	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 
-	// // fill cursor with default color
-	// for( uint16_t y = 0; y < wm_object_cursor -> height; y++ )
-	// 	for( uint16_t x = 0; x < wm_object_cursor -> width; x++ )
-	// 		cursor_pixel[ (y * wm_object_cursor -> width) + x ] = STD_COLOR_WHITE;
+	// fill cursor with default color
+	for( uint16_t y = 0; y < wm_object_cursor -> height; y++ )
+		for( uint16_t x = 0; x < wm_object_cursor -> width; x++ )
+			cursor_pixel[ (y * wm_object_cursor -> width) + x ] = STD_COLOR_WHITE;
 
-	// // if default cursor file found
-	// if( cursor_image ) {
-	// 	// copy image content to cursor object
-	// 	lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file.byte );
+	// if default cursor file found
+	if( cursor_image ) {
+		// copy image content to cursor object
+		lib_image_tga_parse( (uint8_t *) cursor_image, cursor_pixel, cursor_file.byte );
 
-	// 	// release file content
-	// 	std_memory_release( (uintptr_t) cursor_image, MACRO_PAGE_ALIGN_UP( cursor_file.byte ) >> STD_SHIFT_PAGE );
+		// release file content
+		std_memory_release( (uintptr_t) cursor_image, MACRO_PAGE_ALIGN_UP( cursor_file.byte ) >> STD_SHIFT_PAGE );
 
-	// 	// close file
-	// 	std_file_close( cursor_file.socket );
-	// }
+		// close file
+		std_file_close( cursor_file.socket );
+	}
 
-	// // mark window as cursor, so Window Manager will treat it different than others
-	// wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_cursor;
+	// mark window as cursor, so Window Manager will treat it different than others
+	wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_cursor;
 
-	// // yep, any object can be a cursor :) but only 1 with highest internal ID will be treated as it
-	// // so before you assign a flag to another object, make sure no other object have it
+	// yep, any object can be a cursor :) but only 1 with highest internal ID will be treated as it
+	// so before you assign a flag to another object, make sure no other object have it
 
-	// // object content ready for display
-	// wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+	// object content ready for display
+	wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
 	// //----------------------------------------------------------------------
 
