@@ -340,6 +340,11 @@ uint8_t kernel_page_empty( uint64_t *page, uint64_t N ) {
 	return TRUE;
 }
 
+inline void kernel_page_flush( void ) {
+	// reload paging structure
+	__asm__ volatile( "push	%rax\nmovq	%cr3, %rax\nmovq	%rax, %cr3\npop	%rax" );
+}
+
 uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags ) {
 	// start with following table[record]
 	uint16_t p4 = (target >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PML_records - 1); 

@@ -52,9 +52,6 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	uintptr_t allocated = EMPTY;
 	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
 
-// debug
-kernel_time_sleep( TRUE );
-
 		// allocate space inside process paging area
 		if( ! kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) {
 			// debug
@@ -63,6 +60,9 @@ kernel_time_sleep( TRUE );
 			// no asssignment
 			return EMPTY;
 		}
+
+		// reload paging structure
+		kernel_page_flush();
 
 		// process memory usage
 		task -> page += page;
@@ -82,9 +82,6 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// current task properties
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// debug
-kernel_time_sleep( TRUE );
-
 	// remove page from paging structure
 	if( ! kernel_page_release( (uint64_t *) task -> cr3, target, page, task -> page_type ) ) {
 		// debug
@@ -93,6 +90,9 @@ kernel_time_sleep( TRUE );
 		// no asssignment
 		return;
 	}
+
+	// reload paging structure
+	kernel_page_flush();
 
 	// release page in binary memory map of process
 	kernel_memory_dispose( task -> memory_map, target >> STD_SHIFT_PAGE, page );
