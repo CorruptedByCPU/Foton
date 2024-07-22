@@ -13,7 +13,7 @@
 	//----------------------------------------------------------------------
 	// functions / procedures
 	//----------------------------------------------------------------------
-	// #include	"./wm/event.c"
+	#include	"./wm/event.c"
 	#include	"./wm/sync.c"
 	#include	"./wm/fill.c"
 	#include	"./wm/zone.c"
@@ -32,13 +32,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// hold the door
 	while( TRUE ) {
 		// // check for incomming events
-		// wm_event();
+		wm_event();
 
 		// which objects have been recently updated?
 		wm_object();
 
 		// remove object no more used
-		// wm_release();
+		wm_release();
 
 		// assign objects to zones
 		wm_zone();

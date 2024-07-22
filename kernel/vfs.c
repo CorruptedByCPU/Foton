@@ -59,131 +59,131 @@ void kernel_vfs_file_read( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *target,
 	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
 }
 
-// struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_touch( uint8_t *path, uint8_t type ) {
-// 	// retrieve path length
-// 	uint64_t length = lib_string_length( path );
+struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_touch( uint8_t *path, uint8_t type ) {
+	// retrieve path length
+	uint64_t length = lib_string_length( path );
 
-// 	// unsupported length?
-// 	if( ! length ) return EMPTY;	// cannot resolve path
+	// unsupported length?
+	if( ! length ) return EMPTY;	// cannot resolve path
 
-// 	// pointer to last file name inside path
-// 	uint8_t *file_name = lib_string_basename( path );
+	// pointer to last file name inside path
+	uint8_t *file_name = lib_string_basename( path );
 
-// 	// file name length
-// 	uint64_t file_name_length = length - ((uintptr_t) file_name - (uintptr_t) path);
+	// file name length
+	uint64_t file_name_length = length - ((uintptr_t) file_name - (uintptr_t) path);
 
-// 	// properties of directory from path
-// 	struct LIB_VFS_STRUCTURE *directory;
-// 	if( ! (directory = kernel_vfs_path( path, length - file_name_length )) ) return EMPTY;	// path not resolvable
+	// properties of directory from path
+	struct LIB_VFS_STRUCTURE *directory;
+	if( ! (directory = kernel_vfs_path( path, length - file_name_length )) ) return EMPTY;	// path not resolvable
 
-// 	// content of directory
-// 	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) directory -> offset;
+	// content of directory
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) directory -> offset;
 
-// 	// empty entry id
-// 	uint64_t entry = 0;
+	// empty entry id
+	uint64_t entry = 0;
 
-// 	// search for empty entry
-// 	for( uint64_t i = 0; i < directory -> byte / sizeof( struct LIB_VFS_STRUCTURE ); i++ ) {
-// 		// found?
-// 		if( ! entry && ! file[ i ].name_length ) entry = i;
+	// search for empty entry
+	for( uint64_t i = 0; i < directory -> byte / sizeof( struct LIB_VFS_STRUCTURE ); i++ ) {
+		// found?
+		if( ! entry && ! file[ i ].name_length ) entry = i;
 
-// 		// file with exact same name found?
-// 		if( file_name_length == file[ i ].name_length && lib_string_compare( file_name, file[ i ].name, file_name_length ) ) return EMPTY;	// ignore file creation
-// 	}
+		// file with exact same name found?
+		if( file_name_length == file[ i ].name_length && lib_string_compare( file_name, file[ i ].name, file_name_length ) ) return EMPTY;	// ignore file creation
+	}
 
-// 	// if empty entry not found
-// 	if( ! entry ) return EMPTY;
+	// if empty entry not found
+	if( ! entry ) return EMPTY;
 
-// 	// set file name
-// 	for( uint8_t j = 0; j < file_name_length; j++ ) file[ entry ].name[ file[ entry ].name_length++ ] = file_name[ j ];
+	// set file name
+	for( uint8_t j = 0; j < file_name_length; j++ ) file[ entry ].name[ file[ entry ].name_length++ ] = file_name[ j ];
 
-// 	// set file type
-// 	file[ entry ].type = type;
+	// set file type
+	file[ entry ].type = type;
 
-// 	// create empty directory if required
-// 	switch( type ) {
-// 		case STD_FILE_TOUCH_directory: {
-// 			// done
-// 			break;
-// 		}
+	// create empty directory if required
+	switch( type ) {
+		case STD_FILE_TOUCH_directory: {
+			// done
+			break;
+		}
 
-// 		default: {
-// 			// clean data pointer
-// 			file[ entry ].offset = EMPTY;
+		default: {
+			// clean data pointer
+			file[ entry ].offset = EMPTY;
 
-// 			// and file size
-// 			file[ entry ].byte = EMPTY;
-// 		}
-// 	}
+			// and file size
+			file[ entry ].byte = EMPTY;
+		}
+	}
 
-// 	// open socket
-// 	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) &file[ entry ] ) ];
+	// open socket
+	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) &file[ entry ] ) ];
 
-// 	// file located on definied storage
-// 	socket -> storage = kernel -> storage_root;
+	// file located on definied storage
+	socket -> storage = kernel -> storage_root;
 
-// 	// file identificator
-// 	socket -> knot = (uint64_t) &file[ entry ];
+	// file identificator
+	socket -> knot = (uint64_t) &file[ entry ];
 
-// 	// socket opened by process with ID
-// 	socket -> pid = kernel_task_pid();
+	// socket opened by process with ID
+	socket -> pid = kernel_task_pid();
 
-// 	// file found
-// 	return socket;
-// }
+	// file found
+	return socket;
+}
 
-// void kernel_vfs_file_write( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *source, uint64_t seek, uint64_t byte ) {
-// 	// lock exclusive access
-// 	MACRO_LOCK( socket -> semaphore );
+void kernel_vfs_file_write( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *source, uint64_t seek, uint64_t byte ) {
+	// lock exclusive access
+	MACRO_LOCK( socket -> semaphore );
 
-// 	// properties of file
-// 	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
+	// properties of file
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
 
-// 	// invalid write request?
-// 	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> byte ) ) {
-// 		// prepare new file content area
-// 		uint8_t *new = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
+	// invalid write request?
+	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> byte ) ) {
+		// prepare new file content area
+		uint8_t *new = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
 
-// 		// if file content exist
-// 		if( file -> offset ) {
-// 			// copy current content to new location only if current file content will not be truncated
-// 			uint8_t *old = (uint8_t *) file -> offset;
-// 			if( ! seek ) for( uint64_t i = 0; i < file -> byte; i++ ) new[ i ] = old[ i ];
+		// if file content exist
+		if( file -> offset ) {
+			// copy current content to new location only if current file content will not be truncated
+			uint8_t *old = (uint8_t *) file -> offset;
+			if( ! seek ) for( uint64_t i = 0; i < file -> byte; i++ ) new[ i ] = old[ i ];
 
-// 			// release old file content
-// 			kernel_memory_release( file -> offset, MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
-// 		}
+			// release old file content
+			kernel_memory_release( file -> offset, MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
+		}
 
-// 		// update file properties with new content location
-// 		file -> offset = (uintptr_t) new;
-// 	}
+		// update file properties with new content location
+		file -> offset = (uintptr_t) new;
+	}
 
-// 	// INFO: writing to file from seek == EMPTY, means the same as create new content
+	// INFO: writing to file from seek == EMPTY, means the same as create new content
 
-// 	// copy content of memory to file
-// 	uint8_t *target = (uint8_t *) file -> offset + seek;
-// 	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
+	// copy content of memory to file
+	uint8_t *target = (uint8_t *) file -> offset + seek;
+	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
 
-// 	// truncate file size?
-// 	if( ! seek ) {
-// 		// remove obsolete blocks of file
-// 		if( MACRO_PAGE_ALIGN_UP( file -> byte ) > MACRO_PAGE_ALIGN_UP( byte ) ) {
-// 			// locate amount of file blocks to truncate
-// 			uint64_t blocks = (MACRO_PAGE_ALIGN_UP( file -> byte ) - MACRO_PAGE_ALIGN_UP( byte )) >> STD_SHIFT_PAGE;
+	// truncate file size?
+	if( ! seek ) {
+		// remove obsolete blocks of file
+		if( MACRO_PAGE_ALIGN_UP( file -> byte ) > MACRO_PAGE_ALIGN_UP( byte ) ) {
+			// locate amount of file blocks to truncate
+			uint64_t blocks = (MACRO_PAGE_ALIGN_UP( file -> byte ) - MACRO_PAGE_ALIGN_UP( byte )) >> STD_SHIFT_PAGE;
 
-// 			// remove unused blocks from file
-// 			kernel_memory_release( file -> offset + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
-// 		}
+			// remove unused blocks from file
+			kernel_memory_release( file -> offset + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
+		}
 
-// 		// new file size
-// 		file -> byte = byte;
-// 	} else
-// 		// file size will change after overwrite?
-// 		if( seek + byte > file -> byte ) file -> byte = seek + byte;	// yes
+		// new file size
+		file -> byte = byte;
+	} else
+		// file size will change after overwrite?
+		if( seek + byte > file -> byte ) file -> byte = seek + byte;	// yes
 	
-// 	// unlock access
-// 	MACRO_UNLOCK( socket -> semaphore );
-// }
+	// unlock access
+	MACRO_UNLOCK( socket -> semaphore );
+}
 
 uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte ) {
 	// file properties in chunks

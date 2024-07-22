@@ -101,10 +101,10 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	task -> page -= page;
 }
 
-// uint64_t kernel_syscall_uptime( void ) {
-// 	// return uptime
-// 	return kernel -> time_unit;
-// }
+uint64_t kernel_syscall_uptime( void ) {
+	// return uptime
+	return kernel -> time_unit;
+}
 
 void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 	// if string pointer is above software environment memory area
@@ -191,418 +191,416 @@ int64_t kernel_syscall_pid( void ) {
 	return task -> pid;
 }
 
-// int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
-// 	// return new process ID
-// 	return kernel_exec( name, length, stream_flow );
-// }
+int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
+	// return new process ID
+	return kernel_exec( name, length, stream_flow );
+}
 
-// uint8_t kernel_syscall_pid_check( int64_t pid ) {
-// 	// find an entry with selected ID
-// 	for( uint64_t i = 0; i < KERNEL_TASK_limit; i++ ) {
-// 		// ignore kernels ID
-// 		if( ! pid ) return FALSE;
+uint8_t kernel_syscall_pid_check( int64_t pid ) {
+	// find an entry with selected ID
+	for( uint64_t i = 0; i < KERNEL_TASK_limit; i++ ) {
+		// ignore kernels ID
+		if( ! pid ) return FALSE;
 
-// 		// entry occupied?
-// 		if( ! kernel -> task_base_address[ i ].flags ) continue;	// no
+		// entry occupied?
+		if( ! kernel -> task_base_address[ i ].flags ) continue;	// no
 
-// 		// found?
-// 		if( kernel -> task_base_address[ i ].pid == pid ) return TRUE;
-// 	}
+		// found?
+		if( kernel -> task_base_address[ i ].pid == pid ) return TRUE;
+	}
 
-// 	// process not found
-// 	return FALSE;
-// }
+	// process not found
+	return FALSE;
+}
 
-// void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
-// 	// deny access, only one logical processor at a time
-// 	MACRO_LOCK( kernel -> ipc_semaphore );
+void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
+	// deny access, only one logical processor at a time
+	MACRO_LOCK( kernel -> ipc_semaphore );
 
-// 	// wait for free stack area
-// 	while( TRUE ) {
-// 		// scan whole IPC area
-// 		for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
-// 			// free entry found?
-// 			if( kernel -> ipc_base_address[ i ].ttl > kernel -> time_unit ) continue;	// no
+	// wait for free stack area
+	while( TRUE ) {
+		// scan whole IPC area
+		for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
+			// free entry found?
+			if( kernel -> ipc_base_address[ i ].ttl > kernel -> time_unit ) continue;	// no
 
-// 			// send to
-// 			kernel -> ipc_base_address[ i ].target = pid;
+			// send to
+			kernel -> ipc_base_address[ i ].target = pid;
 
-// 			// sent from
-// 			kernel -> ipc_base_address[ i ].source = kernel_task_pid();
+			// sent from
+			kernel -> ipc_base_address[ i ].source = kernel_task_pid();
 
-// 			// load data into message
-// 			for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
-// 				kernel -> ipc_base_address[ i ].data[ j ] = data[ j ];
+			// load data into message
+			for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+				kernel -> ipc_base_address[ i ].data[ j ] = data[ j ];
 
-// 			// set message timeout
-// 			kernel -> ipc_base_address[ i ].ttl = kernel -> time_unit + KERNEL_IPC_ttl;
+			// set message timeout
+			kernel -> ipc_base_address[ i ].ttl = kernel -> time_unit + KERNEL_IPC_ttl;
 
-// 			// unlock access to IPC area
-// 			MACRO_UNLOCK( kernel -> ipc_semaphore );
+			// unlock access to IPC area
+			MACRO_UNLOCK( kernel -> ipc_semaphore );
 
-// 			// message sent
-// 			return;
-// 		}
-// 	}
-// }
+			// message sent
+			return;
+		}
+	}
+}
 
-// int64_t kernel_syscall_ipc_receive( uint8_t *data ) {
-// 	// from who we received message
-// 	int64_t source = EMPTY;	// by default no one
+int64_t kernel_syscall_ipc_receive( uint8_t *data ) {
+	// from who we received message
+	int64_t source = EMPTY;	// by default no one
 
-// 	// scan whole IPC area
-// 	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
-// 		// message alive?
-// 		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
+	// scan whole IPC area
+	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
+		// message alive?
+		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
-// 		// message for us?
-// 		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
+		// message for us?
+		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
 
-// 		// load data into message
-// 		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
-// 			data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
+		// load data into message
+		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+			data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
 
-// 		// retrieve message source
-// 		source = kernel -> ipc_base_address[ i ].source;
+		// retrieve message source
+		source = kernel -> ipc_base_address[ i ].source;
 
-// 		// mark entry as free
-// 		kernel -> ipc_base_address[ i ].ttl = EMPTY;
+		// mark entry as free
+		kernel -> ipc_base_address[ i ].ttl = EMPTY;
 
-// 		// message received
-// 		break;
-// 	}
+		// message received
+		break;
+	}
 
-// 	// return message source
-// 	return source;
-// }
+	// return message source
+	return source;
+}
 
-// uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t pages ) {
-// 	// properties of target task
-// 	struct KERNEL_TASK_STRUCTURE *target = (struct KERNEL_TASK_STRUCTURE *) kernel_task_by_id( pid );
+uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t pages ) {
+	// properties of target task
+	struct KERNEL_TASK_STRUCTURE *target = (struct KERNEL_TASK_STRUCTURE *) kernel_task_by_id( pid );
 
-// 	// acquire space from target task
-// 	uintptr_t target_pointer = kernel_memory_acquire( target -> memory_map, pages, KERNEL_MEMORY_LOW, kernel -> page_limit ) << STD_SHIFT_PAGE;
+	// acquire space from target task
+	uintptr_t target_pointer = kernel_memory_acquire( target -> memory_map, pages, KERNEL_MEMORY_LOW, kernel -> page_limit ) << STD_SHIFT_PAGE;
 
-// 	// connect memory space of parent process with child
-// 	kernel_page_clang( (uint64_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
+	// connect memory space of parent process with child
+	kernel_page_clang( (uint64_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
 
-// 	// return the address of the first page in the collection
-// 	return target_pointer;
-// }
+	// return the address of the first page in the collection
+	return target_pointer;
+}
 
-// void kernel_syscall_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse ) {
-// 	// return information about existing framebuffer
-// 	mouse -> x	= kernel -> device_mouse_x;
-// 	mouse -> y	= kernel -> device_mouse_y;
-// 	mouse -> status	= kernel -> device_mouse_status;
-// }
+void kernel_syscall_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse ) {
+	// return information about existing framebuffer
+	mouse -> x	= kernel -> device_mouse_x;
+	mouse -> y	= kernel -> device_mouse_y;
+	mouse -> status	= kernel -> device_mouse_status;
+}
 
-// void kernel_syscall_framebuffer_change( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
-// 	// process is allowed for modifications?
-// 	if( kernel_task_pid() != kernel -> framebuffer_pid ) return;	// no
+void kernel_syscall_framebuffer_change( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
+	// process is allowed for modifications?
+	if( kernel_task_pid() != kernel -> framebuffer_pid ) return;	// no
 
-// 	// change new framebuffer owner
-// 	kernel -> framebuffer_pid = framebuffer -> pid;
-// }
+	// change new framebuffer owner
+	kernel -> framebuffer_pid = framebuffer -> pid;
+}
 
-// uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
-// 	// scan whole IPC area
-// 	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
-// 		// message alive?
-// 		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
+uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
+	// scan whole IPC area
+	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
+		// message alive?
+		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
-// 		// message for us?
-// 		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
+		// message for us?
+		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
 
-// 		// message from specific process?
-// 		if( kernel -> ipc_base_address[ i ].source != pid ) continue;	// no
+		// message from specific process?
+		if( kernel -> ipc_base_address[ i ].source != pid ) continue;	// no
 
-// 		// load data into message
-// 		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
-// 			data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
+		// load data into message
+		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+			data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
 
-// 		// mark entry as free
-// 		kernel -> ipc_base_address[ i ].ttl = EMPTY;
+		// mark entry as free
+		kernel -> ipc_base_address[ i ].ttl = EMPTY;
 
-// 		// message acquired
-// 		return TRUE;
-// 	}
+		// message acquired
+		return TRUE;
+	}
 
-// 	// no message for process
-// 	return FALSE;
-// }
+	// no message for process
+	return FALSE;
+}
 
-// uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
-// 	// current task properties
-// 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// 	// block access to stream modification
-// 	MACRO_LOCK( task -> stream_out -> semaphore );
+	// block access to stream modification
+	MACRO_LOCK( task -> stream_out -> semaphore );
 
-// 	// stream closed or full?
-// 	if( task -> stream_out -> flags & KERNEL_STREAM_FLAG_closed || task -> stream_out -> length_byte == STD_STREAM_SIZE_page << STD_SHIFT_PAGE ) {
-// 		// unlock stream access
-// 		MACRO_UNLOCK( task -> stream_out -> semaphore );
+	// stream closed or full?
+	if( task -> stream_out -> flags & KERNEL_STREAM_FLAG_closed || task -> stream_out -> length_byte == STD_STREAM_SIZE_page << STD_SHIFT_PAGE ) {
+		// unlock stream access
+		MACRO_UNLOCK( task -> stream_out -> semaphore );
 
-// 		// yes
-// 		return FALSE;
-// 	}
+		// yes
+		return FALSE;
+	}
 
-// 	// amount of data inside stream after operation
-// 	task -> stream_out -> length_byte += length;
+	// amount of data inside stream after operation
+	task -> stream_out -> length_byte += length;
 
-// 	// can we fit it?
-// 	if( length > (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) - task -> stream_out -> length_byte ) {	// no
-// 		// unlock stream access
-// 		MACRO_UNLOCK( task -> stream_out -> semaphore );
+	// can we fit it?
+	if( length > (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) - task -> stream_out -> length_byte ) {	// no
+		// unlock stream access
+		MACRO_UNLOCK( task -> stream_out -> semaphore );
 
-// 		// unable to fit string
-// 		return FALSE;
-// 	}
+		// unable to fit string
+		return FALSE;
+	}
 
-// 	// insert data from end marker to end of stream
-// 	if( task -> stream_out -> end >= task -> stream_out -> start ) {
-// 		while( length && task -> stream_out -> end != (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) ) {
-// 			task -> stream_out -> base_address[ task -> stream_out -> end++ ] = *(string++);
+	// insert data from end marker to end of stream
+	if( task -> stream_out -> end >= task -> stream_out -> start ) {
+		while( length && task -> stream_out -> end != (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) ) {
+			task -> stream_out -> base_address[ task -> stream_out -> end++ ] = *(string++);
 
-// 			// character inserted
-// 			length--;
-// 		}
+			// character inserted
+			length--;
+		}
 
-// 		// move end marker at beginning of stream content
-// 		if( task -> stream_out -> end == (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) || length ) task -> stream_out -> end = EMPTY;
-// 	}
+		// move end marker at beginning of stream content
+		if( task -> stream_out -> end == (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) || length ) task -> stream_out -> end = EMPTY;
+	}
 
-// 	// insert data from end marker to start marker
-// 	while( length && task -> stream_out -> end != task -> stream_out -> start ) {
-// 		task -> stream_out -> base_address[ task -> stream_out -> end++ ] = *(string++);
+	// insert data from end marker to start marker
+	while( length && task -> stream_out -> end != task -> stream_out -> start ) {
+		task -> stream_out -> base_address[ task -> stream_out -> end++ ] = *(string++);
 
-// 		// character inserted
-// 		length--;
-// 	}
+		// character inserted
+		length--;
+	}
 
-// 	// string content is modified
-// 	task -> stream_out -> flags |= KERNEL_STREAM_FLAG_modified;
+	// string content is modified
+	task -> stream_out -> flags |= KERNEL_STREAM_FLAG_modified;
 
-// 	// unlock stream access
-// 	MACRO_UNLOCK( task -> stream_out -> semaphore );
+	// unlock stream access
+	MACRO_UNLOCK( task -> stream_out -> semaphore );
 
-// 	// string sended
-// 	return TRUE;
-// }
+	// string sended
+	return TRUE;
+}
 
-// uint64_t kernel_syscall_stream_in( uint8_t *target ) {
-// 	// get the process output stream id
-// 	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+uint64_t kernel_syscall_stream_in( uint8_t *target ) {
+	// get the process output stream id
+	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
 
-// 	// block access to stream modification
-// 	MACRO_LOCK( task -> stream_in -> semaphore );
+	// block access to stream modification
+	MACRO_LOCK( task -> stream_in -> semaphore );
 
-// 	// stream closed or empty?
-// 	if( task -> stream_in -> flags & KERNEL_STREAM_FLAG_closed || ! task -> stream_in -> length_byte ) {
-// 		// unlock stream modification
-// 		MACRO_UNLOCK( task -> stream_in -> semaphore );
+	// stream closed or empty?
+	if( task -> stream_in -> flags & KERNEL_STREAM_FLAG_closed || ! task -> stream_in -> length_byte ) {
+		// unlock stream modification
+		MACRO_UNLOCK( task -> stream_in -> semaphore );
 
-// 		// yes
-// 		return EMPTY;
-// 	}
+		// yes
+		return EMPTY;
+	}
 
-// 	// passed data from stream
-// 	uint64_t length = EMPTY;
+	// passed data from stream
+	uint64_t length = EMPTY;
 
-// 	// send data from start marker to end of stream
-// 	if( task -> stream_in -> start >= task -> stream_in -> end ) {
-// 		while( task -> stream_in -> start < (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) )
-// 			target[ length++ ] = task -> stream_in -> base_address[ task -> stream_in -> start++ ];
+	// send data from start marker to end of stream
+	if( task -> stream_in -> start >= task -> stream_in -> end ) {
+		while( task -> stream_in -> start < (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) )
+			target[ length++ ] = task -> stream_in -> base_address[ task -> stream_in -> start++ ];
 
-// 		// move start marker at beginning of stream content
-// 		if( task -> stream_in -> start == (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) || length ) task -> stream_in -> start = EMPTY;
-// 	}
+		// move start marker at beginning of stream content
+		if( task -> stream_in -> start == (STD_STREAM_SIZE_page << STD_SHIFT_PAGE) || length ) task -> stream_in -> start = EMPTY;
+	}
 
-// 	// send data from start marker to end marker
-// 	while( task -> stream_in -> start != task -> stream_in -> end )
-// 		target[ length++ ] = task -> stream_in -> base_address[ task -> stream_in -> start++ ];
+	// send data from start marker to end marker
+	while( task -> stream_in -> start != task -> stream_in -> end )
+		target[ length++ ] = task -> stream_in -> base_address[ task -> stream_in -> start++ ];
 
-// 	// stream empty
-// 	task -> stream_in -> length_byte = EMPTY;
+	// stream empty
+	task -> stream_in -> length_byte = EMPTY;
 
-// 	// unlock stream modification
-// 	MACRO_UNLOCK( task -> stream_in -> semaphore );
+	// unlock stream modification
+	MACRO_UNLOCK( task -> stream_in -> semaphore );
 
-// 	// return amount of transferred data in Bytes
-// 	return length;
-// }
+	// return amount of transferred data in Bytes
+	return length;
+}
 
-// uint16_t kernel_syscall_keyboard( void ) {
-// 	// current task properties
-// 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+uint16_t kernel_syscall_keyboard( void ) {
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// 	// am I framebuffer manager?
-// 	if( task -> pid != kernel -> framebuffer_pid ) return EMPTY;	// no, return no key
+	// am I framebuffer manager?
+	if( task -> pid != kernel -> framebuffer_pid ) return EMPTY;	// no, return no key
 
-// 	// get first key code from buffer
-// 	uint16_t key = kernel -> device_keyboard[ 0 ];
+	// get first key code from buffer
+	uint16_t key = kernel -> device_keyboard[ 0 ];
 
-// 	// move all characters inside buffer, forward one position
-// 	for( uint8_t i = 0; i < 7; i++ ) kernel -> device_keyboard[ i ] = kernel -> device_keyboard[ i + 1 ];
+	// move all characters inside buffer, forward one position
+	for( uint8_t i = 0; i < 7; i++ ) kernel -> device_keyboard[ i ] = kernel -> device_keyboard[ i + 1 ];
 
-// 	// drain last key
-// 	kernel -> device_keyboard[ 7 ] = EMPTY;
+	// drain last key
+	kernel -> device_keyboard[ 7 ] = EMPTY;
 
-// 	// return key code
-// 	return key;
-// }
+	// return key code
+	return key;
+}
 
-// void kernel_syscall_stream_set( uint8_t *meta, uint8_t stream_type ) {
-// 	// current task properties
-// 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+void kernel_syscall_stream_set( uint8_t *meta, uint8_t stream_type ) {
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// 	// stream properties
-// 	struct KERNEL_STREAM_STRUCTURE *stream;
+	// stream properties
+	struct KERNEL_STREAM_STRUCTURE *stream;
 
-// 	// choose stream type
-// 	if( stream_type == STD_STREAM_IN ) stream = task -> stream_in;
-// 	else stream = task -> stream_out;
+	// choose stream type
+	if( stream_type == STD_STREAM_IN ) stream = task -> stream_in;
+	else stream = task -> stream_out;
 
-// 	// block access to stream modification
-// 	MACRO_LOCK( stream -> semaphore );
+	// block access to stream modification
+	MACRO_LOCK( stream -> semaphore );
 
-// 	// update stream meta only if is empty
-// 	if( ! stream -> length_byte ) {
-// 		// update meta data
-// 		for( uint8_t i = 0; i < STD_STREAM_META_limit; i++ ) stream -> meta[ i ] = meta[ i ];
+	// update stream meta only if is empty
+	if( ! stream -> length_byte ) {
+		// update meta data
+		for( uint8_t i = 0; i < STD_STREAM_META_limit; i++ ) stream -> meta[ i ] = meta[ i ];
 
-// 		// meta data is consistent
-// 		stream -> flags &= ~KERNEL_STREAM_FLAG_modified;
-// 	}
+		// meta data is consistent
+		stream -> flags &= ~KERNEL_STREAM_FLAG_modified;
+	}
 
-// 	// unlock stream modification
-// 	MACRO_UNLOCK( stream -> semaphore );
-// }
+	// unlock stream modification
+	MACRO_UNLOCK( stream -> semaphore );
+}
 
-// uint8_t kernel_syscall_stream_get( uint8_t *target, uint8_t stream_type ) {
-// 	// current task properties
-// 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+uint8_t kernel_syscall_stream_get( uint8_t *target, uint8_t stream_type ) {
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// 	// stream properties
-// 	struct KERNEL_STREAM_STRUCTURE *stream;
+	// stream properties
+	struct KERNEL_STREAM_STRUCTURE *stream;
 
-// 	// choose stream type
-// 	if( stream_type == STD_STREAM_IN ) stream = task -> stream_in;
-// 	else stream = task -> stream_out;
+	// choose stream type
+	if( stream_type == STD_STREAM_IN ) stream = task -> stream_in;
+	else stream = task -> stream_out;
 
-// 	// block access to stream modification
-// 	MACRO_LOCK( stream -> semaphore );
+	// block access to stream modification
+	MACRO_LOCK( stream -> semaphore );
 
-// 	// retrieve meta data
-// 	for( uint8_t i = 0; i < STD_STREAM_META_limit; i++ ) target[ i ] = stream -> meta[ i ];
+	// retrieve meta data
+	for( uint8_t i = 0; i < STD_STREAM_META_limit; i++ ) target[ i ] = stream -> meta[ i ];
 
-// 	// meta data was up to date?
-// 	uint8_t status = TRUE;
-// 	if( stream -> flags & KERNEL_STREAM_FLAG_modified ) status = FALSE;	// nope
+	// meta data was up to date?
+	uint8_t status = TRUE;
+	if( stream -> flags & KERNEL_STREAM_FLAG_modified ) status = FALSE;	// nope
 
-// 	// unlock stream modification
-// 	MACRO_UNLOCK( stream -> semaphore );
+	// unlock stream modification
+	MACRO_UNLOCK( stream -> semaphore );
 
-// 	// return meta data status
-// 	return status;
-// }
+	// return meta data status
+	return status;
+}
 
-// void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
-// 	// all available Bytes
-// 	memory -> total = kernel -> page_total << STD_SHIFT_PAGE;
+void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
+	// all available Bytes
+	memory -> total = kernel -> page_total << STD_SHIFT_PAGE;
 
-// 	// and currently free
-// 	memory -> available = kernel -> page_available << STD_SHIFT_PAGE;
+	// and currently free
+	memory -> available = kernel -> page_available << STD_SHIFT_PAGE;
 
-// 	// used by paging
-// 	memory -> paging = kernel -> page_structure << STD_SHIFT_PAGE;
+	// used by paging
+	memory -> paging = kernel -> page_structure << STD_SHIFT_PAGE;
 
-// 	// shared between processes (only parent process will have it counted in memory use)
-// 	memory -> shared = kernel -> page_shared << STD_SHIFT_PAGE;
-// }
+	// shared between processes (only parent process will have it counted in memory use)
+	memory -> shared = kernel -> page_shared << STD_SHIFT_PAGE;
+}
 
 uint64_t kernel_syscall_sleep( uint64_t units ) {
 	// current task properties
-	// struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-	// // mark task as sleeping
-	// task -> flags |= STD_TASK_FLAG_sleep;
+	// mark task as sleeping
+	task -> flags |= STD_TASK_FLAG_sleep;
 
-	// // set release pointer
-	// uint64_t stop = kernel -> time_unit + units;
+	// set release pointer
+	uint64_t stop = kernel -> time_unit + units;
 
-	// // wait until we achieve awaited units of time
-	// while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
+	// wait until we achieve awaited units of time
+	while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
 
-	// // remove sleep status
-	// task -> flags &= ~STD_TASK_FLAG_sleep;
+	// remove sleep status
+	task -> flags &= ~STD_TASK_FLAG_sleep;
 
-	// // return remaining units (is sleep was broken)
-	// return units;
-
-	return EMPTY;
+	// return remaining units (is sleep was broken)
+	return units;
 }
 
-// uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
-// 	// try to open provided path
-// 	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
+uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
+	// try to open provided path
+	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
 
-// 	// if file doesn't exist
-// 	if( ! socket ) return FALSE;
+	// if file doesn't exist
+	if( ! socket ) return FALSE;
 
-// 	// directory change semaphore
-// 	uint8_t flag = FALSE;
+	// directory change semaphore
+	uint8_t flag = FALSE;
 
-// 	// properties of opened file
-// 	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) socket -> knot;
+	// properties of opened file
+	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) socket -> knot;
 
-// 	// it is a directory?
-// 	if( vfs -> type & STD_FILE_TYPE_directory ) {
-// 		// current task properties
-// 		struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	// it is a directory?
+	if( vfs -> type & STD_FILE_TYPE_directory ) {
+		// current task properties
+		struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-// 		// set new root directory of current process
-// 		task -> directory = socket -> knot;
+		// set new root directory of current process
+		task -> directory = socket -> knot;
 
-// 		// directory changed
-// 		flag = TRUE;
-// 	}
+		// directory changed
+		flag = TRUE;
+	}
 
-// 	// close file
-// 	kernel_vfs_file_close( socket );
+	// close file
+	kernel_vfs_file_close( socket );
 
-// 	// done
-// 	return flag;
-// }
+	// done
+	return flag;
+}
 
-// int64_t kernel_syscall_ipc_receive_by_type( uint8_t *data, uint8_t type ) {
-// 	// scan whole IPC area
-// 	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
-// 		// message alive?
-// 		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
+int64_t kernel_syscall_ipc_receive_by_type( uint8_t *data, uint8_t type ) {
+	// scan whole IPC area
+	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
+		// message alive?
+		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
-// 		// message for us?
-// 		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
+		// message for us?
+		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
 
-// 		// message of requested type?
-// 		struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &kernel -> ipc_base_address[ i ].data;
-// 		if( ipc -> type != type ) continue;	// no
+		// message of requested type?
+		struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &kernel -> ipc_base_address[ i ].data;
+		if( ipc -> type != type ) continue;	// no
 
-// 		// load data into message
-// 		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
-// 			data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
+		// load data into message
+		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+			data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
 
-// 		// mark entry as free
-// 		kernel -> ipc_base_address[ i ].ttl = EMPTY;
+		// mark entry as free
+		kernel -> ipc_base_address[ i ].ttl = EMPTY;
 
-// 		// message acquired
-// 		return kernel -> ipc_base_address[ i ].source;
-// 	}
+		// message acquired
+		return kernel -> ipc_base_address[ i ].source;
+	}
 
-// 	// no message for process
-// 	return EMPTY;
-// }
+	// no message for process
+	return EMPTY;
+}
 
 uint64_t kernel_syscall_microtime( void ) {
 	// return microtime
@@ -663,74 +661,74 @@ void kernel_syscall_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target,
 	file -> seek += byte;
 }
 
-// void kernel_syscall_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t byte ) {
-// 	// invalid socket value?
-// 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
+void kernel_syscall_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t byte ) {
+	// invalid socket value?
+	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
-// 	// pass file content to process memory
-// 	kernel_vfs_file_write( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ file -> socket ], source, file -> seek, byte );
+	// pass file content to process memory
+	kernel_vfs_file_write( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ file -> socket ], source, file -> seek, byte );
 
-// 	// next file Bytes content
-// 	file -> seek += byte;
-// }
+	// next file Bytes content
+	file -> seek += byte;
+}
 
-// int64_t kernel_syscall_file_touch( uint8_t *path, uint8_t type ) {
-// 	// retrieve information about module file
-// 	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_touch( path, type );
+int64_t kernel_syscall_file_touch( uint8_t *path, uint8_t type ) {
+	// retrieve information about module file
+	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_touch( path, type );
 
-// 	// if file doesn't exist
-// 	if( ! socket ) return STD_ERROR_file_not_found;
+	// if file doesn't exist
+	if( ! socket ) return STD_ERROR_file_not_found;
 
-// 	// return socket ID
-// 	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_VFS_STRUCTURE );
-// }
+	// return socket ID
+	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_VFS_STRUCTURE );
+}
 
-// uintptr_t kernel_syscall_task( void ) {
-// 	// amount of entries to pass
-// 	uint64_t count = 1;
+uintptr_t kernel_syscall_task( void ) {
+	// amount of entries to pass
+	uint64_t count = 1;
 
-// 	// count entries
-// 	for( uint64_t i = 1; i < KERNEL_TASK_limit; i++ ) if( kernel -> task_base_address[ i ].flags ) count++;
+	// count entries
+	for( uint64_t i = 1; i < KERNEL_TASK_limit; i++ ) if( kernel -> task_base_address[ i ].flags ) count++;
 
-// 	// alloc enough memory for all entries
-// 	struct STD_SYSCALL_STRUCTURE_TASK *task = (struct STD_SYSCALL_STRUCTURE_TASK *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * count ) >> STD_SHIFT_PAGE );
+	// alloc enough memory for all entries
+	struct STD_SYSCALL_STRUCTURE_TASK *task = (struct STD_SYSCALL_STRUCTURE_TASK *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * count ) >> STD_SHIFT_PAGE );
 
-// 	// copy essential information about every task
-// 	uint64_t entry = 0;
-// 	for( uint64_t i = 1; i < KERNEL_TASK_limit; i++ ) {
-// 		// process PID
-// 		task[ entry ].pid = kernel -> task_base_address[ i ].pid;
+	// copy essential information about every task
+	uint64_t entry = 0;
+	for( uint64_t i = 1; i < KERNEL_TASK_limit; i++ ) {
+		// process PID
+		task[ entry ].pid = kernel -> task_base_address[ i ].pid;
 
-// 		// amount of used memory (in Pages)
-// 		task[ entry ].page = kernel -> task_base_address[ i ].page;
+		// amount of used memory (in Pages)
+		task[ entry ].page = kernel -> task_base_address[ i ].page;
 
-// 		// amount of user memory for stack (in Pages)
-// 		task[ entry ].stack = kernel -> task_base_address[ i ].stack;
+		// amount of user memory for stack (in Pages)
+		task[ entry ].stack = kernel -> task_base_address[ i ].stack;
 	
-// 		// current status of task
-// 		task[ entry ].flags = kernel -> task_base_address[ i ].flags;
+		// current status of task
+		task[ entry ].flags = kernel -> task_base_address[ i ].flags;
 
-// 		// measured time
-// 		task[ entry ].time = kernel -> task_base_address[ i ].time;
+		// measured time
+		task[ entry ].time = kernel -> task_base_address[ i ].time;
 
-// 		// name of task with length
-// 		for( uint64_t j = 0; j < kernel -> task_base_address[ i ].name_length; j++ ) task[ entry ].name[ task[ entry ].name_length++ ] = kernel -> task_base_address[ i ].name[ j ]; task[ entry ].name[ task[ entry ].name_length ] = STD_ASCII_TERMINATOR;
+		// name of task with length
+		for( uint64_t j = 0; j < kernel -> task_base_address[ i ].name_length; j++ ) task[ entry ].name[ task[ entry ].name_length++ ] = kernel -> task_base_address[ i ].name[ j ]; task[ entry ].name[ task[ entry ].name_length ] = STD_ASCII_TERMINATOR;
 
-// 		// required amount of entries passed?
-// 		if( entry++ == count ) break;	// yes
-// 	}
+		// required amount of entries passed?
+		if( entry++ == count ) break;	// yes
+	}
 
-// 	// share structure with process
-// 	return (uintptr_t) task;
-// }
+	// share structure with process
+	return (uintptr_t) task;
+}
 
-// void kernel_syscall_kill( int64_t pid ) {
-// 	// properties of current task
-// 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_by_id( pid );
+void kernel_syscall_kill( int64_t pid ) {
+	// properties of current task
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_by_id( pid );
 
-// 	// mark task as ready to close
-// 	task -> flags |= STD_TASK_FLAG_close;
-// }
+	// mark task as ready to close
+	task -> flags |= STD_TASK_FLAG_close;
+}
 
 // void kernel_syscall_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
 // 	// share set interface properties

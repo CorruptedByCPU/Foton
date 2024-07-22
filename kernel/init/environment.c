@@ -49,14 +49,14 @@ void kernel_init_environment( void ) {
 	//----------------------------------------------------------------------
 
 	// // share HPET management functions
-	// kernel -> time_sleep			= (void *) kernel_time_sleep;
+	kernel -> time_sleep			= (void *) kernel_time_sleep;
 
 	// // share IDT management functions
-	// kernel -> idt_mount			= (void *) kernel_idt_mount;
+	kernel -> idt_mount			= (void *) kernel_idt_mount;
 
 	// // share I/O APIC management functions
 	// kernel -> io_apic_line_acquire		= (void *) kernel_io_apic_line_acquire;
-	// kernel -> io_apic_connect		= (void *) kernel_io_apic_connect;
+	kernel -> io_apic_connect		= (void *) kernel_io_apic_connect;
 
 	// // share APIC management functions
 	// kernel -> lapic_accept			= (void *) kernel_lapic_accept;

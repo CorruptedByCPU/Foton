@@ -123,22 +123,22 @@ uint8_t wm_init( void ) {
 	wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
 	// execute taskbar function as thread
-	// uint8_t wm_string_taskbar[] = "wm taskbar";
-	// wm_object_taskbar -> pid = std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
+	uint8_t wm_string_taskbar[] = "wm taskbar";
+	wm_object_taskbar -> pid = std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
 
 	//----------------------------------------------------------------------
 
-	// // execute menu function as thread
-	// uint8_t wm_string_menu[] = "wm menu";
-	// std_thread( (uintptr_t) &wm_menu, (uint8_t *) &wm_string_menu, sizeof( wm_string_menu ) );
+	// execute menu function as thread
+	uint8_t wm_string_menu[] = "wm menu";
+	std_thread( (uintptr_t) &wm_menu, (uint8_t *) &wm_string_menu, sizeof( wm_string_menu ) );
 
-	// //----------------------------------------------------------------------
+	//----------------------------------------------------------------------
 
 	// execute clock function as thread
 	uint8_t wm_string_clock[] = "wm clock";
 	std_thread( (uintptr_t) &wm_clock, (uint8_t *) &wm_string_clock, sizeof( wm_string_clock ) );
 
-	// //----------------------------------------------------------------------
+	//----------------------------------------------------------------------
 
 	// properties of file
 	struct STD_FILE_STRUCTURE cursor_file = { EMPTY };

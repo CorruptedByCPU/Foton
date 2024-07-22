@@ -14,27 +14,27 @@
 #define	KERNEL_STACK_address	-(KERNEL_STACK_page << STD_SHIFT_PAGE)	// minimal size
 #define	KERNEL_STACK_pointer	0xFFFFFFFFFFFFF000
 
-// #ifndef	KERNEL_GDT
-// 	#include		"./gdt.h"
-// #endif
+#ifndef	KERNEL_GDT
+	#include		"./gdt.h"
+#endif
 
-// #ifndef	KERNEL_TSS
-// 	#include		"./tss.h"
-// #endif
+#ifndef	KERNEL_TSS
+	#include		"./tss.h"
+#endif
 
-// #ifndef	KERNEL_IDT
-// 	#include		"./idt.h"
-// #endif
+#ifndef	KERNEL_IDT
+	#include		"./idt.h"
+#endif
 
 struct KERNEL {
 	// variables of Kernel management functions
 	uint64_t						cpu_count;
 
 	// variables of Input devices
-	// uint8_t							device_mouse_status;
-	// uint16_t						device_mouse_x;
-	// uint16_t						device_mouse_y;
-	// uint16_t						device_keyboard[ 8 ];	// cache size of 8 keys
+	uint8_t							device_mouse_status;
+	uint16_t						device_mouse_x;
+	uint16_t						device_mouse_y;
+	uint16_t						device_keyboard[ 8 ];	// cache size of 8 keys
 
 	// variables of Framebuffer functions
 	uint32_t						*framebuffer_base_address;
@@ -54,7 +54,7 @@ struct KERNEL {
 	// variables of IDT management functions
 	struct KERNEL_IDT_STRUCTURE_HEADER			idt_header;
 	// functions of IDT management
-	// void							(*idt_mount)( uint8_t id, uint16_t type, uintptr_t address );
+	void							(*idt_mount)( uint8_t id, uint16_t type, uintptr_t address );
 
 	// variables of I/O APIC management functions
 	volatile struct KERNEL_IO_APIC_STRUCTURE_REGISTER	*io_apic_base_address;
@@ -62,7 +62,7 @@ struct KERNEL {
 	uint8_t							io_apic_semaphore;
 	// functions of I/O APIC management
 	// uint8_t							(*io_apic_line_acquire)( void );
-	// void							(*io_apic_connect)( uint8_t line, uint32_t io_apic_register );
+	void							(*io_apic_connect)( uint8_t line, uint32_t io_apic_register );
 
 	// // variables of IPC management functions
 	struct STD_IPC_STRUCTURE				*ipc_base_address;
@@ -155,14 +155,16 @@ struct KERNEL {
 	// variables of Time management functions
 	uint64_t						time_unit;
 	// functions of Time management
-	// void							(*time_sleep)( uint64_t t );	// miliseconds
+	void							(*time_sleep)( uint64_t t );	// miliseconds
 
 	// variables of TSS management functions
 	struct KERNEL_TSS_STRUCTURE				tss_table;
 
+#ifdef LIB_TERMINAL
 	// variables of Terminal Library management functions
 	struct LIB_TERMINAL_STRUCTURE				terminal;
 	uint8_t							terminal_semaphore;
+#endif
 
 	// variables of VFS management functions
 	struct KERNEL_VFS_STRUCTURE				*vfs_base_address;

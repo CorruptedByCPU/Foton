@@ -44,7 +44,7 @@
 	// #include	"tss.h"
 	#include	"storage.h"
 	#include	"library.h"
-	// #include	"module.h"
+	#include	"module.h"
 	#include	"ipc.h"
 	#include	"stream.h"
 	// #include	"log.h"
@@ -69,7 +69,7 @@
 	#include	"syscall.c"
 	#include	"library.c"
 	#include	"exec.c"
-	// #include	"module.c"
+	#include	"module.c"
 	#include	"time.c"
 	#include	"rtc.c"
 	#include	"stream.c"
@@ -97,7 +97,7 @@
 	#include	"init/vfs.c"
 	#include	"init/storage.c"
 	#include	"init/library.c"
-	// #include	"init/module.c"
+	#include	"init/module.c"
 	#include	"init/rtc.c"
 	#include	"init/ipc.c"
 	#include	"init/stream.c"
@@ -165,7 +165,7 @@ void _entry( void ) {
 	kernel_init_library();
 
 	// load basic list of modules
-	// kernel_init_module();
+	kernel_init_module();
 
 	// execute first process
 	kernel_init_cmd();

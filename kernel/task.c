@@ -153,12 +153,12 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
 	}
 }
 
-// struct KERNEL_TASK_STRUCTURE *kernel_task_by_id( int64_t pid ) {
-// 	// entry ID
-// 	for( uint64_t i = 0; i < kernel -> task_limit; i++ )
-// 		// found?
-// 		if( pid == kernel -> task_base_address[ i ].pid ) return (struct KERNEL_TASK_STRUCTURE *) &kernel -> task_base_address[ i ];	// yes
+struct KERNEL_TASK_STRUCTURE *kernel_task_by_id( int64_t pid ) {
+	// entry ID
+	for( uint64_t i = 0; i < kernel -> task_limit; i++ )
+		// found?
+		if( pid == kernel -> task_base_address[ i ].pid ) return (struct KERNEL_TASK_STRUCTURE *) &kernel -> task_base_address[ i ];	// yes
 
-// 	// ID not found
-// 	return EMPTY;
-// }
+	// ID not found
+	return EMPTY;
+}

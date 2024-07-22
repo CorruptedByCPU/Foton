@@ -58,7 +58,7 @@ void kernel_init_ap( void ) {
 	// set the kernel entry routin
 	__asm__ volatile( "wrmsr" :: "a" ((uintptr_t) kernel_syscall), "d" ((uintptr_t) kernel_syscall >> 32), "c" (KERNEL_INIT_AP_MSR_LSTAR) );
 	// disable IF flag and DF after calling syscall
-	__asm__ volatile( "wrmsr" :: "a" ((uint32_t) KERNEL_TASK_EFLAGS_df), "d" (EMPTY ), "c" (KERNEL_INIT_AP_MSR_EFLAGS) );
+	__asm__ volatile( "wrmsr" :: "a" ((uint32_t) KERNEL_TASK_EFLAGS_if | KERNEL_TASK_EFLAGS_df), "d" (EMPTY ), "c" (KERNEL_INIT_AP_MSR_EFLAGS) );
 	//--------------------------------------------------------------------------
 
 	// initialize LAPIC of BS/A processor
