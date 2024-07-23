@@ -20,5 +20,5 @@
 	uintptr_t kernel_memory_alloc_page( void );
 
 	// fills up memory with EMPTY value
-	void kernel_memory_clean( uint64_t *address, uint64_t n );
+	void kernel_memory_clean( uintptr_t *address, uint64_t n );
 #endif

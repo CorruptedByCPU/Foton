@@ -31,5 +31,5 @@ void kernel_init_smp( void ) {
 	}
 
 	// show information about initialized CPUs
-	if( kernel -> cpu_count++ ) kernel -> log( (uint8_t *) "+%u CPU(s) initialized.\n", kernel -> cpu_count - 1 );
+	if( kernel -> cpu_count++ ) kernel_log( (uint8_t *) "+%u CPU(s) initialized.\n", kernel -> cpu_count - 1 );
 }

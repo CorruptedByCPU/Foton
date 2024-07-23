@@ -81,8 +81,9 @@
 	//----------------------------------------------------------------------
 	// kernel environment initialization routines, procedures
 	//----------------------------------------------------------------------
+	#include	"init/limine.c"
 	#include	"init/acpi.c"
-	#include	"init/env.c"
+	#include	"init/environment.c"
 	#include	"init/gdt.c"
 	// #include	"init/hpet.c"
 	#include	"init/idt.c"
@@ -105,19 +106,21 @@
 
 // our mighty init
 void _entry( void ) {
+	// DEBUG ---------------------------------------------------------------
+
 	// initialize default debug output
 	driver_serial_init();
 
-	// linear framebuffer is available (with 32 bits per pixel)?
-	if( limine_framebuffer_request.response == NULL || ! limine_framebuffer_request.response -> framebuffer_count || limine_framebuffer_request.response -> framebuffers[ 0 ] -> bpp != STD_VIDEO_DEPTH_bit )
-		// no, hold the door (screen will be black)
-		while( TRUE );
+	// check passed variables/structures by Limine bootloader
+	kernel_init_limine();
+
+	// BASE ----------------------------------------------------------------
+
+	// initialize global kernel environment variables/functions/rountines
+	kernel_init_environment();
 
 	// create binary memory map
 	kernel_init_memory();
-
-	// fill in remaining necessary variables / functions
-	kernel_init_env();
 
 	// parse ACPI tables
 	kernel_init_acpi();
@@ -126,7 +129,7 @@ void _entry( void ) {
 	kernel_init_page();
 
 	// reload new kernel environment paging array
-	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_logical), "r" ((uintptr_t) KERNEL_STACK_pointer) );
+	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) );
 
 	// create Global Descriptor Table
 	kernel_init_gdt();

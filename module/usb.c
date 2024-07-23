@@ -539,11 +539,11 @@ void _entry( uintptr_t kernel_ptr ) {
 				driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, frame_number ), EMPTY );
 
 				// alloc area for frame list
-				module_usb_controller[ i ].frame_base_address = kernel -> memory_alloc( TRUE ) & ~KERNEL_PAGE_logical;
+				module_usb_controller[ i ].frame_base_address = kernel -> memory_alloc( TRUE ) & ~KERNEL_PAGE_mirror;
 				driver_port_out_dword( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, frame_list_base_address ), module_usb_controller[ i ].frame_base_address );
 
 				// fill up frame list with queues
-				module_usb_uhci_queue( (uint32_t *) (module_usb_controller[ i ].frame_base_address | KERNEL_PAGE_logical) );
+				module_usb_uhci_queue( (uint32_t *) (module_usb_controller[ i ].frame_base_address | KERNEL_PAGE_mirror) );
 
 				// clear controller status
 				driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, status ), 0xFFFF );
@@ -576,7 +576,7 @@ void _entry( uintptr_t kernel_ptr ) {
 
 					// retrieve default descriptor from device
 					struct MODULE_USB_DESCRIPTOR_STANDARD *device_descriptor = (struct MODULE_USB_DESCRIPTOR_STANDARD *) kernel -> memory_alloc( TRUE );
-					module_usb_descriptor( module_usb_port_count, 0, 0x08, (uintptr_t) device_descriptor & ~KERNEL_PAGE_logical );
+					module_usb_descriptor( module_usb_port_count, 0, 0x08, (uintptr_t) device_descriptor & ~KERNEL_PAGE_mirror );
 
 					// port reset
 					if( ! (status = module_usb_port_reset( module_usb_port_count )) ) continue;	// device doesn't exist anymore
@@ -595,7 +595,7 @@ void _entry( uintptr_t kernel_ptr ) {
 
 					// retrieve full device descriptor
 					kernel -> memory_clean( (uint64_t *) device_descriptor, 1 );
-					module_usb_descriptor( module_usb_port_count, 2, module_usb_port[ module_usb_port_count ].default_descriptor_length, (uintptr_t) device_descriptor & ~KERNEL_PAGE_logical );
+					module_usb_descriptor( module_usb_port_count, 2, module_usb_port[ module_usb_port_count ].default_descriptor_length, (uintptr_t) device_descriptor & ~KERNEL_PAGE_mirror );
 				}
 			}
 		}

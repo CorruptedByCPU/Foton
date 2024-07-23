@@ -101,7 +101,7 @@ void kernel_init_vfs( void ) {
 		kernel_vfs_file_close( socket );
 
 		// show information about root directory
-		// kernel -> log( (uint8_t *) "VFS: %u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].device_length * kernel -> storage_base_address[ i ].device_byte ) >> STD_SHIFT_1024 );
+		kernel_log( (uint8_t *) "%u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].device_length * kernel -> storage_base_address[ i ].device_byte ) >> STD_SHIFT_1024 );
 
 		// done
 		break;

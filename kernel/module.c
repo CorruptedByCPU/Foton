@@ -63,10 +63,10 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	//----------------------------------------------------------------------
 
 	// insert into paging, context stack
-	kernel_page_alloc( (uintptr_t *) module -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
+	kernel_page_alloc( (uint64_t *) module -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// set initial startup configuration for new process
-	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) module -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uint64_t *) module -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
 
 	// code descriptor
 	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring0 );
@@ -125,16 +125,16 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 
 	// insert into paging, module area
 	// uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_map_address, module_page ) << STD_SHIFT_PAGE);
-	// kernel_page_map( (uintptr_t *) module -> cr3, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
+	// kernel_page_map( (uint64_t *) module -> cr3, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// map module space to kernel space
-	// kernel_page_map( (uintptr_t *) kernel -> page_base_address, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
+	// kernel_page_map( (uint64_t *) kernel -> page_base_address, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// update module entry address
 	context -> rip += module_content;	// module_memory
 
 	// debug
-	kernel -> log( (uint8_t *) "Module: %s at 0x%X\n", name, context -> rip );
+	kernel_log( (uint8_t *) "Module: %s at 0x%X\n", name, context -> rip );
 
 	//----------------------------------------------------------------------
 
@@ -155,7 +155,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 
 int64_t kernel_module_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
 	// debug
-	// kernel -> log( (uint8_t *) "Module thread: %s at 0x%X\n", name, function );
+	// kernel_log( (uint8_t *) "Module thread: %s at 0x%X\n", name, function );
 	
 	// create a new thread in task queue
 	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );
@@ -163,7 +163,7 @@ int64_t kernel_module_thread( uintptr_t function, uint8_t *name, uint64_t length
 	//----------------------------------------------------------------------
 
 	// prepare Paging table for new process
-	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_logical;
+	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_mirror;
 
 	// all allocated pages, mark as type of THREAD
 	thread -> page_type = KERNEL_PAGE_TYPE_THREAD;
@@ -171,10 +171,10 @@ int64_t kernel_module_thread( uintptr_t function, uint8_t *name, uint64_t length
 	//----------------------------------------------------------------------
 
 	// describe space under thread context stack
-	kernel_page_alloc( (uintptr_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
+	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// set initial startup configuration for new process
-	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
 
 	// code descriptor
 	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring0 );

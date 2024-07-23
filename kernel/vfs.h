@@ -11,7 +11,7 @@
 		uint64_t	storage;
 		uint64_t	knot;
 		int64_t		pid;
-		uint64_t	lock;	// amount of opened instances
+		uint64_t	lock;		// amount of opened instances
 		uint8_t		semaphore;	// set if someone is writing or reallocating file area
 	};
 

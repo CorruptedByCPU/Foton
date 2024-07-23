@@ -6,7 +6,7 @@ void kernel_init_hpet( void ) {
 	// HPET controler available?
 	if( ! kernel -> hpet_base_address ) {
 		// no, show proper information
-		kernel -> log( (uint8_t *) "HPET controller not available. Operating system halted!\n" );
+		kernel_log( (uint8_t *) "HPET controller not available. Operating system halted!\n" );
 
 		// hold the door
 		while( TRUE );
@@ -40,7 +40,7 @@ void kernel_init_hpet( void ) {
 				kernel -> io_apic_irq_lines &= ~(1 << j);
 
 				// show information about uptime Timer
-				kernel -> log( (uint8_t *) "HPET: Timer %u selected for uptime, I/O APIC line %u.\n", i, j );
+				kernel_log( (uint8_t *) "HPET: Timer %u selected for uptime, I/O APIC line %u.\n", i, j );
 			
 				// IRQ number of IDT and I/O APIC
 				volatile uint64_t bits = (uint64_t) j << 9;
@@ -83,7 +83,7 @@ void kernel_init_hpet( void ) {
 	}
 
 	// show proper message
-	kernel -> log( (uint8_t *) "HPET: No capable timer found. Operating system halted.\n" );
+	kernel_log( (uint8_t *) "HPET: No capable timer found. Operating system halted.\n" );
 
 	// hold the door
 	while( TRUE );

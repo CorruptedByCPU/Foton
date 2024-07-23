@@ -22,7 +22,7 @@ static void kernel_exec_cancel( struct KERNEL_EXEC_STRUCTURE_INIT *exec ) {
 		}
 		case 4: {
 			// release paging structure
-			kernel_page_deconstruct( (uintptr_t *) exec -> task -> cr3, exec -> task -> page_type );
+			kernel_page_deconstruct( (uint64_t *) exec -> task -> cr3, exec -> task -> page_type );
 		}
 		case 3: {
 			// release task entry
@@ -125,10 +125,10 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// describe space under exec context stack or low memory occured
-	if( ! kernel_page_alloc( (uintptr_t *) exec.task -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! kernel_page_alloc( (uint64_t *) exec.task -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// set initial startup configuration for new process
-	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uintptr_t *) exec.task -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_logical + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uint64_t *) exec.task -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
 
 	// code descriptor
 	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring3 ) | 0x03;
@@ -146,7 +146,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	context -> rip = elf -> entry_ptr;
 
 	// debug
-	// kernel -> log( (uint8_t *) "Exec: %s at 0x%X\n", name, elf -> entry_ptr );
+	// kernel_log( (uint8_t *) "Exec: %s at 0x%X\n", name, elf -> entry_ptr );
 
 	//----------------------------------------------------------------------
 
@@ -171,7 +171,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	for( uint64_t i = 0; i < length; i++ ) exec.stack[ MACRO_PAGE_ALIGN_UP( exec.stack_byte ) - exec.stack_byte + 0x08 + i ] = name[ i ];
 
 	// map stack space to process paging array
-	if( ! kernel_page_map( (uintptr_t *) exec.task -> cr3, (uintptr_t) exec.stack, MACRO_PAGE_ALIGN_DOWN( context -> rsp ), MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, (uintptr_t) exec.stack, MACRO_PAGE_ALIGN_DOWN( context -> rsp ), MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// process stack size
 	exec.task -> stack += MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE;
@@ -212,7 +212,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	}
 
 	// map executable space to paging array
-	if( ! kernel_page_map( (uintptr_t *) exec.task -> cr3, exec.base_address, KERNEL_EXEC_base_address, exec.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, exec.base_address, KERNEL_EXEC_base_address, exec.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// process memory usage
 	exec.task -> page += exec.page;
@@ -230,12 +230,6 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 
 	// mark as occupied pages used by the executable
 	kernel_memory_acquire( exec.task -> memory_map, exec.page, KERNEL_EXEC_base_address >> STD_SHIFT_PAGE, kernel -> page_limit );
-
-	// define memory semaphore location
-	uint8_t *semaphore = (uint8_t *) exec.task -> memory_map + MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) - STD_SIZE_BYTE_byte;
-
-	// unlock access to binary memory map
-	MACRO_UNLOCK( *semaphore );
 
 	//----------------------------------------------------------------------
 

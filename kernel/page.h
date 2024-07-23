@@ -5,8 +5,8 @@
 #ifndef	KERNEL_PAGE
 	#define	KERNEL_PAGE
 
-	// location of physical page address as logical
-	#define	KERNEL_PAGE_logical	0xFFFF800000000000
+	// location of physical page address in logical
+	#define	KERNEL_PAGE_mirror	0xFFFF800000000000
 
 	// i really doesn't see any good reason to use 5-level paging for this project
 	#define	KERNEL_PAGE_PML5_mask	0xFFFF000000000000

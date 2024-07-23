@@ -14,7 +14,7 @@ uint8_t kernel_network_ipv4( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 
 	// packet dump
 	// uint8_t *memory = (uint8_t *) ethernet;
-	// for( uint8_t y = 0; y < (length / 16) + 1 ; y++ ) kernel -> log( (uint8_t *) "%8X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X\n", (uintptr_t) &memory[ y * 16 ], memory[ (y * 16) + 0 ], memory[ (y * 16) + 1 ], memory[ (y * 16) + 2 ], memory[ (y * 16) + 3 ], memory[ (y * 16) + 4 ], memory[ (y * 16) + 5 ], memory[ (y * 16) + 6 ], memory[ (y * 16) + 7 ], memory[ (y * 16) + 8 ], memory[ (y * 16) + 9 ], memory[ (y * 16) + 10 ], memory[ (y * 16) + 11 ], memory[ (y * 16) + 12 ], memory[ (y * 16) + 13 ], memory[ (y * 16) + 14 ], memory[ (y * 16) + 15 ]); kernel -> log( (uint8_t *) "\n" );
+	// for( uint8_t y = 0; y < (length / 16) + 1 ; y++ ) kernel_log( (uint8_t *) "%8X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X %2X\n", (uintptr_t) &memory[ y * 16 ], memory[ (y * 16) + 0 ], memory[ (y * 16) + 1 ], memory[ (y * 16) + 2 ], memory[ (y * 16) + 3 ], memory[ (y * 16) + 4 ], memory[ (y * 16) + 5 ], memory[ (y * 16) + 6 ], memory[ (y * 16) + 7 ], memory[ (y * 16) + 8 ], memory[ (y * 16) + 9 ], memory[ (y * 16) + 10 ], memory[ (y * 16) + 11 ], memory[ (y * 16) + 12 ], memory[ (y * 16) + 13 ], memory[ (y * 16) + 14 ], memory[ (y * 16) + 15 ]); kernel_log( (uint8_t *) "\n" );
 
 	// choose action
 	switch( ipv4 -> protocol ) {

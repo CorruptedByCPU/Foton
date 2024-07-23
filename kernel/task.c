@@ -30,7 +30,7 @@ void kernel_task( void ) {
 	//----------------------------------------------------------------------
 
 	// reload paging tables for next task area
-	__asm__ volatile( "mov %0, %%cr3" ::"r" (next -> cr3 & ~KERNEL_PAGE_logical) );
+	__asm__ volatile( "mov %0, %%cr3" ::"r" (next -> cr3 & ~KERNEL_PAGE_mirror) );
 
 	// restore previous  stack pointer of next task
 	__asm__ volatile( "movq %0, %%rsp" : "=rm" (next -> rsp) );

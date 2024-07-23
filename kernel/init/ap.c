@@ -4,7 +4,7 @@
 
 void kernel_init_ap( void ) {
 	// reload kernel environment paging array
-	__asm__ volatile( "movq %0, %%cr3" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_logical) );
+	__asm__ volatile( "movq %0, %%cr3" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror) );
 
 	// reload the Global Descriptor Table
 	__asm__ volatile( "lgdt (%0)" :: "r" (&kernel -> gdt_header) );

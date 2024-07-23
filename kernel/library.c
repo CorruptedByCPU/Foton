@@ -46,7 +46,7 @@ static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *library
 		}
 		case 5: {
 			// detach library area from global paging array
-			kernel_page_detach( (uintptr_t *) kernel -> page_base_address, library -> base_address, library -> page );
+			kernel_page_detach( (uint64_t *) kernel -> page_base_address, library -> base_address, library -> page );
 		}
 		case 4: {
 			// release library area
@@ -327,7 +327,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.entry -> size_page = library.page;
 
 	// debug
-	kernel -> log( (uint8_t *) "Library: %s at 0x%X\n", name, library.base_address );
+	kernel_log( (uint8_t *) "Library: %s at 0x%X\n", name, library.base_address );
 
 	// ELF section properties
 	struct LIB_ELF_STRUCTURE_SECTION *elf_s = (struct LIB_ELF_STRUCTURE_SECTION *) ((uint64_t) elf + elf -> sections_offset);

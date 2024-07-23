@@ -47,7 +47,7 @@ void close( int64_t pid ) {
 	// prepare thread for decomission?
 	if( task -> flags & KERNEL_TASK_FLAG_thread ) {	// yes
 		// Paging Table properties
-		uint64_t *pml4 = (uint64_t *) (task -> cr3 | KERNEL_PAGE_logical);
+		uint64_t *pml4 = (uint64_t *) (task -> cr3 | KERNEL_PAGE_mirror);
 
 		// remove entries of PML4 paging table not belonging to thread
 		for( uint16_t i = 0; i < 512; i++ )
@@ -63,7 +63,7 @@ void close( int64_t pid ) {
 	}
 
 	// release paging structure of process
-	kernel -> page_deconstruct( (uintptr_t *) task -> cr3, task -> page_type );
+	kernel -> page_deconstruct( (uint64_t *) task -> cr3, task -> page_type );
 
 	// clean up
 	task -> sleep	= EMPTY;

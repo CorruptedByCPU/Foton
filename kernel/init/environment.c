@@ -2,9 +2,29 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_env( void ) {
+void kernel_init_environment( void ) {
+	// remember largest chunk of physical memory
+	uint64_t local_entry_length = EMPTY;
+
+	// search through all memory map entries
+	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
+		// USABLE memory area?
+		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE ) continue;	// no
+
+		// this area is larger than previous one?
+		if( local_entry_length > limine_memmap_request.response -> entries[ i ] -> length ) continue;	// no
+
+		// remember size for later use
+		local_entry_length = limine_memmap_request.response -> entries[ i ] -> length;
+
+		// set kernel environment variables/functions/routines inside largest contiguous memory area (reflected in Higher Half)
+		kernel = (struct KERNEL *) (limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_mirror);
+	}
+
+	//----------------------------------------------------------------------
+
 	// set information about framebuffer properties
-	kernel -> framebuffer_base_address	= (uint32_t *) ((uintptr_t) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address | KERNEL_PAGE_logical);
+	kernel -> framebuffer_base_address	= (uint32_t *) ((uintptr_t) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address | KERNEL_PAGE_mirror);
 	kernel -> framebuffer_width_pixel	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> width;
 	kernel -> framebuffer_height_pixel	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> height;
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;

@@ -31,7 +31,7 @@ ASM="nasm"
 # when looking at "Other Settings" tab
 # https://store.steampowered.com/hwsurvey/ (if someone have something better to lookup, please provide)
 # almost everyone have at least Intel Core i3,5,7 or better
-ARCH="nehalem"
+ARCH="x86-64"
 DEFAULT_FLAGS="-march=${ARCH} -mtune=generic -O${OPT} -m64 -ffreestanding -nostdlib -nostartfiles -fno-stack-protector -fno-builtin -mno-red-zone ${DEBUG}"
 
 # build subroutines required by kernel

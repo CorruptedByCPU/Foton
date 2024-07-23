@@ -35,5 +35,5 @@ void kernel_init_gdt( void ) {
 	kernel -> tss_table.rsp0 = KERNEL_STACK_pointer;
 
 	// show GDT properties
-	// kernel -> log( (uint8_t *) "GDT base address 0x%X\n", kernel -> gdt_header.base_address );
+	// kernel_log( (uint8_t *) "GDT base address 0x%X\n", kernel -> gdt_header.base_address );
 }

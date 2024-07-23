@@ -3,15 +3,6 @@
 ===============================================================================*/
 
 void kernel_init_acpi( void ) {
-	// RSDP pointer available?
-	if( limine_rsdp_request.response == NULL || ! limine_rsdp_request.response -> address ) {
-		// show error
-		kernel -> log( (uint8_t *) "Hello Darkness, My Old Friend." );
-
-		// hold the door
-		while( TRUE );
-	}
-
 	// RSDP or XSDP header properties
 	struct KERNEL_INIT_ACPI_STRUCTURE_RSDP_OR_XSDP_HEADER *local_rsdp_or_xsdp_header = (struct KERNEL_INIT_ACPI_STRUCTURE_RSDP_OR_XSDP_HEADER *) limine_rsdp_request.response -> address;
 
@@ -25,7 +16,7 @@ void kernel_init_acpi( void ) {
 	// check revision number of RSDP header
 	if( local_rsdp_or_xsdp_header -> revision == EMPTY ) {
 		// show message regarding ACPI
-		kernel -> log( (uint8_t *) "RSDT (Root System Description Pointer) found.\n" );
+		kernel_log( (uint8_t *) "RSDT (Root System Description Pointer) found.\n" );
 
 		// RSDT header properties
 		struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *local_rsdt = (struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address);
@@ -37,7 +28,7 @@ void kernel_init_acpi( void ) {
 		local_list_rsdt_address = (uint32_t *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address + sizeof( struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT ));
 	} else {
 		// show message regarding ACPI
-		kernel -> log( (uint8_t *) "XSDT (eXtended System Descriptor Table) found.\n" );
+		kernel_log( (uint8_t *) "XSDT (eXtended System Descriptor Table) found.\n" );
 
 		// XSDT header properties
 		struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *local_xsdt = (struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> xsdt_address);
@@ -66,10 +57,10 @@ void kernel_init_acpi( void ) {
 		struct KERNEL_INIT_ACPI_STRUCTURE_MADT *local_madt = (struct KERNEL_INIT_ACPI_STRUCTURE_MADT *) local_entry;
 		if( local_madt -> signature == KERNEL_INIT_ACPI_MADT_signature ) {
 			// store base address and size of LAPIC entry
-			kernel -> lapic_base_address = (struct KERNEL_LAPIC_STRUCTURE *) (uintptr_t) (local_madt -> lapic_address | KERNEL_PAGE_logical);
+			kernel -> lapic_base_address = (struct KERNEL_LAPIC_STRUCTURE *) (uintptr_t) (local_madt -> lapic_address | KERNEL_PAGE_mirror);
 
 			// show message regarding LAPIC
-			kernel -> log( (uint8_t *) " LAPIC base address 0x%X\n", (uint64_t) kernel -> lapic_base_address );
+			kernel_log( (uint8_t *) " LAPIC base address 0x%X\n", (uint64_t) kernel -> lapic_base_address );
 
 			// length of MADT list
 			uint64_t local_size = (uint32_t) local_madt -> length - sizeof( struct KERNEL_INIT_ACPI_STRUCTURE_MADT );
@@ -89,7 +80,7 @@ void kernel_init_acpi( void ) {
 					// I/O APIC supports interrupt vectors 0+?
 					if( local_io_apic -> gsib == EMPTY ) {
 						// store base address of I/O APIC
-						kernel -> io_apic_base_address = (struct KERNEL_IO_APIC_STRUCTURE_REGISTER *) (uintptr_t) (local_io_apic -> base_address | KERNEL_PAGE_logical);
+						kernel -> io_apic_base_address = (struct KERNEL_IO_APIC_STRUCTURE_REGISTER *) (uintptr_t) (local_io_apic -> base_address | KERNEL_PAGE_mirror);
 
 						// register available IRQ lines
 						kernel -> io_apic_irq_lines = -1;	// all available
@@ -98,7 +89,7 @@ void kernel_init_acpi( void ) {
 						MACRO_UNLOCK( kernel -> io_apic_semaphore );
 
 						// show message regarding I/O APIC
-						kernel -> log( (uint8_t *) " I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
+						kernel_log( (uint8_t *) " I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
 					}
 				}
 
@@ -112,10 +103,10 @@ void kernel_init_acpi( void ) {
 		// struct KERNEL_INIT_ACPI_STRUCTURE_HPET *local_hpet = (struct KERNEL_INIT_ACPI_STRUCTURE_HPET *) local_entry;
 		// if( local_hpet -> signature == KERNEL_INIT_ACPI_HPET_signature ) {
 		// 	// store base address of HPET
-		// 	kernel -> hpet_base_address = (struct KERNEL_HPET_STRUCTURE_REGISTER *) (uintptr_t) (local_hpet -> base_address | KERNEL_PAGE_logical);
+		// 	kernel -> hpet_base_address = (struct KERNEL_HPET_STRUCTURE_REGISTER *) (uintptr_t) (local_hpet -> base_address | KERNEL_PAGE_mirror);
 
 		// 	// show message regarding HPET
-		// 	kernel -> log( (uint8_t *) " HPET base address 0x%X\n", (uint64_t) kernel -> hpet_base_address );
+		// 	kernel_log( (uint8_t *) " HPET base address 0x%X\n", (uint64_t) kernel -> hpet_base_address );
 		// }
 	}
 }
