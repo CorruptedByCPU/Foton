@@ -44,7 +44,7 @@ void kernel_init_environment( void ) {
 	lib_terminal_cursor_disable( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal );
 
 	// terminal prepared
-	kernel -> terminal_semaphore = TRUE;
+	// kernel -> terminal_semaphore = TRUE;
 
 	//----------------------------------------------------------------------
 
@@ -65,26 +65,26 @@ void kernel_init_environment( void ) {
 	kernel -> log				= (void *) kernel_log;
 
 	// // share memory management functions
-	// kernel -> memory_alloc			= (void *) kernel_memory_alloc;
-	// kernel -> memory_alloc_page		= (void *) kernel_memory_alloc_page;
+	kernel -> memory_alloc			= (void *) kernel_memory_alloc;
+	kernel -> memory_alloc_page		= (void *) kernel_memory_alloc_page;
 	// kernel -> memory_clean			= (void *) kernel_memory_clean;
-	// kernel -> memory_release		= (void *) kernel_memory_release;
-	// kernel -> memory_release_page		= (void *) kernel_memory_release_page;
+	kernel -> memory_release		= (void *) kernel_memory_release;
+	kernel -> memory_release_page		= (void *) kernel_memory_release_page;
 
 	// // share Module management function
 	// kernel -> module_thread			= (void *) kernel_module_thread;
 
 	// // share page management functions
 	// kernel -> page_alloc			= (void *) kernel_page_alloc;
-	// kernel -> page_deconstruct		= (void *) kernel_page_deconstruct;
-	// kernel -> page_map			= (void *) kernel_page_map;
+	kernel -> page_deconstruct		= (void *) kernel_page_deconstruct;
+	kernel -> page_map			= (void *) kernel_page_map;
 	// kernel -> page_release			= (void *) kernel_page_release;
 
 	// // share Stream management function
-	// kernel -> stream_release		= (void *) kernel_stream_release;
+	kernel -> stream_release		= (void *) kernel_stream_release;
 
 	// // share memory management functions
 	// kernel -> task_active			= (void *) kernel_task_active;
 	// kernel -> task_pid			= (void *) kernel_task_pid;
-	// kernel -> task_by_id			= (void *) kernel_task_by_id;
+	kernel -> task_by_id			= (void *) kernel_task_by_id;
 }

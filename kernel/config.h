@@ -28,7 +28,7 @@
 
 struct KERNEL {
 	// variables of Kernel management functions
-	uint64_t						cpu_count;
+	volatile uint64_t					cpu_count;
 
 	// variables of Input devices
 	uint8_t							device_mouse_status;
@@ -73,7 +73,7 @@ struct KERNEL {
 
 	// variables of APIC management functions
 	volatile struct KERNEL_LAPIC_STRUCTURE			*lapic_base_address;
-	// uint64_t	lapic_id_highest;
+	uint64_t						lapic_id_highest;
 	// functions of APIC management
 	// void							(*lapic_accept)( void );
 
@@ -87,11 +87,11 @@ struct KERNEL {
 	// variables of Memory management functions
 	uint32_t						*memory_base_address;
 	// functions of Memory management
-	// uintptr_t						(*memory_alloc)( uint64_t N );
-	// uintptr_t						(*memory_alloc_page)( void );
+	uintptr_t						(*memory_alloc)( uint64_t N );
+	uintptr_t						(*memory_alloc_page)( void );
 	// void							(*memory_clean)( uint64_t *address, uint64_t n );
-	// void							(*memory_release)( uintptr_t address, uint64_t N );
-	// void							(*memory_release_page)( uintptr_t address );
+	void							(*memory_release)( uintptr_t address, uint64_t N );
+	void							(*memory_release_page)( uintptr_t address );
 
 	// variables of Modules management functions
 	// uint64_t	*module_map_address;
@@ -99,20 +99,20 @@ struct KERNEL {
 	// int64_t							(*module_thread)( uintptr_t function, uint8_t *name, uint64_t length );
 
 	// variables of Network management functions
-	// struct STD_NETWORK_STRUCTURE_INTERFACE			network_interface;
-	// uint64_t						*network_rx_base_address;
-	// volatile uint64_t					network_rx_limit;
-	// volatile uint8_t					network_rx_semaphore;
-	// uint64_t						*network_tx_base_address;
-	// volatile uint64_t					network_tx_limit;
-	// volatile uint8_t					network_tx_semaphore;
-	// struct KERNEL_NETWORK_STRUCTURE_SOCKET			*network_socket_list;
-	// uint8_t							network_socket_semaphore;
-	// uint8_t							network_socket_port_semaphore;
+	struct STD_NETWORK_STRUCTURE_INTERFACE			network_interface;
+	uint64_t						*network_rx_base_address;
+	volatile uint64_t					network_rx_limit;
+	volatile uint8_t					network_rx_semaphore;
+	uint64_t						*network_tx_base_address;
+	volatile uint64_t					network_tx_limit;
+	volatile uint8_t					network_tx_semaphore;
+	struct KERNEL_NETWORK_STRUCTURE_SOCKET			*network_socket_list;
+	uint8_t							network_socket_semaphore;
+	uint8_t							network_socket_port_semaphore;
 	// functions of Network management
-	// void							(*network_rx)( uintptr_t packet );
-	// uintptr_t						(*network_tx)( void );
-	// void							(*network_socket_close_by_pid)( int64_t pid );
+	void							(*network_rx)( uintptr_t packet );
+	uintptr_t						(*network_tx)( void );
+	void							(*network_socket_close_by_pid)( int64_t pid );
 
 	// variables of Page management functions
 	uint64_t						*page_base_address;
@@ -124,8 +124,8 @@ struct KERNEL {
 	uint64_t						page_shared;
 	// functions of Page management
 	// uint8_t							(*page_alloc)( uint64_t *pml4, uintptr_t address, uint64_t pages, uint16_t flags );
-	// void							(*page_deconstruct)( uint64_t *pml4, uint8_t type );
-	// uint8_t							(*page_map)( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags );
+	void							(*page_deconstruct)( uint64_t *pml4, uint8_t type );
+	uint8_t							(*page_map)( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags );
 	// uint8_t							(*page_release)( uint64_t *pml4, uint64_t address, uint64_t pages );
 
 	// variables of Storage management functions
@@ -137,7 +137,7 @@ struct KERNEL {
 	struct KERNEL_STREAM_STRUCTURE				*stream_base_address;
 	uint8_t							stream_semaphore;
 	// functions of Stream management
-	// void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
+	void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
 
 	// variables of Task management functions
 	struct KERNEL_TASK_STRUCTURE				*task_base_address;
@@ -150,7 +150,7 @@ struct KERNEL {
 	// functions of Task management
 	// struct KERNEL_TASK_STRUCTURE 				*(*task_active)( void );
 	// int64_t							(*task_pid)( void );
-	// struct KERNEL_TASK_STRUCTURE				*(*task_by_id)( int64_t pid );
+	struct KERNEL_TASK_STRUCTURE				*(*task_by_id)( int64_t pid );
 
 	// variables of Time management functions
 	uint64_t						time_unit;

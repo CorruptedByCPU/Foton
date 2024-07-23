@@ -278,6 +278,9 @@ kernel_idt_exception_security:
 	jmp	kernel_idt_exception_entry
 
 kernel_idt_exception_entry:
+	; turn off Direction Flag
+	cld
+
 	; keep original registers
 	push	rax
 	push	rbx
@@ -335,6 +338,9 @@ kernel_idt_exception_entry:
 ; align routine to full address
 align	0x08,	db	0x00
 kernel_idt_interrupt:
+	; turn off Direction Flag
+	cld
+
 	; preserve original register
 	push	r11
 

@@ -730,143 +730,143 @@ void kernel_syscall_kill( int64_t pid ) {
 	task -> flags |= STD_TASK_FLAG_close;
 }
 
-// void kernel_syscall_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
-// 	// share set interface properties
+void kernel_syscall_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+	// share set interface properties
 
-// 	// IPv4 address
-// 	interface -> ipv4_address = kernel -> network_interface.ipv4_address;
+	// IPv4 address
+	interface -> ipv4_address = kernel -> network_interface.ipv4_address;
 
-// 	// Mask address
-// 	interface -> ipv4_mask = kernel -> network_interface.ipv4_mask;
+	// Mask address
+	interface -> ipv4_mask = kernel -> network_interface.ipv4_mask;
 
-// 	// Broadcast address
-// 	interface -> ipv4_broadcast = kernel -> network_interface.ipv4_broadcast;
+	// Broadcast address
+	interface -> ipv4_broadcast = kernel -> network_interface.ipv4_broadcast;
 
-// 	// Gateway address
-// 	interface -> ipv4_gateway = kernel -> network_interface.ipv4_gateway;
+	// Gateway address
+	interface -> ipv4_gateway = kernel -> network_interface.ipv4_gateway;
 
-// 	// MAC address
-// 	for( uint8_t i = 0; i < 6; i++ ) interface -> ethernet_address[ i ] = kernel -> network_interface.ethernet_address[ i ];
+	// MAC address
+	for( uint8_t i = 0; i < 6; i++ ) interface -> ethernet_address[ i ] = kernel -> network_interface.ethernet_address[ i ];
 
-// 	// statistics
+	// statistics
 
-// 	// received frames and Bytes
-// 	interface -> rx_frame = kernel -> network_interface.rx_frame;
-// 	interface -> tx_frame = kernel -> network_interface.tx_frame;
+	// received frames and Bytes
+	interface -> rx_frame = kernel -> network_interface.rx_frame;
+	interface -> tx_frame = kernel -> network_interface.tx_frame;
 
-// 	// transferred frames and Bytes
-// 	interface -> rx_byte = kernel -> network_interface.rx_byte;
-// 	interface -> tx_byte = kernel -> network_interface.tx_byte;
-// }
+	// transferred frames and Bytes
+	interface -> rx_byte = kernel -> network_interface.rx_byte;
+	interface -> tx_byte = kernel -> network_interface.tx_byte;
+}
 
-// int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_target, uint16_t port_local ) {
-// 	// try to acquire socket
-// 	struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = kernel_network_socket();
+int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_target, uint16_t port_local ) {
+	// try to acquire socket
+	struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = kernel_network_socket();
 
-// 	// connection limit reached?
-// 	if( ! socket ) return EMPTY;
+	// connection limit reached?
+	if( ! socket ) return EMPTY;
 
-// 	// bind selected port
-// 	if( ! kernel_network_socket_port( socket, port_local ) ) {
-// 		// release socket
-// 		socket -> pid = EMPTY;
+	// bind selected port
+	if( ! kernel_network_socket_port( socket, port_local ) ) {
+		// release socket
+		socket -> pid = EMPTY;
 
-// 		// port already in use
-// 		return STD_ERROR_locked;
-// 	}
+		// port already in use
+		return STD_ERROR_locked;
+	}
 
-// 	// set socket properties
-// 	socket -> ethernet_lease_time	= EMPTY;
-// 	socket -> protocol		= protocol;
-// 	socket -> ipv4_target		= ipv4_target;
-// 	socket -> port_target		= port_target;
-// 	socket -> ipv4_id		= kernel_syscall_microtime();
+	// set socket properties
+	socket -> ethernet_lease_time	= EMPTY;
+	socket -> protocol		= protocol;
+	socket -> ipv4_target		= ipv4_target;
+	socket -> port_target		= port_target;
+	socket -> ipv4_id		= kernel_syscall_microtime();
 
-// 	// set sockets ipv4 protocol
-// 	switch( protocol ) {
-// 		// ICMP
-// 		case STD_NETWORK_PROTOCOL_icmp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_icmp; break; }
+	// set sockets ipv4 protocol
+	switch( protocol ) {
+		// ICMP
+		case STD_NETWORK_PROTOCOL_icmp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_icmp; break; }
 
-// 		// UDP
-// 		case STD_NETWORK_PROTOCOL_udp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_udp; break; }
+		// UDP
+		case STD_NETWORK_PROTOCOL_udp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_udp; break; }
 		
-// 		// TCP
-// 		case STD_NETWORK_PROTOCOL_tcp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_tcp; break; }
-// 	}
+		// TCP
+		case STD_NETWORK_PROTOCOL_tcp: { socket -> ipv4_protocol = KERNEL_NETWORK_HEADER_IPV4_PROTOCOL_tcp; break; }
+	}
 
-// 	// wait for socket resolution
-// 	if( ! kernel_network_ethernet_resolve( socket ) ) {
-// 		// close socket
-// 		kernel_network_socket_close( socket );
+	// wait for socket resolution
+	if( ! kernel_network_ethernet_resolve( socket ) ) {
+		// close socket
+		kernel_network_socket_close( socket );
 
-// 		// cannot create connection
-// 		return STD_ERROR_unavailable;
-// 	}
+		// cannot create connection
+		return STD_ERROR_unavailable;
+	}
 
-// 	// socket configures, initialize
-// 	socket -> flags = KERNEL_NETWORK_SOCKET_FLAG_init;	// if socket is of type TCP, network module will try to establish connection with target
+	// socket configures, initialize
+	socket -> flags = KERNEL_NETWORK_SOCKET_FLAG_init;	// if socket is of type TCP, network module will try to establish connection with target
 
-// 	// return socket ID
-// 	return (int64_t) ((uintptr_t) socket - (uintptr_t) kernel -> network_socket_list) / sizeof( struct KERNEL_NETWORK_STRUCTURE_SOCKET );
-// }
+	// return socket ID
+	return (int64_t) ((uintptr_t) socket - (uintptr_t) kernel -> network_socket_list) / sizeof( struct KERNEL_NETWORK_STRUCTURE_SOCKET );
+}
 
-// int64_t kernel_syscall_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
-// 	// socket can exist?
-// 	if( socket > KERNEL_NETWORK_SOCKET_limit ) return STD_ERROR_unavailable;	// no
+int64_t kernel_syscall_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
+	// socket can exist?
+	if( socket > KERNEL_NETWORK_SOCKET_limit ) return STD_ERROR_unavailable;	// no
 
-// 	// socket exist and belongs to process?
-// 	if( kernel -> network_socket_list[ socket ].pid != kernel_task_pid() ) return STD_ERROR_unavailable;	// no
+	// socket exist and belongs to process?
+	if( kernel -> network_socket_list[ socket ].pid != kernel_task_pid() ) return STD_ERROR_unavailable;	// no
 
-// 	// pass execution to Network module
-// 	return kernel_network_send( socket, data, length );
-// }
+	// pass execution to Network module
+	return kernel_network_send( socket, data, length );
+}
 
-// void kernel_syscall_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
-// 	// update IPv4 address
-// 	kernel -> network_interface.ipv4_address = interface -> ipv4_address;
+void kernel_syscall_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+	// update IPv4 address
+	kernel -> network_interface.ipv4_address = interface -> ipv4_address;
 
-// 	// update Mask address
-// 	kernel -> network_interface.ipv4_mask = interface -> ipv4_mask;
+	// update Mask address
+	kernel -> network_interface.ipv4_mask = interface -> ipv4_mask;
 
-// 	// update Broadcast address
-// 	kernel -> network_interface.ipv4_broadcast = interface -> ipv4_broadcast;
+	// update Broadcast address
+	kernel -> network_interface.ipv4_broadcast = interface -> ipv4_broadcast;
 
-// 	// update Gateway address
-// 	kernel -> network_interface.ipv4_gateway = interface -> ipv4_gateway;
-// }
+	// update Gateway address
+	kernel -> network_interface.ipv4_gateway = interface -> ipv4_gateway;
+}
 
-// void kernel_syscall_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet ) {
-// 	// socket can exist?
-// 	if( socket > KERNEL_NETWORK_SOCKET_limit ) return;	// no
+void kernel_syscall_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet ) {
+	// socket can exist?
+	if( socket > KERNEL_NETWORK_SOCKET_limit ) return;	// no
 
-// 	// socket exist and belongs to process?
-// 	if( kernel -> network_socket_list[ socket ].pid != kernel_task_pid() ) return;	// no
+	// socket exist and belongs to process?
+	if( kernel -> network_socket_list[ socket ].pid != kernel_task_pid() ) return;	// no
 
-// 	// packet properties
-// 	uint8_t *data = (uint8_t *) (kernel -> network_socket_list[ socket ].data_in[ 0 ] & STD_PAGE_mask);
-// 	uint64_t length = kernel -> network_socket_list[ socket ].data_in[ 0 ] & ~STD_PAGE_mask;
+	// packet properties
+	uint8_t *data = (uint8_t *) (kernel -> network_socket_list[ socket ].data_in[ 0 ] & STD_PAGE_mask);
+	uint64_t length = kernel -> network_socket_list[ socket ].data_in[ 0 ] & ~STD_PAGE_mask;
 
-// 	// nothing to transfer?
-// 	if( ! length ) return;	// yep
+	// nothing to transfer?
+	if( ! length ) return;	// yep
 
-// 	// block access to stack modification
-// 	MACRO_LOCK( kernel -> network_socket_list[ socket ].data_in_semaphore );
+	// block access to stack modification
+	MACRO_LOCK( kernel -> network_socket_list[ socket ].data_in_semaphore );
 
-// 	// remove packet from queue
-// 	for( uint64_t i = 0; i < KERNEL_NETWORK_SOCKET_DATA_limit; i++ ) kernel -> network_socket_list[ socket ].data_in[ i ] = kernel -> network_socket_list[ socket ].data_in[ i + 1 ];
+	// remove packet from queue
+	for( uint64_t i = 0; i < KERNEL_NETWORK_SOCKET_DATA_limit; i++ ) kernel -> network_socket_list[ socket ].data_in[ i ] = kernel -> network_socket_list[ socket ].data_in[ i + 1 ];
 
-// 	// unlock
-// 	MACRO_UNLOCK( kernel -> network_socket_list[ socket ].data_in_semaphore );
+	// unlock
+	MACRO_UNLOCK( kernel -> network_socket_list[ socket ].data_in_semaphore );
 
-// 	// alloc memory inside process area
-// 	packet -> data = (uint8_t *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( length ) >> STD_SHIFT_PAGE );
+	// alloc memory inside process area
+	packet -> data = (uint8_t *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( length ) >> STD_SHIFT_PAGE );
 
-// 	// move data content
-// 	for( uint64_t i = 0; i < length; i++ ) packet -> data[ i ] = data[ i ];
+	// move data content
+	for( uint64_t i = 0; i < length; i++ ) packet -> data[ i ] = data[ i ];
 
-// 	// inform about length of transffered data
-// 	packet -> length = length;
+	// inform about length of transffered data
+	packet -> length = length;
 
-// 	// release packet area from kernel memory
-// 	kernel_memory_release( (uintptr_t) data, MACRO_PAGE_ALIGN_UP( length ) >> STD_SHIFT_PAGE );
-// }
+	// release packet area from kernel memory
+	kernel_memory_release( (uintptr_t) data, MACRO_PAGE_ALIGN_UP( length ) >> STD_SHIFT_PAGE );
+}

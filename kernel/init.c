@@ -15,8 +15,6 @@
 	//----------------------------------------------------------------------
 	#include	"driver/port.h"
 	#include	"driver/port.c"
-	// #include	"driver/pci.h"
-	// #include	"driver/pci.c"
 	#include	"driver/rtc.h"
 	#include	"driver/rtc.c"
 	#include	"driver/serial.h"
@@ -34,21 +32,18 @@
 	#include	"idt.h"	
 	#include	"gdt.h"
 	#include	"tss.h"
-	// #include	"hpet.h"
 	#include	"io_apic.h"
 	#include	"config.h"
 	#include	"lapic.h"
 	#include	"memory.h"
 	#include	"page.h"
 	#include	"exec.h"
-	// #include	"tss.h"
 	#include	"storage.h"
 	#include	"library.h"
 	#include	"module.h"
 	#include	"ipc.h"
 	#include	"stream.h"
-	// #include	"log.h"
-	// #include	"network.h"
+	#include	"network.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -58,7 +53,6 @@
 	//----------------------------------------------------------------------
 	#include	"log.c"
 	#include	"lapic.c"
-	// #include	"hpet.c"
 	#include	"idt.c"
 	#include	"io_apic.c"
 	#include	"memory.c"
@@ -73,7 +67,7 @@
 	#include	"time.c"
 	#include	"rtc.c"
 	#include	"stream.c"
-	// #include	"network.c"
+	#include	"network.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
@@ -86,14 +80,13 @@
 	#include	"init/acpi.c"
 	#include	"init/environment.c"
 	#include	"init/gdt.c"
-	// #include	"init/hpet.c"
 	#include	"init/idt.c"
 	#include	"init/lapic.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
 	#include	"init/task.c"
 	#include	"init/ap.c"
-	// #include	"init/smp.c"
+	#include	"init/smp.c"
 	#include	"init/vfs.c"
 	#include	"init/storage.c"
 	#include	"init/library.c"
@@ -102,7 +95,7 @@
 	#include	"init/ipc.c"
 	#include	"init/stream.c"
 	#include	"init/cmd.c"
-	// #include	"init/network.c"
+	#include	"init/network.c"
 	#include	"init/clean.c"
 
 // our mighty init
@@ -153,7 +146,7 @@ void _entry( void ) {
 	kernel_init_rtc();
 
 	// initialize network stack
-	// kernel_init_network();
+	kernel_init_network();
 
 	// register all available storage devices
 	kernel_init_storage();
@@ -173,7 +166,7 @@ void _entry( void ) {
 	// EXTRA ---------------------------------------------------------------
 
 	// initialize other CPUs
-	// kernel_init_smp();
+	kernel_init_smp();
 
 	// some clean up
 	kernel_init_clean();
@@ -182,7 +175,4 @@ void _entry( void ) {
 
 	// reload BSP configuration
 	kernel_init_ap();
-
-	// hold the door (remove at end of refactoring)
-	while( TRUE );
 }

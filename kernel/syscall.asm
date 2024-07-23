@@ -40,11 +40,11 @@ extern	kernel_syscall_file_write
 extern	kernel_syscall_file_touch
 extern	kernel_syscall_task
 extern	kernel_syscall_kill
-; extern	kernel_syscall_network_interface
-; extern	kernel_syscall_network_open
-; extern	kernel_syscall_network_send
-; extern	kernel_syscall_network_interface_set
-; extern	kernel_syscall_network_receive
+extern	kernel_syscall_network_interface
+extern	kernel_syscall_network_open
+extern	kernel_syscall_network_send
+extern	kernel_syscall_network_interface_set
+extern	kernel_syscall_network_receive
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -93,11 +93,11 @@ kernel_syscall_list:
 	dq	kernel_syscall_file_touch		; 0x20
 	dq	kernel_syscall_task			; 0x21
 	dq	kernel_syscall_kill			; 0x22
-	; dq	kernel_syscall_network_interface	; 0x23
-	; dq	kernel_syscall_network_open		; 0x24
-	; dq	kernel_syscall_network_send		; 0x25
-	; dq	kernel_syscall_network_interface_set	; 0x26
-	; dq	kernel_syscall_network_receive		; 0x27
+	dq	kernel_syscall_network_interface	; 0x23
+	dq	kernel_syscall_network_open		; 0x24
+	dq	kernel_syscall_network_send		; 0x25
+	dq	kernel_syscall_network_interface_set	; 0x26
+	dq	kernel_syscall_network_receive		; 0x27
 kernel_syscall_list_end:
 
 ; 64 bit procedure code
@@ -124,6 +124,9 @@ kernel_syscall:
 	jmp	.return
 
 .available:
+	; turn off Direction Flag
+	cld
+
 	; preserve original registers
 	push	rbx
 	push	rcx

@@ -38,13 +38,13 @@ struct KERNEL_STREAM_STRUCTURE *kernel_stream( void ) {
 	return	EMPTY;
 }
 
-// void kernel_stream_release( struct KERNEL_STREAM_STRUCTURE *stream ) {
-// 	// it was last process for that stream?
-// 	if( ! --stream -> lock ) {
-// 		// free up stream space
-// 		kernel_memory_release( (uintptr_t) stream -> base_address, STD_STREAM_SIZE_page );
+void kernel_stream_release( struct KERNEL_STREAM_STRUCTURE *stream ) {
+	// it was last process for that stream?
+	if( ! --stream -> lock ) {
+		// free up stream space
+		kernel_memory_release( (uintptr_t) stream -> base_address, STD_STREAM_SIZE_page );
 
-// 		// free entry
-// 		stream -> base_address = EMPTY;
-// 	}
-// }
+		// free entry
+		stream -> base_address = EMPTY;
+	}
+}

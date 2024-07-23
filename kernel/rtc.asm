@@ -17,6 +17,9 @@ global	driver_rtc_entry
 ; align routine to full address
 align	0x08,	db	0x00
 driver_rtc_entry:
+	; turn off Direction Flag
+	cld
+
 	; preserve original register
 	push	r11
 

@@ -62,7 +62,7 @@
 	void kernel_idt_mount( uint8_t id, uint16_t type, uintptr_t address );
 
 	// default interrupt procedure for any device/service
-	__attribute__ (( preserve_all ))
+	__attribute__ (( preserve_most ))
 	void kernel_idt_interrupt_default( struct KERNEL_IDT_STRUCTURE_RETURN *interrupt );
 
 	// external routine (assembly language)
