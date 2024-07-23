@@ -10,37 +10,37 @@ uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N, uint64_t p, ui
 	MACRO_LOCK( *semaphore );
 
 	// search binary memory map for N continuous (p)ages
-	for( ; p < limit; p++ ) {
+	for( ; (p + N) < limit; p++ ) {
 		// by default we found N enabled bits
 		uint8_t found = TRUE;
 
 		// check N (c)onsecutive pages
-		for( uint64_t c = p; c < p + N; c++ ) {
-			// broken continous?
-			if( ! (memory_map[ c >> STD_SHIFT_32 ] & 1 << (c & 0b00011111)) ) {
-				// one of the bits is disabled
-				found = FALSE;
+		for( uint64_t c = p; c < (p + N); c++ ) {
+			// continous?
+			if( memory_map[ c >> STD_SHIFT_32 ] & 1 << (c & 0b00011111) ) continue;
 
-				// start looking from next position
-				p = c;
+			// one of the bits is disabled
+			found = FALSE;
 
-				// restart
-				break;
-			}
+			// start looking from next position
+			p = c;
+
+			// restart
+			break;
 		}
 
 		// if N consecutive pages have been found
-		if( found ) {
-			// mark pages as (r)eserved
-			for( uint64_t r = p; r < p + N; r++ )
-				memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b00011111) );
+		if( ! found ) continue;	// nope
 
-			// unlock access to binary memory map
-			MACRO_UNLOCK( *semaphore );
+		// mark pages as (r)eserved
+		for( uint64_t r = p; r < (p + N); r++ )
+			memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b00011111) );
 
-			// return address of acquired memory area
-			return p;
-		}
+		// unlock access to binary memory map
+		MACRO_UNLOCK( *semaphore );
+
+		// return address of acquired memory area
+		return p;
 	}
 
 	// unlock access to binary memory map
@@ -67,22 +67,22 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror;
 }
 
-uintptr_t kernel_memory_alloc_low( uint64_t N ) {
-	// initialize value
-	uintptr_t p = EMPTY;
+// uintptr_t kernel_memory_alloc_low( uint64_t N ) {
+// 	// initialize value
+// 	uintptr_t p = EMPTY;
 
-	// search for requested length of area
-	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, 0, KERNEL_MEMORY_LOW )) ) return EMPTY;
+// 	// search for requested length of area
+// 	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, 0, KERNEL_MEMORY_LOW )) ) return EMPTY;
 
-	// less available pages
-	kernel -> page_available -= N;
+// 	// less available pages
+// 	kernel -> page_available -= N;
 
-	// we guarantee clean memory area at first use
-	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror), N );
+// 	// we guarantee clean memory area at first use
+// 	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror), N );
 
-	// convert page ID to logical address and return
-	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror;
-}
+// 	// convert page ID to logical address and return
+// 	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror;
+// }
 
 uintptr_t kernel_memory_alloc_page( void ) {
 	// acquire single physical page
@@ -95,7 +95,7 @@ uintptr_t kernel_memory_alloc_page( void ) {
 	return page;
 }
 
-void kernel_memory_clean( uintptr_t *address, uint64_t n ) {
+void kernel_memory_clean( uint64_t *address, uint64_t n ) {
 	// clear every 64 bit value inside N pages
 	for( uint64_t i = 0; i < n << STD_SHIFT_512; i++ ) address[ i ] = EMPTY;
 }
@@ -119,25 +119,4 @@ void kernel_memory_release_page( uintptr_t page ) {
 
 	// page released from structure
 	kernel -> page_structure--;
-}
-
-uintptr_t kernel_memory_share( uintptr_t address, uint64_t page ) {
-	// task properties
-	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
-
-	// acquire N continuous pages
-	uintptr_t allocated = EMPTY;
-	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
-		// map memory area to process
-		kernel_page_map( (uint64_t *) task -> cr3, address, (uintptr_t) (allocated << STD_SHIFT_PAGE), page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
-
-		// shared pages
-		kernel -> page_shared += page;
-
-		// return the address of the first page in the collection
-		return (allocated << STD_SHIFT_PAGE);
-	}
-
-	// no free space
-	return EMPTY;
 }

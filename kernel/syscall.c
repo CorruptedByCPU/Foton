@@ -22,9 +22,23 @@ void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *frame
 	framebuffer -> pitch_byte	= kernel -> framebuffer_pitch_byte;
 
 	// change framebuffer owner if possible
-	if( ! __sync_val_compare_and_swap( &kernel -> framebuffer_pid, EMPTY, kernel_task_pid() ) )
-		// approved
-		framebuffer -> base_address = (uint32_t *) kernel_memory_share( (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_PAGE_PML5_mask, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE );
+	if( ! __sync_val_compare_and_swap( &kernel -> framebuffer_pid, EMPTY, kernel_task_pid() ) ) {
+		// current task properties
+		struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+
+		// acquire N continuous pages
+		uintptr_t allocated = EMPTY;
+		if( (allocated = kernel_memory_acquire( task -> memory_map, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
+			// map memory area to process
+			kernel_page_map( (uint64_t *) task -> cr3, (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_PAGE_mirror, (uintptr_t) (allocated << STD_SHIFT_PAGE), MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
+
+			// shared pages
+			kernel -> page_shared += MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE;
+
+			// return the address of the first page in the collection
+			framebuffer -> base_address = (uint32_t *) (allocated << STD_SHIFT_PAGE);
+		}
+	}
 
 	// return information about framebuffer owner
 	framebuffer -> pid = kernel -> framebuffer_pid;
@@ -81,7 +95,7 @@ uint64_t kernel_syscall_uptime( void ) {
 
 void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 	// if string pointer is above software environment memory area
-	if( (uint64_t) string > KERNEL_PAGE_mirror ) return;	// do not allow it
+	if( (uintptr_t) string > KERNEL_PAGE_mirror || ((uintptr_t) string + length) > KERNEL_PAGE_mirror ) return;	// do not allow it
 
 	// show content of string
 	for( uint64_t i = 0; i < length; i++ ) kernel_log( (uint8_t *) "%c", (uint64_t) string[ i ] );
@@ -204,7 +218,7 @@ void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
 			kernel -> ipc_base_address[ i ].target = pid;
 
 			// sent from
-			kernel -> ipc_base_address[ i ].source = kernel -> task_pid();
+			kernel -> ipc_base_address[ i ].source = kernel_task_pid();
 
 			// load data into message
 			for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
@@ -232,7 +246,7 @@ int64_t kernel_syscall_ipc_receive( uint8_t *data ) {
 		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
 		// message for us?
-		if( kernel -> ipc_base_address[ i ].target != kernel -> task_pid() ) continue;	// no
+		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
 
 		// load data into message
 		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
@@ -288,7 +302,7 @@ uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
 		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
 		// message for us?
-		if( kernel -> ipc_base_address[ i ].target != kernel -> task_pid() ) continue;	// no
+		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
 
 		// message from specific process?
 		if( kernel -> ipc_base_address[ i ].source != pid ) continue;	// no
@@ -557,7 +571,7 @@ int64_t kernel_syscall_ipc_receive_by_type( uint8_t *data, uint8_t type ) {
 		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
 		// message for us?
-		if( kernel -> ipc_base_address[ i ].target != kernel -> task_pid() ) continue;	// no
+		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
 
 		// message of requested type?
 		struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &kernel -> ipc_base_address[ i ].data;
@@ -685,7 +699,7 @@ uintptr_t kernel_syscall_task( void ) {
 		task[ entry ].flags = kernel -> task_base_address[ i ].flags;
 
 		// measured time
-		task[ entry ].rdtsc = kernel -> task_base_address[ i ].rdtsc;
+		task[ entry ].time = kernel -> task_base_address[ i ].time;
 
 		// name of task with length
 		for( uint64_t j = 0; j < kernel -> task_base_address[ i ].name_length; j++ ) task[ entry ].name[ task[ entry ].name_length++ ] = kernel -> task_base_address[ i ].name[ j ]; task[ entry ].name[ task[ entry ].name_length ] = STD_ASCII_TERMINATOR;
@@ -816,7 +830,7 @@ void kernel_syscall_network_receive( int64_t socket, struct STD_NETWORK_STRUCTUR
 	if( socket > KERNEL_NETWORK_SOCKET_limit ) return;	// no
 
 	// socket exist and belongs to process?
-	if( kernel -> network_socket_list[ socket ].pid != kernel -> task_pid() ) return;	// no
+	if( kernel -> network_socket_list[ socket ].pid != kernel_task_pid() ) return;	// no
 
 	// packet properties
 	uint8_t *data = (uint8_t *) (kernel -> network_socket_list[ socket ].data_in[ 0 ] & STD_PAGE_mask);

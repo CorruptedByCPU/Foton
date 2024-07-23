@@ -403,7 +403,7 @@
 		uint64_t	page;
 		uint64_t	stack;
 		uint8_t		flags;
-		uint64_t	rdtsc;
+		uint64_t	time;
 		uint8_t		name_length;
 		uint8_t		name[ 255 ];
 	};

@@ -4,11 +4,8 @@
 
 // round robin queue type
 void kernel_task( void ) {
-	// increment microtime of BSP
-	if( kernel_lapic_id() == EMPTY ) kernel -> time_unit++;
-
 	// task properties
-	struct KERNEL_TASK_STRUCTURE *current = kernel -> task_cpu_address[ kernel_lapic_id() ];
+	struct KERNEL_TASK_STRUCTURE *current = kernel_task_active();
 
 	// keep current top of stack pointer
 	__asm__ volatile( "mov %%rsp, %0" : "=rm" (current -> rsp) );
@@ -19,13 +16,13 @@ void kernel_task( void ) {
 	//----------------------------------------------------------------------
 
 	// stop time measuring
-	current -> rdtsc = kernel_time_rdtsc() - current -> rdtsc_previous;
+	current -> time = kernel -> time_unit - current -> time_previous;
 
 	// select another process
 	struct KERNEL_TASK_STRUCTURE *next = kernel_task_select( (uint64_t) (((uint64_t) current - (uint64_t) kernel -> task_base_address) / sizeof( struct KERNEL_TASK_STRUCTURE )) );
 
 	// start time measuring
-	next -> rdtsc_previous = kernel_time_rdtsc();
+	next -> time_previous = kernel -> time_unit;
 
 	//----------------------------------------------------------------------
 
@@ -72,15 +69,14 @@ void kernel_task( void ) {
 }
 
 struct KERNEL_TASK_STRUCTURE *kernel_task_active( void ) {
-	// from list of active tasks on individual logical processors
+	// from list of active tasks of individual logical processors
 	// select currently processed position relative to current logical processor
-	if( ! kernel -> task_cpu_address ) return EMPTY;
-	return (struct KERNEL_TASK_STRUCTURE *) kernel -> task_cpu_address[ kernel_lapic_id() ];
+	return kernel -> task_cpu_address[ kernel_lapic_id() ];
 }
 
 struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 	// deny modification of job queue
-	MACRO_LOCK( kernel -> task_add_semaphore );
+	MACRO_LOCK( kernel -> task_semaphore );
 
 	// find an free entry
 	for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
@@ -108,23 +104,22 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 		kernel -> task_count++;
 
 		// free access to job queue
-		MACRO_UNLOCK( kernel -> task_add_semaphore );
+		MACRO_UNLOCK( kernel -> task_semaphore );
 
 		// new task initiated
 		return (struct KERNEL_TASK_STRUCTURE *) &kernel -> task_base_address[ i ];
 	}
 
 	// free access to job queue
-	MACRO_UNLOCK( kernel -> task_add_semaphore );
+	MACRO_UNLOCK( kernel -> task_semaphore );
 
 	// no free entry
 	return EMPTY;
 }
 
 int64_t kernel_task_pid( void ) {
-	// based on ID of active BS/A processor
-	// get from list of active jobs, number of current record in job queue
-	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel -> task_cpu_address[ kernel_lapic_id() ];
+	// currently running task
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// get ID of process
 	return task -> pid;

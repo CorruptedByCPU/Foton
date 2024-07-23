@@ -17,7 +17,7 @@ void kernel_network( void ) {
 	// never ending story
 	while( TRUE ) {
 		// frame for translation?
-		if( ! kernel -> network_rx_limit ) { kernel -> time_sleep( TRUE ); continue; }	// nope 
+		if( ! kernel -> network_rx_limit ) { kernel_time_sleep( TRUE ); continue; }	// nope 
 
 		// properties of first header
 		struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) (*kernel -> network_rx_base_address & STD_PAGE_mask);

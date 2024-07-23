@@ -48,13 +48,13 @@ uint64_t kernel_init_directory( struct LIB_VFS_STRUCTURE *current, struct LIB_VF
 }
 
 void kernel_init_vfs( void ) {
-	// allocate area for list of open sockets
+	// allocate area for list of open files
 	kernel -> vfs_base_address = (struct KERNEL_VFS_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_VFS_limit * sizeof( struct KERNEL_VFS_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 
 	// detect VFS storages
 	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) {
-		// marked as VFS
-		if( kernel -> storage_base_address[ i ].device_type != KERNEL_STORAGE_TYPE_vfs ) continue;
+		// marked as VFS?
+		if( kernel -> storage_base_address[ i ].device_type != KERNEL_STORAGE_TYPE_vfs ) continue;	// thats not it
 
 		// create superblock for VFS
 		struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( LIB_VFS_block ) >> STD_SHIFT_PAGE );
@@ -64,25 +64,22 @@ void kernel_init_vfs( void ) {
 
 		// root directory name
 		superblock -> name_length = 1;
-		superblock -> name[ 0 ] = '/';
-		// uint8_t local_string_root[] = "/";
-		// for( uint64_t j = 0; j < sizeof( local_string_root ) - 1; j++ ) superblock -> name[ superblock -> name_length++ ] = local_string_root[ j ];
+		*superblock -> name = STD_ASCII_SLASH;
 
 		// superblock content offset
 		superblock -> offset = kernel -> storage_base_address[ i ].device_block;
 
 		// realloc VFS structures regarded of memory location
 		superblock -> byte = kernel_init_directory( superblock, superblock );
-		// superblock -> byte = STD_PAGE_byte;
 
-		// set new location of storage root
+		// set new location of VFS main block
 		kernel -> storage_base_address[ i ].device_block = (uint64_t) superblock;
 	}
 
 	// select VFS storage
 	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) {
 		// storage type of VFS?
-		if( kernel -> storage_base_address[ i ].device_type != KERNEL_STORAGE_TYPE_vfs ) continue;
+		if( kernel -> storage_base_address[ i ].device_type != KERNEL_STORAGE_TYPE_vfs ) continue;	// nope
 
 		// set as default
 		kernel -> storage_root = i;
@@ -91,14 +88,10 @@ void kernel_init_vfs( void ) {
 		uint8_t string_file_path[] = "/system/etc/version";
 
 		// retrieve properties of file
-		struct KERNEL_VFS_STRUCTURE *socket = kernel_vfs_file_open( string_file_path, sizeof( string_file_path ) - 1 );
-		if( ! socket ) continue;	// file not found
+		struct LIB_VFS_STRUCTURE *vfs = kernel_vfs_path( string_file_path, sizeof( string_file_path ) - 1 ); if( ! vfs ) continue;	// file not found
 
 		// kernels current directory
 		kernel -> task_base_address -> directory = kernel -> storage_base_address[ i ].device_block;
-
-		// release
-		kernel_vfs_file_close( socket );
 
 		// show information about root directory
 		kernel_log( (uint8_t *) "%u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].device_length * kernel -> storage_base_address[ i ].device_byte ) >> STD_SHIFT_1024 );

@@ -35,8 +35,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		uint64_t entry = 0;
 		uint64_t entry_visible = 0;
 		uint64_t entry_selected = 0;
-		uint64_t entry_rdtsc = 0;
-		uint64_t entry_rdtsc_load = 0;
+		uint64_t entry_time = 0;
+		uint64_t entry_time_load = 0;
 
 		// set cursor at first entry
 		print( "\e[0;1H" );
@@ -45,7 +45,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		struct STD_SYSCALL_STRUCTURE_TASK *task = (struct STD_SYSCALL_STRUCTURE_TASK *) std_task();
 
 		// calculate CPU load
-		while( task[ entry_rdtsc++ ].flags ) entry_rdtsc_load += task[ entry_rdtsc ].rdtsc;
+		while( task[ entry_time++ ].flags ) entry_time_load += task[ entry_time ].time;
 		
 		// show each task
 		do {
@@ -76,7 +76,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			top_size( (task[ entry ].page + task[ entry ].stack) << STD_SHIFT_PAGE );
 
 			// CPU time usage
-			printf( " %2.1f", (((double) task[ entry ].rdtsc / (double) entry_rdtsc_load) * (double) 100.0f) );
+			printf( " %2.1f", (((double) task[ entry ].time / (double) entry_time_load) * (double) 100.0f) );
 
 			// show process name
 			uint64_t name_length = lib_string_word( task[ entry ].name, task[ entry ].name_length ); task[ entry ].name[ name_length ] = STD_ASCII_TERMINATOR;

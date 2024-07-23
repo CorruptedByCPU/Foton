@@ -125,16 +125,13 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 
 	// insert into paging, module area
 	// uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_map_address, module_page ) << STD_SHIFT_PAGE);
-	// kernel_page_map( (uint64_t *) module -> cr3, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
+	// kernel_page_map( (uint64_t *) module -> cr3, module_content & ~KERNEL_PAGE_mirror, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// map module space to kernel space
-	// kernel_page_map( (uint64_t *) kernel -> page_base_address, module_content, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
+	// kernel_page_map( (uint64_t *) kernel -> page_base_address, module_content & ~KERNEL_PAGE_mirror, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// update module entry address
 	context -> rip += module_content;	// module_memory
-
-	// debug
-	kernel_log( (uint8_t *) "Module: %s at 0x%X\n", name, context -> rip );
 
 	//----------------------------------------------------------------------
 

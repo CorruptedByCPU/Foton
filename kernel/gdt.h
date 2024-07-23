@@ -25,7 +25,7 @@
 	} __attribute__( (packed) );
 
 	struct	KERNEL_GDT_STRUCTURE_HEADER {
-		uint16_t	limit;
+		uint16_t				limit;
 		struct KERNEL_GDT_STRUCTURE_ENTRY	*base_address;
 	} __attribute__( (packed) );
 

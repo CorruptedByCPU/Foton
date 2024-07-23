@@ -48,7 +48,7 @@
 	uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uint16_t flags );
 
 	// disconnects memory area from paging structure (doesn't release it!)
-	void kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages );
+	uint8_t kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages );
 
 	// checks if page is empty of entries
 	uint8_t kernel_page_empty( uint64_t *page, uint64_t N );
@@ -57,5 +57,5 @@
 	uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t N, uint16_t flags );
 
 	// releases N pages for process
-	void kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t pages );
+	uint8_t kernel_page_release( uint64_t *pml4, uint64_t address, uint64_t N );
 #endif

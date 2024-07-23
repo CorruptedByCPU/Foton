@@ -51,11 +51,6 @@ struct KERNEL {
 	// volatile uint64_t					hpet_miliseconds;
 	// uint8_t							hpet_timers;
 
-	// variables of Time management functions
-	volatile uint64_t					time_unit;
-	// functions of Time management
-	void							(*time_sleep)( uint64_t t );	// miliseconds
-
 	// variables of IDT management functions
 	struct KERNEL_IDT_STRUCTURE_HEADER			idt_header;
 	// functions of IDT management
@@ -147,7 +142,7 @@ struct KERNEL {
 	struct KERNEL_TASK_STRUCTURE				*task_base_address;
 	struct KERNEL_TASK_STRUCTURE				**task_cpu_address;	// contains pointers to task inside queue by specified CPU id
 	uint8_t							task_cpu_semaphore;
-	uint8_t							task_add_semaphore;
+	uint8_t							task_semaphore;
 	uint64_t						task_limit;
 	uint64_t						task_count;
 	int64_t							task_id;
@@ -155,6 +150,11 @@ struct KERNEL {
 	struct KERNEL_TASK_STRUCTURE 				*(*task_active)( void );
 	int64_t							(*task_pid)( void );
 	struct KERNEL_TASK_STRUCTURE				*(*task_by_id)( int64_t pid );
+
+	// variables of Time management functions
+	volatile uint64_t					time_unit;
+	// functions of Time management
+	void							(*time_sleep)( uint64_t t );	// Real Time Controller Ticks
 
 	// variables of TSS management functions
 	struct KERNEL_TSS_STRUCTURE				tss_table;

@@ -76,16 +76,16 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 
 	// // paging dump
 	// kernel_log( (uint8_t *) "Page:\n" );
-	// uintptr_t *pml4 = (uint64_t *) task -> cr3; uint64_t area = EMPTY; uint64_t length = EMPTY;
+	// uint64_t *pml4 = (uint64_t *) task -> cr3; uint64_t area = EMPTY; uint64_t length = EMPTY;
 	// for( uint16_t p4 = 0; p4 < KERNEL_PAGE_PML_records >> STD_SHIFT_2; p4++ ) {
 	// 	if( ! pml4[ p4 ] ) { if( length ) kernel_log( (uint8_t *) "0x%16X - 0x%16X\n", area, area + length - 1 ); area += length + KERNEL_PAGE_PML3_byte; length = EMPTY; continue; }
-	// 	uintptr_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_mirror);
+	// 	uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_PAGE_mirror);
 	// 	for( uint16_t p3 = 0; p3 < KERNEL_PAGE_PML_records; p3++ ) {
 	// 		if( ! pml3[ p3 ] ) { if( length ) kernel_log( (uint8_t *) "0x%16X - 0x%16X\n", area, area + length - 1 ); area += length + KERNEL_PAGE_PML2_byte; length = EMPTY; continue; }
-	// 		uintptr_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_mirror);
+	// 		uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_PAGE_mirror);
 	// 		for( uint16_t p2 = 0; p2 < KERNEL_PAGE_PML_records; p2++ ) {
 	// 			if( ! pml2[ p2 ] ) { if( length ) kernel_log( (uint8_t *) "0x%16X - 0x%16X\n", area, area + length - 1 ); area += length + KERNEL_PAGE_PML1_byte; length = EMPTY; continue; }
-	// 			uintptr_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_mirror);
+	// 			uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_PAGE_mirror);
 	// 			for( uint16_t p1 = 0; p1 < KERNEL_PAGE_PML_records; p1++ ) {
 	// 				if( ! pml1[ p1 ] ) { if( length ) kernel_log( (uint8_t *) "0x%16X - 0x%16X\n", area, area + length - 1 ); area += length + STD_PAGE_byte; length = EMPTY; continue; }
 	// 				length += STD_PAGE_byte;

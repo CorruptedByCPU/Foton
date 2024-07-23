@@ -59,7 +59,7 @@ void close( int64_t pid ) {
 		kernel -> stream_release( task -> stream_out );
 
 		// release binary memory map of task
-		kernel -> memory_release( (uintptr_t) task -> memory_map, MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) >> STD_SHIFT_PAGE );
+		kernel -> memory_release( (uintptr_t) task -> memory_map, MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE );
 	}
 
 	// release paging structure of process

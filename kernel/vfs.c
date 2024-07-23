@@ -25,7 +25,7 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 	socket -> knot = (uint64_t) vfs;
 
 	// socket opened by process with ID
-	socket -> pid = kernel -> task_pid();
+	socket -> pid = kernel_task_pid();
 
 	// file found
 	return socket;
@@ -126,7 +126,7 @@ struct KERNEL_VFS_STRUCTURE *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 	socket -> knot = (uint64_t) &file[ entry ];
 
 	// socket opened by process with ID
-	socket -> pid = kernel -> task_pid();
+	socket -> pid = kernel_task_pid();
 
 	// file found
 	return socket;
@@ -142,7 +142,7 @@ void kernel_vfs_file_write( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *source
 	// invalid write request?
 	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> byte ) ) {
 		// prepare new file content area
-		uint8_t *new = (uint8_t *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
+		uint8_t *new = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
 
 		// if file content exist
 		if( file -> offset ) {
@@ -151,7 +151,7 @@ void kernel_vfs_file_write( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *source
 			if( ! seek ) for( uint64_t i = 0; i < file -> byte; i++ ) new[ i ] = old[ i ];
 
 			// release old file content
-			kernel -> memory_release( file -> offset, MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
+			kernel_memory_release( file -> offset, MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
 		}
 
 		// update file properties with new content location
@@ -172,7 +172,7 @@ void kernel_vfs_file_write( struct KERNEL_VFS_STRUCTURE *socket, uint8_t *source
 			uint64_t blocks = (MACRO_PAGE_ALIGN_UP( file -> byte ) - MACRO_PAGE_ALIGN_UP( byte )) >> STD_SHIFT_PAGE;
 
 			// remove unused blocks from file
-			kernel -> memory_release( file -> offset + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
+			kernel_memory_release( file -> offset + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
 		}
 
 		// new file size
@@ -265,10 +265,10 @@ uint64_t kernel_vfs_socket_add( uint64_t knot ) {
 	MACRO_LOCK( kernel -> vfs_semaphore );
 
 	// available entry, doesn't exist by default
-	uint64_t available = -1;
+	uint64_t available = EMPTY;
 
 	// search thru all sockets
-	for( uint64_t i = 0; i < KERNEL_VFS_limit; i++ ) {
+	for( uint64_t i = TRUE; i < KERNEL_VFS_limit; i++ ) {
 		// if available for use, remember it
 		if( ! kernel -> vfs_base_address[ i ].lock ) available = i;
 
@@ -283,8 +283,7 @@ uint64_t kernel_vfs_socket_add( uint64_t knot ) {
 	}
 
 	// increase lock level of socket
-	if( available != -1 ) kernel -> vfs_base_address[ available ].lock++;
-	else available = EMPTY;	// not found
+	if( available ) kernel -> vfs_base_address[ available ].lock++;
 
 	// unlock access
 	MACRO_UNLOCK( kernel -> vfs_semaphore );
