@@ -67,7 +67,6 @@ void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// for( uint16_t y = 0; y < interface -> height; y++ )
 	// 	for( uint16_t x = 0; x < interface -> width; x++ )
 	// 		if( ! x || ! y || x == interface -> width - 1 || y == interface -> height - 1 ) pixel[ (y * interface -> width) + x ] = 0x80008000;
-
 }
 
 void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
