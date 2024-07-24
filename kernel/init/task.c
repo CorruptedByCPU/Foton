@@ -42,7 +42,4 @@ void kernel_init_task( void ) {
 	// when BSP (Bootstrap Processor) will end with initialization of every system aspect,
 	// he needs to know which is his current task entry point
 	kernel -> task_cpu_address[ kernel_lapic_id() ] = kernel -> task_base_address;
-
-	// show information about Task queue
-	// kernel_log( (uint8_t *) "Task queue base address 0x%X\n Entry[0] -> kernel environment initialization procedures.\n", (uintptr_t) kernel -> task_base_address );
 }

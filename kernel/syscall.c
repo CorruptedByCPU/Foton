@@ -52,10 +52,13 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	uintptr_t allocated = EMPTY;
 	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
 		// allocate space inside process paging area
-		kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) );
+		if( ! kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) {
+			// debug
+			kernel_log( (uint8_t *) "%s: memory allocation conflict!\n" );
 
-		// reload paging structure
-		kernel_page_flush();
+			// no asssignment
+			return EMPTY;
+		}
 
 		// process memory usage
 		task -> page += page;
@@ -76,7 +79,13 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
 	// remove page from paging structure
-	kernel_page_release( (uint64_t *) task -> cr3, target, page );
+	if( ! kernel_page_release( (uint64_t *) task -> cr3, target, page ) ) {
+		// debug
+		kernel_log( (uint8_t *) "%s: memory release voidness!\n" );
+
+		// no asssignment
+		return;
+	}
 
 	// reload paging structure
 	kernel_page_flush();
@@ -141,18 +150,14 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 
 	//----------------------------------------------------------------------
 
-	// prepare space for stack of thread
-	uint8_t *process_stack = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE );
+	// map stack space to thread paging array
+	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_TASK_STACK_pointer - KERNEL_TASK_STACK_limit, KERNEL_TASK_STACK_limit >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// page used
 	thread -> stack++;
 
 	// context stack top pointer
 	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
-
-	// map stack space to thread paging array
-	kernel_page_map( (uint64_t *) thread -> cr3, (uintptr_t) process_stack, context -> rsp & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( 0x20 ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
-
 	//----------------------------------------------------------------------
 
 	// aquire parent task properties

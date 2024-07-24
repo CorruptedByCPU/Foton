@@ -16,7 +16,7 @@ void kernel_task( void ) {
 	//----------------------------------------------------------------------
 
 	// stop time measuring
-	current -> time = kernel -> time_unit - current -> time_previous;
+	current -> time = kernel_time_rdtsc() - current -> time_previous;
 
 	// select another process
 	struct KERNEL_TASK_STRUCTURE *next = kernel_task_select( (uint64_t) (((uint64_t) current - (uint64_t) kernel -> task_base_address) / sizeof( struct KERNEL_TASK_STRUCTURE )) );

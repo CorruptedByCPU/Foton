@@ -25,6 +25,7 @@
 	#define	KERNEL_TASK_NAME_limit		254
 
 	#define	KERNEL_TASK_STACK_pointer	KERNEL_LIBRARY_base_address
+	#define	KERNEL_TASK_STACK_limit		STD_PAGE_byte
 
 	struct	KERNEL_TASK_STRUCTURE {
 		uintptr_t		cr3;

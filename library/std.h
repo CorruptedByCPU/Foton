@@ -664,4 +664,5 @@
 	void fread( FILE *file, uint8_t *cache, uint64_t byte );
 	void fwrite( FILE *file, uint8_t *cache, uint64_t byte );
 	FILE *touch( uint8_t *path, uint8_t type );
+	void sleep( uint64_t t );
 #endif

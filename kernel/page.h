@@ -45,7 +45,7 @@
 	#define	KERNEL_PAGE_ENTRY_stack_context		511
 
 	// alloc N pages for process
-	uint8_t kernel_page_alloc( uint64_t *pml4, uint64_t address, uint64_t pages, uint16_t flags );
+	uint8_t kernel_page_alloc( uint64_t *pml4, uintptr_t address, uint64_t pages, uint16_t flags );
 
 	// disconnects memory area from paging structure (doesn't release it!)
 	uint8_t kernel_page_detach( uint64_t *pml4, uint64_t address, uint64_t pages );

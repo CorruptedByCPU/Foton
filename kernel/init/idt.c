@@ -41,9 +41,6 @@ void kernel_init_idt( void ) {
 	// configure header of Interrupt Descriptor Table
 	kernel -> idt_header.limit = STD_PAGE_byte;
 
-	// show IDT properties
-	// kernel_log( (uint8_t *) "IDT base address 0x%X\n", kernel -> idt_header.base_address );
-
 	// load new Interrupt Descriptor Table
 	__asm__ volatile( "lidt (%0)" :: "r" (&kernel -> idt_header) );
 }
