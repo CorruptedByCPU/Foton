@@ -176,7 +176,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		uintptr_t frame = EMPTY;
 
 		// acquire data for transmission
-		while( ! (frame = kernel -> network_tx()) ) kernel -> time_sleep( TRUE );
+		while( ! (frame = kernel -> network_tx()) );
 
 		// resolve properties
 		uintptr_t data = frame & STD_PAGE_mask;

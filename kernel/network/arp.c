@@ -139,6 +139,6 @@ void kernel_network_arp_thread( void ) {
 		}
 
 		// release AP time
-		kernel -> time_sleep( TRUE );
+		// kernel -> time_sleep( TRUE );
 	}
 }

@@ -124,6 +124,9 @@ kernel_syscall:
 	jmp	.return
 
 .available:
+	; turn off Direction Flag
+	cld
+
 	; preserve original registers
 	push	rbx
 	push	rcx

@@ -36,9 +36,9 @@ void _entry( uintptr_t kernel_ptr ) {
 
 	// try to reset audio controller
 	driver_port_out_byte( MODULE_SB16_PORT_RESET, TRUE );
-	kernel -> time_sleep( 3 );	// wait about ~3ms
+	// kernel -> time_sleep( 3 );	// wait about ~3ms
 	driver_port_out_byte( MODULE_SB16_PORT_RESET, FALSE );
-	kernel -> time_sleep( 1 );	// wait about ~1ms
+	// kernel -> time_sleep( 1 );	// wait about ~1ms
 
 	// doesn't exist?
 	if( driver_port_in_byte( MODULE_SB16_PORT_READ ) != 0xAA ) while( TRUE );

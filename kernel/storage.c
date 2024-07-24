@@ -10,8 +10,8 @@ struct KERNEL_STORAGE_STRUCTURE *kernel_storage_register( uint8_t type ) {
 	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) {
 		// available?
 		if( kernel -> storage_base_address[ i ].device_type ) continue;	// no
-		
-		// mark entry as ocupied
+
+		// mark entry as occupied
 		kernel -> storage_base_address[ i ].device_type = type;
 
 		// unlock access

@@ -151,6 +151,12 @@ struct KERNEL {
 	int64_t							(*task_pid)( void );
 	struct KERNEL_TASK_STRUCTURE				*(*task_by_id)( int64_t pid );
 
+#ifdef LIB_TERMINAL
+	// variables of Terminal Library management functions
+	struct LIB_TERMINAL_STRUCTURE				terminal;
+	uint8_t							terminal_semaphore;
+#endif
+
 	// variables of Time management functions
 	volatile uint64_t					time_unit;
 	// functions of Time management

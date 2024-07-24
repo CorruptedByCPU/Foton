@@ -25,7 +25,7 @@
 
 	struct KERNEL_LIBRARY_STRUCTURE_INIT {
 		uint8_t					level;
-		struct KERNEL_VFS_STRUCTURE	 	*socket;
+		struct KERNEL_VFS_STRUCTURE		*socket;
 		struct KERNEL_VFS_STRUCTURE_PROPERTIES	properties;
 		struct KERNEL_LIBRARY_STRUCTURE		*entry;
 		uintptr_t				workbench_address;

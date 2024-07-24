@@ -32,8 +32,7 @@ void kernel_init_idt( void ) {
 	kernel_idt_mount( 30, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) &kernel_idt_exception_security );
 
 	// attach default hardware interrupt handler
-	for( uint8_t i = 32; i < 48; i++ )
-		kernel_idt_mount( i, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) &kernel_idt_interrupt_default );
+	for( uint8_t i = 32; i < 48; i++ ) kernel_idt_mount( i, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) &kernel_idt_interrupt );
 
 	// attach interrupt handler for "spurious interrupt"
 	kernel_idt_mount( 255, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) &kernel_idt_spurious_interrupt );

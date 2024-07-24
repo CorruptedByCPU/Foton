@@ -4,6 +4,7 @@
 
 ; get pointer from processor exception handling function
 extern	kernel_idt_exception
+extern	kernel_idt_interrupt_default
 
 ; 64 bit procedure code
 [BITS 64]
@@ -11,7 +12,9 @@ extern	kernel_idt_exception
 ; information for linker
 section	.text
 
-; share routine
+; share routines
+
+; for exceptions
 global	kernel_idt_exception_divide_by_zero
 global	kernel_idt_exception_debug
 global	kernel_idt_exception_breakpoint
@@ -36,6 +39,9 @@ global	kernel_idt_exception_hypervisor_injection
 global	kernel_idt_exception_vmm_communication
 global	kernel_idt_exception_security
 global	kernel_idt_exception_triple_fault
+; interrupts
+global	kernel_idt_interrupt
+; and unknown
 global	kernel_idt_spurious_interrupt
 
 ; align routine to full address
@@ -272,6 +278,9 @@ kernel_idt_exception_security:
 	jmp	kernel_idt_exception_entry
 
 kernel_idt_exception_entry:
+	; turn off Direction Flag
+	cld
+
 	; keep original registers
 	push	rax
 	push	rbx
@@ -322,6 +331,24 @@ kernel_idt_exception_entry:
 
 	; release value of exception ID and Error Code from stack
 	add	rsp,	0x10
+
+	; return from the procedure
+	iretq
+
+; align routine to full address
+align	0x08,	db	0x00
+kernel_idt_interrupt:
+	; turn off Direction Flag
+	cld
+
+	; preserve original register
+	push	r11
+
+	; execute interrupt handler
+	call	kernel_idt_interrupt_default
+
+	; restore original register
+	pop	r11
 
 	; return from the procedure
 	iretq

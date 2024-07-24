@@ -3,7 +3,7 @@
 ===============================================================================*/
 
 void wm_event( void ) {
-	// // incomming message
+	// incomming message
 	uint8_t data[ STD_IPC_SIZE_byte ]; int64_t source = EMPTY;
 	while( (source = std_ipc_receive( (uint8_t *) &data )) ) {
 		// event to parse?

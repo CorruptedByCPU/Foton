@@ -30,6 +30,28 @@ void kernel_init_environment( void ) {
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;
 	kernel -> framebuffer_pid		= EMPTY;	// by default: kernel
 
+	//----------------------------------------------------------------------
+
+#ifdef LIB_TERMINAL
+	// initialize terminal library
+	kernel -> terminal.width		= kernel -> framebuffer_width_pixel;
+	kernel -> terminal.height		= kernel -> framebuffer_height_pixel;
+	kernel -> terminal.base_address		= kernel -> framebuffer_base_address;
+	kernel -> terminal.scanline_pixel	= kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift;
+	kernel -> terminal.alpha		= EMPTY;	// 0 - not transparent, 255 - fully transparent
+	kernel -> terminal.color_foreground	= lib_color( 7 );
+	kernel -> terminal.color_background	= lib_color( 0 );
+	lib_terminal( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal );
+
+	// we do not need that feature inside kernels terminal
+	lib_terminal_cursor_disable( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal );
+
+	// terminal prepared
+	kernel -> terminal_semaphore = TRUE;
+#endif
+
+	//----------------------------------------------------------------------
+
 	// share HPET management functions
 	kernel -> time_sleep			= (void *) kernel_time_sleep;
 

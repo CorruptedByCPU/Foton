@@ -3,9 +3,6 @@
 ===============================================================================*/
 
 void kernel_log( uint8_t *string, ... ) {
-	// lock access to error output
-	MACRO_LOCK( kernel -> log_semaphore );
-
 	// properties of argument list
 	va_list argv;
 
@@ -18,7 +15,8 @@ void kernel_log( uint8_t *string, ... ) {
 		// special character?
 		if( string[ i ] != '%' ) {
 			// no, show it
-			driver_serial_char( (uint8_t) string[ i ] );
+			if( ! kernel -> terminal_semaphore ) driver_serial_char( (uint8_t) string[ i ] );
+			else lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, (uint8_t) string[ i ] );
 
 			// next character
 			continue;
@@ -35,7 +33,8 @@ void kernel_log( uint8_t *string, ... ) {
 		switch( string[ i ] ) {
 			case '%': {
 				// just show '%' character
-				driver_serial_char( '%' );
+				if( ! kernel -> terminal_semaphore ) driver_serial_char( '%' );
+				else lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, '%' );
 
 				// next character
 				break;
@@ -46,7 +45,8 @@ void kernel_log( uint8_t *string, ... ) {
 				uint64_t value = va_arg( argv, uint64_t );
 
 				// show 'value' on terminal
-				driver_serial_value( value, 2, p_value, '0' );
+				if( ! kernel -> terminal_semaphore ) driver_serial_value( value, 2, p_value, '0' );
+				else lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 2, p_value, ' ' );
 
 				// next character from string
 				continue;
@@ -57,7 +57,9 @@ void kernel_log( uint8_t *string, ... ) {
 				uint8_t c = va_arg( argv, uint64_t );
 				
 				// show 'character' on terminal
-				driver_serial_char( c );
+				if( ! kernel -> terminal_semaphore ) driver_serial_char( c );
+				else lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, c );
+
 
 				// next character from string
 				continue;
@@ -70,14 +72,16 @@ void kernel_log( uint8_t *string, ... ) {
 				// value signed?
 				if( value & 0x8000000000000000 ) {
 					// show 'character' on terminal
-					driver_serial_char( '-' );
+					if( ! kernel -> terminal_semaphore ) driver_serial_char( '-' );
+					else lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, '-' );
 
 					// remove sign
 					value = ~value + 1;
 				}
 
 				// show 'value' on terminal
-				driver_serial_value( value, 10, p_value, ' ' );
+				if( ! kernel -> terminal_semaphore ) driver_serial_value( value, 10, p_value, ' ' );
+				else lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, ' ' );
 
 				// next character from string
 				continue;
@@ -88,7 +92,7 @@ void kernel_log( uint8_t *string, ... ) {
 				uint8_t *substring = va_arg( argv, uint8_t * );
 				
 				// show 'substring' on terminal
-				for( uint64_t j = 0; j < lib_string_length( substring ); j++ ) driver_serial_char( substring[ j ] );
+				for( uint64_t j = 0; j < lib_string_length( substring ); j++ ) if( ! kernel -> terminal_semaphore ) driver_serial_char( substring[ j ] ); else lib_terminal_string( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, substring, lib_string_length( substring ) );
 
 				// next character from string
 				continue;
@@ -99,7 +103,8 @@ void kernel_log( uint8_t *string, ... ) {
 				uint64_t value = va_arg( argv, uint64_t );
 
 				// show 'value' on terminal
-				driver_serial_value( value, 10, p_value, ' ' );
+				if( ! kernel -> terminal_semaphore ) driver_serial_value( value, 10, p_value, ' ' );
+				else lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, ' ' );
 
 				// next character from string
 				continue;
@@ -110,7 +115,8 @@ void kernel_log( uint8_t *string, ... ) {
 				uint64_t value = va_arg( argv, uint64_t );
 
 				// show 'value' on terminal
-				driver_serial_value( value, 16, p_value, '0' );
+				if( ! kernel -> terminal_semaphore ) driver_serial_value( value, 16, p_value, '0' );
+				else lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 16, p_value, '0' );
 
 				// next character from string
 				continue;
@@ -120,7 +126,4 @@ void kernel_log( uint8_t *string, ... ) {
 
 	// end of arguemnt list
 	va_end( argv );
-
-	// unlock access to error output
-	MACRO_UNLOCK( kernel -> log_semaphore );
 }

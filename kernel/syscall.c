@@ -60,6 +60,9 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 			return EMPTY;
 		}
 
+		// reload paging structure
+		kernel_page_flush();
+
 		// process memory usage
 		task -> page += page;
 
@@ -113,7 +116,7 @@ void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
 	// debug
 	// kernel_log( (uint8_t *) "Thread: %s at 0x%X\n", name, function );
-	
+
 	// create a new thread in task queue
 	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );
 
@@ -127,7 +130,7 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 
 	//----------------------------------------------------------------------
 
-	// describe space under thread context stack
+	// describe area under thread context stack
 	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// set initial startup configuration for new process
@@ -158,6 +161,7 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 
 	// context stack top pointer
 	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
+
 	//----------------------------------------------------------------------
 
 	// aquire parent task properties

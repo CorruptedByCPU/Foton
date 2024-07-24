@@ -273,7 +273,7 @@ void lib_terminal_parse( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *strin
 					uint64_t value = va_arg( argv, uint64_t );
 
 					// show 'value' on terminal
-					lib_terminal_value( terminal, value, 2, prefix_value );
+					lib_terminal_value( terminal, value, 2, prefix_value, '0' );
 
 					// next character from string
 					continue;
@@ -306,9 +306,9 @@ void lib_terminal_parse( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *strin
 					else s_digits = 1000000;	// if not specified set default
 
 					// show 'value'
-					lib_terminal_value( terminal, (uint64_t) f, 10, 1 );
+					lib_terminal_value( terminal, (uint64_t) f, 10, 1, ' ' );
 					lib_terminal_char( terminal, '.' );
-					lib_terminal_value( terminal, (uint64_t) ((double) (f - (uint64_t) f) * (double) s_digits), 10, s_value );
+					lib_terminal_value( terminal, (uint64_t) ((double) (f - (uint64_t) f) * (double) s_digits), 10, s_value, '0' );
 
 					// omit suffix and dot if exist
 					i += suffix + 1;
@@ -333,7 +333,7 @@ void lib_terminal_parse( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *strin
 					uint64_t value = va_arg( argv, uint64_t );
 
 					// show 'value' on terminal
-					lib_terminal_value( terminal, value, 10, prefix_value );
+					lib_terminal_value( terminal, value, 10, prefix_value, ' ' );
 
 					// next character from string
 					continue;
@@ -344,7 +344,7 @@ void lib_terminal_parse( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *strin
 					uint64_t value = va_arg( argv, uint64_t );
 
 					// show 'value' on terminal
-					lib_terminal_value( terminal, value, 16, prefix_value );
+					lib_terminal_value( terminal, value, 16, prefix_value, '0' );
 
 					// next character from string
 					continue;
@@ -385,13 +385,13 @@ void lib_terminal_string( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *stri
 	lib_terminal_cursor_enable( terminal );
 }
 
-void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value, uint8_t base, uint8_t prefix ) {
+void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value, uint8_t base, uint8_t prefix, uint8_t character ) {
 	// if the base of the value is outside the accepted range
 	if( base < 2 || base > 36 ) return;	// end of operation
 
 	// space for value decoding
 	uint8_t i = 0;
-	uint8_t string[ 64 ] = { [0 ... 63] = 0x30 };	// 8 byte value
+	uint8_t string[ 64 ] = { [0 ... 63] = character };	// 8 byte value
 
 	// convert value to individual digits
 	while( value ) {

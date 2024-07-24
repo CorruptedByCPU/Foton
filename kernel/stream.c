@@ -4,31 +4,31 @@
 
 struct KERNEL_STREAM_STRUCTURE *kernel_stream( void ) {
 	// deny access, only one logical processor at a time
-	while( __sync_val_compare_and_swap( &kernel -> stream_semaphore, UNLOCK, LOCK ) );
+	MACRO_LOCK( kernel -> stream_semaphore );
 
 	// search stream table for free entry
 	for( uint64_t i = 0; i < KERNEL_STREAM_limit; i++ ) {
 		// free entry?
-		if( ! kernel -> stream_base_address[ i ].base_address ) {
-			// prepare area for stream content
-			kernel -> stream_base_address[ i ].base_address	= (uint8_t *) kernel_memory_alloc( STD_STREAM_SIZE_page );
+		if( kernel -> stream_base_address[ i ].base_address ) continue;	// no
 
-			// there is currently no data in stream
-			kernel -> stream_base_address[ i ].length_byte	= EMPTY;
+		// prepare area for stream content
+		kernel -> stream_base_address[ i ].base_address	= (uint8_t *) kernel_memory_alloc( STD_STREAM_SIZE_page );
 
-			// start and end mark cleared
-			kernel -> stream_base_address[ i ].start	= EMPTY;
-			kernel -> stream_base_address[ i ].end		= EMPTY;		
+		// there is currently no data inside stream
+		kernel -> stream_base_address[ i ].length_byte	= EMPTY;
 
-			// number of processes assigned to stream
-			kernel -> stream_base_address[ i ].lock		= TRUE;
+		// start and end mark cleared
+		kernel -> stream_base_address[ i ].start	= EMPTY;
+		kernel -> stream_base_address[ i ].end		= EMPTY;		
 
-			// unlock access to function
-			kernel -> stream_semaphore			= UNLOCK;
+		// number of processes assigned to stream
+		kernel -> stream_base_address[ i ].lock		= TRUE;
 
-			// return stream id
-			return (struct KERNEL_STREAM_STRUCTURE *) &kernel -> stream_base_address[ i ];
-		}
+		// unlock access to function
+		MACRO_UNLOCK( kernel -> stream_semaphore );
+
+		// return stream id
+		return (struct KERNEL_STREAM_STRUCTURE *) &kernel -> stream_base_address[ i ];
 	}
 
 	// unlock access to function

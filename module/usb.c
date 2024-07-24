@@ -602,5 +602,5 @@ void _entry( uintptr_t kernel_ptr ) {
 	}
 
 	// hold the door
-	while( TRUE ) kernel -> time_sleep( TRUE );
+	while( TRUE );	// kernel -> time_sleep( TRUE );
 }
