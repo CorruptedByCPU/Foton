@@ -22,8 +22,14 @@ module_ps2_mouse_entry:
 	; turn off Direction Flag
 	cld
 
+	; preserve original register
+	push	r11
+
 	; execute driver handler
 	call	module_ps2_mouse
+
+	; restore original register
+	pop	r11
 
 	; return from the procedure
 	iretq
@@ -34,8 +40,14 @@ module_ps2_keyboard_entry:
 	; turn off Direction Flag
 	cld
 
+	; preserve original register
+	push	r11
+
 	; execute driver handler
 	call	module_ps2_keyboard
+
+	; restore original register
+	pop	r11
 
 	; return from the procedure
 	iretq

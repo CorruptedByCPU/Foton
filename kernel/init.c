@@ -12,8 +12,6 @@
 	//----------------------------------------------------------------------
 	#include	"driver/port.h"
 	#include	"driver/port.c"
-	#include	"driver/pci.h"
-	#include	"driver/pci.c"
 	#include	"driver/rtc.h"
 	#include	"driver/rtc.c"
 	#include	"driver/serial.h"
@@ -25,27 +23,23 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
+	#include	"task.h"
 	#include	"vfs.h"
 	#include	"time.h"
-	#include	"idt.h"
+	#include	"idt.h"	
 	#include	"gdt.h"
 	#include	"tss.h"
-	#include	"lapic.h"
-	// #include	"hpet.h"
 	#include	"io_apic.h"
 	#include	"config.h"
 	#include	"lapic.h"
 	#include	"memory.h"
 	#include	"page.h"
-	#include	"task.h"
 	#include	"exec.h"
-	#include	"tss.h"
 	#include	"storage.h"
 	#include	"library.h"
 	#include	"module.h"
 	#include	"ipc.h"
 	#include	"stream.h"
-	#include	"log.h"
 	#include	"network.h"
 	//----------------------------------------------------------------------
 	// variables
@@ -56,7 +50,6 @@
 	//----------------------------------------------------------------------
 	#include	"log.c"
 	#include	"lapic.c"
-	// #include	"hpet.c"
 	#include	"idt.c"
 	#include	"io_apic.c"
 	#include	"memory.c"
@@ -76,7 +69,6 @@
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------
 	#include	"init/acpi.h"
-	#include	"init/lapic.h"
 	#include	"init/ap.h"
 	//----------------------------------------------------------------------
 	// kernel environment initialization routines, procedures
@@ -85,7 +77,6 @@
 	#include	"init/acpi.c"
 	#include	"init/environment.c"
 	#include	"init/gdt.c"
-	// #include	"init/hpet.c"
 	#include	"init/idt.c"
 	#include	"init/lapic.c"
 	#include	"init/memory.c"
@@ -137,20 +128,22 @@ void _entry( void ) {
 	// create Interrupt Descriptor Table
 	kernel_init_idt();
 
-	// create Task queue and insert kernel into it
-	kernel_init_task();
+	// ESSENTIAL -----------------------------------------------------------
 
 	// initialize stream set
 	kernel_init_stream();
 
+	// create Task queue and insert kernel into it
+	kernel_init_task();
+
+	// prepare Inter Process communication
+	kernel_init_ipc();
+
 	// configure RTC
 	kernel_init_rtc();
 
-	// configure HPET
-	// kernel_init_hpet();
-
-	// initialize other CPUs
-	kernel_init_smp();
+	// initialize network stack
+	kernel_init_network();
 
 	// register all available storage devices
 	kernel_init_storage();
@@ -161,20 +154,21 @@ void _entry( void ) {
 	// create library management space
 	kernel_init_library();
 
-	// prepare Inter Process communication
-	kernel_init_ipc();
-
-	// initialize network stack
-	kernel_init_network();
-
 	// load basic list of modules
 	kernel_init_module();
 
 	// execute first process
 	kernel_init_cmd();
 
+	// EXTRA ---------------------------------------------------------------
+
+	// initialize other CPUs
+	kernel_init_smp();
+
 	// some clean up
 	kernel_init_clean();
+
+	// FINISH --------------------------------------------------------------
 
 	// reload BSP configuration
 	kernel_init_ap();

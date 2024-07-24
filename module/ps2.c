@@ -75,7 +75,7 @@ void module_ps2_drain( void ) {
 	// there is nothig left, good
 }
 
-__attribute__(( no_caller_saved_registers ))
+__attribute__(( preserve_most ))
 void module_ps2_mouse( void ) {
 	// data from second controller port?
 	if( driver_port_in_byte( MODULE_PS2_PORT_COMMAND_OR_STATUS ) & MODULE_PS2_STATUS_output_second ) {
@@ -150,7 +150,7 @@ void module_ps2_mouse( void ) {
 	kernel -> lapic_base_address -> eoi = EMPTY;
 }
 
-__attribute__(( no_caller_saved_registers ))
+__attribute__(( preserve_most ))
 void module_ps2_keyboard( void ) {
 	// get key code
 	module_ps2_scancode |= module_ps2_data_read();

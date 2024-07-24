@@ -18,28 +18,35 @@ void kernel_init_task( void ) {
 	// mark IRQ line as used
 	kernel -> io_apic_irq_lines &= ~(1 << 0);
 
+	//----------------------------------------------------------------------
 	// we need to create first entry inside task queue for kernel itself
-
-	// although kernel will die a natural death on first task switch,
-	// this entry is part of further initialization of system environment
-	// so it MUST exist
-
-	// kernel paging structure
-	kernel -> task_base_address -> cr3 = (uintptr_t) kernel -> page_base_address;
+	// that entry will never be *active*, none of BSP/AP CPUs will ever run it
+	// so why we still need it? each CPU exiting initialization state (file: ap.c)
+	// will go stright into task selection procedure, and as we know (later)
+	// all registers/flags needs to be stored somewhere before choosing next task
+	// thats the purpose of kernel entry :)
+	//----------------------------------------------------------------------
 
 	// mark first entry of task queue as secured (in use)
 	kernel -> task_base_address -> flags = STD_TASK_FLAG_secured;
 
-	// register memory map of kernel
+	// kernel paging structure
+	kernel -> task_base_address -> cr3 = (uintptr_t) kernel -> page_base_address;
+
+	// set memory map of kernel
 	kernel -> task_base_address -> memory_map = kernel -> memory_base_address;
 
-	// define memory semaphore location
-	uint8_t *semaphore = (uint8_t *) kernel -> task_base_address -> memory_map + MACRO_PAGE_ALIGN_UP( kernel -> page_limit >> STD_SHIFT_8 ) - STD_SIZE_BYTE_byte;
+	// prepare stream[s] for kernel
+	struct KERNEL_STREAM_STRUCTURE *local_stream = kernel_stream();
 
-	// unlock access to binary memory map
-	MACRO_UNLOCK( *semaphore );
+	// as a kernel, both stream[s] are of type null
+	local_stream -> flags = KERNEL_STREAM_FLAG_null;
 
-	// when BSP (Bootstrap Processor) will end with initialization of every system aspect,
-	// he needs to know which is his current task entry point
+	// assign stream[s] to kernel entry
+	kernel -> task_base_address -> stream_out = local_stream;
+	kernel -> task_base_address -> stream_in = local_stream;
+
+	// each CPU needs to know which task he is currently executing
+	// that information is stored on CPU list
 	kernel -> task_cpu_address[ kernel_lapic_id() ] = kernel -> task_base_address;
 }

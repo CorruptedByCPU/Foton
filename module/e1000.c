@@ -201,7 +201,7 @@ void _entry( uintptr_t kernel_ptr ) {
 	}
 }
 
-__attribute__(( no_caller_saved_registers ))
+__attribute__(( preserve_most ))
 void driver_e1000( void ) {
 	// get network controller status
 	volatile uint32_t status = module_e1000_mmio_base_address -> status;
