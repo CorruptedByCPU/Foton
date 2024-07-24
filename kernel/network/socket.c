@@ -106,7 +106,7 @@ uint8_t kernel_network_socket_port( struct KERNEL_NETWORK_STRUCTURE_SOCKET *sock
 
 uint16_t kernel_network_socket_port_random( uint16_t limit ) {
 	// retrieve next state
-	uint64_t random = kernel -> time_unit;
+	uint64_t random = kernel -> time_rtc;
 
 	// make some xor shifts
 	random ^= random >> 12;

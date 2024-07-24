@@ -12,8 +12,8 @@ uint64_t kernel_time_rdtsc( void ) {
 
 void kernel_time_sleep( uint64_t t ) {
 	// set release pointer
-	uint64_t stop = kernel -> time_unit + t;
+	uint64_t stop = kernel_time_rdtsc() + t;
 
 	// wait until we achieve
-	while( stop > kernel -> time_unit );
+	while( stop > kernel_time_rdtsc() );
 }

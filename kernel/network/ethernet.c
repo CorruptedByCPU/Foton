@@ -29,8 +29,8 @@ void kernel_network_ethernet_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET
 
 uint8_t kernel_network_ethernet_resolve( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket ) {
 	// wait for ARP thread to resolve destination MAC address
-	volatile uint64_t timeout = kernel -> time_unit + DRIVER_RTC_Hz;
-	while( timeout > kernel -> time_unit && ! socket -> ethernet_lease_time ) kernel_time_sleep( TRUE );
+	volatile uint64_t timeout = kernel -> time_rtc + DRIVER_RTC_Hz;
+	while( timeout > kernel -> time_rtc && ! socket -> ethernet_lease_time ) kernel_time_sleep( TRUE );
 
 	// IPv4 resolved?
 	if( socket -> ethernet_lease_time ) return TRUE;	// yes

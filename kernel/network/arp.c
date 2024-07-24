@@ -17,7 +17,7 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			for( uint8_t j = 0; j < 6; j++ ) kernel -> network_socket_list[ i ].ethernet_address[ j ] = arp -> source_mac[ j ];
 
 			// lease time
-			kernel -> network_socket_list[ i ].ethernet_lease_time = kernel -> time_unit + (300 * DRIVER_RTC_Hz);	// ~5 min
+			kernel -> network_socket_list[ i ].ethernet_lease_time = kernel -> time_rtc + (300 * DRIVER_RTC_Hz);	// ~5 min
 		}
 
 		// answer parsed
@@ -96,7 +96,7 @@ void kernel_network_arp_thread( void ) {
 			if( ! kernel -> network_socket_list[ i ].pid || kernel -> network_socket_list[ i ].protocol == STD_NETWORK_PROTOCOL_arp ) continue;	// no need
 
 			// up to date?
-			if( kernel -> network_socket_list[ i ].ethernet_lease_time > kernel -> time_unit ) continue;	// yes
+			if( kernel -> network_socket_list[ i ].ethernet_lease_time > kernel -> time_rtc ) continue;	// yes
 
 			// request to universal broadcast?
 			if( kernel -> network_socket_list[ i ].ipv4_target == 0xFFFFFFFF ) {
@@ -104,7 +104,7 @@ void kernel_network_arp_thread( void ) {
 				for( uint8_t j = 0; j < 6; j++ ) kernel -> network_socket_list[ i ].ethernet_address[ j ] = 0xFF;
 
 				// lease time
-				kernel -> network_socket_list[ i ].ethernet_lease_time = kernel -> time_unit + (300 * DRIVER_RTC_Hz);	// ~5 min
+				kernel -> network_socket_list[ i ].ethernet_lease_time = kernel -> time_rtc + (300 * DRIVER_RTC_Hz);	// ~5 min
 
 				// nothing to do
 				continue;

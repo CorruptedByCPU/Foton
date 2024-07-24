@@ -684,13 +684,3 @@ FILE *touch( uint8_t *path, uint8_t type ) {
 	// return all file properties
 	return file;
 }
-
-void sleep( uint64_t t ) {
-	MACRO_DEBUF();
-
-	// set release pointer
-	uint64_t stop = std_microtime() + t;
-
-	// wait until we achieve awaited units of time
-	while( stop > std_microtime() );	// __asm__ volatile( "int $0x20" );
-}

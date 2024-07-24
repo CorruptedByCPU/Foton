@@ -44,7 +44,7 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			socket -> tcp_acknowledgment = MACRO_ENDIANNESS_DWORD( tcp -> sequence );
 
 			// update keep-alive timeout to ~1 hours
-			socket -> tcp_keep_alive = kernel -> time_unit + KERNEL_NETWORK_HEADER_TCP_KEEP_ALIVE_timeout;
+			socket -> tcp_keep_alive = kernel -> time_rtc + KERNEL_NETWORK_HEADER_TCP_KEEP_ALIVE_timeout;
 		}
 
 		// SYN
@@ -62,7 +62,7 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			socket -> tcp_acknowledgment = MACRO_ENDIANNESS_DWORD( tcp -> sequence ) + 1;
 
 			// update keep-alive timeout to ~1 hours
-			socket -> tcp_keep_alive = kernel -> time_unit + KERNEL_NETWORK_HEADER_TCP_KEEP_ALIVE_timeout;
+			socket -> tcp_keep_alive = kernel -> time_rtc + KERNEL_NETWORK_HEADER_TCP_KEEP_ALIVE_timeout;
 
 			// do not respond to ACK response
 			if( tcp -> flags != KERNEL_NETWORK_HEADER_TCP_FLAG_ACK ) {
@@ -130,7 +130,7 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			socket -> tcp_acknowledgment++;
 
 			// update keep-alive timeout to ~1 hours
-			socket -> tcp_keep_alive = kernel -> time_unit + KERNEL_NETWORK_HEADER_TCP_KEEP_ALIVE_timeout;
+			socket -> tcp_keep_alive = kernel -> time_rtc + KERNEL_NETWORK_HEADER_TCP_KEEP_ALIVE_timeout;
 
 			// allocate area for ethernet/tcp frame
 			struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
@@ -219,7 +219,7 @@ void kernel_network_tcp_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, ui
 	socket -> tcp_acknowledgment_required = socket -> tcp_sequence + length;
 
 	// PSH valid ~1 second
-	socket -> tcp_keep_alive = kernel -> time_unit + DRIVER_RTC_Hz;
+	socket -> tcp_keep_alive = kernel -> time_rtc + DRIVER_RTC_Hz;
 
 	// allocate area for ethernet/tcp frame
 	struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
@@ -262,7 +262,7 @@ void kernel_network_tcp_thread( void ) {
 			if( socket -> protocol != STD_NETWORK_PROTOCOL_tcp ) continue;
 
 			// TCP socket waiting for initialization or previous initialization is outdated
-			if( socket -> flags & KERNEL_NETWORK_SOCKET_FLAG_init || (socket -> tcp_flags == KERNEL_NETWORK_HEADER_TCP_FLAG_SYN && socket -> tcp_keep_alive < kernel -> time_unit) ) {
+			if( socket -> flags & KERNEL_NETWORK_SOCKET_FLAG_init || (socket -> tcp_flags == KERNEL_NETWORK_HEADER_TCP_FLAG_SYN && socket -> tcp_keep_alive < kernel -> time_rtc) ) {
 				// start connection initialiation
 				socket -> flags &= ~KERNEL_NETWORK_SOCKET_FLAG_init;
 
@@ -279,7 +279,7 @@ void kernel_network_tcp_thread( void ) {
 				socket -> tcp_window_size = KERNEL_NETWORK_HEADER_TCP_WINDOW_SIZE_default;
 
 				// SYN valid for ~3 second
-				socket -> tcp_keep_alive = kernel -> time_unit + (DRIVER_RTC_Hz * 3);
+				socket -> tcp_keep_alive = kernel -> time_rtc + (DRIVER_RTC_Hz * 3);
 
 				// allocate area for ethernet/tcp frame
 				struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
@@ -307,12 +307,12 @@ void kernel_network_tcp_thread( void ) {
 			}
 
 			// TCP socket waiting for initialization or previous initialization is outdated
-			if( socket -> tcp_flags == KERNEL_NETWORK_HEADER_TCP_FLAG_ACK && socket -> tcp_keep_alive < kernel -> time_unit) {
+			if( socket -> tcp_flags == KERNEL_NETWORK_HEADER_TCP_FLAG_ACK && socket -> tcp_keep_alive < kernel -> time_rtc) {
 				// request same sequence number
 				socket -> tcp_acknowledgment_required	= socket -> tcp_sequence;
 
 				// ACK valid for ~1 second
-				socket -> tcp_keep_alive = kernel -> time_unit + DRIVER_RTC_Hz;
+				socket -> tcp_keep_alive = kernel -> time_rtc + DRIVER_RTC_Hz;
 
 				// allocate area for ethernet/tcp frame
 				struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );

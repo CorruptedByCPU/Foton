@@ -102,7 +102,7 @@ void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 
 uint64_t kernel_syscall_uptime( void ) {
 	// return uptime
-	return kernel -> time_unit;
+	return kernel -> time_rtc;
 }
 
 void kernel_syscall_log( uint8_t *string, uint64_t length ) {
@@ -221,7 +221,7 @@ void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
 		// scan whole IPC area
 		for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
 			// free entry found?
-			if( kernel -> ipc_base_address[ i ].ttl > kernel -> time_unit ) continue;	// no
+			if( kernel -> ipc_base_address[ i ].ttl > kernel -> time_rtc ) continue;	// no
 
 			// send to
 			kernel -> ipc_base_address[ i ].target = pid;
@@ -234,7 +234,7 @@ void kernel_syscall_ipc_send( int64_t pid, uint8_t *data ) {
 				kernel -> ipc_base_address[ i ].data[ j ] = data[ j ];
 
 			// set message timeout
-			kernel -> ipc_base_address[ i ].ttl = kernel -> time_unit + KERNEL_IPC_ttl;
+			kernel -> ipc_base_address[ i ].ttl = kernel -> time_rtc + KERNEL_IPC_ttl;
 
 			// unlock access to IPC area
 			MACRO_UNLOCK( kernel -> ipc_semaphore );
@@ -252,7 +252,7 @@ int64_t kernel_syscall_ipc_receive( uint8_t *data ) {
 	// scan whole IPC area
 	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
 		// message alive?
-		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
+		if( kernel -> time_rtc > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
 		// message for us?
 		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
@@ -308,7 +308,7 @@ uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
 	// scan whole IPC area
 	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
 		// message alive?
-		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
+		if( kernel -> time_rtc > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
 		// message for us?
 		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
@@ -522,20 +522,20 @@ void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 }
 
 uint64_t kernel_syscall_sleep( uint64_t units ) {
-	// // current task properties
-	// struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	// current task properties
+	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
 
-	// // mark task as sleeping
-	// task -> flags |= STD_TASK_FLAG_sleep;
+	// mark task as sleeping
+	task -> flags |= STD_TASK_FLAG_sleep;
 
-	// // set release pointer
-	// uint64_t stop = kernel -> time_unit + units;
+	// set release pointer
+	uint64_t stop = kernel_time_rdtsc() + units;
 
-	// // wait until we achieve awaited units of time
-	// while( stop > kernel -> time_unit ) __asm__ volatile( "int $0x20" );
+	// wait until we achieve awaited units of time
+	while( stop > kernel_time_rdtsc() ) __asm__ volatile( "int $0x20" );
 
-	// // remove sleep status
-	// task -> flags &= ~STD_TASK_FLAG_sleep;
+	// remove sleep status
+	task -> flags &= ~STD_TASK_FLAG_sleep;
 
 	// return remaining units (is sleep was broken)
 	return units;
@@ -577,7 +577,7 @@ int64_t kernel_syscall_ipc_receive_by_type( uint8_t *data, uint8_t type ) {
 	// scan whole IPC area
 	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
 		// message alive?
-		if( kernel -> time_unit > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
+		if( kernel -> time_rtc > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
 		// message for us?
 		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
@@ -603,7 +603,7 @@ int64_t kernel_syscall_ipc_receive_by_type( uint8_t *data, uint8_t type ) {
 
 uint64_t kernel_syscall_microtime( void ) {
 	// return microtime
-	return kernel -> time_unit;
+	return kernel -> time_rtc;
 }
 
 uint64_t kernel_syscall_time( void ) {

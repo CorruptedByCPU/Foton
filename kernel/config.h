@@ -158,7 +158,8 @@ struct KERNEL {
 #endif
 
 	// variables of Time management functions
-	volatile uint64_t					time_unit;
+	volatile uint64_t					time_rtc;
+	volatile uint64_t					time_rdtsc;
 	// functions of Time management
 	void							(*time_sleep)( uint64_t t );	// Real Time Controller Ticks
 
