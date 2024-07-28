@@ -413,7 +413,7 @@
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
 
-	#define	STD_WINDOW_FLAG_flush		0b0000000000000001
+	#define	STD_WINDOW_FLAG_active		0b0000000000000001
 	#define	STD_WINDOW_FLAG_visible		0b0000000000000010
 	#define	STD_WINDOW_FLAG_fixed_xy	0b0000000000000100
 	#define	STD_WINDOW_FLAG_fixed_z		0b0000000000001000
@@ -424,6 +424,7 @@
 	#define	STD_WINDOW_FLAG_resizable	0b0000000100000000
 	#define	STD_WINDOW_FLAG_properties	0b0000001000000000	// Window Manager proposed new window properties
 	#define	STD_WINDOW_FLAG_maximize	0b0000010000000000
+	#define	STD_WINDOW_FLAG_flush		0b0010000000000000
 	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
 	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
 

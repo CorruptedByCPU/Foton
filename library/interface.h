@@ -62,6 +62,7 @@
 		uint16_t	min_height;
 		//--------------------------------------------------
 		uint8_t		controls;
+		uint8_t		active_semaphore;
 		uint32_t	background_color;	// if set (alpha channel set), choose as background color
 		//--------------------------------------------------
 		uint8_t		name_length;

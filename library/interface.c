@@ -51,6 +51,20 @@ void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	}
 }
 
+void lib_interface_border( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// default border color
+	uint32_t color = 0xFF008000;
+
+	// change border of window if not active
+	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = 0xFF272727;
+
+	// and point border
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	for( uint16_t y = 0; y < interface -> height; y++ )
+		for( uint16_t x = 0; x < interface -> width; x++ )
+			if( ! x || ! y || x == interface -> width - 1 || y == interface -> height - 1 ) pixel[ (y * interface -> width) + x ] = color;
+}
+
 void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// by default, color
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
@@ -63,10 +77,8 @@ void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = background_color;
 
-	// // and point border
-	// for( uint16_t y = 0; y < interface -> height; y++ )
-	// 	for( uint16_t x = 0; x < interface -> width; x++ )
-	// 		if( ! x || ! y || x == interface -> width - 1 || y == interface -> height - 1 ) pixel[ (y * interface -> width) + x ] = 0x80008000;
+	// show default border
+	lib_interface_border( interface );
 }
 
 void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -385,7 +397,7 @@ uintptr_t lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface
 
 void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *element ) {
 	// properties of control buttons of window
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + interface -> width - LIB_INTERFACE_HEADER_HEIGHT_pixel - (element -> control.x * LIB_INTERFACE_HEADER_HEIGHT_pixel);
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + interface -> width - LIB_INTERFACE_HEADER_HEIGHT_pixel - (element -> control.x * LIB_INTERFACE_HEADER_HEIGHT_pixel) - LIB_INTERFACE_BORDER_pixel;
 
 	// choose background color
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
@@ -395,7 +407,7 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 	}
 
 	// clear element space
-	for( uint8_t y = 0; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
+	for( uint8_t y = TRUE; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
 		for( uint8_t x = 0; x < LIB_INTERFACE_HEADER_HEIGHT_pixel; x++ )
 			pixel[ (y * interface -> width) + x ] = background_color;
 
@@ -582,6 +594,18 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		return new_interface;
 	}
 
+	// active window change?
+	if( (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) != interface -> active_semaphore ) {
+		// remember current status
+		interface -> active_semaphore = interface -> descriptor -> flags & STD_WINDOW_FLAG_active;
+
+		// update window border
+		lib_interface_border( interface );
+
+		// update window content
+		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+	}
+
 	// nothing to do
 	return EMPTY;
 }
@@ -736,8 +760,8 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t y = 0; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
-		for( uint16_t x = 0; x < interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel); x++ )
+	for( uint16_t y = TRUE; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
+		for( uint16_t x = TRUE; x < interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel); x++ )
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 

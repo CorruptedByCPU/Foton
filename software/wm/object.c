@@ -11,6 +11,10 @@ void wm_object( void ) {
 		// ignore cursor object
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
 
+		// active window selected?
+		if( wm_list_base_address[ i ] == wm_object_active ) wm_object_active -> descriptor -> flags |= STD_WINDOW_FLAG_active;
+		else wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_active;
+
 		// object minimized or visible and requested flush?
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_maximize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse whole object area
