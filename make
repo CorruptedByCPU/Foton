@@ -7,6 +7,10 @@
 green=$(tput setaf 2)
 default=$(tput sgr0)
 
+# default optimization
+OPT="${1}"
+if [ -z "${OPT}" ]; then OPT="fast"; fi
+
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 CC="clang"
 C="${CC} -include ./library/std.h -g"
@@ -44,10 +48,6 @@ mkdir -p root/system/{bin,lib}
 
 # copy default filesystem structure
 cp -rf root build
-
-# default optimization
-OPT="${1}"
-if [ -z "${OPT}" ]; then OPT="fast"; fi
 
 # build subroutines required by kernel
 EXT=""
