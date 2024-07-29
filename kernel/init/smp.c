@@ -28,8 +28,12 @@ void kernel_init_smp( void ) {
 
 		// remember CPU ID if greater than previous one
 		if( kernel -> lapic_id_highest < limine_smp_request.response -> cpus[ i ] -> lapic_id ) kernel -> lapic_id_highest = limine_smp_request.response -> cpus[ i ] -> lapic_id;
-	}
 
-	// show information about initialized CPUs
-	if( kernel -> cpu_count++ ) kernel_log( (uint8_t *) "+%u CPU(s) initialized.\n", kernel -> cpu_count - 1 );
+		//--------------------------------------------------------------
+		// no support for CPU clusters, yet
+		//--------------------------------------------------------------
+
+		// CPU limit acquired?
+		if( kernel -> cpu_count >= 8 || i >= 8 ) break;	// yes
+	}
 }

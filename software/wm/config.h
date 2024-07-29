@@ -36,6 +36,7 @@
 	#define	WM_TASKBAR_BG_default		0xE8000000
 	#define	WM_TASKBAR_BG_visible		0xFF101010
 	#define	WM_TASKBAR_BG_invisible		0xFF000000
+	#define	WM_TASKBAR_BG_active		0xFF181818
 
 	struct	WM_STRUCTURE_OBJECT {
 		int16_t		x;

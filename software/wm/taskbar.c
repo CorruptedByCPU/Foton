@@ -38,6 +38,7 @@ void wm_taskbar_list_entry( struct WM_STRUCTURE_OBJECT *object, uint16_t x, uint
 
 	// or
 	if( object -> descriptor -> flags & STD_WINDOW_FLAG_visible ) color = WM_TASKBAR_BG_visible;
+	if( object == wm_object_active ) color = WM_TASKBAR_BG_active;
 
 	// fill element with default background color
 	for( uint16_t row = 0; row < wm_object_taskbar -> height; row++ )
@@ -48,7 +49,7 @@ void wm_taskbar_list_entry( struct WM_STRUCTURE_OBJECT *object, uint16_t x, uint
 	if( object == wm_object_active )
 		for( uint16_t row = wm_object_taskbar -> height - 2; row < wm_object_taskbar -> height; row++ )
 			for( uint16_t col = 0; col < width - 1; col++ )
-				entry_pixel[ (row * wm_object_taskbar -> width) + col ] = lib_color( 40 );
+				entry_pixel[ (row * wm_object_taskbar -> width) + col ] = 0xFF008000;
 
 	// set entry name
 	lib_font( LIB_FONT_FAMILY_ROBOTO, object -> descriptor -> name, object -> descriptor -> name_length, 0xFFFFFFFF, entry_pixel + (4 * wm_object_taskbar -> width) + 4, wm_object_taskbar -> width, LIB_FONT_ALIGN_left );

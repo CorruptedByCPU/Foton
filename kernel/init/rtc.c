@@ -56,7 +56,4 @@ void kernel_init_rtc( void ) {
 	// retrieve pending interrupt of real-time controller
 	driver_port_out_byte( DRIVER_RTC_PORT_command, DRIVER_RTC_STATUS_REGISTER_C );
 	driver_port_in_byte( DRIVER_RTC_PORT_data );
-
-	// debug
-	kernel_log( (uint8_t *) "Real Time Controller set at %u Hz\n", DRIVER_RTC_Hz );
 }

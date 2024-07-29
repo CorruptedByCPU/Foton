@@ -25,16 +25,6 @@ void kernel_init_memory( void ) {
 				for( uint64_t j = limine_memmap_request.response -> entries[ i ] -> base >> STD_SHIFT_PAGE; j < (limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length) >> STD_SHIFT_PAGE; j++ )
 					kernel -> memory_base_address[ j >> STD_SHIFT_32 ] |= 1 << (j & 0b00011111);
 			}
-
-			// // debug
-			// kernel_log( (uint8_t *) "0x%16X - 0x%16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + (limine_memmap_request.response -> entries[ i ] -> length - 1) );
-			// switch( limine_memmap_request.response -> entries[ i ] -> type ) {
-			// 	case LIMINE_MEMMAP_USABLE:			{ kernel_log( (uint8_t *) "Usable\n" ); break; }
-			// 	case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:	{ kernel_log( (uint8_t *) "Bootloader Reclaimable\n" ); break; }
-			// 	case LIMINE_MEMMAP_ACPI_RECLAIMABLE:		{ kernel_log( (uint8_t *) "ACPI Reclaimable\n" ); break; }
-			// 	case LIMINE_MEMMAP_KERNEL_AND_MODULES:		{ kernel_log( (uint8_t *) "Kernel and Modules\n" ); break; }
-			// 	default:					{ kernel_log( (uint8_t *) "{UNKNOWN}\n" ); break; }
-			// }
 		}
 	}
 

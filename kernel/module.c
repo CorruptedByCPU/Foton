@@ -151,9 +151,6 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 }
 
 int64_t kernel_module_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
-	// debug
-	// kernel_log( (uint8_t *) "Module thread: %s at 0x%X\n", name, function );
-	
 	// create a new thread in task queue
 	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );
 

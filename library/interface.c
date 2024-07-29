@@ -56,7 +56,7 @@ void lib_interface_border( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	uint32_t color = 0xFF008000;
 
 	// change border of window if not active
-	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = 0xFF272727;
+	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = LIB_INTERFACE_COLOR_background_light;
 
 	// and point border
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
@@ -602,6 +602,9 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		// update window border
 		lib_interface_border( interface );
 
+		// and header
+		lib_interface_name_rewrite( interface );
+
 		// update window content
 		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 	}
@@ -768,8 +771,14 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// limit name length to header width
 	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> name_length ) > interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) ) if( ! --interface -> name_length ) return;
 
+	// default border color
+	uint32_t color = 0xFFFFFFFF;
+
+	// change border of window if not active
+	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = 0xFF808080;
+
 	// print new header
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> name_length, STD_COLOR_WHITE, pixel + (4 * interface -> width) + 4, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> name_length, color, pixel + (4 * interface -> width) + 4, interface -> width, LIB_FONT_ALIGN_left );
 }
 
 uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {

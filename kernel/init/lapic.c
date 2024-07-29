@@ -13,7 +13,7 @@ void kernel_init_lapic( void ) {
 	kernel -> lapic_base_address -> ld = KERNEL_LAPIC_LD_FLAG_target_cpu;
 
 	// enable APIC controller on the BSP/logical processor
-	kernel -> lapic_base_address -> siv = kernel -> lapic_base_address -> siv | KERNEL_LAPIC_SIV_FLAG_enable_apic | KERNEL_LAPIC_SIV_FLAG_spurious_vector3;
+	kernel -> lapic_base_address -> siv = kernel -> lapic_base_address -> siv | KERNEL_LAPIC_SIV_FLAG_enable_apic | KERNEL_LAPIC_SIV_FLAG_spurious_vector;
 
 	// turn on internal interrupts time on APIC controller of BSP/logical processor
 	kernel -> lapic_base_address -> lvt = kernel -> lapic_base_address -> lvt & ~KERNEL_LAPIC_LVT_TR_FLAG_mask_interrupts;

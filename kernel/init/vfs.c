@@ -93,9 +93,6 @@ void kernel_init_vfs( void ) {
 		// kernels current directory
 		kernel -> task_base_address -> directory = kernel -> storage_base_address[ i ].device_block;
 
-		// show information about root directory
-		kernel_log( (uint8_t *) "%u KiB occupied by root directory.\n", MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ i ].device_length * kernel -> storage_base_address[ i ].device_byte ) >> STD_SHIFT_1024 );
-
 		// done
 		break;
 	}
