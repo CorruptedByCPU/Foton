@@ -3,6 +3,10 @@
 # Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 #=================================================================================
 
+# coloristics
+green=$(tput setaf 2)
+default=$(tput sgr0)
+
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 CC="clang"
 C="${CC} -include ./library/std.h -g"
@@ -64,7 +68,10 @@ LDFLAGS="-nostdlib -static -no-dynamic-linker"
 ${C} -c kernel/init.c -o build/kernel.o ${CFLAGS} || exit 1;
 ${LD} ${EXT} build/kernel.o -o build/kernel -T tools/kernel.ld ${LDFLAGS} || exit 1;
 strip -s build/kernel
-echo -e "  Kernel\e[38;5;2m\r\xE2\x9C\x94\e[0m"
+
+# information
+kernel_size=`ls -lh build/kernel | cut -d ' ' -f 5`
+echo -e "${green}\xE2\x9C\x94${default}|Kernel|${kernel_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
 
 # copy kernel file and limine files onto destined iso folder
 gzip -k build/kernel
@@ -78,7 +85,10 @@ for submodules in `(cd module && ls *.asm)`; do
 
 	# build
 	${ASM} -f elf64 module/${submodule}.asm -o build/${submodule}.ao
-	echo -e "  Submodule ${submodule}.asm\e[38;5;2m\r\xE2\x9C\x94\e[0m"
+
+	# information
+	submodule_size=`ls -lh build/${submodule}.ao | cut -d ' ' -f 5`
+	echo -e "${green}\xE2\x9C\x94${default}|[submodule of ${submodule}.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
 done
 
 for modules in `(cd module && ls *.c)`; do
@@ -87,7 +97,6 @@ for modules in `(cd module && ls *.c)`; do
 
 	# build
 	${C} -c -fpic -DMODULE module/${module}.c -o build/${module}.o ${CFLAGS} || exit 1
-	echo -e "  Module ${module}.c\e[38;5;2m\r\xE2\x9C\x94\e[0m"
 
 	# connect with libraries (if necessery)
 	SUB=""
@@ -96,6 +105,10 @@ for modules in `(cd module && ls *.c)`; do
 
 	# we do not need any additional information
 	strip -s build/root/system/lib/modules/${module}.ko > /dev/null 2>&1
+
+	# information
+	module_size=`ls -lh build/root/system/lib/modules/${module}.ko | cut -d ' ' -f 5`
+	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
 done
 
 #===============================================================================
@@ -106,7 +119,6 @@ lib=""	# include list of libraries
 for library in path color elf integer string network input math json font std image interface random rgl terminal; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
-	echo -e "  Library ${library}.c\e[38;5;2m\r\xE2\x9C\x94\e[0m"
 
 	# convert to shared
 	${C} -shared build/${library}.o -o build/root/system/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/system/lib/ ${lib} || exit 1
@@ -116,6 +128,10 @@ for library in path color elf integer string network input math json font std im
 
 	# update libraries list
 	lib="${lib} -l${library}"
+
+	# information
+	library_size=`ls -lh build/root/system/lib/lib${library}.so | cut -d ' ' -f 5`
+	echo -e "${green}\xE2\x9C\x94${default}|Library: lib${library}.so|${library_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
 done
 
 #===============================================================================
@@ -126,13 +142,16 @@ for software in `(cd software && ls *.c)`; do
 
 	# build
 	${C} -DSOFTWARE -c software/${name}.c -o build/${name}.o ${CFLAGS_SOFTWARE} || exit 1
-	echo -e "  Software ${name}.c\e[38;5;2m\r\xE2\x9C\x94\e[0m"
 
 	# connect with libraries (if necessery)
 	${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
 
 	# we do not need any additional information
 	strip -s build/root/system/bin/${name} > /dev/null 2>&1
+
+	# information
+	software_size=`ls -lh build/root/system/bin/${name} | cut -d ' ' -f 5`
+	echo -e "${green}\xE2\x9C\x94${default}|Software: ${name}|${software_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
 done
 
 #===============================================================================
