@@ -7,6 +7,8 @@
 	//----------------------------------------------------------------------
 	#include	"../library/elf.c"
 	#include	"../library/string.c"
+	// #include	"../library/color.c"
+	// #include	"../library/font.c"
 	// #include	"../library/terminal.c"
 	//----------------------------------------------------------------------
 	// drivers

@@ -67,7 +67,7 @@ LDFLAGS="-nostdlib -static -no-dynamic-linker"
 # build kernel file
 ${C} -c kernel/init.c -o build/kernel.o ${CFLAGS} || exit 1;
 ${LD} ${EXT} build/kernel.o -o build/kernel -T tools/kernel.ld ${LDFLAGS} || exit 1;
-strip -s build/kernel
+#strip -s build/kernel
 
 # information
 kernel_size=`ls -lh build/kernel | cut -d ' ' -f 5`
