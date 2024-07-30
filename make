@@ -19,7 +19,7 @@ ASM="nasm"
 ISO="xorriso"
 V="qemu-system-x86_64"
 ARCH="x86-64"
-FLAGS="-march=${ARCH} -mtune=generic -O${OPT} -m64 -ffreestanding -nostdlib -nostartfiles -fno-stack-protector -fno-builtin -mno-red-zone ${DEBUG}"
+FLAGS="-march=${ARCH} -mtune=generic -O${OPT} -m64 -ffreestanding -nostdlib -fno-stack-protector -fno-builtin -mno-red-zone ${DEBUG}"
 
 # for clear view
 clear
