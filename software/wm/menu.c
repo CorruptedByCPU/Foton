@@ -61,7 +61,7 @@ int64_t wm_menu( void ) {
 		lib_interface_hover( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 
 		// release CPU time
-		std_sleep( TRUE );
+		sleep( TRUE );
 	}
 
 	// dummy

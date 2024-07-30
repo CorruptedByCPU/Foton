@@ -17,6 +17,9 @@ global	kernel_task_entry
 ; align routine to full address
 align	0x08,	db	0x00
 kernel_task_entry:
+	; turn off Interrupt Flag
+	cli
+
 	; turn off Direction Flag
 	cld
 

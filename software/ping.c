@@ -115,7 +115,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		std_memory_release( (uintptr_t) packet.data, MACRO_PAGE_ALIGN_UP( packet.length ) >> STD_SHIFT_PAGE );
 
 		// no more replies required?
-		if( --count ) std_sleep( end_microtime - current_microtime );	// wait before sending next request
+		if( --count ) sleep( end_microtime - current_microtime );	// wait before sending next request
 	}
 
 	// release ICMP request

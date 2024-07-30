@@ -27,7 +27,7 @@ extern	kernel_syscall_keyboard
 extern	kernel_syscall_stream_set
 extern	kernel_syscall_stream_get
 extern	kernel_syscall_memory
-extern	kernel_syscall_sleep
+; empty
 extern	kernel_syscall_file_open
 extern	kernel_syscall_file_close
 extern	kernel_syscall_cd
@@ -80,7 +80,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_stream_set		; 0x13
 	dq	kernel_syscall_stream_get		; 0x14
 	dq	kernel_syscall_memory			; 0x15
-	dq	kernel_syscall_sleep			; 0x16
+	dq	0x00					; 0x16
 	dq	kernel_syscall_file_open		; 0x17
 	dq	kernel_syscall_file_close		; 0x18
 	dq	kernel_syscall_cd			; 0x19

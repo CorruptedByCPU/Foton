@@ -30,7 +30,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// main loop
 	while( TRUE ) {
 		// release cpu time
-		std_sleep( TRUE );
+		sleep( TRUE );
 
 		// check incomming events
 		moko_event();

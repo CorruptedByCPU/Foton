@@ -130,7 +130,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					std_ipc_send( shell_exec_pid, (uint8_t *) &data );
 			
 				// free up AP time until program execution ends
-				std_sleep( TRUE );
+				sleep( TRUE );
 			}
 
 			// restore header

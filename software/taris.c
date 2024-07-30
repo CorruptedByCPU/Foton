@@ -116,7 +116,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			uint64_t wait = std_microtime() + taris_speed[ level ];
 			do {
 				// free up AP time
-				std_sleep( TRUE );
+				sleep( TRUE );
 
 				// check events from interface
 				lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface );

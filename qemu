@@ -21,6 +21,6 @@ qemu-system-x86_64				\
 	-cdrom build/foton.iso			\
 	-rtc base=localtime			\
 	-audio driver=alsa,model=sb16,id=7	\
-	-serial stdio				&
+	-serial stdio				\
 #	-usb -device usb-mouse,id=mouse		\
 #	-usb -device usb-kbd,id=keyboard	\

@@ -221,14 +221,6 @@ void std_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 	return std_syscall_empty();
 }
 
-uint64_t std_sleep( uint64_t units ) {
-	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_SLEEP), "D" (units) );
-
-	// return unsigned value
-	return std_syscall_value_unsigned();
-}
-
 uint8_t std_cd( uint8_t *path, uint64_t path_length ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_CD), "D" (path), "S" (path_length) );

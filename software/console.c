@@ -152,7 +152,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			std_stream_set( (uint8_t *) &console_stream_meta, STD_STREAM_IN );
 		} else
 			// free up AP time
-			std_sleep( TRUE );
+			sleep( TRUE );
 	}
 
 	// hold the door

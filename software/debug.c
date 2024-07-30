@@ -37,7 +37,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	window -> flags = STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
 	while( TRUE ) {
-		std_sleep( TRUE );
+		sleep( TRUE );
 
 		struct STD_NETWORK_STRUCTURE_INTERFACE tmp;
 		std_network_interface( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &tmp );

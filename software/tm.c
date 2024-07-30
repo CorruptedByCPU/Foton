@@ -113,7 +113,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			if( key == 'k' ) { std_kill( task[ entry_selected ].pid ); if( top_line_selected ) top_line_selected--; break; }
 
 			// release rest of CPU time
-			std_sleep( TRUE );
+			sleep( TRUE );
 		}
 
 		// release list

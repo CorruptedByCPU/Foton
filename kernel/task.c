@@ -22,7 +22,7 @@ void kernel_task( void ) {
 	struct KERNEL_TASK_STRUCTURE *next = kernel_task_select( (uint64_t) (((uint64_t) current - (uint64_t) kernel -> task_base_address) / sizeof( struct KERNEL_TASK_STRUCTURE )) );
 
 	// start time measuring
-	next -> time_previous = kernel -> time_rtc;
+	next -> time_previous = kernel_time_rdtsc();
 
 	//----------------------------------------------------------------------
 

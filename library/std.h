@@ -511,9 +511,6 @@
 	// returns properties of system memory
 	void std_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory );
 
-	// releases AP rest of time for N units, returns N left units if sleep is broken
-	uint64_t std_sleep( uint64_t units );	// 1 unit ~ 1/1024 of second
-
 	// print character
 	void putc( uint8_t character );
 
@@ -567,8 +564,6 @@
 
 	// receive data from socket
 	void std_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *data );
-
-	void std_debug( void );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
@@ -668,4 +663,5 @@
 	void fread( FILE *file, uint8_t *cache, uint64_t byte );
 	void fwrite( FILE *file, uint8_t *cache, uint64_t byte );
 	FILE *touch( uint8_t *path, uint8_t type );
+	void sleep( uint64_t ms );
 #endif

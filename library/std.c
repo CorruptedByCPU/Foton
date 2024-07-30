@@ -684,3 +684,11 @@ FILE *touch( uint8_t *path, uint8_t type ) {
 	// return all file properties
 	return file;
 }
+
+void sleep( uint64_t ms ) {
+	// set release in future
+	uint64_t wait = std_microtime() + ms;
+
+	// release CPU time until we are ready
+	while( wait > std_microtime() ) __asm__ volatile( "int $0x40" );
+}

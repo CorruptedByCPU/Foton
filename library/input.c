@@ -78,7 +78,7 @@ uint64_t lib_input( uint8_t *cache, uint64_t length_max, uint64_t length_current
 			print( (const char *) &keyboard -> key );
 		} else
 			// free up AP time
-			std_sleep( TRUE );
+			sleep( TRUE );
 	}
 
 	return EMPTY;

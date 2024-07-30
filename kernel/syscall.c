@@ -518,26 +518,6 @@ void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 	memory -> shared = kernel -> page_shared << STD_SHIFT_PAGE;
 }
 
-uint64_t kernel_syscall_sleep( uint64_t units ) {
-	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
-
-	// mark task as sleeping
-	task -> flags |= STD_TASK_FLAG_sleep;
-
-	// set release pointer
-	uint64_t stop = kernel_time_rdtsc() + units;
-
-	// wait until we achieve awaited units of time
-	while( stop > kernel_time_rdtsc() ) __asm__ volatile( "int $0x20" );
-
-	// remove sleep status
-	task -> flags &= ~STD_TASK_FLAG_sleep;
-
-	// return remaining units (is sleep was broken)
-	return units;
-}
-
 uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 	// try to open provided path
 	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );

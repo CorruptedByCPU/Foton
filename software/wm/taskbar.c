@@ -106,7 +106,7 @@ int64_t wm_taskbar( void ) {
 	// main loop
 	while( TRUE ) {
 		// free up AP time
-		std_sleep( TRUE );
+		sleep( TRUE );
 
 		// incomming message
 		uint8_t ipc_data[ STD_IPC_SIZE_byte ];

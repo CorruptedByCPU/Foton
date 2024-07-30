@@ -40,7 +40,7 @@ void _entry( uintptr_t kernel_ptr ) {
 	// if found, check model and vendor
 	if( driver_pci_read( pci, DRIVER_PCI_REGISTER_vendor_and_device ) == MODULE_E1000_VENDOR_AND_DEVICE ) {
 		// debug
-		// kernel -> log( (uint8_t *) "[E1000] PCI %2X:%2X.%u - Network Controller found.\n", pci.bus, pci.device, pci.function );
+		kernel -> log( (uint8_t *) "[E1000] PCI %2X:%2X.%u - Network Controller found.\n", pci.bus, pci.device, pci.function );
 
 		// get base address of network controller mmio
 		uint64_t mmio = (uint64_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_bar0 );
@@ -63,7 +63,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		module_e1000_mmio_base_address = (struct MODULE_E1000_STRUCTURE_MMIO *) ((mmio & ~0x0F) | KERNEL_PAGE_mirror);
 
 		// debug
-		// kernel -> log( (uint8_t *) "[E1000] MMIO base address at 0x%X\n", module_e1000_mmio_base_address );
+		kernel -> log( (uint8_t *) "[E1000] MMIO base address at 0x%X\n", module_e1000_mmio_base_address );
 
 		// retrieve interrupt number of network controller
 		module_e1000_irq_number = (uint8_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_irq );
@@ -83,7 +83,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		for( uint8_t i = 0; i < 6; i++ ) kernel -> network_interface.ethernet_address[ i ] = module_e1000_mac[ i ];
 
 		// debug
-		// kernel -> log( (uint8_t *) "[E1000] MAC address %2X:%2X:%2X:%2X:%2X:%2X\n", module_e1000_mac[ 0 ], module_e1000_mac[ 1 ], module_e1000_mac[ 2 ], module_e1000_mac[ 3 ], module_e1000_mac[ 4 ], module_e1000_mac[ 5 ] );
+		kernel -> log( (uint8_t *) "[E1000] MAC address %2X:%2X:%2X:%2X:%2X:%2X\n", module_e1000_mac[ 0 ], module_e1000_mac[ 1 ], module_e1000_mac[ 2 ], module_e1000_mac[ 3 ], module_e1000_mac[ 4 ], module_e1000_mac[ 5 ] );
 
 		// disable all type of interrupts on network controller
 		module_e1000_mmio_base_address -> imc = STD_MAX_unsigned;	// documentation, page 312/410
@@ -176,7 +176,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		uintptr_t frame = EMPTY;
 
 		// acquire data for transmission
-		while( ! (frame = kernel -> network_tx()) );
+		while( ! (frame = kernel -> network_tx()) ) kernel -> time_sleep( TRUE );
 
 		// resolve properties
 		uintptr_t data = frame & STD_PAGE_mask;
