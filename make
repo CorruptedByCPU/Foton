@@ -37,7 +37,7 @@ if [ "${ENV}" = false ]; then echo -e "\n[please install missing software]"; exi
 type -a qemu-system-x86_64 &> /dev/null || echo -e "Optional \e[38;5;11mqemu\e[0m not installed. ISO file will be generated regardless of that."
 
 # external resources initialization
-#git submodule update --init
+git submodule update --init
 
 # remove all obsolete files, which could interference
 rm -rf build && mkdir -p build/iso
