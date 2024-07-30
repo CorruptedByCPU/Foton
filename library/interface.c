@@ -53,10 +53,10 @@ void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 void lib_interface_border( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// default border color
-	uint32_t color = 0xFF008000;
+	uint32_t color = LIB_INTERFACE_BORDER_COLOR_default;
 
 	// change border of window if not active
-	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = LIB_INTERFACE_COLOR_background_light;
+	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = LIB_INTERFACE_BORDER_COLOR_inactive;
 
 	// and point border
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));

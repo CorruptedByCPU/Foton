@@ -18,10 +18,10 @@
 		#include	"./string.h"
 	#endif
 
-	#define	LIB_INTERFACE_GLOBAL_NAME_limit		64
+	#define	LIB_INTERFACE_GLOBAL_NAME_limit			64
 
-	#define	LIB_INTERFACE_HEADER_HEIGHT_pixel	(LIB_FONT_HEIGHT_pixel + 8)	// 4 pixels from above and under
-	#define	LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel	LIB_INTERFACE_HEADER_HEIGHT_pixel
+	#define	LIB_INTERFACE_HEADER_HEIGHT_pixel		(LIB_FONT_HEIGHT_pixel + 8)	// 4 pixels from above and under
+	#define	LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel		LIB_INTERFACE_HEADER_HEIGHT_pixel
 
 	#define	LIB_INTERFACE_ELEMENT_TYPE_null			0x00
 	#define	LIB_INTERFACE_ELEMENT_TYPE_label		0x01
@@ -33,16 +33,19 @@
 
 	#define	LIB_INTERFACE_ELEMENT_FLAG_hover		0b00000001
 
-	#define	LIB_INTERFACE_BORDER_pixel		1
+	#define	LIB_INTERFACE_BORDER_pixel			1
+	#define	LIB_INTERFACE_BORDER_COLOR_default		0xFF383838
+	#define	LIB_INTERFACE_BORDER_COLOR_inactive		0xFF181818
 
-	#define	LIB_INTERFACE_COLOR_background		0xFF141414
-	#define	LIB_INTERFACE_COLOR_foreground		0xFFF0F0F0
-	#define	LIB_INTERFACE_COLOR_background_light	0xFF282828
-	#define	LIB_INTERFACE_COLOR_background_hover	0xFF208020
+	#define	LIB_INTERFACE_COLOR_background			0xFF141414
+	#define	LIB_INTERFACE_COLOR_background_dark		0xFF080808
+	#define	LIB_INTERFACE_COLOR_foreground			0xFFF0F0F0
+	#define	LIB_INTERFACE_COLOR_background_light		0xFF282828
+	#define	LIB_INTERFACE_COLOR_background_hover		0xFF208020
 
 	#define	LIB_INTERFACE_COLOR_MENU_background_hover	0xFF0C0C0C
 
-	#define	LIB_INTERFACE_NAME_limit		LIB_INTERFACE_GLOBAL_NAME_limit
+	#define	LIB_INTERFACE_NAME_limit			LIB_INTERFACE_GLOBAL_NAME_limit
 
 	struct LIB_INTERFACE_STRUCTURE {
 		struct STD_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;

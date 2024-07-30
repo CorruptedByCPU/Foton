@@ -33,6 +33,8 @@
 	#define	DRIVER_RTC_STATUS_REGISTER_B_periodic_interrupt		0b01000000
 	#define	DRIVER_RTC_STATUS_REGISTER_B_update_in_progress		0b10000000
 
+	#define	DRIVER_RTC_STATUS_REGISTER_C_interrupt_periodic		0b01000000
+
 	// external routine (assembly language)
 	extern void driver_rtc_entry( void );
 

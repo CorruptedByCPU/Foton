@@ -568,6 +568,8 @@
 	// receive data from socket
 	void std_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *data );
 
+	void std_debug( void );
+
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
 			uint64_t	length;
