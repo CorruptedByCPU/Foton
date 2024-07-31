@@ -29,7 +29,7 @@
 	#include	"task.h"
 	#include	"vfs.h"
 	#include	"time.h"
-	#include	"idt.h"	
+	#include	"idt.h"
 	#include	"gdt.h"
 	#include	"tss.h"
 	#include	"io_apic.h"
