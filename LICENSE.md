@@ -1,15 +1,18 @@
 Copyright (c) Blackdev.org by Andrzej Adamczyk
 
-You are free to:
+Licensed under Creative Commons BY-NC-ND (https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
-   Share — copy and redistribute the binary or source code in any medium or format.
+ You are free to:
+
+    Share — copy and redistribute the material in any medium or format
+    The licensor cannot revoke these freedoms as long as you follow the license terms.
 
 Under the following terms:
 
-   You must give appropriate credit, provide a link to the license or repository.
+    Attribution — You must give appropriate credit , provide a link to the license, and indicate if changes were made . You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
 
-   You may not use for commercial purposes.
+    NonCommercial — You may not use the material for commercial purposes .
 
-   You may not share any modified version of binary / source code.
+    NoDerivatives — If you remix, transform, or build upon the material, you may not distribute the modified material.
 
-THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    No additional restrictions — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
