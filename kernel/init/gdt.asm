@@ -14,7 +14,7 @@ global	kernel_gdt_reload
 ; align routine to full address
 align	0x08,	db	0x00
 kernel_gdt_reload:
-	; keep original register
+	; preserve original register
 	push	rax
 
 	; CS descriptor

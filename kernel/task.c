@@ -7,6 +7,9 @@ void kernel_task( void ) {
 	// task properties
 	struct KERNEL_TASK_STRUCTURE *current = kernel_task_active();
 
+	// block possibility of modifying tasks, only 1 CPU at a time
+	MACRO_LOCK( kernel -> task_cpu_semaphore );
+
 	// keep current top of stack pointer
 	__asm__ volatile( "mov %%rsp, %0" : "=rm" (current -> rsp) );
 
@@ -31,6 +34,9 @@ void kernel_task( void ) {
 
 	// restore previous  stack pointer of next task
 	__asm__ volatile( "movq %0, %%rsp" : "=rm" (next -> rsp) );
+
+	// unlock access to modification of tasks
+	MACRO_UNLOCK( kernel -> task_cpu_semaphore );
 
 	// reload CPU cycle counter inside APIC controller
 	kernel_lapic_reload();
@@ -126,9 +132,6 @@ int64_t kernel_task_pid( void ) {
 }
 
 struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
-	// block possibility of modifying tasks, only 1 CPU at a time
-	MACRO_LOCK( kernel -> task_cpu_semaphore );
-
 	// search until found
 	while( TRUE ) {
 		// search in task queue for a ready-to-do task
@@ -140,9 +143,6 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
 
 				// inform BS/A about task to execute as next
 				kernel -> task_cpu_address[ kernel_lapic_id() ] = &kernel -> task_base_address[ i ];
-
-				// unlock access to modification of tasks
-				MACRO_UNLOCK( kernel -> task_cpu_semaphore );
 
 				// return address of selected task from queue
 				return &kernel -> task_base_address[ i ];

@@ -3,6 +3,8 @@
 # Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 #=================================================================================
 
+clear
+
 # default CPUs amount: 2
 SMP="${1}"
 if [ -z "${SMP}" ]; then SMP="2"; fi
@@ -19,9 +21,9 @@ qemu-system-x86_64				\
 	-m ${MEM}				\
 	-cdrom build/foton.iso			\
 	-rtc base=localtime			\
-	-audio driver=alsa,model=es1370,id=7	\
+	-audio driver=alsa,model=sb16,id=7	\
 	-serial stdio				&
-#       -usb -device usb-mouse,id=mouse         \
-#       -usb -device usb-kbd,id=keyboard        \
+#	-usb -device usb-mouse,id=mouse		\
+#	-usb -device usb-kbd,id=keyboard	\
 
 ../gf/gf2 -ex "target remote :1234" -ex "set disassembly-flavor intel" -ex "symbol-file build/kernel" -ex "c"

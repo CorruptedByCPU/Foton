@@ -104,7 +104,7 @@ for modules in `(cd module && ls *.c)`; do
 	${LD} ${SUB} build/${module}.o -o build/root/system/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
 
 	# we do not need any additional information
-	strip -s build/root/system/lib/modules/${module}.ko > /dev/null 2>&1
+	strip -s build/root/system/lib/modules/${module}.ko
 
 	# information
 	module_size=`ls -lh build/root/system/lib/modules/${module}.ko | cut -d ' ' -f 5`
@@ -124,7 +124,7 @@ for library in path color elf integer string network input math json font std im
 	${C} -shared build/${library}.o -o build/root/system/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/system/lib/ ${lib} || exit 1
 
 	# we do not need any additional information
-	strip -s build/root/system/lib/lib${library}.so > /dev/null 2>&1
+	strip -s build/root/system/lib/lib${library}.so
 
 	# update libraries list
 	lib="${lib} -l${library}"

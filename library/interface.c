@@ -72,10 +72,9 @@ void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// fill window with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	for( uint16_t y = 0; y < interface -> height; y++ )
-		for( uint16_t x = 0; x < interface -> width; x++ )
-			// draw pixel
-			pixel[ (y * interface -> width) + x ] = background_color;
+	for( int64_t i = 0; i < interface -> width * interface -> height; i++ )
+		// draw pixel
+		pixel[ i ] = background_color;
 
 	// show default border
 	lib_interface_border( interface );

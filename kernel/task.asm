@@ -23,7 +23,7 @@ kernel_task_entry:
 	; turn off Direction Flag
 	cld
 
-	; keep original registers
+	; preserve original registers
 	push	rax
 	push	rbx
 	push	rcx
@@ -40,7 +40,7 @@ kernel_task_entry:
 	push	r14
 	push	r15
 
-	; keep "floating point" registers
+	; preserve "floating point" registers
 	mov	rax,	-0x1000
 	FXSAVE64	[rax]
 

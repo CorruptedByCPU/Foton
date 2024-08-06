@@ -198,6 +198,9 @@ void _entry( uintptr_t kernel_ptr ) {
 
 		// release page
 		kernel -> memory_release_page( data );
+
+		// debug
+		kernel -> log( (uint8_t *) "Out\n" );
 	}
 }
 
@@ -219,6 +222,9 @@ void driver_e1000( void ) {
 
 		// tell network controller, packets are processed
 		module_e1000_mmio_base_address -> rdh = 0;	// identifier of first available descriptor on list
+
+		// debug
+		kernel -> log( (uint8_t *) "In\n" );
 	}
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely

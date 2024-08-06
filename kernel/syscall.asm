@@ -143,8 +143,19 @@ kernel_syscall:
 	push	r14
 	push	r15
 
+	; preserve "floating point" registers
+	mov	r15,	-0x1000
+	FXSAVE64	[r15]
+
+	; restore original register
+	mov	r15,	qword [rsp]
+
 	; execute kernel function according to parameter in RAX
 	call	qword [kernel_syscall_list + rax * 0x08]
+
+	; restore "floating point" registers
+	mov	r15,	-0x1000
+	FXRSTOR64	[r15]
 
 	; restore original registers
 	pop	r15
