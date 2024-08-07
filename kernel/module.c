@@ -108,6 +108,9 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	// allocate module space
 	uintptr_t module_content = kernel_memory_alloc( module_page );
 
+	// debug
+	kernel_log( (uint8_t *) "Module %s at 0x%X\n", name, module_content );
+
 	// load module segments in place
 	for( uint16_t i = 0; i < elf -> h_entry_count; i++ ) {
 		// ignore blank entry or not loadable
@@ -124,7 +127,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	}
 
 	// insert into paging, module area
-	// uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_map_address, module_page ) << STD_SHIFT_PAGE);
+	// uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_map_address, module_page, KERNEL_MEMORY_HIGH, kernel -> page_limit ) << STD_SHIFT_PAGE);
 	// kernel_page_map( (uint64_t *) module -> cr3, module_content & ~KERNEL_PAGE_mirror, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// map module space to kernel space

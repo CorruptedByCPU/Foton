@@ -67,7 +67,7 @@ LDFLAGS="-nostdlib -static -no-dynamic-linker"
 # build kernel file
 ${C} -c kernel/init.c -o build/kernel.o ${CFLAGS} || exit 1;
 ${LD} ${EXT} build/kernel.o -o build/kernel -T tools/kernel.ld ${LDFLAGS} || exit 1;
-strip -s build/kernel
+# strip -s build/kernel
 
 # information
 kernel_size=`ls -lh build/kernel | cut -d ' ' -f 5`
@@ -104,7 +104,7 @@ for modules in `(cd module && ls *.c)`; do
 	${LD} ${SUB} build/${module}.o -o build/root/system/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
 
 	# we do not need any additional information
-	strip -s build/root/system/lib/modules/${module}.ko
+	# strip -s build/root/system/lib/modules/${module}.ko
 
 	# information
 	module_size=`ls -lh build/root/system/lib/modules/${module}.ko | cut -d ' ' -f 5`
@@ -124,7 +124,7 @@ for library in path color elf integer string network input math json font std im
 	${C} -shared build/${library}.o -o build/root/system/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/system/lib/ ${lib} || exit 1
 
 	# we do not need any additional information
-	strip -s build/root/system/lib/lib${library}.so
+	# strip -s build/root/system/lib/lib${library}.so
 
 	# update libraries list
 	lib="${lib} -l${library}"
@@ -147,7 +147,7 @@ for software in `(cd software && ls *.c)`; do
 	${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
 
 	# we do not need any additional information
-	strip -s build/root/system/bin/${name} > /dev/null 2>&1
+	# strip -s build/root/system/bin/${name} > /dev/null 2>&1
 
 	# information
 	software_size=`ls -lh build/root/system/bin/${name} | cut -d ' ' -f 5`

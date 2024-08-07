@@ -28,7 +28,7 @@ void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *frame
 
 		// acquire N continuous pages
 		uintptr_t allocated = EMPTY;
-		if( (allocated = kernel_memory_acquire( task -> memory_map, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
+		if( (allocated = kernel_memory_acquire( task -> memory_map, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_MEMORY_HIGH, kernel -> page_limit )) ) {
 			// map memory area to process
 			kernel_page_map( (uint64_t *) task -> cr3, (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_PAGE_mirror, (uintptr_t) (allocated << STD_SHIFT_PAGE), MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
 
@@ -50,7 +50,7 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
-	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) {
+	if( (allocated = kernel_memory_acquire( task -> memory_map, page, KERNEL_MEMORY_HIGH, kernel -> page_limit )) ) {
 		// allocate space inside process paging area
 		if( ! kernel_page_alloc( (uint64_t *) task -> cr3, allocated << STD_SHIFT_PAGE, page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) {
 			// debug
@@ -277,7 +277,7 @@ uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t p
 	struct KERNEL_TASK_STRUCTURE *target = (struct KERNEL_TASK_STRUCTURE *) kernel_task_by_id( pid );
 
 	// acquire space from target task
-	uintptr_t target_pointer = kernel_memory_acquire( target -> memory_map, pages, KERNEL_MEMORY_LOW, kernel -> page_limit ) << STD_SHIFT_PAGE;
+	uintptr_t target_pointer = kernel_memory_acquire( target -> memory_map, pages, KERNEL_MEMORY_HIGH, kernel -> page_limit ) << STD_SHIFT_PAGE;
 
 	// connect memory space of parent process with child
 	kernel_page_clang( (uint64_t *) target -> cr3, source, target_pointer, pages, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );

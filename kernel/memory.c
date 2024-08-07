@@ -55,7 +55,7 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	uintptr_t p = EMPTY;
 
 	// search for requested length of area
-	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, KERNEL_MEMORY_LOW, kernel -> page_limit )) ) return EMPTY;
+	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, KERNEL_MEMORY_HIGH, kernel -> page_limit )) ) return EMPTY;
 
 	// less available pages
 	kernel -> page_available -= N;
@@ -72,7 +72,7 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 // 	uintptr_t p = EMPTY;
 
 // 	// search for requested length of area
-// 	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, 0, KERNEL_MEMORY_LOW )) ) return EMPTY;
+// 	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, KERNEL_MEMORY_LOW, KERNEL_MEMORY_HIGH )) ) return EMPTY;
 
 // 	// less available pages
 // 	kernel -> page_available -= N;

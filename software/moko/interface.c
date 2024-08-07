@@ -6,9 +6,6 @@ void moko_interface( void ) {
 	// save current cursor position and move at beginning of menu
 	printf( "\e[s%s\e[2K\e[E", string_cursor_at_interaction );
 
-	// EXIT option
-	printf( "%s^x\e[0m Exit ", string_color_shortcut );
-
 	// change color of "save" option if document was malformed
 	if( document_modified_semaphore ) printf( "%s", string_color_modified ); else printf( "%s", string_color_shortcut );
 

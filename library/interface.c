@@ -70,6 +70,9 @@ void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
 	if( interface -> background_color ) background_color = interface -> background_color;	// change to choosen one
 
+	// debug, how and why...
+	// if( (uintptr_t) interface -> descriptor > 0x700000000000 ) exit();	// kill me
+
 	// fill window with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
 	for( int64_t i = 0; i < interface -> width * interface -> height; i++ )

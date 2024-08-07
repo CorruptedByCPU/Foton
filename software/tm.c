@@ -101,7 +101,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			uint16_t key = getkey(); if( ! key ) continue;	// nothing
 
 			// exit Task Manager?
-			if( key == 'q' ) return 0;	// yes
+			if( key == STD_KEY_ESC ) return 0;	// yes
 
 			// arrow down?
 			if( key == STD_KEY_ARROW_DOWN && top_line_selected < entry_visible - 1 ) { top_line_selected++; break; }

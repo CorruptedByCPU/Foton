@@ -5,7 +5,11 @@
 #ifndef	KERNEL_MEMORY
 	#define	KERNEL_MEMORY
 
-	#define	KERNEL_MEMORY_LOW	256
+	// between LOW and HIGH there are pages intended for physical devices
+	// that don't understand logical addressing
+	// eg. DMA
+	#define	KERNEL_MEMORY_LOW	0
+	#define	KERNEL_MEMORY_HIGH	256
 
 	// returns number of first page with a continuum of N consecutive allocated pages
 	uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N, uint64_t p, uint64_t limit );

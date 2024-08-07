@@ -9,6 +9,15 @@ uint8_t moko_key_ctrl( uint16_t key ) {
 	// CTRL release?
 	if( key == (STD_KEY_CTRL_LEFT | STD_KEY_RELEASE) || key == (STD_KEY_CTRL_RIGHT | STD_KEY_RELEASE) ) key_ctrl_semaphore = FALSE;
 
+	// Exit?
+	if( key == STD_KEY_ESC ) {
+		// set cursor position below document area
+		printf( "%s\n", string_cursor_at_menu );
+
+		// done
+		exit();
+	}
+
 	// selected menu option?
 	if( key_ctrl_semaphore ) {
 		switch( key ) {
@@ -133,15 +142,6 @@ uint8_t moko_key_ctrl( uint16_t key ) {
 
 				// done
 				break;
-			}
-
-			// EXIT
-			case 'x': {
-				// set cursor position below document area
-				printf( "%s\n", string_cursor_at_menu );
-
-				// done
-				exit();
 			}
 		}
 
