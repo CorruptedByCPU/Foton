@@ -23,7 +23,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// main loop
 	while( TRUE ) {
 		// old stream meta
-		struct STD_STREAM_STRUCTURE_META meta = top_stream_meta;
+		struct STD_STRUCTURE_STREAM_META meta = top_stream_meta;
 
 		// retrieve stream meta data
 		std_stream_get( (uint8_t *) &top_stream_meta, STD_STREAM_OUT );
@@ -42,7 +42,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		print( "\e[0;1H" );
 
 		// retrieve list of running tasks
-		struct STD_SYSCALL_STRUCTURE_TASK *task = (struct STD_SYSCALL_STRUCTURE_TASK *) std_task();
+		struct STD_STRUCTURE_SYSCALL_TASK *task = (struct STD_STRUCTURE_SYSCALL_TASK *) std_task();
 
 		// calculate CPU load
 		while( task[ entry_time++ ].flags ) entry_time_load += task[ entry_time ].time;
@@ -117,7 +117,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// release list
-		std_memory_release( (uintptr_t) task, MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * ++entry ) >> STD_SHIFT_PAGE );
+		std_memory_release( (uintptr_t) task, MACRO_PAGE_ALIGN_UP( sizeof( struct STD_STRUCTURE_SYSCALL_TASK ) * ++entry ) >> STD_SHIFT_PAGE );
 
 		// set next update
 		top_update_next = std_uptime() + top_update_limit;

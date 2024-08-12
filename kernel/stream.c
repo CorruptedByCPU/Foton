@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct KERNEL_STREAM_STRUCTURE *kernel_stream( void ) {
+struct KERNEL_STRUCTURE_STREAM *kernel_stream( void ) {
 	// deny access, only one logical processor at a time
 	MACRO_LOCK( kernel -> stream_semaphore );
 
@@ -28,7 +28,7 @@ struct KERNEL_STREAM_STRUCTURE *kernel_stream( void ) {
 		MACRO_UNLOCK( kernel -> stream_semaphore );
 
 		// return stream id
-		return (struct KERNEL_STREAM_STRUCTURE *) &kernel -> stream_base_address[ i ];
+		return (struct KERNEL_STRUCTURE_STREAM *) &kernel -> stream_base_address[ i ];
 	}
 
 	// unlock access to function
@@ -38,7 +38,7 @@ struct KERNEL_STREAM_STRUCTURE *kernel_stream( void ) {
 	return	EMPTY;
 }
 
-void kernel_stream_release( struct KERNEL_STREAM_STRUCTURE *stream ) {
+void kernel_stream_release( struct KERNEL_STRUCTURE_STREAM *stream ) {
 	// it was last process for that stream?
 	if( ! --stream -> lock ) {
 		// free up stream space

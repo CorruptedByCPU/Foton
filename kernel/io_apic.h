@@ -12,7 +12,7 @@
 
 	#define	KERNEL_IO_APIC_TRIGER_MODE_level	1000000000000000b
 
-	struct KERNEL_IO_APIC_STRUCTURE_REGISTER {
+	struct KERNEL_STRUCTURE_IO_APIC_REGISTER {
 		uint32_t	ioregsel;
 		uint32_t	reserved[ 3 ];
 		uint32_t	iowin;

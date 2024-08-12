@@ -45,7 +45,7 @@
 		int16_t		height;
 		int64_t		pid;
 		uint64_t	size_byte;
-		struct STD_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
+		struct STD_STRUCTURE_WINDOW_DESCRIPTOR	*descriptor;
 	};
 
 	struct	WM_STRUCTURE_ZONE {

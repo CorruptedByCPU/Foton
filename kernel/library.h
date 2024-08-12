@@ -12,7 +12,7 @@
 	#define	KERNEL_LIBRARY_FLAG_active		0b00000001
 	#define	KERNEL_LIBRARY_FLAG_reserved		0b10000000
 
-	struct	KERNEL_LIBRARY_STRUCTURE {
+	struct	KERNEL_STRUCTURE_LIBRARY {
 		uintptr_t				pointer;
 		uint64_t				size_page;
 		uint8_t					flags;
@@ -23,11 +23,11 @@
 		uint8_t					name[ LIB_VFS_NAME_limit ];
 	};
 
-	struct KERNEL_LIBRARY_STRUCTURE_INIT {
+	struct KERNEL_STRUCTURE_LIBRARY_INIT {
 		uint8_t					level;
-		struct KERNEL_VFS_STRUCTURE		*socket;
-		struct KERNEL_VFS_STRUCTURE_PROPERTIES	properties;
-		struct KERNEL_LIBRARY_STRUCTURE		*entry;
+		struct KERNEL_STRUCTURE_VFS		*socket;
+		struct KERNEL_STRUCTURE_VFS_PROPERTIES	properties;
+		struct KERNEL_STRUCTURE_LIBRARY		*entry;
 		uintptr_t				workbench_address;
 		uintptr_t				base_address;
 		uint64_t				page;
@@ -40,5 +40,5 @@
 	int64_t kernel_library_load( uint8_t *name, uint64_t length );
 
 	// reserving entry for new library
-	struct KERNEL_LIBRARY_STRUCTURE *kernel_library_register();
+	struct KERNEL_STRUCTURE_LIBRARY *kernel_library_register();
 #endif

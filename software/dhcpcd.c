@@ -66,7 +66,7 @@ uint16_t dhcp_hostname( struct DHCP_STRUCTURE *dhcp, uint16_t length ) {
 	return length;
 }
 
-void dhcp_receive( struct STD_NETWORK_STRUCTURE_DATA *packet ) {
+void dhcp_receive( struct STD_STRUCTURE_NETWORK_DATA *packet ) {
 	// start of timelapse
 	int64_t current_microtime = std_microtime();
 	int64_t end_microtime = current_microtime + 512;
@@ -83,7 +83,7 @@ void dhcp_receive( struct STD_NETWORK_STRUCTURE_DATA *packet ) {
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// get current interface properties
-	std_network_interface( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &eth0 );
+	std_network_interface( (struct STD_STRUCTURE_NETWORK_INTERFACE *) &eth0 );
 
 	// prepare connection with unknown (255.255.255.255) DHCP server
 	socket = std_network_open( STD_NETWORK_PROTOCOL_udp, 0xFFFFFFFF, DHCP_PORT_target, DHCP_PORT_local );
@@ -126,10 +126,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			case Offer: {
 				// properties of reply
-				struct STD_NETWORK_STRUCTURE_DATA packet_offer = { EMPTY };
+				struct STD_STRUCTURE_NETWORK_DATA packet_offer = { EMPTY };
 
 				// wait for incomming message
-				dhcp_receive( (struct STD_NETWORK_STRUCTURE_DATA *) &packet_offer );
+				dhcp_receive( (struct STD_STRUCTURE_NETWORK_DATA *) &packet_offer );
 
 				// received answer?
 				if( ! packet_offer.length ) {	// no
@@ -246,10 +246,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			case Answer: {
 				// properties of reply
-				struct STD_NETWORK_STRUCTURE_DATA packet_answer = { EMPTY };
+				struct STD_STRUCTURE_NETWORK_DATA packet_answer = { EMPTY };
 
 				// wait for incomming message
-				dhcp_receive( (struct STD_NETWORK_STRUCTURE_DATA *) &packet_answer );
+				dhcp_receive( (struct STD_STRUCTURE_NETWORK_DATA *) &packet_answer );
 
 				// received answer?
 				if( ! packet_answer.length ) {	// no
@@ -282,7 +282,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 				// assign provided IPv4 address to network interface
 				eth0.ipv4_address = MACRO_ENDIANNESS_DWORD( dhcp_ipv4_client );
-				std_network_interface_set( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &eth0 );
+				std_network_interface_set( (struct STD_STRUCTURE_NETWORK_INTERFACE *) &eth0 );
 
 				// DHCP finished
 				dhcp_attempts = EMPTY;

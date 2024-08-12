@@ -4,7 +4,7 @@
 
 int64_t	wm_pid = EMPTY;
 
-struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
+struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER kernel_framebuffer;
 
 struct WM_STRUCTURE_OBJECT *wm_object_base_address = EMPTY;
 struct WM_STRUCTURE_OBJECT **wm_list_base_address = EMPTY;

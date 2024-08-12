@@ -7,7 +7,7 @@ void kernel_idt_mount( uint8_t id, uint16_t type, uintptr_t address ) {
 	kernel -> idt_header.base_address[ id ].type = type;
 
 	// address of code descriptor that runs procedure
-	kernel -> idt_header.base_address[ id ].gdt_descriptor = sizeof( ( ( struct KERNEL_GDT_STRUCTURE *) 0 ) -> cs_ring0 );
+	kernel -> idt_header.base_address[ id ].gdt_descriptor = sizeof( ( ( struct KERNEL_STRUCTURE_GDT *) 0 ) -> cs_ring0 );
 
 	// address of exception handler
 	kernel -> idt_header.base_address[ id ].base_low = (uint16_t) address;
@@ -15,9 +15,9 @@ void kernel_idt_mount( uint8_t id, uint16_t type, uintptr_t address ) {
 	kernel -> idt_header.base_address[ id ].base_high = (uint32_t) (address >> 32);
 }
 
-void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
+void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	// task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// show type of exception
 	kernel_log( (uint8_t *) "Exception: " );
@@ -104,7 +104,7 @@ void kernel_idt_exception( struct KERNEL_IDT_STRUCTURE_EXCEPTION *exception ) {
 }
 
 __attribute__ (( preserve_most ))
-void kernel_idt_interrupt_default( struct KERNEL_IDT_STRUCTURE_RETURN *interrupt ) {
+void kernel_idt_interrupt_default( struct KERNEL_STRUCTURE_IDT_RETURN *interrupt ) {
 	// tell APIC of current logical processor that the hardware interrupt is being handled properly
 	kernel_lapic_accept();
 }

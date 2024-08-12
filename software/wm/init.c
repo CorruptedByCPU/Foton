@@ -7,7 +7,7 @@ uint8_t wm_init( void ) {
 	wm_pid = std_pid();
 
 	// obtain information about kernel framebuffer
-	std_framebuffer( (struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *) &kernel_framebuffer );
+	std_framebuffer( (struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *) &kernel_framebuffer );
 
 	// framebuffer locked?
 	if( kernel_framebuffer.pid != wm_pid ) { printf( "WM: Framebuffer is already in use by process with ID %u.", wm_pid ); return FALSE; }
@@ -33,29 +33,29 @@ uint8_t wm_init( void ) {
 	// as local object
 	wm_object_cache.width		= kernel_framebuffer.width_pixel;
 	wm_object_cache.height		= kernel_framebuffer.height_pixel;
-	wm_object_cache.descriptor	= (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm_object_cache.width * wm_object_cache.height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ) ) >> STD_SHIFT_PAGE );
+	wm_object_cache.descriptor	= (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm_object_cache.width * wm_object_cache.height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ) ) >> STD_SHIFT_PAGE );
 
 	// leave cache untouched, first objects synchronization will fill it up
 
 	//----------------------------------------------------------------------
 
 	// properties of file
-	struct STD_FILE_STRUCTURE workbench_file = { EMPTY };
+	struct STD_STRUCTURE_FILE workbench_file = { EMPTY };
 
 	// properties of image
-	struct LIB_IMAGE_TGA_STRUCTURE *workbench_image = EMPTY;
+	struct LIB_IMAGE_STRUCTURE_TGA *workbench_image = EMPTY;
 
 	// retrieve file information
 	uint8_t wallpaper_path[] = "/system/var/gfx/wallpapers/default.tga";
 	if( (workbench_file.socket = std_file_open( (uint8_t *) &wallpaper_path, sizeof( wallpaper_path ) - 1 )) ) {
 		// retrieve file properties
-		std_file( (struct STD_FILE_STRUCTURE *) &workbench_file );
+		std_file( (struct STD_STRUCTURE_FILE *) &workbench_file );
 
 		// assign area for file
-		workbench_image = (struct LIB_IMAGE_TGA_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( workbench_file.byte ) >> STD_SHIFT_PAGE );
+		workbench_image = (struct LIB_IMAGE_STRUCTURE_TGA *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( workbench_file.byte ) >> STD_SHIFT_PAGE );
 
 		// load file content
-		std_file_read( (struct STD_FILE_STRUCTURE *) &workbench_file, (uint8_t *) workbench_image, workbench_file.byte );
+		std_file_read( (struct STD_STRUCTURE_FILE *) &workbench_file, (uint8_t *) workbench_image, workbench_file.byte );
 	}
 
 	// create workbench object
@@ -65,7 +65,7 @@ uint8_t wm_init( void ) {
 	wm_object_workbench -> pid = wm_pid;
 
 	// properties of workbench area content
-	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 
 	// if default wallpaper file found
 	if( workbench_image ) {
@@ -110,7 +110,7 @@ uint8_t wm_init( void ) {
 	wm_object_taskbar -> descriptor -> flags = STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
 
 	// fill taskbar with default background color
-	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = 0; y < wm_object_taskbar -> height; y++ )
 		for( uint16_t x = 0; x < wm_object_taskbar -> width; x++ )
 			taskbar_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;
@@ -141,22 +141,22 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// properties of file
-	struct STD_FILE_STRUCTURE cursor_file = { EMPTY };
+	struct STD_STRUCTURE_FILE cursor_file = { EMPTY };
 
 	// properties of image
-	struct LIB_IMAGE_TGA_STRUCTURE *cursor_image = EMPTY;
+	struct LIB_IMAGE_STRUCTURE_TGA *cursor_image = EMPTY;
 
 	// retrieve file information
 	uint8_t cursor_path[] = "/system/var/gfx/cursors/default.tga";
 	if( (cursor_file.socket = std_file_open( (uint8_t *) &cursor_path, sizeof( cursor_path ) - 1 )) ) {
 		// retrieve properties of file
-		std_file( (struct STD_FILE_STRUCTURE *) &cursor_file );
+		std_file( (struct STD_STRUCTURE_FILE *) &cursor_file );
 
 		// assign area for file
-		cursor_image = (struct LIB_IMAGE_TGA_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( cursor_file.byte ) >> STD_SHIFT_PAGE );
+		cursor_image = (struct LIB_IMAGE_STRUCTURE_TGA *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( cursor_file.byte ) >> STD_SHIFT_PAGE );
 
 		// load file content
-		if( cursor_image ) std_file_read( (struct STD_FILE_STRUCTURE *) &cursor_file, (uint8_t *) cursor_image, cursor_file.byte );
+		if( cursor_image ) std_file_read( (struct STD_STRUCTURE_FILE *) &cursor_file, (uint8_t *) cursor_image, cursor_file.byte );
 
 		// create cursor object
 		wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
@@ -168,7 +168,7 @@ uint8_t wm_init( void ) {
 	wm_object_cursor -> pid = wm_pid;
 
 	// properties of cursor area content
-	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 
 	// fill cursor with default color
 	for( uint16_t y = 0; y < wm_object_cursor -> height; y++ )

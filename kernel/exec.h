@@ -7,11 +7,11 @@
 
 	#define	KERNEL_EXEC_base_address		0x0000000000100000
 
-	struct KERNEL_EXEC_STRUCTURE_INIT {
+	struct KERNEL_STRUCTURE_EXEC_INIT {
 		uint8_t					level;
-		struct KERNEL_VFS_STRUCTURE		*socket;
-		struct KERNEL_VFS_STRUCTURE_PROPERTIES	properties;
-		struct KERNEL_TASK_STRUCTURE		*task;
+		struct KERNEL_STRUCTURE_VFS		*socket;
+		struct KERNEL_STRUCTURE_VFS_PROPERTIES	properties;
+		struct KERNEL_STRUCTURE_TASK		*task;
 		uintptr_t				workbench_address;
 		uintptr_t				base_address;
 		uint64_t				page;

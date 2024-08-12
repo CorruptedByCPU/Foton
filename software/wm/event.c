@@ -7,13 +7,13 @@ void wm_event( void ) {
 	uint8_t data[ STD_IPC_SIZE_byte ]; int64_t source = EMPTY;
 	while( (source = std_ipc_receive( (uint8_t *) &data )) ) {
 		// event to parse?
-		if( data[ offsetof( struct STD_IPC_STRUCTURE_DEFAULT, type ) ] != STD_IPC_TYPE_event ) break;	// no
+		if( data[ offsetof( struct STD_STRUCTURE_IPC_DEFAULT, type ) ] != STD_IPC_TYPE_event ) break;	// no
 
 		// properties of request
-		struct STD_IPC_STRUCTURE_WINDOW *request = (struct STD_IPC_STRUCTURE_WINDOW *) &data;
+		struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &data;
 
 		// properties of answer
-		struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *answer = (struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *) &data;
+		struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &data;
 
 		// properties of new object
 		struct WM_STRUCTURE_OBJECT *object = EMPTY;
@@ -53,7 +53,7 @@ void wm_event( void ) {
 	// incomming key?
 	if( key ) {
 		// properties of keyboard message
-		struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &data;
+		struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &data;
 
 		// IPC type
 		keyboard -> ipc.type = STD_IPC_TYPE_keyboard;
@@ -139,8 +139,8 @@ void wm_event( void ) {
 	}
 
 	// retrieve current mouse status and position
-	struct STD_SYSCALL_STRUCTURE_MOUSE mouse;
-	std_mouse( (struct STD_SYSCALL_STRUCTURE_MOUSE *) &mouse );
+	struct STD_STRUCTURE_MOUSE_SYSCALL mouse;
+	std_mouse( (struct STD_STRUCTURE_MOUSE_SYSCALL *) &mouse );
 
 	// calculate delta of cursor new position
 	int16_t delta_x = mouse.x - wm_object_cursor -> x;
@@ -205,7 +205,7 @@ void wm_event( void ) {
 				if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_taskbar) ) wm_object_active = wm_object_selected;
 
 				// properties of mouse message
-				struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &data;
+				struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
 
 				// default values
 				mouse -> ipc.type = STD_IPC_TYPE_mouse;
@@ -246,7 +246,7 @@ void wm_event( void ) {
 		// left mouse button was held?
 		if( wm_mouse_button_left_semaphore ) {
 			// properties of mouse message
-			struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &data;
+			struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
 
 			// default values
 			mouse -> ipc.type = STD_IPC_TYPE_mouse;
@@ -303,7 +303,7 @@ void wm_event( void ) {
 				wm_object_hover -> pid = wm_pid;
 
 				// fill object with default pattern/color
-				uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+				uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 				for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
 					for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
 						hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x20008000;
@@ -395,13 +395,13 @@ void wm_event( void ) {
 			if( wm_object_hover -> height < TRUE ) wm_object_hover -> height = TRUE;
 
 			// calculate new object area size in Bytes
-			wm_object_hover -> size_byte = ( wm_object_hover -> width * wm_object_hover -> height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR );
+			wm_object_hover -> size_byte = ( wm_object_hover -> width * wm_object_hover -> height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR );
 
 			// assign new area for object
-			wm_object_hover -> descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
+			wm_object_hover -> descriptor = (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
 
 			// fill object with default pattern/color
-			uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+			uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 			for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
 				for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
 					hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x20008000;

@@ -4,7 +4,7 @@
 
 void kernel_syscall_exit( void ) {
 	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// mark task as not active and ready to close
 	task -> flags &= ~STD_TASK_FLAG_active;
@@ -14,7 +14,7 @@ void kernel_syscall_exit( void ) {
 	__asm__ volatile( "int $0x20" );
 }
 
-void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
+void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer ) {
 	// return information about existing framebuffer
 	framebuffer -> base_address	= kernel -> framebuffer_base_address;
 	framebuffer -> width_pixel	= kernel -> framebuffer_width_pixel;
@@ -24,7 +24,7 @@ void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *frame
 	// change framebuffer owner if possible
 	if( ! __sync_val_compare_and_swap( &kernel -> framebuffer_pid, EMPTY, kernel_task_pid() ) ) {
 		// current task properties
-		struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+		struct KERNEL_STRUCTURE_TASK *task = (struct KERNEL_STRUCTURE_TASK *) kernel_task_active();
 
 		// acquire N continuous pages
 		uintptr_t allocated = EMPTY;
@@ -46,7 +46,7 @@ void kernel_syscall_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *frame
 
 uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// acquire N continuous pages
 	uintptr_t allocated = EMPTY;
@@ -79,7 +79,7 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t page ) {
 
 void kernel_syscall_memory_release( uintptr_t target, uint64_t page ) {
 	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// remove page from paging structure
 	if( ! kernel_page_release( (uint64_t *) task -> cr3, target, page ) ) {
@@ -115,7 +115,7 @@ void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 
 int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
 	// create a new thread in task queue
-	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );
+	struct KERNEL_STRUCTURE_TASK *thread = kernel_task_add( name, length );
 
 	//----------------------------------------------------------------------
 
@@ -131,16 +131,16 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// set initial startup configuration for new process
-	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
 
 	// code descriptor
-	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring3 ) | 0x03;
+	context -> cs = offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring3 ) | 0x03;
 
 	// basic processor state flags
 	context -> eflags = KERNEL_TASK_EFLAGS_default;
 
 	// stack descriptor
-	context -> ss = offsetof( struct KERNEL_GDT_STRUCTURE, ds_ring3 ) | 0x03;
+	context -> ss = offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring3 ) | 0x03;
 
 	// stack pointer of process
 	context -> rsp = KERNEL_TASK_STACK_pointer - 0x18;	// no args
@@ -157,12 +157,12 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 	thread -> stack++;
 
 	// context stack top pointer
-	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
+	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
 
 	//----------------------------------------------------------------------
 
 	// aquire parent task properties
-	struct KERNEL_TASK_STRUCTURE *parent = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *parent = kernel_task_active();
 
 	// threads use same memory map as parent
 	thread -> memory_map = parent -> memory_map;
@@ -181,7 +181,7 @@ int64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t lengt
 
 int64_t kernel_syscall_pid( void ) {
 	// task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// return task ID
 	return task -> pid;
@@ -274,7 +274,7 @@ int64_t kernel_syscall_ipc_receive( uint8_t *data ) {
 
 uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t pages ) {
 	// properties of target task
-	struct KERNEL_TASK_STRUCTURE *target = (struct KERNEL_TASK_STRUCTURE *) kernel_task_by_id( pid );
+	struct KERNEL_STRUCTURE_TASK *target = (struct KERNEL_STRUCTURE_TASK *) kernel_task_by_id( pid );
 
 	// acquire space from target task
 	uintptr_t target_pointer = kernel_memory_acquire( target -> memory_map, pages, KERNEL_MEMORY_HIGH, kernel -> page_limit ) << STD_SHIFT_PAGE;
@@ -286,14 +286,14 @@ uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t p
 	return target_pointer;
 }
 
-void kernel_syscall_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse ) {
+void kernel_syscall_mouse( struct STD_STRUCTURE_MOUSE_SYSCALL *mouse ) {
 	// return information about existing framebuffer
 	mouse -> x	= kernel -> device_mouse_x;
 	mouse -> y	= kernel -> device_mouse_y;
 	mouse -> status	= kernel -> device_mouse_status;
 }
 
-void kernel_syscall_framebuffer_change( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
+void kernel_syscall_framebuffer_change( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer ) {
 	// process is allowed for modifications?
 	if( kernel_task_pid() != kernel -> framebuffer_pid ) return;	// no
 
@@ -330,7 +330,7 @@ uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, int64_t pid ) {
 
 uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
 	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// block access to stream modification
 	MACRO_LOCK( task -> stream_out -> semaphore );
@@ -389,7 +389,7 @@ uint8_t kernel_syscall_stream_out( uint8_t *string, uint64_t length ) {
 
 uint64_t kernel_syscall_stream_in( uint8_t *target ) {
 	// get the process output stream id
-	struct KERNEL_TASK_STRUCTURE *task = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = (struct KERNEL_STRUCTURE_TASK *) kernel_task_active();
 
 	// block access to stream modification
 	MACRO_LOCK( task -> stream_in -> semaphore );
@@ -431,7 +431,7 @@ uint64_t kernel_syscall_stream_in( uint8_t *target ) {
 
 uint16_t kernel_syscall_keyboard( void ) {
 	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// am I framebuffer manager?
 	if( task -> pid != kernel -> framebuffer_pid ) return EMPTY;	// no, return no key
@@ -451,10 +451,10 @@ uint16_t kernel_syscall_keyboard( void ) {
 
 void kernel_syscall_stream_set( uint8_t *meta, uint8_t stream_type ) {
 	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// stream properties
-	struct KERNEL_STREAM_STRUCTURE *stream;
+	struct KERNEL_STRUCTURE_STREAM *stream;
 
 	// choose stream type
 	if( stream_type == STD_STREAM_IN ) stream = task -> stream_in;
@@ -478,10 +478,10 @@ void kernel_syscall_stream_set( uint8_t *meta, uint8_t stream_type ) {
 
 uint8_t kernel_syscall_stream_get( uint8_t *target, uint8_t stream_type ) {
 	// current task properties
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// stream properties
-	struct KERNEL_STREAM_STRUCTURE *stream;
+	struct KERNEL_STRUCTURE_STREAM *stream;
 
 	// choose stream type
 	if( stream_type == STD_STREAM_IN ) stream = task -> stream_in;
@@ -504,7 +504,7 @@ uint8_t kernel_syscall_stream_get( uint8_t *target, uint8_t stream_type ) {
 	return status;
 }
 
-void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
+void kernel_syscall_memory( struct STD_STRUCTURE_SYSCALL_MEMORY *memory ) {
 	// all available Bytes
 	memory -> total = kernel -> page_total << STD_SHIFT_PAGE;
 
@@ -520,7 +520,7 @@ void kernel_syscall_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
 
 uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 	// try to open provided path
-	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
+	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length );
 
 	// if file doesn't exist
 	if( ! socket ) return FALSE;
@@ -534,7 +534,7 @@ uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 	// it is a directory?
 	if( vfs -> type & STD_FILE_TYPE_directory ) {
 		// current task properties
-		struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+		struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 		// set new root directory of current process
 		task -> directory = socket -> knot;
@@ -560,7 +560,7 @@ int64_t kernel_syscall_ipc_receive_by_type( uint8_t *data, uint8_t type ) {
 		if( kernel -> ipc_base_address[ i ].target != kernel_task_pid() ) continue;	// no
 
 		// message of requested type?
-		struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &kernel -> ipc_base_address[ i ].data;
+		struct STD_STRUCTURE_IPC_DEFAULT *ipc = (struct STD_STRUCTURE_IPC_DEFAULT *) &kernel -> ipc_base_address[ i ].data;
 		if( ipc -> type != type ) continue;	// no
 
 		// load data into message
@@ -590,13 +590,13 @@ uint64_t kernel_syscall_time( void ) {
 
 int64_t kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
 	// retrieve information about module file
-	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
+	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length );
 
 	// if file doesn't exist
 	if( ! socket ) return STD_ERROR_file_not_found;
 
 	// return socket ID
-	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_VFS_STRUCTURE );
+	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_STRUCTURE_VFS );
 }
 
 void kernel_syscall_file_close( int64_t socket ) {
@@ -604,18 +604,18 @@ void kernel_syscall_file_close( int64_t socket ) {
 	if( socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
 	// close connection to file
-	kernel_vfs_file_close( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ socket ] );
+	kernel_vfs_file_close( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ socket ] );
 }
 
-void kernel_syscall_file( struct STD_FILE_STRUCTURE *file ) {
+void kernel_syscall_file( struct STD_STRUCTURE_FILE *file ) {
 	// by default no properties (eg. invalid socket)
-	struct KERNEL_VFS_STRUCTURE_PROPERTIES properties = { EMPTY };
+	struct KERNEL_STRUCTURE_VFS_PROPERTIES properties = { EMPTY };
 
 	// invalid socket value?
 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
 	// retrieve information about file
-	kernel_vfs_file_properties( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ file -> socket ], (struct KERNEL_VFS_STRUCTURE_PROPERTIES *) &properties );
+	kernel_vfs_file_properties( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ], (struct KERNEL_STRUCTURE_VFS_PROPERTIES *) &properties );
 
 	// copy important values
 
@@ -626,23 +626,23 @@ void kernel_syscall_file( struct STD_FILE_STRUCTURE *file ) {
 	for( uint64_t i = 0; i < properties.name_length; i++ ) file -> name[ file -> name_length++ ] = properties.name[ i ];
 }
 
-void kernel_syscall_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte ) {
+void kernel_syscall_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target, uint64_t byte ) {
 	// invalid socket value?
 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
 	// pass file content to process memory
-	kernel_vfs_file_read( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ file -> socket ], target, file -> seek, byte );
+	kernel_vfs_file_read( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ], target, file -> seek, byte );
 
 	// next file Bytes content
 	file -> seek += byte;
 }
 
-void kernel_syscall_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t byte ) {
+void kernel_syscall_file_write( struct STD_STRUCTURE_FILE *file, uint8_t *source, uint64_t byte ) {
 	// invalid socket value?
 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
 	// pass file content to process memory
-	kernel_vfs_file_write( (struct KERNEL_VFS_STRUCTURE *) &kernel -> vfs_base_address[ file -> socket ], source, file -> seek, byte );
+	kernel_vfs_file_write( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ], source, file -> seek, byte );
 
 	// next file Bytes content
 	file -> seek += byte;
@@ -650,13 +650,13 @@ void kernel_syscall_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source
 
 int64_t kernel_syscall_file_touch( uint8_t *path, uint8_t type ) {
 	// retrieve information about module file
-	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_touch( path, type );
+	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_touch( path, type );
 
 	// if file doesn't exist
 	if( ! socket ) return STD_ERROR_file_not_found;
 
 	// return socket ID
-	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_VFS_STRUCTURE );
+	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_STRUCTURE_VFS );
 }
 
 uintptr_t kernel_syscall_task( void ) {
@@ -667,7 +667,7 @@ uintptr_t kernel_syscall_task( void ) {
 	for( uint64_t i = 1; i < KERNEL_TASK_limit; i++ ) if( kernel -> task_base_address[ i ].flags ) count++;
 
 	// alloc enough memory for all entries
-	struct STD_SYSCALL_STRUCTURE_TASK *task = (struct STD_SYSCALL_STRUCTURE_TASK *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_SYSCALL_STRUCTURE_TASK ) * count ) >> STD_SHIFT_PAGE );
+	struct STD_STRUCTURE_SYSCALL_TASK *task = (struct STD_STRUCTURE_SYSCALL_TASK *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_STRUCTURE_SYSCALL_TASK ) * count ) >> STD_SHIFT_PAGE );
 
 	// copy essential information about every task
 	uint64_t entry = 0;
@@ -700,13 +700,13 @@ uintptr_t kernel_syscall_task( void ) {
 
 void kernel_syscall_kill( int64_t pid ) {
 	// properties of current task
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_by_id( pid );
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_by_id( pid );
 
 	// mark task as ready to close
 	task -> flags |= STD_TASK_FLAG_close;
 }
 
-void kernel_syscall_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+void kernel_syscall_network_interface( struct STD_STRUCTURE_NETWORK_INTERFACE *interface ) {
 	// share set interface properties
 
 	// IPv4 address
@@ -737,7 +737,7 @@ void kernel_syscall_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *i
 
 int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_target, uint16_t port_local ) {
 	// try to acquire socket
-	struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = kernel_network_socket();
+	struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket = kernel_network_socket();
 
 	// connection limit reached?
 	if( ! socket ) return EMPTY;
@@ -783,7 +783,7 @@ int64_t kernel_syscall_network_open( uint8_t protocol, uint32_t ipv4_target, uin
 	socket -> flags = KERNEL_NETWORK_SOCKET_FLAG_init;	// if socket is of type TCP, network module will try to establish connection with target
 
 	// return socket ID
-	return (int64_t) ((uintptr_t) socket - (uintptr_t) kernel -> network_socket_list) / sizeof( struct KERNEL_NETWORK_STRUCTURE_SOCKET );
+	return (int64_t) ((uintptr_t) socket - (uintptr_t) kernel -> network_socket_list) / sizeof( struct KERNEL_STRUCTURE_NETWORK_SOCKET );
 }
 
 int64_t kernel_syscall_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
@@ -797,7 +797,7 @@ int64_t kernel_syscall_network_send( int64_t socket, uint8_t *data, uint64_t len
 	return kernel_network_send( socket, data, length );
 }
 
-void kernel_syscall_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+void kernel_syscall_network_interface_set( struct STD_STRUCTURE_NETWORK_INTERFACE *interface ) {
 	// update IPv4 address
 	kernel -> network_interface.ipv4_address = interface -> ipv4_address;
 
@@ -811,7 +811,7 @@ void kernel_syscall_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFAC
 	kernel -> network_interface.ipv4_gateway = interface -> ipv4_gateway;
 }
 
-void kernel_syscall_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet ) {
+void kernel_syscall_network_receive( int64_t socket, struct STD_STRUCTURE_NETWORK_DATA *packet ) {
 	// socket can exist?
 	if( socket > KERNEL_NETWORK_SOCKET_limit ) return;	// no
 

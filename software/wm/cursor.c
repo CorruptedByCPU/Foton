@@ -13,8 +13,8 @@ void wm_cursor( void ) {
 	wm_zone(); wm_fill();
 
 	// properties of areas
-	uint32_t *source = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
-	uint32_t *target = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *source = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+	uint32_t *target = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 
 	// calculate overflows
 	uint16_t width = wm_object_cursor -> width;

@@ -33,7 +33,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	if( argc > 1 )	{
 		// prepare area for path
 		uint64_t file_path_length = 0;
-		uint8_t *file_path = malloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_FILE_STRUCTURE, name_length ) ) );
+		uint8_t *file_path = malloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_STRUCTURE_FILE, name_length ) ) );
 
 		// compose file name with args
 		for( uint64_t i = 1; i < argc; i++ ) {
@@ -69,7 +69,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// initialize new terminal library
 				console_terminal -> width		= console_interface -> width - (LIB_INTERFACE_BORDER_pixel << STD_SHIFT_2);
 				console_terminal -> height		= console_interface -> height - (LIB_INTERFACE_HEADER_HEIGHT_pixel + 1);
-				console_terminal -> base_address	= (uint32_t *) ((uintptr_t) console_interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (LIB_INTERFACE_HEADER_HEIGHT_pixel * console_interface -> width) + LIB_INTERFACE_BORDER_pixel;
+				console_terminal -> base_address	= (uint32_t *) ((uintptr_t) console_interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (LIB_INTERFACE_HEADER_HEIGHT_pixel * console_interface -> width) + LIB_INTERFACE_BORDER_pixel;
 				console_terminal -> scanline_pixel	= console_interface -> width;
 				lib_terminal_reload( console_terminal );
 
@@ -94,7 +94,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			if( key ) {
 				// properties of keyboard message
 				uint8_t data[ STD_IPC_SIZE_byte ];
-				struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &data;
+				struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &data;
 
 				// IPC type
 				keyboard -> ipc.type = STD_IPC_TYPE_keyboard;

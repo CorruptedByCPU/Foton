@@ -2,15 +2,15 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint8_t kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+uint8_t kernel_network_icmp( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// properties of IPv4 header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 	// IPv4 header length
 	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
 
 	// properties of ICMP header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_ICMP *icmp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ICMP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ) + ipv4_header_length);
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_ICMP *icmp = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ICMP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ) + ipv4_header_length);
 
 	// it's an answer?
 	if( icmp -> type == KERNEL_NETWORK_HEADER_ICMP_TYPE_REPLY ) {
@@ -36,7 +36,7 @@ uint8_t kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 			for( uint64_t j = 0; j < length - ((uintptr_t) icmp - (uintptr_t) ethernet); j++ ) rewrite[ j ] = data[ j ];
 
 			// register inside socket
-			kernel_network_data_in( (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ i ], (uintptr_t) rewrite | (length - ((uintptr_t) icmp - (uintptr_t) ethernet)) );
+			kernel_network_data_in( (struct KERNEL_STRUCTURE_NETWORK_SOCKET *) &kernel -> network_socket_list[ i ], (uintptr_t) rewrite | (length - ((uintptr_t) icmp - (uintptr_t) ethernet)) );
 
 			// IPv4 frame content transferred to process owning socket
 			return FALSE;
@@ -49,7 +49,7 @@ uint8_t kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	//----------------------------------------------------------------------
 
 	// open new socket for this task
-	struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = kernel_network_socket();
+	struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket = kernel_network_socket();
 
 	// cannot open socket?
 	if( ! socket ) return TRUE;	// ignore request
@@ -90,7 +90,7 @@ uint8_t kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 
 	// calculate checksum
 	icmp -> checksum = EMPTY;	// always
-	icmp -> checksum = kernel_network_checksum( (uint16_t *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ) + ipv4_header_length), icmp_frame_length );
+	icmp -> checksum = kernel_network_checksum( (uint16_t *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ) + ipv4_header_length), icmp_frame_length );
 
 	// encapsulate ICMP frame and send
 	kernel_network_ipv4_encapsulate( socket, ethernet, icmp_frame_length );

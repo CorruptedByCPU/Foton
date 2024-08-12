@@ -7,13 +7,13 @@
 
 	#define	KERNEL_TSS_OFFSET	0x07
 
-	struct	KERNEL_TSS_STRUCTURE {
+	struct	KERNEL_STRUCTURE_TSS {
 		uint32_t	reserved;
 		uint64_t	rsp0;
 		uint8_t		unused[ 92 ];
 	} __attribute__( (packed) );
 
-	struct	KERNEL_TSS_STRUCTURE_ENTRY {
+	struct	KERNEL_STRUCTURE_TSS_ENTRY {
 		uint16_t	limit_low;
 		uint16_t	base_low;
 		uint8_t		base_middle;

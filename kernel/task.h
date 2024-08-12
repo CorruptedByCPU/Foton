@@ -5,7 +5,7 @@
 #ifndef	KERNEL_TASK
 	#define	KERNEL_TASK
 
-	#define	KERNEL_TASK_limit		(8192 / sizeof( struct KERNEL_TASK_STRUCTURE ))	// hard limit
+	#define	KERNEL_TASK_limit		(8192 / sizeof( struct KERNEL_STRUCTURE_TASK ))	// hard limit
 
 	#define	KERNEL_TASK_FLAG_active		0b0000000000000001
 	#define	KERNEL_TASK_FLAG_exec		0b0000000000000010
@@ -27,7 +27,7 @@
 	#define	KERNEL_TASK_STACK_pointer	KERNEL_LIBRARY_base_address
 	#define	KERNEL_TASK_STACK_limit		STD_PAGE_byte
 
-	struct	KERNEL_TASK_STRUCTURE {
+	struct	KERNEL_STRUCTURE_TASK {
 		uintptr_t		cr3;
 		uintptr_t		rsp;
 		int64_t			pid;
@@ -40,8 +40,8 @@
 		uint64_t		stack;	// size of stack in Pages
 		uint64_t		time;
 		uint64_t		time_previous;
-		struct KERNEL_STREAM_STRUCTURE *stream_in;
-		struct KERNEL_STREAM_STRUCTURE *stream_out;
+		struct KERNEL_STRUCTURE_STREAM *stream_in;
+		struct KERNEL_STRUCTURE_STREAM *stream_out;
 		uint32_t		*memory_map;
 		volatile uint16_t	flags;
 		uint8_t			name_length;
@@ -49,7 +49,7 @@
 	};
 
 	// returns pointer to structure of currently executed task
-	struct KERNEL_TASK_STRUCTURE *kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *kernel_task_active();
 
 	// external routine (assembly language)
 	extern void kernel_task_entry( void );
@@ -58,5 +58,5 @@
 	int64_t kernel_task_pid( void );
 
 	// selecting new task to execute by BS/A
-	struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i );
+	struct KERNEL_STRUCTURE_TASK *kernel_task_select( uint64_t i );
 #endif

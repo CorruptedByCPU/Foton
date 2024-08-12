@@ -7,7 +7,7 @@
 
 	#define	LIB_IMAGE_TGA_ENCODING_RLE_RGB	10
 
-	struct	LIB_IMAGE_TGA_STRUCTURE {
+	struct	LIB_IMAGE_STRUCTURE_TGA {
 	  	uint8_t		magic;			// 0
 	  	uint8_t		color_map;		// 1
 		uint8_t		encoding;		// 2

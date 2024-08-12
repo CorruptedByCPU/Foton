@@ -137,7 +137,7 @@
 	#define	STD_FILE_TOUCH_file				STD_FILE_TYPE_file
 	#define	STD_FILE_TOUCH_directory			STD_FILE_TYPE_directory
 
-	struct	STD_FILE_STRUCTURE {
+	struct	STD_STRUCTURE_FILE {
 		int64_t		socket;
 		uint64_t	byte;
 		uint64_t	seek;
@@ -156,38 +156,38 @@
 	#define	STD_IPC_MOUSE_BUTTON_middle			0b00000100
 	#define	STD_IPC_MOUSE_BUTTON_release			0b10000000
 
-	struct	STD_IPC_STRUCTURE {
+	struct	STD_STRUCTURE_IPC {
 		volatile uint64_t	ttl;
 		int64_t		source;
 		int64_t		target;
 		uint8_t		data[ STD_IPC_SIZE_byte ];	// first Byte of data defines TYPE
 	} __attribute__( (packed) );
 
-	struct	STD_IPC_STRUCTURE_DEFAULT {
+	struct	STD_STRUCTURE_IPC_DEFAULT {
 		uint8_t		type;
 	} __attribute__( (packed) );
 
-	struct	STD_IPC_STRUCTURE_KEYBOARD {
-		struct STD_IPC_STRUCTURE_DEFAULT	ipc;
+	struct	STD_STRUCTURE_IPC_KEYBOARD {
+		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
 		uint16_t	key;
 	} __attribute__( (packed) );
 
-	struct	STD_IPC_STRUCTURE_MOUSE {
-		struct STD_IPC_STRUCTURE_DEFAULT	ipc;
+	struct	STD_STRUCTURE_IPC_MOUSE {
+		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
 		uint8_t		button;
 		int16_t		scroll;
 	} __attribute__( (packed) );
 
-	struct STD_IPC_STRUCTURE_WINDOW {
-		struct STD_IPC_STRUCTURE_DEFAULT	ipc;
+	struct STD_STRUCTURE_IPC_WINDOW {
+		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
 		int16_t		x;
 		int16_t		y;
 		uint16_t	width;
 		uint16_t	height;
 	} __attribute__( (packed) );
 
-	struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR {
-		struct STD_IPC_STRUCTURE_DEFAULT	ipc;
+	struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR {
+		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
 		uintptr_t	descriptor;
 	} __attribute__( (packed) );
 
@@ -247,7 +247,7 @@
 	#define	STD_KEY_MENU					0xE05B
 	#define	STD_KEY_SUBMENU					0xE05D
 
-	struct	STD_SYSCALL_STRUCTURE_MEMORY {
+	struct	STD_STRUCTURE_SYSCALL_MEMORY {
 		uint64_t	total;
 		uint64_t	available;
 		uint64_t	paging;
@@ -260,7 +260,7 @@
 	#define	STD_MOUSE_BUTTON_right				0b00000010
 	#define	STD_MOUSE_BUTTON_middle				0b00000100
 
-	struct STD_SYSCALL_STRUCTURE_MOUSE {
+	struct STD_STRUCTURE_MOUSE_SYSCALL {
 		uint16_t	x;
 		uint16_t	y;
 		uint8_t		status;
@@ -276,12 +276,12 @@
 	#define	STD_NETWORK_PROTOCOL_udp			0x02
 	#define	STD_NETWORK_PROTOCOL_tcp			0x03
 
-	struct STD_NETWORK_STRUCTURE_DATA {
+	struct STD_STRUCTURE_NETWORK_DATA {
 		uint8_t		*data;
 		uint64_t	length;
 	};
 
-	struct STD_NETWORK_STRUCTURE_INTERFACE {
+	struct STD_STRUCTURE_NETWORK_INTERFACE {
 		uint8_t		ethernet_address[ 6 ];
 		uint32_t	ipv4_address;
 		uint32_t	ipv4_mask;
@@ -324,7 +324,7 @@
 	#define	STD_SIZE_QWORD_byte				8
 	#define	STD_SIZE_QWORD_bit				64
 
-	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STREAM_STRUCTURE
+	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STRUCTURE_STREAM
 
 	#define	STD_STREAM_FLOW_out_to_parent_in		0b00000001
 	#define	STD_STREAM_FLOW_out_to_in			0b00000010
@@ -334,7 +334,7 @@
 
 	#define	STD_STREAM_META_limit				8
 
-	struct	STD_STREAM_STRUCTURE_META {
+	struct	STD_STRUCTURE_STREAM_META {
 		uint16_t	x;
 		uint16_t	y;
 		uint16_t	width;
@@ -382,7 +382,7 @@
 	#define	STD_SYSCALL_NETWORK_INTERFACE_SET		0x26
 	#define	STD_SYSCALL_NETWORK_RECEIVE			0x27
 
-	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER {
+	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER {
 		uint32_t	*base_address;
 		uint16_t	width_pixel;
 		uint16_t	height_pixel;
@@ -399,7 +399,7 @@
 	#define	STD_TASK_FLAG_init				0b0100000000000000
 	#define	STD_TASK_FLAG_secured				0b1000000000000000
 
-	struct STD_SYSCALL_STRUCTURE_TASK {
+	struct STD_STRUCTURE_SYSCALL_TASK {
 		int64_t		pid;
 		uint64_t	page;
 		uint64_t	stack;
@@ -434,7 +434,7 @@
 	#define	STD_WINDOW_ANSWER_create	0b10000000 | STD_WINDOW_REQUEST_create
 	#define	STD_WINDOW_ANSWER_active	0b10000000 | STD_WINDOW_REQUEST_active
 
-	struct	STD_WINDOW_STRUCTURE_DESCRIPTOR {
+	struct	STD_STRUCTURE_WINDOW_DESCRIPTOR {
 		uint16_t	flags;
 		// pointer position inside window
 		uint16_t	x;
@@ -452,7 +452,7 @@
 	#define	STD_WORD_mask			0x000000000000FFFF
 
 	// returns properties of available framebuffer ()
-	void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
+	void std_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer );
 
 	// returns current miliseconds from system initialization
 	uint64_t std_uptime( void );
@@ -485,10 +485,10 @@
 	uintptr_t std_memory_share( int64_t pid, uintptr_t address, uint64_t page );
 
 	// returns properties of mouse pointing device
-	void std_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse );
+	void std_mouse( struct STD_STRUCTURE_MOUSE_SYSCALL *mouse );
 
 	// modify properties of kernels framebuffer
-	void std_framebuffer_change( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer );
+	void std_framebuffer_change( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer );
 
 	// check for message from process of ID
 	uint8_t std_ipc_receive_by_pid( uint8_t *data, int64_t pid );
@@ -509,7 +509,7 @@
 	uint8_t std_stream_get( uint8_t *target, uint8_t stream_type );
 
 	// returns properties of system memory
-	void std_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory );
+	void std_memory( struct STD_STRUCTURE_SYSCALL_MEMORY *memory );
 
 	// print character
 	void putc( uint8_t character );
@@ -533,13 +533,13 @@
 	void std_file_close( int64_t socket );
 
 	// retrieve file properties
-	void std_file( struct STD_FILE_STRUCTURE *file );
+	void std_file( struct STD_STRUCTURE_FILE *file );
 
 	// read file content into memory
-	void std_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte );
+	void std_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target, uint64_t byte );
 
 	// write content of memory into file
-	void std_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t byte );
+	void std_file_write( struct STD_STRUCTURE_FILE *file, uint8_t *source, uint64_t byte );
 
 	// create empty file of definied type
 	int64_t std_file_touch( uint8_t *path, uint8_t type );
@@ -551,7 +551,7 @@
 	void std_kill( int64_t pid );
 
 	// returns properties of interface
-	void std_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *interface );
+	void std_network_interface( struct STD_STRUCTURE_NETWORK_INTERFACE *interface );
 
 	// open network connection
 	int64_t std_network_open( uint8_t protocol, uint32_t ipv4_target, uint16_t port_target, uint16_t port_local );
@@ -560,10 +560,10 @@
 	int64_t std_network_send( int64_t socket, uint8_t *data, uint64_t length );
 
 	// modify properties of interface
-	void std_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface );
+	void std_network_interface_set( struct STD_STRUCTURE_NETWORK_INTERFACE *interface );
 
 	// receive data from socket
-	void std_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *data );
+	void std_network_receive( int64_t socket, struct STD_STRUCTURE_NETWORK_DATA *data );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
@@ -639,7 +639,7 @@
 	// substitute of libc
 	//------------------------------------------------------------------------------
 
-	typedef struct STD_FILE_STRUCTURE FILE;
+	typedef struct STD_STRUCTURE_FILE FILE;
 
 	void *malloc( size_t byte );
 	void *realloc( void *source, size_t byte );

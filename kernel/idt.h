@@ -11,7 +11,7 @@
 	#define	KERNEL_IDT_TYPE_irq			0x8F00
 	#define	KERNEL_IDT_TYPE_isr			0xEF00
 
-	struct	KERNEL_IDT_STRUCTURE_ENTRY {
+	struct	KERNEL_STRUCTURE_IDT_ENTRY {
 		uint16_t				base_low;
 		uint16_t				gdt_descriptor;
 		uint16_t				type;
@@ -20,7 +20,7 @@
 		uint32_t				reserved;
 	} __attribute__( (packed) );
 
-	struct	KERNEL_IDT_STRUCTURE_EXCEPTION {
+	struct	KERNEL_STRUCTURE_IDT_EXCEPTION {
 		uint64_t				cr2;
 		uint64_t				r15;
 		uint64_t				r14;
@@ -46,12 +46,12 @@
 		uint64_t				ss;
 	} __attribute__( (packed) );
 
-	struct	KERNEL_IDT_STRUCTURE_HEADER {
+	struct	KERNEL_STRUCTURE_IDT_HEADER {
 		uint16_t				limit;
-		struct	KERNEL_IDT_STRUCTURE_ENTRY	*base_address;
+		struct	KERNEL_STRUCTURE_IDT_ENTRY	*base_address;
 	} __attribute__( (packed) );
 
-	struct	KERNEL_IDT_STRUCTURE_RETURN {
+	struct	KERNEL_STRUCTURE_IDT_RETURN {
 		uintptr_t				rip;
 		uint64_t				cs;
 		uint64_t				eflags;
@@ -64,7 +64,7 @@
 
 	// default interrupt procedure for any device/service
 	__attribute__ (( preserve_most ))
-	void kernel_idt_interrupt_default( struct KERNEL_IDT_STRUCTURE_RETURN *interrupt );
+	void kernel_idt_interrupt_default( struct KERNEL_STRUCTURE_IDT_RETURN *interrupt );
 
 	// external routine (assembly language)
 	extern void kernel_irq( void );

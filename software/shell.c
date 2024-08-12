@@ -30,23 +30,23 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// new prompt loop
 	while( TRUE ) {
 		// retrieve stream meta data
-		struct STD_STREAM_STRUCTURE_META stream_meta;
+		struct STD_STRUCTURE_STREAM_META stream_meta;
 		while( ! std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT ) );
 
 		// cursor at beginning of line?
 		if( stream_meta.x ) print( "\n" );	// no, move cursor to next line
 
 		// open current directory properties
-		struct STD_FILE_STRUCTURE dir = { EMPTY };
+		struct STD_STRUCTURE_FILE dir = { EMPTY };
 		dir.socket = std_file_open( (uint8_t *) ".", TRUE );
-		std_file( (struct STD_FILE_STRUCTURE *) &dir );
+		std_file( (struct STD_STRUCTURE_FILE *) &dir );
 
 		// open hostname file
-		struct STD_FILE_STRUCTURE file = { EMPTY };
+		struct STD_STRUCTURE_FILE file = { EMPTY };
 		uint8_t hostname_path[] = "/system/etc/hostname";
 		if( (file.socket = std_file_open( (uint8_t *) &hostname_path, sizeof( hostname_path ) - 1 )) ) {
 			// load file content
-			std_file_read( (struct STD_FILE_STRUCTURE *) &file, hostname, 63 );
+			std_file_read( (struct STD_STRUCTURE_FILE *) &file, hostname, 63 );
 
 			// close file
 			std_file_close( file.socket );

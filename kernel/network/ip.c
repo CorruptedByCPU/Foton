@@ -2,9 +2,9 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint8_t kernel_network_ipv4( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+uint8_t kernel_network_ipv4( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// properties of IPv4 header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 	// inquiry about our IPv4 address or multicast?
 	if( ipv4 -> target != MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address ) && ipv4 -> target != 0xFFFFFF && kernel -> network_interface.ipv4_address ) return TRUE;	// no, ignore
@@ -43,9 +43,9 @@ uint8_t kernel_network_ipv4( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *et
 	return TRUE;
 }
 
-void kernel_network_ipv4_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+void kernel_network_ipv4_encapsulate( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// properties of IPv4 header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 	ipv4 -> version_and_header_length = KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default;
 	ipv4 -> ecn = KERNEL_NETWORK_HEADER_IPV4_ECN_default;
 	ipv4 -> length = MACRO_ENDIANNESS_WORD( (length + ((KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default & 0x0F) << STD_SHIFT_4)) );
@@ -58,21 +58,21 @@ void kernel_network_ipv4_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *so
 
 	// calculate checksum
 	ipv4 -> checksum = EMPTY;	// always
-	ipv4 -> checksum = kernel_network_checksum( (uint16_t *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET )), sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 ) );
+	ipv4 -> checksum = kernel_network_checksum( (uint16_t *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET )), sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 ) );
 
 	// wrap data into a Ethernet frame and send
 	kernel_network_ethernet_encapsulate( socket, ethernet, length + ((KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default & 0x0F) << STD_SHIFT_4) );
 }
 
-void kernel_network_ipv4_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint16_t length ) {
+void kernel_network_ipv4_exit( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, uint8_t *data, uint16_t length ) {
 	// alloc packet area
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
 
 	// properties of IPv4 header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 	// copy IPv4 data
-	uint8_t *frame_data = (uint8_t *) ((uintptr_t) ipv4 + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 ));
+	uint8_t *frame_data = (uint8_t *) ((uintptr_t) ipv4 + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 ));
 	for( uint16_t i = 0; i < length; i++ ) frame_data[ i ] = data[ i ];
 
 	// wrap data into a IPv4 frame and send

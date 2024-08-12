@@ -14,7 +14,7 @@
 
 uint64_t lib_input( uint8_t *cache, uint64_t length_max, uint64_t length_current, uint8_t wrapable, uint8_t *ctrl_semaphore ) {
 	// prepare area for stream meta data
-	// struct STD_STREAM_STRUCTURE_META stream_meta;
+	// struct STD_STRUCTURE_STREAM_META stream_meta;
 
 	// main loop
 	while( TRUE ) {
@@ -22,13 +22,13 @@ uint64_t lib_input( uint8_t *cache, uint64_t length_max, uint64_t length_current
 		uint8_t ipc_data[ STD_IPC_SIZE_byte ];
 		if( std_ipc_receive( (uint8_t *) &ipc_data ) ) {
 			// properties of incomming message
-			struct STD_IPC_STRUCTURE_DEFAULT *ipc = (struct STD_IPC_STRUCTURE_DEFAULT *) &ipc_data;
+			struct STD_STRUCTURE_IPC_DEFAULT *ipc = (struct STD_STRUCTURE_IPC_DEFAULT *) &ipc_data;
 
 			// message type: key?
 			if( ipc -> type != STD_IPC_TYPE_keyboard ) continue;	// no
 
 			// properties of Keyboard message
-			struct STD_IPC_STRUCTURE_KEYBOARD *keyboard = (struct STD_IPC_STRUCTURE_KEYBOARD *) &ipc_data;
+			struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_data;
 
 			// left CTRL pressed?
 			if( keyboard -> key == STD_KEY_CTRL_LEFT ) *ctrl_semaphore = TRUE;

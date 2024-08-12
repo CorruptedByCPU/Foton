@@ -2,20 +2,20 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+uint8_t kernel_network_tcp( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// properties of IPv4 header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 	// IPv4 header length
 	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
 
 	// properties of TCP header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *tcp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *tcp = (struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
 
 	// search for corresponding socket
 	for( uint64_t i = 0; i < KERNEL_NETWORK_SOCKET_limit; i++ ) {
 		// properties of socket
-		struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ i ];
+		struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket = (struct KERNEL_STRUCTURE_NETWORK_SOCKET *) &kernel -> network_socket_list[ i ];
 
 		// designed port?
 		if( tcp -> port_local != MACRO_ENDIANNESS_WORD( socket -> port_local ) ) continue;	// no
@@ -70,10 +70,10 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 				tcp -> flags ^= KERNEL_NETWORK_HEADER_TCP_FLAG_ACK;
 
 				// allocate area for ethernet/tcp frame
-				struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
+				struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
 
 				// properties of IPv4 header
-				struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+				struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 				// default IPv4 header properties
 				ipv4 -> version_and_header_length = KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default;
@@ -82,7 +82,7 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 				uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
 
 				// properties of TCP header
-				struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *tcp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
+				struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *tcp = (struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
 
 				// properties of TCP frame
 				tcp -> sequence		= MACRO_ENDIANNESS_DWORD( socket -> tcp_sequence );
@@ -91,7 +91,7 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 				tcp -> flags		= KERNEL_NETWORK_HEADER_TCP_FLAG_ACK;	// thank you
 
 				// encapsulate TCP frame and send
-				kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP ) );
+				kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP ) );
 			}
 		}
 
@@ -101,7 +101,7 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			tcp -> flags ^= KERNEL_NETWORK_HEADER_TCP_FLAG_PSH;
 
 			// amount of data
-			uint64_t bytes = length - ((uintptr_t) tcp - (uintptr_t) ethernet) - sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP );
+			uint64_t bytes = length - ((uintptr_t) tcp - (uintptr_t) ethernet) - sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP );
 
 			// TCP header length
 			uint16_t tcp_header_length = tcp -> header_length >> STD_SHIFT_4;
@@ -133,10 +133,10 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			socket -> tcp_keep_alive = kernel -> time_rtc + KERNEL_NETWORK_HEADER_TCP_KEEP_ALIVE_timeout;
 
 			// allocate area for ethernet/tcp frame
-			struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
+			struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
 
 			// properties of IPv4 header
-			struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+			struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 			// default IPv4 header properties
 			ipv4 -> version_and_header_length = KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default;
@@ -145,7 +145,7 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
 
 			// properties of TCP header
-			struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *tcp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
+			struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *tcp = (struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
 
 			// properties of TCP frame
 			tcp -> sequence		= MACRO_ENDIANNESS_DWORD( socket -> tcp_sequence );
@@ -154,7 +154,7 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 			tcp -> flags		= KERNEL_NETWORK_HEADER_TCP_FLAG_ACK;	// thank you
 
 			// encapsulate TCP frame and send
-			kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP ) );
+			kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP ) );
 		}
 
 		// RST
@@ -174,15 +174,15 @@ uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	return TRUE;
 }
 
-void kernel_network_tcp_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+void kernel_network_tcp_encapsulate( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// properties of IPv4 header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 	// IPv4 header length
 	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
 
 	// properties of TCP header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *tcp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *tcp = (struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
 
 	// default properties of TCP header
 	tcp -> port_source	= MACRO_ENDIANNESS_WORD( socket -> port_local );
@@ -190,7 +190,7 @@ void kernel_network_tcp_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *soc
 	tcp -> window_size	= MACRO_ENDIANNESS_WORD( socket -> tcp_window_size );
 
 	// properties of TCP Pseudo header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_PSEUDO *pseudo = (struct KERNEL_NETWORK_STRUCTURE_HEADER_PSEUDO *) ((uintptr_t) tcp - sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_PSEUDO ));
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_PSEUDO *pseudo = (struct KERNEL_STRUCTURE_NETWORK_HEADER_PSEUDO *) ((uintptr_t) tcp - sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_PSEUDO ));
 	pseudo -> local = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
 	pseudo -> target = MACRO_ENDIANNESS_DWORD( socket -> ipv4_target );
 	pseudo -> reserved = EMPTY;	// always
@@ -199,13 +199,13 @@ void kernel_network_tcp_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *soc
 
 	// calculate checksum
 	tcp -> checksum = EMPTY;	// always
-	tcp -> checksum = kernel_network_checksum( (uint16_t *) pseudo, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_PSEUDO ) + length );
+	tcp -> checksum = kernel_network_checksum( (uint16_t *) pseudo, sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_PSEUDO ) + length );
 
 	// wrap data into a IPv4 frame and send
 	kernel_network_ipv4_encapsulate( socket, ethernet, length );
 }
 
-void kernel_network_tcp_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint16_t length ) {
+void kernel_network_tcp_exit( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, uint8_t *data, uint16_t length ) {
 	// align data length to WORD
 	if( length % STD_SIZE_WORD_byte ) length++;
 
@@ -222,10 +222,10 @@ void kernel_network_tcp_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, ui
 	socket -> tcp_keep_alive = kernel -> time_rtc + DRIVER_RTC_Hz;
 
 	// allocate area for ethernet/tcp frame
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
 
 	// properties of IPv4 header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 	// default IPv4 header properties
 	ipv4 -> version_and_header_length = KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default;
@@ -234,7 +234,7 @@ void kernel_network_tcp_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, ui
 	uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
 
 	// properties of TCP header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *tcp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *tcp = (struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
 
 	// properties of TCP frame
 	tcp -> flags		= socket -> tcp_flags;
@@ -243,11 +243,11 @@ void kernel_network_tcp_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, ui
 	tcp -> header_length	= KERNEL_NETWORK_HEADER_TCP_HEADER_LENGTH_default;
 
 	// copy data
-	uint8_t *tcp_data = (uint8_t *) ((uintptr_t) tcp + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP ));
+	uint8_t *tcp_data = (uint8_t *) ((uintptr_t) tcp + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP ));
 	for( uint16_t i = 0; i < length; i++ ) tcp_data[ i ] = data[ i ];
 
 	// encapsulate TCP frame and send
-	kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP ) + length );
+	kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP ) + length );
 }
 
 void kernel_network_tcp_thread( void ) {
@@ -256,7 +256,7 @@ void kernel_network_tcp_thread( void ) {
 		// search for socket to initialize
 		for( uint64_t i = 0; i < KERNEL_NETWORK_SOCKET_limit; i++ ) {
 			// properties of socket
-			struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ i ];
+			struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket = (struct KERNEL_STRUCTURE_NETWORK_SOCKET *) &kernel -> network_socket_list[ i ];
 
 			// ignore sockets other than TCP
 			if( socket -> protocol != STD_NETWORK_PROTOCOL_tcp ) continue;
@@ -282,10 +282,10 @@ void kernel_network_tcp_thread( void ) {
 				socket -> tcp_keep_alive = kernel -> time_rtc + (DRIVER_RTC_Hz * 3);
 
 				// allocate area for ethernet/tcp frame
-				struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
+				struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
 
 				// properties of IPv4 header
-				struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+				struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 				// default IPv4 header properties
 				ipv4 -> version_and_header_length = KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default;
@@ -294,7 +294,7 @@ void kernel_network_tcp_thread( void ) {
 				uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
 
 				// properties of TCP header
-				struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *tcp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
+				struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *tcp = (struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
 
 				// properties of TCP frame
 				tcp -> flags		= socket -> tcp_flags;
@@ -303,7 +303,7 @@ void kernel_network_tcp_thread( void ) {
 				tcp -> header_length	= KERNEL_NETWORK_HEADER_TCP_HEADER_LENGTH_default;
 
 				// encapsulate TCP frame and send
-				kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP ) );
+				kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP ) );
 			}
 
 			// TCP socket waiting for initialization or previous initialization is outdated
@@ -315,10 +315,10 @@ void kernel_network_tcp_thread( void ) {
 				socket -> tcp_keep_alive = kernel -> time_rtc + DRIVER_RTC_Hz;
 
 				// allocate area for ethernet/tcp frame
-				struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
+				struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
 
 				// properties of IPv4 header
-				struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *ipv4 = (struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+				struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *ipv4 = (struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 				// default IPv4 header properties
 				ipv4 -> version_and_header_length = KERNEL_NETWORK_HEADER_IPV4_VERSION_AND_HEADER_LENGTH_default;
@@ -327,7 +327,7 @@ void kernel_network_tcp_thread( void ) {
 				uint16_t ipv4_header_length = (ipv4 -> version_and_header_length & 0x0F) << STD_SHIFT_4;
 
 				// properties of TCP header
-				struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *tcp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
+				struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *tcp = (struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP *) ((uintptr_t) ipv4 + ipv4_header_length);
 
 				// properties of TCP frame
 				tcp -> flags		= socket -> tcp_flags;
@@ -336,7 +336,7 @@ void kernel_network_tcp_thread( void ) {
 				tcp -> header_length	= KERNEL_NETWORK_HEADER_TCP_HEADER_LENGTH_default;
 
 				// encapsulate TCP frame and send
-				kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP ) );
+				kernel_network_tcp_encapsulate( socket, ethernet, sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP ) );
 			}
 		}
 

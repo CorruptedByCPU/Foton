@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct STD_STREAM_STRUCTURE_META stream_meta;
+struct STD_STRUCTURE_STREAM_META stream_meta;
 FILE *file = EMPTY;
 
 uint8_t *file_path = EMPTY;

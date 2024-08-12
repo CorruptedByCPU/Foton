@@ -59,7 +59,7 @@ void lib_interface_border( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = LIB_INTERFACE_BORDER_COLOR_inactive;
 
 	// and point border
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = 0; y < interface -> height; y++ )
 		for( uint16_t x = 0; x < interface -> width; x++ )
 			if( ! x || ! y || x == interface -> width - 1 || y == interface -> height - 1 ) pixel[ (y * interface -> width) + x ] = color;
@@ -74,7 +74,7 @@ void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// if( (uintptr_t) interface -> descriptor > 0x700000000000 ) exit();	// kill me
 
 	// fill window with default background
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( int64_t i = 0; i < interface -> width * interface -> height; i++ )
 		// draw pixel
 		pixel[ i ] = background_color;
@@ -314,22 +314,22 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				// icon
 				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_icon ) ) {
 					// properties of file
-					struct STD_FILE_STRUCTURE icon_file = { EMPTY };
+					struct STD_STRUCTURE_FILE icon_file = { EMPTY };
 
 					// properties of image
-					struct LIB_IMAGE_TGA_STRUCTURE *icon_image = EMPTY;
+					struct LIB_IMAGE_STRUCTURE_TGA *icon_image = EMPTY;
 
 					// retrieve information about module file
 					uint8_t *icon_file_string = (uint8_t *) menu.value; icon_file_string[ menu.length ] = STD_ASCII_TERMINATOR;
 					if( (icon_file.socket = std_file_open( (uint8_t *) menu.value, menu.length )) ) {
 						// retrieve properties of file
-						std_file( (struct STD_FILE_STRUCTURE *) &icon_file );
+						std_file( (struct STD_STRUCTURE_FILE *) &icon_file );
 
 						// assign area for file
-						icon_image = (struct LIB_IMAGE_TGA_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( icon_file.byte ) >> STD_SHIFT_PAGE );
+						icon_image = (struct LIB_IMAGE_STRUCTURE_TGA *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( icon_file.byte ) >> STD_SHIFT_PAGE );
 
 						// load file content
-						std_file_read( (struct STD_FILE_STRUCTURE *) &icon_file, (uint8_t *) icon_image, icon_file.byte );
+						std_file_read( (struct STD_STRUCTURE_FILE *) &icon_file, (uint8_t *) icon_image, icon_file.byte );
 
 						// copy image content to cursor object
 						element -> icon = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( icon_image -> width * icon_image -> height * STD_VIDEO_DEPTH_byte ) >> STD_SHIFT_PAGE );
@@ -399,7 +399,7 @@ uintptr_t lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface
 
 void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *element ) {
 	// properties of control buttons of window
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + interface -> width - LIB_INTERFACE_HEADER_HEIGHT_pixel - (element -> control.x * LIB_INTERFACE_HEADER_HEIGHT_pixel) - LIB_INTERFACE_BORDER_pixel;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + interface -> width - LIB_INTERFACE_HEADER_HEIGHT_pixel - (element -> control.x * LIB_INTERFACE_HEADER_HEIGHT_pixel) - LIB_INTERFACE_BORDER_pixel;
 
 	// choose background color
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
@@ -452,7 +452,7 @@ void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, str
 	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> label_or_button.width ) if( ! --element -> name_length ) return;
 
 	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> label_or_button.height; y++ )
@@ -475,7 +475,7 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> menu.width ) if( ! --element -> name_length ) return;
 
 	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (element -> menu.y * interface -> width) + element -> menu.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> menu.y * interface -> width) + element -> menu.x;
 
 	// choose background color
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
@@ -515,7 +515,7 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 	// receive pending messages
 	if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
 		// message properties
-		struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &ipc_data;
+		struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
 
 		// released left mouse button?
 		if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) lib_interface_event_handler( interface );
@@ -578,8 +578,8 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		// copy old interface content to new
 		uint64_t width = interface -> width; if( width > new_interface -> width ) width = new_interface -> width;
 		uint64_t height = interface -> height; if( height > new_interface -> height ) height = new_interface -> height;
-		uint32_t *pixel_old = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (LIB_INTERFACE_HEADER_HEIGHT_pixel * interface -> width);
-		uint32_t *pixel_new = (uint32_t *) ((uintptr_t) new_interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (LIB_INTERFACE_HEADER_HEIGHT_pixel * new_interface -> width);
+		uint32_t *pixel_old = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (LIB_INTERFACE_HEADER_HEIGHT_pixel * interface -> width);
+		uint32_t *pixel_new = (uint32_t *) ((uintptr_t) new_interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (LIB_INTERFACE_HEADER_HEIGHT_pixel * new_interface -> width);
 
 		// only the visible part
 		for( uint16_t y = 0; y < height - LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
@@ -764,7 +764,7 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// clear window header with default background
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = TRUE; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
 		for( uint16_t x = TRUE; x < interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel); x++ )
 			// draw pixel
@@ -785,8 +785,8 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// obtain information about kernel framebuffer
-	struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER kernel_framebuffer;
-	std_framebuffer( (struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *) &kernel_framebuffer );
+	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER kernel_framebuffer;
+	std_framebuffer( (struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *) &kernel_framebuffer );
 
 	// remember Window Manager PID
 	int64_t wm_pid = kernel_framebuffer.pid;
@@ -795,8 +795,8 @@ uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	uint8_t wm_data[ STD_IPC_SIZE_byte ] = { EMPTY };
 
 	// prepeare new window request
-	struct STD_IPC_STRUCTURE_WINDOW *request = (struct STD_IPC_STRUCTURE_WINDOW *) &wm_data;
-	struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *answer = (struct STD_IPC_STRUCTURE_WINDOW_DESCRIPTOR *) &wm_data;
+	struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &wm_data;
+	struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &wm_data;
 
 	//----------------------------------------------------------------------
 
@@ -833,7 +833,7 @@ uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	}
 
 	// properties of console window
-	interface -> descriptor = (struct STD_WINDOW_STRUCTURE_DESCRIPTOR *) answer -> descriptor;
+	interface -> descriptor = (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) answer -> descriptor;
 
 	// clear window content
 	lib_interface_clear( interface );

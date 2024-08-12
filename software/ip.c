@@ -9,8 +9,8 @@
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// get current interface properties
-	struct STD_NETWORK_STRUCTURE_INTERFACE eth0;
-	std_network_interface( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &eth0 );
+	struct STD_STRUCTURE_NETWORK_INTERFACE eth0;
+	std_network_interface( (struct STD_STRUCTURE_NETWORK_INTERFACE *) &eth0 );
 
 	// change IPV4 address?
 	if( argc > 1 ) {	// yes
@@ -27,7 +27,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// update interface configuration
-		std_network_interface_set( (struct STD_NETWORK_STRUCTURE_INTERFACE *) &eth0 );
+		std_network_interface_set( (struct STD_STRUCTURE_NETWORK_INTERFACE *) &eth0 );
 	// no
 	} else {
 		// broadcast is set?

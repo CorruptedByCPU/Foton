@@ -49,7 +49,7 @@ uint64_t kernel_init_directory( struct LIB_VFS_STRUCTURE *current, struct LIB_VF
 
 void kernel_init_vfs( void ) {
 	// allocate area for list of open files
-	kernel -> vfs_base_address = (struct KERNEL_VFS_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_VFS_limit * sizeof( struct KERNEL_VFS_STRUCTURE ) ) >> STD_SHIFT_PAGE );
+	kernel -> vfs_base_address = (struct KERNEL_STRUCTURE_VFS *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_VFS_limit * sizeof( struct KERNEL_STRUCTURE_VFS ) ) >> STD_SHIFT_PAGE );
 
 	// detect VFS storages
 	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) {

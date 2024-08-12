@@ -11,8 +11,8 @@ void moko_init( uint64_t argc, uint8_t *argv[] ) {
 	sprintf( "\e[%u;%uH", (uint8_t *) &string_cursor_at_menu, 0, stream_meta.height - 1 );
 
 	// prepare area for current file_path and save_as too
-	file_path = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_FILE_STRUCTURE, name_length ) ) );
-	save_as = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_FILE_STRUCTURE, name_length ) ) );
+	file_path = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_STRUCTURE_FILE, name_length ) ) );
+	save_as = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_STRUCTURE_FILE, name_length ) ) );
 
 	// prepare area for document name
 	document_name = malloc( STD_FILE_NAME_limit );

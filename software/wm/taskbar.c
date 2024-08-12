@@ -31,7 +31,7 @@ void wm_taskbar_list_entry( struct WM_STRUCTURE_OBJECT *object, uint16_t x, uint
 	if( ! object -> descriptor ) return;
 
 	// properties of entry content area
-	uint32_t *entry_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + x;
+	uint32_t *entry_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + x;
 
 	// select default background color for entry
 	uint32_t color = WM_TASKBAR_BG_invisible;
@@ -57,7 +57,7 @@ void wm_taskbar_list_entry( struct WM_STRUCTURE_OBJECT *object, uint16_t x, uint
 
 void wm_taskbar_list( void ) {
 	// fill taskbar with default background color
-	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = 0; y < wm_object_taskbar -> height; y++ )
 		for( uint16_t x = LIB_INTERFACE_HEADER_HEIGHT_pixel; x < wm_object_taskbar -> width - WM_OBJECT_TASKBAR_CLOCK_pixel; x++ )
 			taskbar_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;
@@ -114,7 +114,7 @@ int64_t wm_taskbar( void ) {
 		// receive pending messages
 		if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
 			// message properties
-			struct STD_IPC_STRUCTURE_MOUSE *mouse = (struct STD_IPC_STRUCTURE_MOUSE *) &ipc_data;
+			struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
 
 			// released left mouse button?
 			if( mouse -> button == STD_IPC_MOUSE_BUTTON_left ) {

@@ -12,7 +12,7 @@ void kernel_init_network( void ) {
 	kernel -> network_tx = (void *) kernel_network_tx;
 
 	// assign area for connection sockets
-	kernel -> network_socket_list = (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_NETWORK_SOCKET_limit * sizeof( struct KERNEL_NETWORK_STRUCTURE_SOCKET ) ) >> STD_SHIFT_PAGE );
+	kernel -> network_socket_list = (struct KERNEL_STRUCTURE_NETWORK_SOCKET *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_NETWORK_SOCKET_limit * sizeof( struct KERNEL_STRUCTURE_NETWORK_SOCKET ) ) >> STD_SHIFT_PAGE );
 
 	// share socket function and offset
 	kernel -> network_socket_close_by_pid = (void *) kernel_network_socket_close_by_pid;

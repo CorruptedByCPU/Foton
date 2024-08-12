@@ -44,20 +44,20 @@ struct KERNEL {
 	int64_t							framebuffer_pid;
 
 	// variables of GDT management functions
-	struct KERNEL_GDT_STRUCTURE_HEADER			gdt_header;
+	struct KERNEL_STRUCTURE_GDT_HEADER			gdt_header;
 
 	// variables of HPET management functions
-	// volatile struct KERNEL_HPET_STRUCTURE_REGISTER		*hpet_base_address;
+	// volatile struct KERNEL_STRUCTURE_HPET_REGISTER		*hpet_base_address;
 	// volatile uint64_t					hpet_miliseconds;
 	// uint8_t							hpet_timers;
 
 	// variables of IDT management functions
-	struct KERNEL_IDT_STRUCTURE_HEADER			idt_header;
+	struct KERNEL_STRUCTURE_IDT_HEADER			idt_header;
 	// functions of IDT management
 	void							(*idt_mount)( uint8_t id, uint16_t type, uintptr_t address );
 
 	// variables of I/O APIC management functions
-	volatile struct KERNEL_IO_APIC_STRUCTURE_REGISTER	*io_apic_base_address;
+	volatile struct KERNEL_STRUCTURE_IO_APIC_REGISTER	*io_apic_base_address;
 	uint32_t						io_apic_irq_lines;
 	uint8_t							io_apic_semaphore;
 	// functions of I/O APIC management
@@ -65,20 +65,20 @@ struct KERNEL {
 	void							(*io_apic_connect)( uint8_t line, uint32_t io_apic_register );
 
 	// variables of IPC management functions
-	struct STD_IPC_STRUCTURE				*ipc_base_address;
+	struct STD_STRUCTURE_IPC				*ipc_base_address;
 	uint8_t							ipc_semaphore;
 
 	// variables of Log management functions
 	void							(*log)( uint8_t *string, ... );
 
 	// variables of APIC management functions
-	volatile struct KERNEL_LAPIC_STRUCTURE			*lapic_base_address;
+	volatile struct KERNEL_STRUCTURE_LAPIC			*lapic_base_address;
 	uint64_t						lapic_id_highest;
 	// functions of APIC management
 	void							(*lapic_accept)( void );
 
 	// variables of Library management functions
-	struct KERNEL_LIBRARY_STRUCTURE				*library_base_address;
+	struct KERNEL_STRUCTURE_LIBRARY				*library_base_address;
 	uint32_t						*library_map_address;
 
 	// variables of Log management functions
@@ -99,14 +99,14 @@ struct KERNEL {
 	int64_t							(*module_thread)( uintptr_t function, uint8_t *name, uint64_t length );
 
 	// variables of Network management functions
-	struct STD_NETWORK_STRUCTURE_INTERFACE			network_interface;
+	struct STD_STRUCTURE_NETWORK_INTERFACE			network_interface;
 	uint64_t						*network_rx_base_address;
 	volatile uint64_t					network_rx_limit;
 	volatile uint8_t					network_rx_semaphore;
 	uint64_t						*network_tx_base_address;
 	volatile uint64_t					network_tx_limit;
 	volatile uint8_t					network_tx_semaphore;
-	struct KERNEL_NETWORK_STRUCTURE_SOCKET			*network_socket_list;
+	struct KERNEL_STRUCTURE_NETWORK_SOCKET			*network_socket_list;
 	uint8_t							network_socket_semaphore;
 	uint8_t							network_socket_port_semaphore;
 	// functions of Network management
@@ -128,28 +128,28 @@ struct KERNEL {
 	uint8_t							(*page_release)( uint64_t *pml4, uint64_t address, uint64_t pages );
 
 	// variables of Storage management functions
-	struct KERNEL_STORAGE_STRUCTURE				*storage_base_address;
+	struct KERNEL_STRUCTURE_STORAGE				*storage_base_address;
 	uint64_t						storage_root;
 	uint8_t							storage_semaphore;
 
 	// variables of Stream management functions
-	struct KERNEL_STREAM_STRUCTURE				*stream_base_address;
+	struct KERNEL_STRUCTURE_STREAM				*stream_base_address;
 	uint8_t							stream_semaphore;
 	// functions of Stream management
-	void							(*stream_release)( struct KERNEL_STREAM_STRUCTURE *stream );
+	void							(*stream_release)( struct KERNEL_STRUCTURE_STREAM *stream );
 
 	// variables of Task management functions
-	struct KERNEL_TASK_STRUCTURE				*task_base_address;
-	struct KERNEL_TASK_STRUCTURE				**task_cpu_address;	// contains pointers to task inside queue by specified CPU id
+	struct KERNEL_STRUCTURE_TASK				*task_base_address;
+	struct KERNEL_STRUCTURE_TASK				**task_cpu_address;	// contains pointers to task inside queue by specified CPU id
 	uint8_t							task_cpu_semaphore;
 	uint8_t							task_semaphore;
 	uint64_t						task_limit;
 	uint64_t						task_count;
 	int64_t							task_id;
 	// functions of Task management
-	struct KERNEL_TASK_STRUCTURE 				*(*task_active)( void );
+	struct KERNEL_STRUCTURE_TASK 				*(*task_active)( void );
 	int64_t							(*task_pid)( void );
-	struct KERNEL_TASK_STRUCTURE				*(*task_by_id)( int64_t pid );
+	struct KERNEL_STRUCTURE_TASK				*(*task_by_id)( int64_t pid );
 
 #ifdef LIB_TERMINAL
 	// variables of Terminal Library management functions
@@ -164,10 +164,10 @@ struct KERNEL {
 	void							(*time_sleep)( uint64_t t );	// Real Time Controller Ticks
 
 	// variables of TSS management functions
-	struct KERNEL_TSS_STRUCTURE				tss_table;
+	struct KERNEL_STRUCTURE_TSS				tss_table;
 
 	// variables of VFS management functions
-	struct KERNEL_VFS_STRUCTURE				*vfs_base_address;
+	struct KERNEL_STRUCTURE_VFS				*vfs_base_address;
 	uint64_t						vfs_root;
 	uint8_t							vfs_semaphore;
 };

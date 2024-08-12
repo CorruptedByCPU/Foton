@@ -19,10 +19,10 @@ void kernel_init_ap( void ) {
 	uint8_t current_cpu_id = kernel_lapic_id();
 
 	// Task State Segment descriptor properties
-	struct KERNEL_TSS_STRUCTURE_ENTRY *tss = (struct KERNEL_TSS_STRUCTURE_ENTRY *) &kernel -> gdt_header.base_address[ KERNEL_TSS_OFFSET ];
+	struct KERNEL_STRUCTURE_TSS_ENTRY *tss = (struct KERNEL_STRUCTURE_TSS_ENTRY *) &kernel -> gdt_header.base_address[ KERNEL_TSS_OFFSET ];
 
 	// insert descriptor data for BSP/logical processor
-	tss[ current_cpu_id ].limit_low = sizeof( struct KERNEL_TSS_STRUCTURE );	// size of Task State Segment array in Bytes
+	tss[ current_cpu_id ].limit_low = sizeof( struct KERNEL_STRUCTURE_TSS );	// size of Task State Segment array in Bytes
 	tss[ current_cpu_id ].base_low = (uint64_t) &kernel -> tss_table;		// TSS table address (bits 15..0)
 	tss[ current_cpu_id ].base_middle = (uint64_t) &kernel -> tss_table >> 16;	// TSS table address (bits 23..16)
 	tss[ current_cpu_id ].access = 0b10001001;					// TSS descriptor access attributes

@@ -20,7 +20,7 @@ void kernel_network( void ) {
 		if( ! kernel -> network_rx_limit ) { kernel_time_sleep( TRUE ); continue; }	// nope 
 
 		// properties of first header
-		struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) (*kernel -> network_rx_base_address & STD_PAGE_mask);
+		struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *) (*kernel -> network_rx_base_address & STD_PAGE_mask);
 
 		// release frame area?
 		uint8_t release = TRUE;	// yes, why not?
@@ -78,7 +78,7 @@ uint16_t kernel_network_checksum( uint16_t *data, uint16_t length ) {
 	else return ~MACRO_ENDIANNESS_WORD( ((result >> STD_MOVE_WORD) + (result & STD_WORD_mask)) );
 }
 
-void kernel_network_data_in( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uintptr_t packet ) {
+void kernel_network_data_in( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, uintptr_t packet ) {
 	// block access to stack modification
 	MACRO_LOCK( socket -> data_in_semaphore );
 
@@ -114,9 +114,9 @@ void kernel_network_rx( uintptr_t frame ) {
 int64_t kernel_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
 	// choose action
 	switch( kernel -> network_socket_list[ socket ].protocol ) {
-		case STD_NETWORK_PROTOCOL_icmp: { kernel_network_ipv4_exit( (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ socket ], data, length ); break; }
-		case STD_NETWORK_PROTOCOL_udp: { kernel_network_udp_exit( (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ socket ], data, length ); break; }
-		case STD_NETWORK_PROTOCOL_tcp: { kernel_network_tcp_exit( (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ socket ], data, length ); break; }
+		case STD_NETWORK_PROTOCOL_icmp: { kernel_network_ipv4_exit( (struct KERNEL_STRUCTURE_NETWORK_SOCKET *) &kernel -> network_socket_list[ socket ], data, length ); break; }
+		case STD_NETWORK_PROTOCOL_udp: { kernel_network_udp_exit( (struct KERNEL_STRUCTURE_NETWORK_SOCKET *) &kernel -> network_socket_list[ socket ], data, length ); break; }
+		case STD_NETWORK_PROTOCOL_tcp: { kernel_network_tcp_exit( (struct KERNEL_STRUCTURE_NETWORK_SOCKET *) &kernel -> network_socket_list[ socket ], data, length ); break; }
 	}
 
 	// sent

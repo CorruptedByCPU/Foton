@@ -4,7 +4,7 @@
 
 void kernel_init_acpi( void ) {
 	// RSDP or XSDP header properties
-	struct KERNEL_INIT_ACPI_STRUCTURE_RSDP_OR_XSDP_HEADER *local_rsdp_or_xsdp_header = (struct KERNEL_INIT_ACPI_STRUCTURE_RSDP_OR_XSDP_HEADER *) limine_rsdp_request.response -> address;
+	struct KERNEL_STRUCTURE_INIT_ACPI_RSDP_OR_XSDP_HEADER *local_rsdp_or_xsdp_header = (struct KERNEL_STRUCTURE_INIT_ACPI_RSDP_OR_XSDP_HEADER *) limine_rsdp_request.response -> address;
 
 	// amount of entries
 	uint64_t local_list_length = EMPTY;
@@ -16,22 +16,22 @@ void kernel_init_acpi( void ) {
 	// check revision number of RSDP header
 	if( local_rsdp_or_xsdp_header -> revision == EMPTY ) {
 		// RSDT header properties
-		struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *local_rsdt = (struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address);
+		struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *local_rsdt = (struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address);
 	
 		// amount of entries
-		local_list_length = (local_rsdt -> length - sizeof( struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT )) >> STD_SHIFT_4;
+		local_list_length = (local_rsdt -> length - sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT )) >> STD_SHIFT_4;
 
 		// pointer to list of RSDT entries
-		local_list_rsdt_address = (uint32_t *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address + sizeof( struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT ));
+		local_list_rsdt_address = (uint32_t *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address + sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT ));
 	} else {
 		// XSDT header properties
-		struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *local_xsdt = (struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> xsdt_address);
+		struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *local_xsdt = (struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> xsdt_address);
 
 		// amount of entries
-		local_list_length = (local_xsdt -> length - sizeof( struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT )) >> STD_SHIFT_8;
+		local_list_length = (local_xsdt -> length - sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT )) >> STD_SHIFT_8;
 
 		// pointer to list of XSDT entries
-		local_list_xsdt_address = (uint64_t *) ((uintptr_t) local_rsdp_or_xsdp_header -> xsdt_address + sizeof( struct KERNEL_INIT_ACPI_STRUCTURE_DEFAULT ));
+		local_list_xsdt_address = (uint64_t *) ((uintptr_t) local_rsdp_or_xsdp_header -> xsdt_address + sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT ));
 	}
 
 	// do recon on all entries of list
@@ -48,30 +48,30 @@ void kernel_init_acpi( void ) {
 			local_entry = local_list_xsdt_address[ i ];
 
 		// if entry contains an MADT signature (Multiple APIC Description Table)
-		struct KERNEL_INIT_ACPI_STRUCTURE_MADT *local_madt = (struct KERNEL_INIT_ACPI_STRUCTURE_MADT *) local_entry;
+		struct KERNEL_STRUCTURE_INIT_ACPI_MADT *local_madt = (struct KERNEL_STRUCTURE_INIT_ACPI_MADT *) local_entry;
 		if( local_madt -> signature == KERNEL_INIT_ACPI_MADT_signature ) {
 			// store base address and size of LAPIC entry
-			kernel -> lapic_base_address = (struct KERNEL_LAPIC_STRUCTURE *) (uintptr_t) (local_madt -> lapic_address | KERNEL_PAGE_mirror);
+			kernel -> lapic_base_address = (struct KERNEL_STRUCTURE_LAPIC *) (uintptr_t) (local_madt -> lapic_address | KERNEL_PAGE_mirror);
 
 			// length of MADT list
-			uint64_t local_size = (uint32_t) local_madt -> length - sizeof( struct KERNEL_INIT_ACPI_STRUCTURE_MADT );
+			uint64_t local_size = (uint32_t) local_madt -> length - sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_MADT );
 		
 			// pointer of MADT list
-			uint8_t *local_list = (uint8_t *) local_entry + sizeof( struct KERNEL_INIT_ACPI_STRUCTURE_MADT );
+			uint8_t *local_list = (uint8_t *) local_entry + sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_MADT );
 
 			// process all MADT list entries
 			while( local_size ) {
 				// get size of entry being processed
-				struct KERNEL_INIT_ACPI_STRUCTURE_MADT_ENTRY *local_entry = (struct KERNEL_INIT_ACPI_STRUCTURE_MADT_ENTRY *) local_list;
+				struct KERNEL_STRUCTURE_INIT_ACPI_MADT_ENTRY *local_entry = (struct KERNEL_STRUCTURE_INIT_ACPI_MADT_ENTRY *) local_list;
 				uint8_t local_entry_length = (uint8_t) local_entry -> length;
 
 				// I/O APIC entry found?
-				struct KERNEL_INIT_ACPI_STRUCTURE_IO_APIC *local_io_apic = (struct KERNEL_INIT_ACPI_STRUCTURE_IO_APIC *) local_list;
+				struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *local_io_apic = (struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *) local_list;
 				if( local_io_apic -> type == KERNEL_INIT_ACPI_APIC_TYPE_io_apic ) {
 					// I/O APIC supports interrupt vectors 0+?
 					if( local_io_apic -> gsib == EMPTY ) {
 						// store base address of I/O APIC
-						kernel -> io_apic_base_address = (struct KERNEL_IO_APIC_STRUCTURE_REGISTER *) (uintptr_t) (local_io_apic -> base_address | KERNEL_PAGE_mirror);
+						kernel -> io_apic_base_address = (struct KERNEL_STRUCTURE_IO_APIC_REGISTER *) (uintptr_t) (local_io_apic -> base_address | KERNEL_PAGE_mirror);
 
 						// register available IRQ lines
 						kernel -> io_apic_irq_lines = -1;	// all available
@@ -88,7 +88,7 @@ void kernel_init_acpi( void ) {
 		}
 
 		// // if entry contains an HPET signature (High-Precision Event Timer)
-		// struct KERNEL_INIT_ACPI_STRUCTURE_HPET *local_hpet = (struct KERNEL_INIT_ACPI_STRUCTURE_HPET *) local_entry;
+		// struct KERNEL_STRUCTURE_INIT_ACPI_HPET *local_hpet = (struct KERNEL_STRUCTURE_INIT_ACPI_HPET *) local_entry;
 		// if( local_hpet -> signature == KERNEL_INIT_ACPI_HPET_signature )
 		// 	// store base address of HPET
 		// 	kernel -> hpet_base_address = (struct KERNEL_HPET_STRUCTURE_REGISTER *) (uintptr_t) (local_hpet -> base_address | KERNEL_PAGE_mirror);

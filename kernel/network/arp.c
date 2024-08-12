@@ -2,9 +2,9 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length ) {
+uint8_t kernel_network_arp( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length ) {
 	// properties of ARP header
-	struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *arp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ));
+	struct KERNEL_STRUCTURE_NETWORK_HEADER_ARP *arp = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ));
 
 	// reply targeting us?
 	if( arp -> operation == MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ARP_OPERATION_answer ) ) {
@@ -30,7 +30,7 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	//----------------------------------------------------------------------
 
 	// open new socket for this task
-	struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = kernel_network_socket();
+	struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket = kernel_network_socket();
 
 	// set socket properties
 
@@ -64,7 +64,7 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 	arp -> source_ipv4 = MACRO_ENDIANNESS_DWORD( kernel -> network_interface.ipv4_address );
 
 	// encapsulate ARP frame and send
-	kernel_network_ethernet_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP ) );
+	kernel_network_ethernet_encapsulate( socket, ethernet, sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ARP ) );
 
 	// close socket
 	kernel_network_socket_close( socket );
@@ -75,7 +75,7 @@ uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *eth
 
 void kernel_network_arp_thread( void ) {
 	// open new socket for this thread
-	struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket = kernel_network_socket();
+	struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket = kernel_network_socket();
 
 	// set socket properties
 
@@ -113,10 +113,10 @@ void kernel_network_arp_thread( void ) {
 			//----------------------------------------------------------------------
 
 			// allocate area for ethernet/arp frame
-			struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
+			struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *) kernel_memory_alloc( TRUE );
 
 			// properties of ARP frame
-			struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *arp = (struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET ) );
+			struct KERNEL_STRUCTURE_NETWORK_HEADER_ARP *arp = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ARP *) ((uintptr_t) ethernet + sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET ) );
 
 			// set ARP properties
 			arp -> hardware_type	= MACRO_ENDIANNESS_WORD( KERNEL_NETWORK_HEADER_ARP_HARDWARE_TYPE_ethernet );
@@ -135,7 +135,7 @@ void kernel_network_arp_thread( void ) {
 			arp -> target_ipv4 = MACRO_ENDIANNESS_DWORD( kernel -> network_socket_list[ i ].ipv4_target );
 
 			// encapsulate ARP frame and send
-			kernel_network_ethernet_encapsulate( socket, ethernet, sizeof( struct KERNEL_NETWORK_STRUCTURE_HEADER_ARP ) );
+			kernel_network_ethernet_encapsulate( socket, ethernet, sizeof( struct KERNEL_STRUCTURE_NETWORK_HEADER_ARP ) );
 		}
 
 		// release AP time

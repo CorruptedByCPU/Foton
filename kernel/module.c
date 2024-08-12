@@ -13,14 +13,14 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
 
 	// retrieve information about module file
-	struct KERNEL_VFS_STRUCTURE *socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
+	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length );
 
 	// if module does not exist
 	if( ! socket ) return;	// ignore
 
 	// gather information about file
-	struct KERNEL_VFS_STRUCTURE_PROPERTIES properties;
-	kernel_vfs_file_properties( socket, (struct KERNEL_VFS_STRUCTURE_PROPERTIES *) &properties );
+	struct KERNEL_STRUCTURE_VFS_PROPERTIES properties;
+	kernel_vfs_file_properties( socket, (struct KERNEL_STRUCTURE_VFS_PROPERTIES *) &properties );
 
 	// assign area for workbench
 	uintptr_t workbench;
@@ -44,7 +44,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) workbench;
 
 	// create a new job in task queue
-	struct KERNEL_TASK_STRUCTURE *module = kernel_task_add( name, length );
+	struct KERNEL_STRUCTURE_TASK *module = kernel_task_add( name, length );
 
 	// mark task as module
 	module -> flags |= STD_TASK_FLAG_module;
@@ -66,10 +66,10 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	kernel_page_alloc( (uint64_t *) module -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// set initial startup configuration for new process
-	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uint64_t *) module -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( (uint64_t *) module -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
 
 	// code descriptor
-	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring0 );
+	context -> cs = offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring0 );
 
 	// basic processor state flags
 	context -> eflags = KERNEL_TASK_EFLAGS_default;
@@ -78,7 +78,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	context -> rsp = KERNEL_STACK_pointer;
 
 	// stack descriptor
-	context -> ss = offsetof( struct KERNEL_GDT_STRUCTURE, ds_ring0 );
+	context -> ss = offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring0 );
 
 	// set process entry address
 	context -> rip = elf -> entry_ptr;
@@ -86,7 +86,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	//----------------------------------------------------------------------
 
 	// context stack top pointer
-	module -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
+	module -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
 
 	//----------------------------------------------------------------------
 
@@ -155,7 +155,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 
 int64_t kernel_module_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
 	// create a new thread in task queue
-	struct KERNEL_TASK_STRUCTURE *thread = kernel_task_add( name, length );
+	struct KERNEL_STRUCTURE_TASK *thread = kernel_task_add( name, length );
 
 	//----------------------------------------------------------------------
 
@@ -171,16 +171,16 @@ int64_t kernel_module_thread( uintptr_t function, uint8_t *name, uint64_t length
 	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
 
 	// set initial startup configuration for new process
-	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
 
 	// code descriptor
-	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring0 );
+	context -> cs = offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring0 );
 
 	// basic processor state flags
 	context -> eflags = KERNEL_TASK_EFLAGS_default;
 
 	// stack descriptor
-	context -> ss = offsetof( struct KERNEL_GDT_STRUCTURE, ds_ring0 );
+	context -> ss = offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring0 );
 
 	// current top-of-stack pointer for module
 	context -> rsp = KERNEL_STACK_pointer;
@@ -191,12 +191,12 @@ int64_t kernel_module_thread( uintptr_t function, uint8_t *name, uint64_t length
 	//----------------------------------------------------------------------
 
 	// context stack top pointer
-	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
+	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
 
 	//----------------------------------------------------------------------
 
 	// aquire parent task properties
-	struct KERNEL_TASK_STRUCTURE *parent = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *parent = kernel_task_active();
 
 	// threads use same memory map as parent
 	thread -> memory_map = parent -> memory_map;

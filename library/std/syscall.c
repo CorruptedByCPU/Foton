@@ -53,7 +53,7 @@ uintptr_t std_syscall_pointer( void ) {
 
 //------------------------------------------------------------------------------
 
-void std_framebuffer( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
+void std_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_FRAMEBUFFER), "D" (framebuffer) );
 
@@ -149,7 +149,7 @@ uintptr_t std_memory_share( int64_t pid, uintptr_t address, uint64_t page ) {
 	return std_syscall_pointer();
 }
 
-void std_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse ) {
+void std_mouse( struct STD_STRUCTURE_MOUSE_SYSCALL *mouse ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_MOUSE), "D" (mouse) );
 
@@ -157,7 +157,7 @@ void std_mouse( struct STD_SYSCALL_STRUCTURE_MOUSE *mouse ) {
 	return std_syscall_empty();
 }
 
-void std_framebuffer_change( struct STD_SYSCALL_STRUCTURE_FRAMEBUFFER *framebuffer ) {
+void std_framebuffer_change( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_FRAMEBUFFER_CHANGE), "D" (framebuffer) );
 
@@ -213,7 +213,7 @@ uint8_t std_stream_get( uint8_t *target, uint8_t stream_type ) {
 	return std_syscall_bool();
 }
 
-void std_memory( struct STD_SYSCALL_STRUCTURE_MEMORY *memory ) {
+void std_memory( struct STD_STRUCTURE_SYSCALL_MEMORY *memory ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY), "D" (memory) );
 
@@ -269,7 +269,7 @@ void std_file_close( int64_t socket ) {
 	return std_syscall_empty();
 }
 
-void std_file( struct STD_FILE_STRUCTURE *file ) {
+void std_file( struct STD_STRUCTURE_FILE *file ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE), "D" (file) );
 
@@ -277,7 +277,7 @@ void std_file( struct STD_FILE_STRUCTURE *file ) {
 	return std_syscall_empty();
 }
 
-void std_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t byte ) {
+void std_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target, uint64_t byte ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_READ), "D" (file), "S" (target), "d" (byte) );
 
@@ -285,7 +285,7 @@ void std_file_read( struct STD_FILE_STRUCTURE *file, uint8_t *target, uint64_t b
 	return std_syscall_empty();
 }
 
-void std_file_write( struct STD_FILE_STRUCTURE *file, uint8_t *source, uint64_t byte ) {
+void std_file_write( struct STD_STRUCTURE_FILE *file, uint8_t *source, uint64_t byte ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_WRITE), "D" (file), "S" (source), "d" (byte) );
 
@@ -317,7 +317,7 @@ void std_kill( int64_t pid ) {
 	return std_syscall_empty();
 }
 
-void std_network_interface( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+void std_network_interface( struct STD_STRUCTURE_NETWORK_INTERFACE *interface ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_INTERFACE), "D" (interface) );
 
@@ -341,7 +341,7 @@ int64_t std_network_send( int64_t socket, uint8_t *data, uint64_t length ) {
 	return std_syscall_value();
 }
 
-void std_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interface ) {
+void std_network_interface_set( struct STD_STRUCTURE_NETWORK_INTERFACE *interface ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_INTERFACE_SET), "D" (interface) );
 
@@ -349,7 +349,7 @@ void std_network_interface_set( struct STD_NETWORK_STRUCTURE_INTERFACE *interfac
 	return std_syscall_empty();
 }
 
-void std_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *data ) {
+void std_network_receive( int64_t socket, struct STD_STRUCTURE_NETWORK_DATA *data ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_NETWORK_RECEIVE), "D" (socket), "S" (data) );
 

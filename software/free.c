@@ -2,9 +2,9 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct STD_STREAM_STRUCTURE_META stream_meta;
+struct STD_STRUCTURE_STREAM_META stream_meta;
 
-struct STD_SYSCALL_STRUCTURE_MEMORY memory;
+struct STD_STRUCTURE_SYSCALL_MEMORY memory;
 
 void unit( uint8_t level ) {
 	// select unit
@@ -58,7 +58,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT );
 
 	// retrieve properties of system memory
-	std_memory( (struct STD_SYSCALL_STRUCTURE_MEMORY *) &memory );
+	std_memory( (struct STD_STRUCTURE_SYSCALL_MEMORY *) &memory );
 
 	// show header
 	print( "             Total       Use      Free      Page     Share\n" );

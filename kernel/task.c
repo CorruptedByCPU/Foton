@@ -5,7 +5,7 @@
 // round robin queue type
 void kernel_task( void ) {
 	// task properties
-	struct KERNEL_TASK_STRUCTURE *current = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *current = kernel_task_active();
 
 	// block possibility of modifying tasks, only 1 CPU at a time
 	MACRO_LOCK( kernel -> task_cpu_semaphore );
@@ -22,7 +22,7 @@ void kernel_task( void ) {
 	current -> time = kernel_time_rdtsc() - current -> time_previous;
 
 	// select another process
-	struct KERNEL_TASK_STRUCTURE *next = kernel_task_select( (uint64_t) (((uint64_t) current - (uint64_t) kernel -> task_base_address) / sizeof( struct KERNEL_TASK_STRUCTURE )) );
+	struct KERNEL_STRUCTURE_TASK *next = kernel_task_select( (uint64_t) (((uint64_t) current - (uint64_t) kernel -> task_base_address) / sizeof( struct KERNEL_STRUCTURE_TASK )) );
 
 	// start time measuring
 	next -> time_previous = kernel_time_rdtsc();
@@ -53,7 +53,7 @@ void kernel_task( void ) {
 		if( next -> flags & STD_TASK_FLAG_module ) __asm__ volatile( "" :: "D" (kernel), "S" (EMPTY) );
 		else {
 			// retrieve from stack
-			uint64_t *arg = (uint64_t *) (next -> rsp + offsetof( struct KERNEL_IDT_STRUCTURE_RETURN, rsp ) );
+			uint64_t *arg = (uint64_t *) (next -> rsp + offsetof( struct KERNEL_STRUCTURE_IDT_RETURN, rsp ) );
 			uint64_t *argc = (uint64_t *) *arg;
 
 			// length of string
@@ -74,13 +74,13 @@ void kernel_task( void ) {
 	}
 }
 
-struct KERNEL_TASK_STRUCTURE *kernel_task_active( void ) {
+struct KERNEL_STRUCTURE_TASK *kernel_task_active( void ) {
 	// from list of active tasks of individual logical processors
 	// select currently processed position relative to current logical processor
 	return kernel -> task_cpu_address[ kernel_lapic_id() ];
 }
 
-struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
+struct KERNEL_STRUCTURE_TASK *kernel_task_add( uint8_t *name, uint8_t length ) {
 	// deny modification of job queue
 	MACRO_LOCK( kernel -> task_semaphore );
 
@@ -113,7 +113,7 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 		MACRO_UNLOCK( kernel -> task_semaphore );
 
 		// new task initiated
-		return (struct KERNEL_TASK_STRUCTURE *) &kernel -> task_base_address[ i ];
+		return (struct KERNEL_STRUCTURE_TASK *) &kernel -> task_base_address[ i ];
 	}
 
 	// free access to job queue
@@ -125,13 +125,13 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_add( uint8_t *name, uint8_t length ) {
 
 int64_t kernel_task_pid( void ) {
 	// currently running task
-	struct KERNEL_TASK_STRUCTURE *task = kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// get ID of process
 	return task -> pid;
 }
 
-struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
+struct KERNEL_STRUCTURE_TASK *kernel_task_select( uint64_t i ) {
 	// search until found
 	while( TRUE ) {
 		// search in task queue for a ready-to-do task
@@ -154,11 +154,11 @@ struct KERNEL_TASK_STRUCTURE *kernel_task_select( uint64_t i ) {
 	}
 }
 
-struct KERNEL_TASK_STRUCTURE *kernel_task_by_id( int64_t pid ) {
+struct KERNEL_STRUCTURE_TASK *kernel_task_by_id( int64_t pid ) {
 	// entry ID
 	for( uint64_t i = 0; i < kernel -> task_limit; i++ )
 		// found?
-		if( pid == kernel -> task_base_address[ i ].pid ) return (struct KERNEL_TASK_STRUCTURE *) &kernel -> task_base_address[ i ];	// yes
+		if( pid == kernel -> task_base_address[ i ].pid ) return (struct KERNEL_STRUCTURE_TASK *) &kernel -> task_base_address[ i ];	// yes
 
 	// ID not found
 	return EMPTY;

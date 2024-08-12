@@ -28,25 +28,25 @@ uint8_t module_usb_detect_uhci( uint8_t i ) {
 	if( module_usb_controller[ i ].type & MODULE_USB_BASE_ADDRESS_type ) return FALSE;	// no
 
 	// reset controller
-	for( uint8_t t = 0; t < 5; t++ ) { driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, command ), 0x0004 ); kernel -> time_sleep( 11 ); driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, command ), 0x0000 ); }
+	for( uint8_t t = 0; t < 5; t++ ) { driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, command ), 0x0004 ); kernel -> time_sleep( 11 ); driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, command ), 0x0000 ); }
 
 	// command register contains default value?
-	if( driver_port_in_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, command ) ) ) return FALSE;	// no
+	if( driver_port_in_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, command ) ) ) return FALSE;	// no
 
 	// status register contains default value?
-	if( driver_port_in_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, status ) ) != 0x0020 ) return FALSE;	// no
+	if( driver_port_in_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, status ) ) != 0x0020 ) return FALSE;	// no
 
 	// clear status register
-	driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, status ), 0x00FF );
+	driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, status ), 0x00FF );
 
 	// modify register contains default value?
-	if( driver_port_in_byte( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, start_of_frame_modify ) ) != 0x40 ) return FALSE;	// no
+	if( driver_port_in_byte( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, start_of_frame_modify ) ) != 0x40 ) return FALSE;	// no
 
 	// check command register function
-	driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, command ), 0x0002 ); kernel -> time_sleep( 42 );
+	driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, command ), 0x0002 ); kernel -> time_sleep( 42 );
 
 	// test passed?
-	if( driver_port_in_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, command ) ) & 0x0002 ) return FALSE;	// no
+	if( driver_port_in_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, command ) ) & 0x0002 ) return FALSE;	// no
 
 	// yes
 	return TRUE;
@@ -54,10 +54,10 @@ uint8_t module_usb_detect_uhci( uint8_t i ) {
 
 uintptr_t module_usb_queue_empty( void ) {
 	// assign queue area
-	struct MODULE_USB_QUEUE_STRUCTURE *queue = (struct MODULE_USB_QUEUE_STRUCTURE *) kernel -> memory_alloc( TRUE );
+	struct MODULE_USB_STRUCTURE_QUEUE *queue = (struct MODULE_USB_STRUCTURE_QUEUE *) kernel -> memory_alloc( TRUE );
 
 	// fill with empty entries
-	for( uint64_t i = 0; i < STD_PAGE_byte / sizeof( struct MODULE_USB_QUEUE_STRUCTURE ); i++ ) {
+	for( uint64_t i = 0; i < STD_PAGE_byte / sizeof( struct MODULE_USB_STRUCTURE_QUEUE ); i++ ) {
 		// next entry
 		queue[ i ].head_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
 
@@ -71,7 +71,7 @@ uintptr_t module_usb_queue_empty( void ) {
 
 void module_usb_uhci_queue( uint32_t *frame_list ) {
 	// acquire 1/1024u query
-	module_usb_queue_1ms = (struct MODULE_USB_QUEUE_STRUCTURE *) module_usb_queue_empty();
+	module_usb_queue_1ms = (struct MODULE_USB_STRUCTURE_QUEUE *) module_usb_queue_empty();
 
 	// for each entry inside frame list
 	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_32; i++ )
@@ -79,7 +79,7 @@ void module_usb_uhci_queue( uint32_t *frame_list ) {
 		frame_list[ i ] = (uintptr_t) module_usb_queue_1ms | MODULE_USB_DEFAULT_FLAG_queue;
 }
 
-void module_usb_debug_descriptors( struct MODULE_USB_TD_STRUCTURE *td ) {
+void module_usb_debug_descriptors( struct MODULE_USB_STRUCTURE_TD *td ) {
 	kernel -> log( (uint8_t *) "Link pointer 0x%X (flags: %4b)\n", td -> link_pointer << 4, td -> flags );
 	kernel -> log( (uint8_t *) "Status: %8b (", td -> status );
 	uint16_t status = td -> status;
@@ -98,7 +98,7 @@ void module_usb_debug_descriptors( struct MODULE_USB_TD_STRUCTURE *td ) {
 
 // void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_t target ) {
 // 	// prepare Transfer Descriptors area
-// 	struct MODULE_USB_TD_STRUCTURE *td = (struct MODULE_USB_TD_STRUCTURE *) kernel -> memory_alloc( TRUE );
+// 	struct MODULE_USB_STRUCTURE_TD *td = (struct MODULE_USB_STRUCTURE_TD *) kernel -> memory_alloc( TRUE );
 
 // 	// amount of required TDs
 // 	uint64_t tds = length / module_usb_port[ port ].max_packet_size;
@@ -115,7 +115,7 @@ void module_usb_debug_descriptors( struct MODULE_USB_TD_STRUCTURE *td ) {
 
 // 		case 2: {
 // 			// set ADDRESS
-// 			*buffer = 0x0000000000000500 | (((uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_PORT_STRUCTURE )) << 16);
+// 			*buffer = 0x0000000000000500 | (((uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_STRUCTURE_PORT )) << 16);
 
 // 			break;
 // 		}
@@ -157,7 +157,7 @@ void module_usb_debug_descriptors( struct MODULE_USB_TD_STRUCTURE *td ) {
 
 // 	// debug
 // 	kernel -> log( (uint8_t *) "\n\n>> SEND\n" );
-// 	module_usb_debug_descriptors( (struct MODULE_USB_TD_STRUCTURE *) &td[ i ] );
+// 	module_usb_debug_descriptors( (struct MODULE_USB_STRUCTURE_TD *) &td[ i ] );
 
 // 	//----------------------------------------------------------------------
 
@@ -198,7 +198,7 @@ void module_usb_debug_descriptors( struct MODULE_USB_TD_STRUCTURE *td ) {
 // 		td[ i ].link_pointer = (uintptr_t) &td[ i + 1 ] >> 4;	// which is at
 
 // 		// debug
-// 		module_usb_debug_descriptors( (struct MODULE_USB_TD_STRUCTURE *) &td[ i ] );
+// 		module_usb_debug_descriptors( (struct MODULE_USB_STRUCTURE_TD *) &td[ i ] );
 
 // 		if( ! length ) break;
 
@@ -232,7 +232,7 @@ void module_usb_debug_descriptors( struct MODULE_USB_TD_STRUCTURE *td ) {
 // 	td[ i ].flags = MODULE_USB_DEFAULT_FLAG_terminate;
 
 // 	// debug
-// 	module_usb_debug_descriptors( (struct MODULE_USB_TD_STRUCTURE *) &td[ i ] );
+// 	module_usb_debug_descriptors( (struct MODULE_USB_STRUCTURE_TD *) &td[ i ] );
 
 // 	//----------------------------------------------------------------------
 
@@ -246,7 +246,7 @@ void module_usb_debug_descriptors( struct MODULE_USB_TD_STRUCTURE *td ) {
 
 // 	// debug
 // 	kernel -> log( (uint8_t *) "<< RECEIVED\n" );
-// 	for( uint64_t i = 0; i < 2 + tds; i++ ) module_usb_debug_descriptors( (struct MODULE_USB_TD_STRUCTURE *) &td[ i ] );
+// 	for( uint64_t i = 0; i < 2 + tds; i++ ) module_usb_debug_descriptors( (struct MODULE_USB_STRUCTURE_TD *) &td[ i ] );
 
 // 	// remove Transfer Descriptors from Queue
 // 	module_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
@@ -257,7 +257,7 @@ void module_usb_debug_descriptors( struct MODULE_USB_TD_STRUCTURE *td ) {
 
 void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_t target ) {
 	// prepare Transfer Descriptors area
-	struct MODULE_USB_TD_STRUCTURE *td = (struct MODULE_USB_TD_STRUCTURE *) kernel -> memory_alloc( TRUE );
+	struct MODULE_USB_STRUCTURE_TD *td = (struct MODULE_USB_STRUCTURE_TD *) kernel -> memory_alloc( TRUE );
 	uint32_t *data = (uint32_t *) td;
 
 	switch( type ) {
@@ -299,7 +299,7 @@ void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_
 			data[ 10 ] = 0x00000069; td[ 1 ].max_length = -1; td[ 1 ].data_toggle = TRUE;
 			data[ 11 ] = EMPTY;
 
-			data[ 16 ] = 0x00000500 | ((uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_PORT_STRUCTURE )) << 16;
+			data[ 16 ] = 0x00000500 | ((uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_STRUCTURE_PORT )) << 16;
 
 			break;
 		}
@@ -407,13 +407,13 @@ uint16_t module_usb_port_reset( uint8_t id ) {
 	uint16_t status = EMPTY;
 
 	// send command, reset
-	driver_port_out_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, port[ module_usb_port[ id ].port_id ] ), driver_port_in_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, port[ module_usb_port[ id ].port_id ] ) ) & ~MODULE_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 50 );
-	driver_port_out_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, port[ module_usb_port[ id ].port_id ] ), driver_port_in_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, port[ module_usb_port[ id ].port_id ] ) ) & ~MODULE_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 10 );
+	driver_port_out_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, port[ module_usb_port[ id ].port_id ] ), driver_port_in_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, port[ module_usb_port[ id ].port_id ] ) ) & ~MODULE_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 50 );
+	driver_port_out_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, port[ module_usb_port[ id ].port_id ] ), driver_port_in_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, port[ module_usb_port[ id ].port_id ] ) ) & ~MODULE_USB_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 10 );
 
 	// connection status
 	for( uint8_t i = 0; i < 10; i++ ) {
 		// retrieve port status
-		status = driver_port_in_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, port[ module_usb_port[ id ].port_id ] ) );
+		status = driver_port_in_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, port[ module_usb_port[ id ].port_id ] ) );
 
 		// device connected to port0?
 		if( ! (status & MODULE_USB_PORT_STATUS_AND_CONTROL_current_connect_status) ) {	// no
@@ -427,7 +427,7 @@ uint16_t module_usb_port_reset( uint8_t id ) {
 		// port status change?
 		if( ((status & MODULE_USB_PORT_STATUS_AND_CONTROL_port_enable_change) || (status & MODULE_USB_PORT_STATUS_AND_CONTROL_connect_status_change)) ) {
 			// clean it
-			driver_port_out_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, port[ module_usb_port[ id ].port_id ] ), status & ~(MODULE_USB_PORT_STATUS_AND_CONTROL_port_enable_change | MODULE_USB_PORT_STATUS_AND_CONTROL_connect_status_change));
+			driver_port_out_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, port[ module_usb_port[ id ].port_id ] ), status & ~(MODULE_USB_PORT_STATUS_AND_CONTROL_port_enable_change | MODULE_USB_PORT_STATUS_AND_CONTROL_connect_status_change));
 
 			// try again
 			continue;
@@ -443,7 +443,7 @@ uint16_t module_usb_port_reset( uint8_t id ) {
 		}
 		
 		// try to enable port
-		driver_port_out_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, port[ module_usb_port[ id ].port_id ] ), status | MODULE_USB_PORT_STATUS_AND_CONTROL_port_enabled );
+		driver_port_out_word( module_usb_controller[ module_usb_port[ id ].controller_id ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, port[ module_usb_port[ id ].port_id ] ), status | MODULE_USB_PORT_STATUS_AND_CONTROL_port_enabled );
 	}
 
 	// device connected?
@@ -456,10 +456,10 @@ void _entry( uintptr_t kernel_ptr ) {
 	kernel = (struct KERNEL *) kernel_ptr;
 
 	// assign space for discovered USB controllers
-	module_usb_controller = (struct MODULE_USB_CONTROLLER_STRUCTURE *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct MODULE_USB_CONTROLLER_STRUCTURE ) * MODULE_USB_CONTROLLER_limit ) >> STD_SHIFT_PAGE );
+	module_usb_controller = (struct MODULE_USB_STRUCTURE_CONTROLLER *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct MODULE_USB_STRUCTURE_CONTROLLER ) * MODULE_USB_CONTROLLER_limit ) >> STD_SHIFT_PAGE );
 
 	// assign space for discovered USB ports
-	module_usb_port = (struct MODULE_USB_PORT_STRUCTURE *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct MODULE_USB_PORT_STRUCTURE ) * MODULE_USB_PORT_limit ) >> STD_SHIFT_PAGE );
+	module_usb_port = (struct MODULE_USB_STRUCTURE_PORT *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct MODULE_USB_STRUCTURE_PORT ) * MODULE_USB_PORT_limit ) >> STD_SHIFT_PAGE );
 
 	// check every bus;device;function of PCI controller
 	for( uint16_t b = 0; b < 256; b++ )
@@ -533,23 +533,23 @@ void _entry( uintptr_t kernel_ptr ) {
 				// configure UHCI controller
 
 				// enable all type of interrupts
-				driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, interrupt_enable ), 0x000F );
+				driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, interrupt_enable ), 0x000F );
 
 				// reset frame number
-				driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, frame_number ), EMPTY );
+				driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, frame_number ), EMPTY );
 
 				// alloc area for frame list
 				module_usb_controller[ i ].frame_base_address = kernel -> memory_alloc( TRUE ) & ~KERNEL_PAGE_mirror;
-				driver_port_out_dword( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, frame_list_base_address ), module_usb_controller[ i ].frame_base_address );
+				driver_port_out_dword( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, frame_list_base_address ), module_usb_controller[ i ].frame_base_address );
 
 				// fill up frame list with queues
 				module_usb_uhci_queue( (uint32_t *) (module_usb_controller[ i ].frame_base_address | KERNEL_PAGE_mirror) );
 
 				// clear controller status
-				driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, status ), 0xFFFF );
+				driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, status ), 0xFFFF );
 
 				// start UHCI controller
-				driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_REGISTER_STRUCTURE, command ), TRUE | 1 << 6 );
+				driver_port_out_word( module_usb_controller[ i ].base_address + offsetof( struct MODULE_USB_STRUCTURE_REGISTER, command ), TRUE | 1 << 6 );
 
 				//-------------------
 
@@ -591,7 +591,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					module_usb_descriptor( module_usb_port_count, 1, EMPTY, EMPTY );
 
 					// assign device address
-					module_usb_port[ module_usb_port_count ].address_id = (uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_PORT_STRUCTURE );
+					module_usb_port[ module_usb_port_count ].address_id = (uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_STRUCTURE_PORT );
 
 					// retrieve full device descriptor
 					kernel -> memory_clean( (uint64_t *) device_descriptor, 1 );

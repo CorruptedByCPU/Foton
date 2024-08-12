@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct KERNEL_STORAGE_STRUCTURE *kernel_storage_register( uint8_t type ) {
+struct KERNEL_STRUCTURE_STORAGE *kernel_storage_register( uint8_t type ) {
 	// lock exclusive access
 	MACRO_LOCK( kernel -> storage_semaphore );
 
@@ -18,7 +18,7 @@ struct KERNEL_STORAGE_STRUCTURE *kernel_storage_register( uint8_t type ) {
 		MACRO_UNLOCK( kernel -> storage_semaphore );
 
 		// return pointer to device entry
-		return (struct KERNEL_STORAGE_STRUCTURE *) &kernel -> storage_base_address[ i ];
+		return (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ i ];
 	}
 
 	// unlock access

@@ -16,7 +16,7 @@
 	#define	KERNEL_LAPIC_LVT_TR_FLAG_mask_interrupts	0b00000000000000010000000000000000
 	#define	KERNEL_LAPIC_TDC_divide_by_1			0b111
 
-	struct	KERNEL_LAPIC_STRUCTURE {
+	struct	KERNEL_STRUCTURE_LAPIC {
 		uint8_t		reserved_0[ 32 ];
 		uint32_t	volatile id;	// 0x20
 		uint8_t		reserved_1[ 92 ];

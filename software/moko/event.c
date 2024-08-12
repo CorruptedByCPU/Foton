@@ -4,7 +4,7 @@
 
 void moko_event( void ) {
 	// old stream meta
-	struct STD_STREAM_STRUCTURE_META meta = stream_meta;
+	struct STD_STRUCTURE_STREAM_META meta = stream_meta;
 
 	// retrieve new stream meta data
 	std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT );

@@ -22,7 +22,7 @@
 
 void close( int64_t pid ) {
 	// properties of task to close
-	struct KERNEL_TASK_STRUCTURE *task = kernel -> task_by_id( pid );
+	struct KERNEL_STRUCTURE_TASK *task = kernel -> task_by_id( pid );
 
 	// mark me as not active anymore
 	task -> flags &= ~KERNEL_TASK_FLAG_active;

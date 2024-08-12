@@ -15,7 +15,7 @@
 
 	#define	KERNEL_GDT_FIELD_FLAGS_long_mode		(1 << 1)
 
-	struct	KERNEL_GDT_STRUCTURE {
+	struct	KERNEL_STRUCTURE_GDT {
 		uint64_t	null;
 		uint64_t	cs_ring0;
 		uint64_t	ds_ring0;
@@ -25,7 +25,7 @@
 		uint64_t	tss;
 	} __attribute__( (packed) );
 
-	struct	KERNEL_GDT_STRUCTURE_ENTRY {
+	struct	KERNEL_STRUCTURE_GDT_ENTRY {
 		uint16_t	limit_low;
 		uint16_t	base_low;
 		uint8_t		base_middle;
@@ -34,9 +34,9 @@
 		uint8_t		base_high;
 	} __attribute__( (packed) );
 
-	struct	KERNEL_GDT_STRUCTURE_HEADER {
+	struct	KERNEL_STRUCTURE_GDT_HEADER {
 		uint16_t				limit;
-		struct KERNEL_GDT_STRUCTURE_ENTRY	*base_address;
+		struct KERNEL_STRUCTURE_GDT_ENTRY	*base_address;
 	} __attribute__( (packed) );
 
 	// external procedure (assembly language)

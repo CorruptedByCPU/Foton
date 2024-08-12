@@ -38,7 +38,7 @@ int64_t kernel_library( struct LIB_ELF_STRUCTURE *elf ) {
 	return EMPTY;
 }
 
-static void kernel_library_cancel( struct KERNEL_LIBRARY_STRUCTURE_INIT *library ) {
+static void kernel_library_cancel( struct KERNEL_STRUCTURE_LIBRARY_INIT *library ) {
 	// undo performed operations depending on cavity
 	switch( library -> level ) {
 		case 6: {
@@ -234,7 +234,7 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t code_base_add
 
 int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	// prepare temporary library area
-	struct KERNEL_LIBRARY_STRUCTURE_INIT library = { EMPTY };
+	struct KERNEL_STRUCTURE_LIBRARY_INIT library = { EMPTY };
 
 	// if library already registered
 	if( kernel_library_find( name, length ) ) return EMPTY;	// end of routine
@@ -255,19 +255,19 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
 
 	// retrieve information about library file
-	library.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
+	library.socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length );
 
 	// if library does not exist
-	if( ! library.socket ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return STD_ERROR_file_not_found; };
+	if( ! library.socket ) { kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library ); return STD_ERROR_file_not_found; };
 
 	// checkpoint reached: file socket opened
 	library.level++;
 
 	// gather information about file
-	kernel_vfs_file_properties( library.socket, (struct KERNEL_VFS_STRUCTURE_PROPERTIES *) &library.properties );
+	kernel_vfs_file_properties( library.socket, (struct KERNEL_STRUCTURE_VFS_PROPERTIES *) &library.properties );
 
 	// assign area for workbench
-	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return STD_ERROR_memory_low; };
+	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library ); return STD_ERROR_memory_low; };
 
 	// checkpoint reached: assigned area for temporary file
 	library.level++;
@@ -278,19 +278,19 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	//----------------------------------------------------------------------
 
 	// file contains proper ELF header?
-	if( ! lib_elf_identify( library.workbench_address ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return STD_ERROR_file_unknown; }	// no
+	if( ! lib_elf_identify( library.workbench_address ) ) { kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library ); return STD_ERROR_file_unknown; }	// no
 
 	// ELF structure properties
 	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) library.workbench_address;
 
 	// it's an executable file?
-	if( elf -> type != LIB_ELF_TYPE_shared_object ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return STD_ERROR_file_not_executable; }	// no
+	if( elf -> type != LIB_ELF_TYPE_shared_object ) { kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library ); return STD_ERROR_file_not_executable; }	// no
 
 	// load libraries required by file
 	int64_t result = kernel_library( elf );
 	if( result ) {
 		// cancel load
-		kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library );
+		kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library );
 
 		// return last error
 		return result;
@@ -311,7 +311,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	}
 
 	// acquire memory space inside library environment
-	if( ! (library.base_address = (kernel_memory_acquire( kernel -> library_map_address, library.page, KERNEL_MEMORY_LOW, kernel -> page_limit ) << STD_SHIFT_PAGE) + KERNEL_LIBRARY_base_address) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return STD_ERROR_memory_low; }
+	if( ! (library.base_address = (kernel_memory_acquire( kernel -> library_map_address, library.page, KERNEL_MEMORY_LOW, kernel -> page_limit ) << STD_SHIFT_PAGE) + KERNEL_LIBRARY_base_address) ) { kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library ); return STD_ERROR_memory_low; }
 
 	// debug
 	kernel_log( (uint8_t *) "Library %s at 0x%X\n", name, library.base_address );
@@ -320,7 +320,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.level++;
 
 	// map aquired memory space for library
-	if( ! kernel_page_alloc( kernel -> page_base_address, library.base_address, library.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_LIBRARY << KERNEL_PAGE_TYPE_offset) ) ) { kernel_library_cancel( (struct KERNEL_LIBRARY_STRUCTURE_INIT *) &library ); return STD_ERROR_memory_low; }
+	if( ! kernel_page_alloc( kernel -> page_base_address, library.base_address, library.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_LIBRARY << KERNEL_PAGE_TYPE_offset) ) ) { kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library ); return STD_ERROR_memory_low; }
 
 	// checkpoint reached: library area registered in global paging array
 	library.level++;
@@ -377,7 +377,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	return EMPTY;
 }
 
-struct KERNEL_LIBRARY_STRUCTURE *kernel_library_register( void ) {
+struct KERNEL_STRUCTURE_LIBRARY *kernel_library_register( void ) {
 	// search for empty entry
 	for( uint64_t i = 0; i < KERNEL_LIBRARY_limit; i++ )
 		// found?
@@ -386,7 +386,7 @@ struct KERNEL_LIBRARY_STRUCTURE *kernel_library_register( void ) {
 			kernel -> library_base_address[ i ].flags |= KERNEL_LIBRARY_FLAG_reserved;
 		
 			// return pointer to entry
-			return (struct KERNEL_LIBRARY_STRUCTURE *) &kernel -> library_base_address[ i ];
+			return (struct KERNEL_STRUCTURE_LIBRARY *) &kernel -> library_base_address[ i ];
 		}
 	
 	// nope

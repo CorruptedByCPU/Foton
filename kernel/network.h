@@ -47,13 +47,13 @@
 #define	KERNEL_NETWORK_HEADER_TCP_WINDOW_SIZE_default			0x05B4
 #define	KERNEL_NETWORK_HEADER_TCP_KEEP_ALIVE_timeout			(DRIVER_RTC_Hz * 3600)
 
-struct	KERNEL_NETWORK_STRUCTURE_ARP {
+struct	KERNEL_STRUCTURE_NETWORK_ARP {
 	uint64_t	lease_time;
 	uint32_t	ipv4_address;
 	uint8_t		mac_address[ 6 ];
 };
 
-struct	KERNEL_NETWORK_STRUCTURE_HEADER_ARP {
+struct	KERNEL_STRUCTURE_NETWORK_HEADER_ARP {
 	uint16_t	hardware_type;
 	uint16_t	protocol_type;
 	uint8_t		hardware_length;
@@ -65,19 +65,19 @@ struct	KERNEL_NETWORK_STRUCTURE_HEADER_ARP {
 	uint32_t	target_ipv4;
 } __attribute__((packed));
 
-struct	KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET {
+struct	KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET {
 	uint8_t 	target[ 6 ];
 	uint8_t		source[ 6 ];
 	uint16_t	type;
 } __attribute__((packed));
 
-struct KERNEL_NETWORK_STRUCTURE_HEADER_ICMP {
+struct KERNEL_STRUCTURE_NETWORK_HEADER_ICMP {
 	uint8_t		type;
 	uint8_t		code;
 	uint16_t	checksum;
 } __attribute__((packed));
 
-struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 {
+struct KERNEL_STRUCTURE_NETWORK_HEADER_IPV4 {
 	uint8_t		version_and_header_length;
 	uint8_t		ecn;
 	uint16_t	length;
@@ -90,7 +90,7 @@ struct KERNEL_NETWORK_STRUCTURE_HEADER_IPV4 {
 	uint32_t	target;
 } __attribute__((packed));
 
-struct KERNEL_NETWORK_STRUCTURE_HEADER_PSEUDO {
+struct KERNEL_STRUCTURE_NETWORK_HEADER_PSEUDO {
 	uint32_t	local;
 	uint32_t	target;
 	uint8_t		reserved;
@@ -98,14 +98,14 @@ struct KERNEL_NETWORK_STRUCTURE_HEADER_PSEUDO {
 	uint16_t	length;
 } __attribute__((packed));
 
-struct KERNEL_NETWORK_STRUCTURE_HEADER_UDP {
+struct KERNEL_STRUCTURE_NETWORK_HEADER_UDP {
 	uint16_t	local;
 	uint16_t	target;
 	uint16_t	length;
 	uint16_t	checksum;
 } __attribute__((packed));
 
-struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP {
+struct KERNEL_STRUCTURE_NETWORK_HEADER_TCP {
 	uint16_t	port_source;
 	uint16_t	port_local;
 	uint32_t	sequence;
@@ -117,7 +117,7 @@ struct KERNEL_NETWORK_STRUCTURE_HEADER_TCP {
 	uint16_t	urgent_pointer;
 } __attribute__((packed));
 
-struct	KERNEL_NETWORK_STRUCTURE_SOCKET {
+struct	KERNEL_STRUCTURE_NETWORK_SOCKET {
 	int64_t		pid;
 	uint8_t		flags;
 	uint8_t		protocol;
@@ -142,39 +142,39 @@ struct	KERNEL_NETWORK_STRUCTURE_SOCKET {
 	uint8_t		data_out_semaphore;
 };
 
-uint8_t kernel_network_arp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+uint8_t kernel_network_arp( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length );
 
 uint16_t kernel_network_checksum( uint16_t *data, uint16_t length );
 
-void kernel_network_data_in( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uintptr_t packet );
+void kernel_network_data_in( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, uintptr_t packet );
 
-void kernel_network_ethernet_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+void kernel_network_ethernet_encapsulate( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length );
 
-uint8_t kernel_network_icmp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+uint8_t kernel_network_icmp( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length );
 
 // network module initialization
 void kernel_network_init( void );
 
-uint8_t kernel_network_ipv4( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+uint8_t kernel_network_ipv4( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length );
 
-void kernel_network_ipv4_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+void kernel_network_ipv4_encapsulate( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length );
 
-void kernel_network_ipv4_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint16_t length );
+void kernel_network_ipv4_exit( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, uint8_t *data, uint16_t length );
 
-void kernel_network_receive( int64_t socket, struct STD_NETWORK_STRUCTURE_DATA *packet );
+void kernel_network_receive( int64_t socket, struct STD_STRUCTURE_NETWORK_DATA *packet );
 
 // storage function for incomming packets
 void kernel_network_rx( uintptr_t frame );
 
 int64_t kernel_network_send( int64_t socket, uint8_t *data, uint64_t length );
 
-struct KERNEL_NETWORK_STRUCTURE_SOCKET *kernel_network_socket( void );
+struct KERNEL_STRUCTURE_NETWORK_SOCKET *kernel_network_socket( void );
 
-void kernel_network_socket_close( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket );
+void kernel_network_socket_close( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket );
 
 void kernel_network_socket_close_by_pid( int64_t pid );
 
-uint8_t kernel_network_socket_port( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uint16_t port );
+uint8_t kernel_network_socket_port( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, uint16_t port );
 
 uint16_t kernel_network_socket_port_random( uint16_t limit );
 
@@ -185,14 +185,14 @@ void kernel_network_tcp_thread( void );
 // returns physical address and size of packet to transfer outside of host
 uintptr_t kernel_network_tx( void );
 
-void kernel_network_udp_exit( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uint8_t *data, uint64_t length );
+void kernel_network_udp_exit( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, uint8_t *data, uint64_t length );
 
-void kernel_network_udp_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+void kernel_network_udp_encapsulate( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length );
 
-uint8_t kernel_network_ethernet_resolve( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket );
+uint8_t kernel_network_ethernet_resolve( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket );
 
-uint8_t kernel_network_tcp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+uint8_t kernel_network_tcp( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length );
 
-void kernel_network_tcp_encapsulate( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+void kernel_network_tcp_encapsulate( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length );
 
-uint8_t kernel_network_udp( struct KERNEL_NETWORK_STRUCTURE_HEADER_ETHERNET *ethernet, uint16_t length );
+uint8_t kernel_network_udp( struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet, uint16_t length );

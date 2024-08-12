@@ -88,7 +88,7 @@
 		uint16_t	length;
 	} __attribute__( (packed) );
 
-	struct MODULE_USB_CONTROLLER_STRUCTURE {
+	struct MODULE_USB_STRUCTURE_CONTROLLER {
 		uint8_t		type;
 		uintptr_t	base_address;
 		uint16_t	size_byte;
@@ -96,7 +96,7 @@
 		uint8_t		irq_line;
 	};
 
-	struct MODULE_USB_PORT_STRUCTURE {
+	struct MODULE_USB_STRUCTURE_PORT {
 		uint8_t		flags;
 		uint8_t		controller_id;
 		uint8_t		port_id;
@@ -106,7 +106,7 @@
 		uint64_t	default_descriptor_length;
 	};
 
-	struct MODULE_USB_REGISTER_STRUCTURE {
+	struct MODULE_USB_STRUCTURE_REGISTER {
 		uint16_t	command;
 		uint16_t	status;
 		uint16_t	interrupt_enable;
@@ -114,16 +114,16 @@
 		uint32_t	frame_list_base_address;
 		uint8_t		start_of_frame_modify;
 		uint8_t		reserved[ 3 ];
-		uint16_t	port[ 2 ];	// by default 2, but correct amount is determined by MODULE_USB_CONTROLLER_STRUCTURE.size_byte
+		uint16_t	port[ 2 ];	// by default 2, but correct amount is determined by MODULE_USB_STRUCTURE_CONTROLLER.size_byte
 	} __attribute__( (packed) );
 
-	struct MODULE_USB_QUEUE_STRUCTURE {
+	struct MODULE_USB_STRUCTURE_QUEUE {
 		uint32_t	head_link_pointer_and_flags;
 		uint32_t	element_link_pointer_and_flags;
 		uint32_t	reserved[ 2 ];
 	} __attribute__( (packed) );
 
-	struct MODULE_USB_TD_STRUCTURE {
+	struct MODULE_USB_STRUCTURE_TD {
 		uint8_t		flags 		: 4;
 		uint32_t	link_pointer	: 28;
 		uint16_t	actual_length	: 11;

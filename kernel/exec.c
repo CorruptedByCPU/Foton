@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-static void kernel_exec_cancel( struct KERNEL_EXEC_STRUCTURE_INIT *exec ) {
+static void kernel_exec_cancel( struct KERNEL_STRUCTURE_EXEC_INIT *exec ) {
 	// undo performed operations depending on cavity
 	switch( exec -> level ) {
 		case 5: {
@@ -30,7 +30,7 @@ static void kernel_exec_cancel( struct KERNEL_EXEC_STRUCTURE_INIT *exec ) {
 
 int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// prepare temporary execution area
-	struct KERNEL_EXEC_STRUCTURE_INIT exec = { EMPTY };
+	struct KERNEL_STRUCTURE_EXEC_INIT exec = { EMPTY };
 
 	// file name length allowed?
 	if( length > (LIB_VFS_NAME_limit - length) ) return STD_ERROR_syntax_error;	// no
@@ -48,7 +48,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	for( uint64_t i = 0; i < exec_length; i++ ) path[ path_length++ ] = name[ i ];
 
 	// retrieve information about executable file
-	exec.socket = (struct KERNEL_VFS_STRUCTURE *) kernel_vfs_file_open( path, path_length );
+	exec.socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length );
 
 	// if executable does not exist
 	if( ! exec.socket ) return STD_ERROR_file_not_found;
@@ -57,10 +57,10 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	exec.level++;
 
 	// gather information about file
-	kernel_vfs_file_properties( exec.socket, (struct KERNEL_VFS_STRUCTURE_PROPERTIES *) &exec.properties );
+	kernel_vfs_file_properties( exec.socket, (struct KERNEL_STRUCTURE_VFS_PROPERTIES *) &exec.properties );
 
 	// assign area for workbench
-	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; };
+	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_memory_low; };
 
 	// checkpoint reached: assigned area for temporary file
 	exec.level++;
@@ -71,19 +71,19 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// file contains proper ELF header?
-	if( ! lib_elf_identify( exec.workbench_address ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_file_unknown; }	// no
+	if( ! lib_elf_identify( exec.workbench_address ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_file_unknown; }	// no
 
 	// ELF structure properties
 	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) exec.workbench_address;
 
 	// it's an executable file?
-	if( elf -> type != LIB_ELF_TYPE_executable ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_file_not_executable; }	// no
+	if( elf -> type != LIB_ELF_TYPE_executable ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_file_not_executable; }	// no
 
 	// load libraries required by file
 	int64_t result = kernel_library( elf );
 	if( result ) {
 		// cancel execution
-		kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec );
+		kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec );
 		
 		// return last error
 		return result;
@@ -92,7 +92,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// create a new job in task queue
-	if( ! (exec.task = kernel_task_add( name, length )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_limit; }
+	if( ! (exec.task = kernel_task_add( name, length )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_limit; }
 
 	// checkpoint reached: prepared task entry for new process
 	exec.level++;
@@ -100,7 +100,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// prepare Paging table for new process
-	if( ! (exec.task -> cr3 = kernel_memory_alloc( TRUE )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! (exec.task -> cr3 = kernel_memory_alloc( TRUE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// page used for structure
 	kernel -> page_structure++;
@@ -114,22 +114,22 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// describe space under exec context stack or low memory occured
-	if( ! kernel_page_alloc( (uint64_t *) exec.task -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! kernel_page_alloc( (uint64_t *) exec.task -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// set initial startup configuration for new process
-	struct KERNEL_IDT_STRUCTURE_RETURN *context = (struct KERNEL_IDT_STRUCTURE_RETURN *) (kernel_page_address( (uint64_t *) exec.task -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN )));
+	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( (uint64_t *) exec.task -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
 
 	// code descriptor
-	context -> cs = offsetof( struct KERNEL_GDT_STRUCTURE, cs_ring3 ) | 0x03;
+	context -> cs = offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring3 ) | 0x03;
 
 	// basic processor state flags
 	context -> eflags = KERNEL_TASK_EFLAGS_default;
 
 	// stack descriptor
-	context -> ss = offsetof( struct KERNEL_GDT_STRUCTURE, ds_ring3 ) | 0x03;
+	context -> ss = offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring3 ) | 0x03;
 
 	// the context stack top pointer
-	exec.task -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_IDT_STRUCTURE_RETURN );
+	exec.task -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
 
 	// set the process entry address
 	context -> rip = elf -> entry_ptr;
@@ -140,7 +140,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	exec.stack_byte = (length & ~0x0F) + 0x18;
 
 	// assign area for process stack or low memory occured
-	if( ! (exec.stack = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! (exec.stack = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// stack pointer of process
 	context -> rsp = KERNEL_TASK_STACK_pointer - exec.stack_byte;
@@ -154,7 +154,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	for( uint64_t i = 0; i < length; i++ ) exec.stack[ MACRO_PAGE_ALIGN_UP( exec.stack_byte ) - exec.stack_byte + 0x08 + i ] = name[ i ];
 
 	// map stack space to process paging array
-	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, (uintptr_t) exec.stack & ~KERNEL_PAGE_mirror, MACRO_PAGE_ALIGN_DOWN( context -> rsp ), MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.stack, MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE ); kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, (uintptr_t) exec.stack & ~KERNEL_PAGE_mirror, MACRO_PAGE_ALIGN_DOWN( context -> rsp ), MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.stack, MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE ); kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// process stack size
 	exec.task -> stack += MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE;
@@ -174,7 +174,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	}
 
 	// allocate calculated space
-	if( ! (exec.base_address = kernel_memory_alloc( exec.page )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! (exec.base_address = kernel_memory_alloc( exec.page )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// load executable segments in place
 	for( uint16_t i = 0; i < elf -> h_entry_count; i++ ) {
@@ -192,7 +192,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	}
 
 	// map executable space to paging array
-	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, exec.base_address & ~KERNEL_PAGE_mirror, KERNEL_EXEC_base_address, exec.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.base_address, exec.page ); kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, exec.base_address & ~KERNEL_PAGE_mirror, KERNEL_EXEC_base_address, exec.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.base_address, exec.page ); kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// process memory usage
 	exec.task -> page += exec.page;
@@ -200,7 +200,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// create virtual memory map for process, no less than kernels
-	if( ! (exec.task -> memory_map = (uint32_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! (exec.task -> memory_map = (uint32_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// checkpoint reached: assigned memory map
 	exec.level++;
@@ -219,13 +219,13 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	//----------------------------------------------------------------------
 
 	// make a default input stream
-	if( ! (exec.task -> stream_in = kernel_stream()) ) { kernel_exec_cancel( (struct KERNEL_EXEC_STRUCTURE_INIT *) &exec ); return STD_ERROR_memory_low; }
+	if( ! (exec.task -> stream_in = kernel_stream()) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_INIT *) &exec ); return STD_ERROR_memory_low; }
 
 	// checkpoint reached: assigned stream in/out
 	exec.level++;
 
 	// properties of parent task
-	struct KERNEL_TASK_STRUCTURE *parent = (struct KERNEL_TASK_STRUCTURE *) kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *parent = (struct KERNEL_STRUCTURE_TASK *) kernel_task_active();
 
 	// set default output stream based on flag
 	switch( stream_flow ) {

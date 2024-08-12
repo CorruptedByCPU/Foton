@@ -12,7 +12,7 @@
 	#define	KERNEL_STREAM_FLAG_null		0b01000000
 	#define	KERNEL_STREAM_FLAG_closed	0b10000000
 
-	struct	KERNEL_STREAM_STRUCTURE {
+	struct	KERNEL_STRUCTURE_STREAM {
 		uint8_t		*base_address;
 		uint64_t	lock;
 		uint64_t	start;
@@ -24,8 +24,8 @@
 	};
 
 	// create new stream and return properties of it
-	struct KERNEL_STREAM_STRUCTURE *kernel_stream( void );
+	struct KERNEL_STRUCTURE_STREAM *kernel_stream( void );
 
 	// release stream if no more used
-	void kernel_stream_release( struct KERNEL_STREAM_STRUCTURE *stream );
+	void kernel_stream_release( struct KERNEL_STRUCTURE_STREAM *stream );
 #endif

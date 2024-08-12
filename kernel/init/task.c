@@ -7,10 +7,10 @@ void kernel_init_task( void ) {
 	kernel -> task_limit = KERNEL_TASK_limit;
 
 	// prepare area for Task entries
-	kernel -> task_base_address = (struct KERNEL_TASK_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( kernel -> task_limit * sizeof( struct KERNEL_TASK_STRUCTURE ) ) >> STD_SHIFT_PAGE );
+	kernel -> task_base_address = (struct KERNEL_STRUCTURE_TASK *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( kernel -> task_limit * sizeof( struct KERNEL_STRUCTURE_TASK ) ) >> STD_SHIFT_PAGE );
 
 	// prepare area for APs
-	kernel -> task_cpu_address = (struct KERNEL_TASK_STRUCTURE **) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( limine_smp_request.response -> cpu_count << STD_SHIFT_PTR ) >> STD_SHIFT_PAGE );
+	kernel -> task_cpu_address = (struct KERNEL_STRUCTURE_TASK **) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( limine_smp_request.response -> cpu_count << STD_SHIFT_PTR ) >> STD_SHIFT_PAGE );
 
 	// attach task switch routine to APIC timer interrupt handler
 	kernel_idt_mount( KERNEL_IDT_IRQ_offset, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) kernel_task_entry );
@@ -40,7 +40,7 @@ void kernel_init_task( void ) {
 	kernel -> task_base_address -> memory_map = kernel -> memory_base_address;
 
 	// prepare stream[s] for kernel
-	struct KERNEL_STREAM_STRUCTURE *local_stream = kernel_stream();
+	struct KERNEL_STRUCTURE_STREAM *local_stream = kernel_stream();
 
 	// as a kernel, both stream[s] are of type null
 	local_stream -> flags = KERNEL_STREAM_FLAG_null;

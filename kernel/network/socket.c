@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct KERNEL_NETWORK_STRUCTURE_SOCKET *kernel_network_socket( void ) {
+struct KERNEL_STRUCTURE_NETWORK_SOCKET *kernel_network_socket( void ) {
 	// block access to socket list
 	MACRO_LOCK( kernel -> network_socket_semaphore );
 
@@ -24,7 +24,7 @@ struct KERNEL_NETWORK_STRUCTURE_SOCKET *kernel_network_socket( void ) {
 		kernel -> network_socket_list[ i ].data_in = (uintptr_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_NETWORK_SOCKET_DATA_limit * sizeof( uintptr_t ) ) >> STD_SHIFT_PAGE );
 
 		// return socket pointer
-		return (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ i ];
+		return (struct KERNEL_STRUCTURE_NETWORK_SOCKET *) &kernel -> network_socket_list[ i ];
 	}
 
 	// unlock
@@ -34,7 +34,7 @@ struct KERNEL_NETWORK_STRUCTURE_SOCKET *kernel_network_socket( void ) {
 	return EMPTY;
 }
 
-void kernel_network_socket_close( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket ) {
+void kernel_network_socket_close( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket ) {
 	// remove all packets from incomming queue
 	for( uint64_t i = 0; i < KERNEL_NETWORK_SOCKET_DATA_limit; i++ )
 		// unparsed packet?
@@ -56,12 +56,12 @@ void kernel_network_socket_close_by_pid( int64_t pid ) {
 			kernel -> network_socket_list[ i ].flags |= KERNEL_NETWORK_SOCKET_FLAG_close;
 
 			// release socket
-			kernel_network_socket_close( (struct KERNEL_NETWORK_STRUCTURE_SOCKET *) &kernel -> network_socket_list[ i ] );
+			kernel_network_socket_close( (struct KERNEL_STRUCTURE_NETWORK_SOCKET *) &kernel -> network_socket_list[ i ] );
 		}
 	}
 }
 
-uint8_t kernel_network_socket_port( struct KERNEL_NETWORK_STRUCTURE_SOCKET *socket, uint16_t port ) {
+uint8_t kernel_network_socket_port( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, uint16_t port ) {
 	// block access to socket list
 	MACRO_LOCK( kernel -> network_socket_port_semaphore );
 

@@ -4,7 +4,7 @@
 
 int64_t socket;
 
-struct STD_NETWORK_STRUCTURE_INTERFACE eth0;
+struct STD_STRUCTURE_NETWORK_INTERFACE eth0;
 
 struct DHCP_STRUCTURE *dhcp_discover = EMPTY;
 struct DHCP_STRUCTURE *dhcp_request = EMPTY;

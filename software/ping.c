@@ -94,12 +94,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		std_network_send( socket, (uint8_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
 
 		// properties of reply
-		struct STD_NETWORK_STRUCTURE_DATA packet = { EMPTY };
+		struct STD_STRUCTURE_NETWORK_DATA packet = { EMPTY };
 
 		// wait for incomming reply
 		while( end_microtime > current_microtime && ! packet.length ) {
 			// check for incommint reply
-			std_network_receive( socket, (struct STD_NETWORK_STRUCTURE_DATA *) &packet );
+			std_network_receive( socket, (struct STD_STRUCTURE_NETWORK_DATA *) &packet );
 
 			// still no reply, update current time
 			current_microtime = std_microtime();

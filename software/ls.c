@@ -10,7 +10,7 @@
 	//----------------------------------------------------------------------
 	// variables, routines, procedures
 	//----------------------------------------------------------------------
-	struct STD_STREAM_STRUCTURE_META stream_meta;
+	struct STD_STRUCTURE_STREAM_META stream_meta;
 
 	#define	LS_MARGIN	2
 

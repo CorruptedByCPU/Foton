@@ -6,7 +6,7 @@
 	#define	KERNEL_STORAGE
 
 	// ignore more storages than hard limit
-	#define	KERNEL_STORAGE_limit		(STD_PAGE_byte / sizeof( struct KERNEL_STORAGE_STRUCTURE ))
+	#define	KERNEL_STORAGE_limit		(STD_PAGE_byte / sizeof( struct KERNEL_STRUCTURE_STORAGE ))
 
 	// storage type:
 	#define	KERNEL_STORAGE_TYPE_vfs		0b00000001	// Virtual File System
@@ -15,7 +15,7 @@
 	#define	KERNEL_STORAGE_CLASS_block	0b00000001	// whole storage
 	#define	KERNEL_STORAGE_CLASS_partition	0b00000010	// part of storage
 
-	struct KERNEL_STORAGE_STRUCTURE {
+	struct KERNEL_STRUCTURE_STORAGE {
 		uint8_t				device_type;
 		uint8_t				device_class;
 		uint64_t			device_block;	// first usable block of storage

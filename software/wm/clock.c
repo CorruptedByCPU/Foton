@@ -34,7 +34,7 @@ int64_t wm_clock( void ) {
 		else lib_integer_to_string( minutes, 10, (uint8_t *) &clock_string[ 3 ] );
 
 		// fill clock area with default background color
-		uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_WINDOW_STRUCTURE_DESCRIPTOR )) + (wm_object_taskbar -> width - WM_OBJECT_TASKBAR_CLOCK_pixel);
+		uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (wm_object_taskbar -> width - WM_OBJECT_TASKBAR_CLOCK_pixel);
 		for( uint16_t y = 0; y < wm_object_taskbar -> height; y++ )
 			for( uint16_t x = 0; x < WM_OBJECT_TASKBAR_CLOCK_pixel; x++ )
 				clock_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;

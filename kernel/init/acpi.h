@@ -12,7 +12,7 @@
 	#define	KERNEL_INIT_ACPI_APIC_TYPE_lapic	0
 	#define	KERNEL_INIT_ACPI_APIC_TYPE_io_apic	1
 
-	struct	KERNEL_INIT_ACPI_STRUCTURE_RSDP_OR_XSDP_HEADER {
+	struct	KERNEL_STRUCTURE_INIT_ACPI_RSDP_OR_XSDP_HEADER {
 		uint64_t	signature;
 		uint8_t		checksum;
 		uint8_t		oem_id[ 6 ];
@@ -24,7 +24,7 @@
 		uint8_t		reserved[ 3 ];
 	} __attribute__( (packed) );
 
-	struct	KERNEL_INIT_ACPI_STRUCTURE_DEFAULT {
+	struct	KERNEL_STRUCTURE_INIT_ACPI_DEFAULT {
 		uint32_t	signature;
 		uint32_t	length;
 		uint8_t		revision;
@@ -36,7 +36,7 @@
 		uint32_t	creator_revision;
 	} __attribute__( (packed) );
 
-	struct	KERNEL_INIT_ACPI_STRUCTURE_MADT {
+	struct	KERNEL_STRUCTURE_INIT_ACPI_MADT {
 		uint32_t	signature;
 		uint32_t	length;
 		uint8_t		revision;
@@ -51,12 +51,12 @@
 		uint32_t	flags;
 	} __attribute__( (packed) );
 
-	struct	KERNEL_INIT_ACPI_STRUCTURE_MADT_ENTRY {
+	struct	KERNEL_STRUCTURE_INIT_ACPI_MADT_ENTRY {
 		uint8_t		type;
 		uint8_t		length;
 	} __attribute__( (packed) );
 
-	struct	KERNEL_INIT_ACPI_STRUCTURE_LAPIC {
+	struct	KERNEL_STRUCTURE_INIT_ACPI_LAPIC {
 		uint8_t		type;
 		uint8_t		length;
 		uint8_t		cpu_id;
@@ -64,7 +64,7 @@
 		uint32_t	flags;
 	} __attribute__( (packed) );
 
-	struct	KERNEL_INIT_ACPI_STRUCTURE_IO_APIC {
+	struct	KERNEL_STRUCTURE_INIT_ACPI_IO_APIC {
 		uint8_t		type;
 		uint8_t		length;
 		uint8_t		ioapic_id;
@@ -73,7 +73,7 @@
 		uint32_t	gsib;	// Global System Interrupt Base
 	} __attribute__( (packed) );
 
-	struct	KERNEL_INIT_ACPI_STRUCTURE_HPET {
+	struct	KERNEL_STRUCTURE_INIT_ACPI_HPET {
 		uint32_t	signature;
 		uint32_t	length;
 		uint8_t		revision;
