@@ -45,6 +45,7 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 				return;
 			}
 
+			// show type of exception
 			kernel_log( (uint8_t *) "Page Fault" );
 
 			// done

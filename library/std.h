@@ -18,8 +18,8 @@
 	#define	EMPTY						0
 	#define	INIT						EMPTY
 
-	#define	TRUE						1
 	#define	FALSE						0
+	#define	TRUE						1
 
 	#define	LOCK						TRUE
 	#define	UNLOCK						FALSE
