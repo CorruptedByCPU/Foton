@@ -294,10 +294,12 @@
 		uint64_t	tx_byte;
 	};
 
+	#define	STD_NUMBER_SYSTEM_decimal			10
+	#define	STD_NUMBER_SYSTEM_hexadecimal			16
+
+	#define	STD_PAGE_page					1
 	#define	STD_PAGE_byte					0x1000
 	#define	STD_PAGE_mask					0xFFFFFFFFFFFFF000
-
-	#define	STD_PTR_byte					0x08
 
 	#define	STD_SHIFT_2					1
 	#define	STD_SHIFT_4					2
@@ -323,6 +325,7 @@
 	#define	STD_SIZE_DWORD_bit				32
 	#define	STD_SIZE_QWORD_byte				8
 	#define	STD_SIZE_QWORD_bit				64
+	#define	STD_SIZE_PTR_byte				STD_SIZE_QWORD_byte
 
 	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STRUCTURE_STREAM
 
@@ -449,7 +452,7 @@
 		uint8_t		name[ 64 ];
 	} __attribute__( (aligned( STD_PAGE_byte )) );
 
-	#define	STD_WORD_mask			0x000000000000FFFF
+	#define	STD_MASK_word			0x000000000000FFFF
 
 	// returns properties of available framebuffer ()
 	void std_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer );

@@ -70,12 +70,12 @@ uint16_t kernel_network_checksum( uint16_t *data, uint16_t length ) {
 		result += (uint16_t) MACRO_ENDIANNESS_WORD( data[ i ] );
 	
 		// if overflow
-		if( result > 0xFFFF ) result = (result & STD_WORD_mask) + 1;
+		if( result > 0xFFFF ) result = (result & STD_MASK_word) + 1;
 	}
 
 	// if result is EMPTY
 	if( ! result ) return STD_MAX_unsigned;
-	else return ~MACRO_ENDIANNESS_WORD( ((result >> STD_MOVE_WORD) + (result & STD_WORD_mask)) );
+	else return ~MACRO_ENDIANNESS_WORD( ((result >> STD_MOVE_WORD) + (result & STD_MASK_word)) );
 }
 
 void kernel_network_data_in( struct KERNEL_STRUCTURE_NETWORK_SOCKET *socket, uintptr_t packet ) {
