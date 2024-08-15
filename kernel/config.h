@@ -46,11 +46,6 @@ struct KERNEL {
 	// variables of GDT management functions
 	struct KERNEL_STRUCTURE_GDT_HEADER			gdt_header;
 
-	// variables of HPET management functions
-	// volatile struct KERNEL_STRUCTURE_HPET_REGISTER		*hpet_base_address;
-	// volatile uint64_t					hpet_miliseconds;
-	// uint8_t							hpet_timers;
-
 	// variables of IDT management functions
 	struct KERNEL_STRUCTURE_IDT_HEADER			idt_header;
 	// functions of IDT management

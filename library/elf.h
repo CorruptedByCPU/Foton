@@ -43,11 +43,11 @@
 		uint16_t	type;
 		uint16_t	instruction_set;
 		uint32_t	elf_version;
-
+		//---------------------------------
 		uint64_t	entry_ptr;
 		uint64_t	headers_offset;
 		uint64_t	sections_offset;
-
+		//---------------------------------
 		uint32_t	flags;
 		uint16_t	header_size;
 		uint16_t	header_table_size;

@@ -13,7 +13,7 @@ void kernel_init_acpi( void ) {
 	uint32_t *local_list_rsdt_address = EMPTY;
 	uint64_t *local_list_xsdt_address = EMPTY;
 
-	// check revision number of RSDP header
+	// check revision number of RSDP/XSDP header
 	if( local_rsdp_or_xsdp_header -> revision == EMPTY ) {
 		// RSDT header properties
 		struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *local_rsdt = (struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address);
@@ -50,7 +50,7 @@ void kernel_init_acpi( void ) {
 		// if entry contains an MADT signature (Multiple APIC Description Table)
 		struct KERNEL_STRUCTURE_INIT_ACPI_MADT *local_madt = (struct KERNEL_STRUCTURE_INIT_ACPI_MADT *) local_entry;
 		if( local_madt -> signature == KERNEL_INIT_ACPI_MADT_signature ) {
-			// store base address and size of LAPIC entry
+			// store LAPIC base address
 			kernel -> lapic_base_address = (struct KERNEL_STRUCTURE_LAPIC *) (uintptr_t) (local_madt -> lapic_address | KERNEL_PAGE_mirror);
 
 			// length of MADT list
@@ -86,11 +86,5 @@ void kernel_init_acpi( void ) {
 				local_size -= local_entry_length;
 			}
 		}
-
-		// // if entry contains an HPET signature (High-Precision Event Timer)
-		// struct KERNEL_STRUCTURE_INIT_ACPI_HPET *local_hpet = (struct KERNEL_STRUCTURE_INIT_ACPI_HPET *) local_entry;
-		// if( local_hpet -> signature == KERNEL_INIT_ACPI_HPET_signature )
-		// 	// store base address of HPET
-		// 	kernel -> hpet_base_address = (struct KERNEL_HPET_STRUCTURE_REGISTER *) (uintptr_t) (local_hpet -> base_address | KERNEL_PAGE_mirror);
 	}
 }
