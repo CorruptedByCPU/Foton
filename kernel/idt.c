@@ -2,19 +2,6 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_idt_mount( uint8_t id, uint16_t type, uintptr_t address ) {
-	// interrupt type
-	kernel -> idt_header.base_address[ id ].type = type;
-
-	// address of code descriptor that runs procedure
-	kernel -> idt_header.base_address[ id ].gdt_descriptor = sizeof( ( ( struct KERNEL_STRUCTURE_GDT *) 0 ) -> cs_ring0 );
-
-	// address of exception handler
-	kernel -> idt_header.base_address[ id ].base_low = (uint16_t) address;
-	kernel -> idt_header.base_address[ id ].base_middle = (uint16_t) (address >> 16);
-	kernel -> idt_header.base_address[ id ].base_high = (uint32_t) (address >> 32);
-}
-
 void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	// task properties
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
@@ -108,4 +95,17 @@ __attribute__ (( preserve_most ))
 void kernel_idt_interrupt_default( struct KERNEL_STRUCTURE_IDT_RETURN *interrupt ) {
 	// tell APIC of current logical processor that the hardware interrupt is being handled properly
 	kernel_lapic_accept();
+}
+
+void kernel_idt_mount( uint8_t id, uint16_t type, uintptr_t address ) {
+	// interrupt type
+	kernel -> idt_header.base_address[ id ].type = type;
+
+	// address of code descriptor that runs procedure
+	kernel -> idt_header.base_address[ id ].gdt_descriptor = sizeof( ( ( struct KERNEL_STRUCTURE_GDT *) 0 ) -> cs_ring0 );
+
+	// address of exception handler
+	kernel -> idt_header.base_address[ id ].base_low = (uint16_t) address;
+	kernel -> idt_header.base_address[ id ].base_middle = (uint16_t) (address >> 16);
+	kernel -> idt_header.base_address[ id ].base_high = (uint32_t) (address >> 32);
 }

@@ -11,14 +11,11 @@
 	// #include	"../library/font.c"
 	// #include	"../library/terminal.c"
 	//----------------------------------------------------------------------
-	// drivers
+	// drivers variables, structures
 	//----------------------------------------------------------------------
 	#include	"driver/port.h"
-	#include	"driver/port.c"
 	#include	"driver/rtc.h"
-	#include	"driver/rtc.c"
 	#include	"driver/serial.h"
-	#include	"driver/serial.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of limine
 	//----------------------------------------------------------------------
@@ -49,6 +46,12 @@
 	//----------------------------------------------------------------------
 	#include	"data.c"
 	//----------------------------------------------------------------------
+	// drivers
+	//----------------------------------------------------------------------
+	#include	"driver/port.c"
+	#include	"driver/rtc.c"
+	#include	"driver/serial.c"
+	//----------------------------------------------------------------------
 	// kernel routines, procedures
 	//----------------------------------------------------------------------
 	#include	"log.c"
@@ -65,7 +68,6 @@
 	#include	"exec.c"
 	#include	"module.c"
 	#include	"time.c"
-	#include	"rtc.c"
 	#include	"stream.c"
 	#include	"network.c"
 	//----------------------------------------------------------------------
@@ -91,7 +93,6 @@
 	#include	"init/storage.c"
 	#include	"init/library.c"
 	#include	"init/module.c"
-	#include	"init/rtc.c"
 	#include	"init/ipc.c"
 	#include	"init/stream.c"
 	#include	"init/cmd.c"
@@ -143,7 +144,7 @@ void _entry( void ) {
 	kernel_init_ipc();
 
 	// configure RTC
-	kernel_init_rtc();
+	driver_rtc_init();
 
 	// initialize network stack
 	kernel_init_network();

@@ -6,7 +6,7 @@
 	#define	DRIVER_RTC
 
 	#define	DRIVER_RTC_IRQ_number					0x08
-	#define	DRIVER_RTC_IO_APIC_register				KERNEL_IO_APIC_iowin + (DRIVER_RTC_IRQ_number * 0x02)
+	#define	DRIVER_RTC_IO_APIC_register				KERNEL_IO_APIC_iowin + (DRIVER_RTC_IRQ_number << STD_SHIFT_2)
 
 	#define	DRIVER_RTC_Hz						1024
 
@@ -37,7 +37,4 @@
 
 	// external routine (assembly language)
 	extern void driver_rtc_entry( void );
-
-	// uint64_t driver_rtc_time( void );
-	uint8_t driver_rtc_register( uint8_t mode );
 #endif

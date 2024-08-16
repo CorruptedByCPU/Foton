@@ -6,6 +6,9 @@ started:
 - refactoring code
 
 yet to be done:
+- window selected change coloristic
+  top, left - light,
+  right, bottom - dark
 - audio controller SB16
 - hexedit software, show content of files in binary mode (with ASCII overview)
 - kernels internal debugger

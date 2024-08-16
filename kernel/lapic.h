@@ -43,6 +43,9 @@
 		uint32_t	tdc;	// 0x03E0	Timer - Divide Configuration
 	} __attribute__( (packed) );
 
+	// acknowledge interrupt cause from device
+	void kernel_lapic_accept( void );
+
 	// returns CPU id
 	uint8_t kernel_lapic_id( void );
 #endif
