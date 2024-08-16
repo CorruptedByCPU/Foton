@@ -26,7 +26,7 @@ clear
 
 # check environment software, required!
 ENV=true
-echo -n "Environment: "
+echo -n "Foton environment: "
 	type -a ${CC} &> /dev/null || (echo -en "\e[38;5;196m${C}\e[0m" && ENV=false)
 	type -a ${LD} &> /dev/null || (echo -en "\e[38;5;196m${LD}\e[0m" && ENV=false)
 	type -a ${ASM} &> /dev/null || (echo -en "\e[38;5;196m${ASM}\e[0m" && ENV=false)
@@ -74,7 +74,6 @@ echo -e "${green}\xE2\x9C\x94${default}|Kernel|${kernel_size}" | awk -F "|" '{pr
 
 # copy kernel file and limine files onto destined iso folder
 gzip -k build/kernel
-cp build/kernel.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin build/iso
 
 #===============================================================================
 
@@ -156,7 +155,8 @@ done
 #===============================================================================
 
 # prepare virtual file system with content of all available software, libraries, files
-(cd build && clang ../tools/vfs.c -o vfs && find root -name '.keep' -delete && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs && cp root.vfs.gz iso/root.gz)
+(cd build && clang ../tools/vfs.c -o vfs && find root -name '.keep' -delete && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs)
+cp build/kernel build/root.vfs tools/limine.conf limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin build/iso
 
 # convert iso directory to iso file
 xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label build/iso -o build/foton.iso > /dev/null 2>&1
