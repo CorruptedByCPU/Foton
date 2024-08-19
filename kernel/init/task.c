@@ -45,11 +45,11 @@ void kernel_init_task( void ) {
 	kernel -> task_cpu_address[ kernel_lapic_id() ] = kernel -> task_base_address;
 
 	// attach task switch routine to APIC timer interrupt handler
-	kernel_idt_mount( KERNEL_IDT_IRQ_offset, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) kernel_task_entry );
+	kernel_idt_mount( KERNEL_IDT_IRQ_offset, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) kernel_task );
 
 // TODO, remove me after refactoring
 // attach task switch routine to software interrupt handler
-kernel_idt_mount( 0x40, KERNEL_IDT_TYPE_isr, (uintptr_t) kernel_task_entry );
+kernel_idt_mount( 0x40, KERNEL_IDT_TYPE_isr, (uintptr_t) kernel_task );
 
 	// mark IRQ line as in use
 	kernel -> io_apic_irq_lines &= ~(1 << 0);

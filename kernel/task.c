@@ -3,12 +3,12 @@
 ===============================================================================*/
 
 // round robin queue type
-void kernel_task( void ) {
-	// task properties
-	struct KERNEL_STRUCTURE_TASK *current = kernel_task_active();
-
-	// block possibility of modifying tasks, only 1 CPU at a time
+void kernel_task_switch( void ) {
+	// only 1 CPU at a time
 	MACRO_LOCK( kernel -> task_cpu_semaphore );
+
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *current = kernel_task_active();
 
 	// keep current top of stack pointer
 	__asm__ volatile( "mov %%rsp, %0" : "=rm" (current -> rsp) );
@@ -29,13 +29,13 @@ void kernel_task( void ) {
 
 	//----------------------------------------------------------------------
 
-	// reload paging tables for next task area
+	// reload environment paging array
 	__asm__ volatile( "mov %0, %%cr3" ::"r" (next -> cr3 & ~KERNEL_PAGE_mirror) );
 
-	// restore previous  stack pointer of next task
+	// restore previous stack pointer of next task
 	__asm__ volatile( "movq %0, %%rsp" : "=rm" (next -> rsp) );
 
-	// unlock access to modification of tasks
+	// unlock access
 	MACRO_UNLOCK( kernel -> task_cpu_semaphore );
 
 	// reload CPU cycle counter inside APIC controller

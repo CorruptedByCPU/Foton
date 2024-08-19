@@ -52,7 +52,7 @@
 	struct KERNEL_STRUCTURE_TASK *kernel_task_active();
 
 	// external routine (assembly language)
-	extern void kernel_task_entry( void );
+	extern void kernel_task( void );
 
 	// returns current task PID number
 	int64_t kernel_task_pid( void );
