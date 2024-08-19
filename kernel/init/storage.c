@@ -3,7 +3,7 @@
 ===============================================================================*/
 
 void kernel_init_storage( void ) {
-	// allocate space for the list of available storages
+	// allocate area for list of available storages
 	kernel -> storage_base_address = (struct KERNEL_STRUCTURE_STORAGE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_STORAGE_limit * sizeof( struct KERNEL_STRUCTURE_STORAGE ) ) >> STD_SHIFT_PAGE );
 
 	// register modules of Virtual File System as storages

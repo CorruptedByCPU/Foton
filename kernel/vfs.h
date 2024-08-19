@@ -18,7 +18,7 @@
 	struct	KERNEL_STRUCTURE_VFS_PROPERTIES {
 		uint64_t	byte;
 		uint8_t		name_length;
-		uint8_t		name[ LIB_VFS_NAME_limit ];
+		uint8_t		name[ LIB_VFS_NAME_limit + 1 ];
 	};
 
 	void kernel_vfs_file_close( struct KERNEL_STRUCTURE_VFS *socket );

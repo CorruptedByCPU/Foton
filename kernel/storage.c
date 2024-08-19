@@ -8,7 +8,7 @@ struct KERNEL_STRUCTURE_STORAGE *kernel_storage_register( uint8_t type ) {
 
 	// check for available storage entry
 	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) {
-		// available?
+		// entry available?
 		if( kernel -> storage_base_address[ i ].device_type ) continue;	// no
 
 		// mark entry as occupied
@@ -24,6 +24,6 @@ struct KERNEL_STRUCTURE_STORAGE *kernel_storage_register( uint8_t type ) {
 	// unlock access
 	MACRO_UNLOCK( kernel -> storage_semaphore );
 
-	// no available space
+	// no available entry
 	return EMPTY;
 }

@@ -134,6 +134,9 @@ void _entry( void ) {
 
 	// ESSENTIAL -----------------------------------------------------------
 
+	// configure RTC
+	driver_rtc_init();
+
 	// initialize stream set
 	kernel_init_stream();
 
@@ -143,16 +146,13 @@ void _entry( void ) {
 	// prepare Inter Process communication
 	kernel_init_ipc();
 
-	// configure RTC
-	driver_rtc_init();
-
 	// initialize network stack
 	kernel_init_network();
 
 	// register all available storage devices
 	kernel_init_storage();
 
-	// initialize VFS storages
+	// initialize VFS directory
 	kernel_init_vfs();
 
 	// create library management space

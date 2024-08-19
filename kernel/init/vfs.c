@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint64_t kernel_init_directory( struct LIB_VFS_STRUCTURE *current, struct LIB_VFS_STRUCTURE *previous ) {
+uint64_t kernel_init_vfs_realloc( struct LIB_VFS_STRUCTURE *current, struct LIB_VFS_STRUCTURE *previous ) {
 	// size of this directory
 	uint64_t bytes = EMPTY;
 
@@ -31,7 +31,7 @@ uint64_t kernel_init_directory( struct LIB_VFS_STRUCTURE *current, struct LIB_VF
 			// for directories
 			case STD_FILE_TYPE_directory: {
 				// parse directory entries
-				file -> byte = MACRO_PAGE_ALIGN_UP( kernel_init_directory( (struct LIB_VFS_STRUCTURE *) file, current ) );
+				file -> byte = MACRO_PAGE_ALIGN_UP( kernel_init_vfs_realloc( (struct LIB_VFS_STRUCTURE *) file, current ) );
 				
 				// done
 				break;
@@ -53,7 +53,7 @@ void kernel_init_vfs( void ) {
 
 	// detect VFS storages
 	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) {
-		// marked as VFS?
+		// entry marked as VFS?
 		if( kernel -> storage_base_address[ i ].device_type != KERNEL_STORAGE_TYPE_vfs ) continue;	// thats not it
 
 		// create superblock for VFS
@@ -70,7 +70,7 @@ void kernel_init_vfs( void ) {
 		superblock -> offset = kernel -> storage_base_address[ i ].device_block;
 
 		// realloc VFS structures regarded of memory location
-		superblock -> byte = kernel_init_directory( superblock, superblock );
+		superblock -> byte = kernel_init_vfs_realloc( superblock, superblock );
 
 		// set new location of VFS main block
 		kernel -> storage_base_address[ i ].device_block = (uint64_t) superblock;
