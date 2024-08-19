@@ -190,7 +190,7 @@ uint64_t lib_string_word_end( uint8_t *string, uint64_t length, uint8_t separato
 		// separator located?
 		if( string[ i ] == separator ) return i;
 
-	// the whole string is "word"
+	// whole string is "word"
 	return length;
 }
 

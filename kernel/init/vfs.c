@@ -43,7 +43,7 @@ uint64_t kernel_init_vfs_realloc( struct LIB_VFS_STRUCTURE *current, struct LIB_
 	// until end of file list
 	} while( (++file) -> name_length );
 
-	// return directory size in pages
+	// return directory size in Bytes
 	return MACRO_PAGE_ALIGN_UP( bytes );
 }
 
@@ -74,15 +74,9 @@ void kernel_init_vfs( void ) {
 
 		// set new location of VFS main block
 		kernel -> storage_base_address[ i ].device_block = (uint64_t) superblock;
-	}
 
-	// select VFS storage
-	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) {
-		// storage type of VFS?
-		if( kernel -> storage_base_address[ i ].device_type != KERNEL_STORAGE_TYPE_vfs ) continue;	// nope
-
-		// set as default
-		kernel -> storage_root = i;
+		// kernels current directory already assigned?
+		if( kernel -> task_base_address -> directory ) continue;	// yes
 
 		// containing special purpose file
 		uint8_t string_file_path[] = "/system/etc/version";
@@ -90,10 +84,10 @@ void kernel_init_vfs( void ) {
 		// retrieve properties of file
 		struct LIB_VFS_STRUCTURE *vfs = kernel_vfs_path( string_file_path, sizeof( string_file_path ) - 1 ); if( ! vfs ) continue;	// file not found
 
+		// set this one as default storage
+		kernel -> storage_root = i;
+
 		// kernels current directory
 		kernel -> task_base_address -> directory = kernel -> storage_base_address[ i ].device_block;
-
-		// done
-		break;
 	}
 }
