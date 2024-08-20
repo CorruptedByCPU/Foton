@@ -7,7 +7,7 @@
 
 	#define	KERNEL_EXEC_base_address		0x0000000000100000
 
-	struct KERNEL_STRUCTURE_EXEC_INIT {
+	struct KERNEL_STRUCTURE_EXEC_TMP {
 		uint8_t					level;
 		struct KERNEL_STRUCTURE_VFS		*socket;
 		struct KERNEL_STRUCTURE_VFS_PROPERTIES	properties;
