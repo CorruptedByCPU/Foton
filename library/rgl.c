@@ -156,10 +156,10 @@ struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_rotate_x( double a ) {
 	struct LIB_RGL_STRUCTURE_MATRIX matrix = lib_rgl_return_matrix_identity();
 
 	matrix.cell[ 0 ][ 0 ] = 1.0f;
-	matrix.cell[ 1 ][ 1 ] = cos( a );
-	matrix.cell[ 1 ][ 2 ] = -sin( a );
-	matrix.cell[ 2 ][ 1 ] = sin( a );
-	matrix.cell[ 2 ][ 2 ] = cos( a );
+	matrix.cell[ 1 ][ 1 ] = lib_math_cos( a );
+	matrix.cell[ 1 ][ 2 ] = -lib_math_sin( a );
+	matrix.cell[ 2 ][ 1 ] = lib_math_sin( a );
+	matrix.cell[ 2 ][ 2 ] = lib_math_cos( a );
 	matrix.cell[ 3 ][ 3 ] = 1.0f;
 
 	return matrix;
@@ -168,11 +168,11 @@ struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_rotate_x( double a ) {
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_rotate_y( double a ) {
 	struct LIB_RGL_STRUCTURE_MATRIX matrix = lib_rgl_return_matrix_identity();
 
-	matrix.cell[ 0 ][ 0 ] = cos( a );
-	matrix.cell[ 0 ][ 2 ] = sin( a );
-	matrix.cell[ 2 ][ 0 ] = -sin( a );
+	matrix.cell[ 0 ][ 0 ] = lib_math_cos( a );
+	matrix.cell[ 0 ][ 2 ] = lib_math_sin( a );
+	matrix.cell[ 2 ][ 0 ] = -lib_math_sin( a );
 	matrix.cell[ 1 ][ 1 ] = 1.0f;
-	matrix.cell[ 2 ][ 2 ] = cos( a );
+	matrix.cell[ 2 ][ 2 ] = lib_math_cos( a );
 	matrix.cell[ 3 ][ 3 ] = 1.0f;
 
 	return matrix;
@@ -181,10 +181,10 @@ struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_rotate_y( double a ) {
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_rotate_z( double a ) {
 	struct LIB_RGL_STRUCTURE_MATRIX matrix = lib_rgl_return_matrix_identity();
 
-	matrix.cell[ 0 ][ 0 ] = cos( a );
-	matrix.cell[ 0 ][ 1 ] = -sin( a );
-	matrix.cell[ 1 ][ 0 ] = sin( a );
-	matrix.cell[ 1 ][ 1 ] = cos( a );
+	matrix.cell[ 0 ][ 0 ] = lib_math_cos( a );
+	matrix.cell[ 0 ][ 1 ] = -lib_math_sin( a );
+	matrix.cell[ 1 ][ 0 ] = lib_math_sin( a );
+	matrix.cell[ 1 ][ 1 ] = lib_math_cos( a );
 	matrix.cell[ 2 ][ 2 ] = 1.0f;
 	matrix.cell[ 3 ][ 3 ] = 1.0f;
 
@@ -313,7 +313,7 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RGL_STRUCTURE *rgl, double fov, double aspect, double n, double f ) {
 	struct LIB_RGL_STRUCTURE_MATRIX matrix = lib_rgl_return_matrix_empty();
 
-	// double t = 1.0f / tan( fov * 0.5f );
+	// double t = 1.0f / lib_math_tan( fov * 0.5f );
 	double t = 2.4327649740660564f;
 
 	matrix.cell[ 0 ][ 0 ] = t / aspect;

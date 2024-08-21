@@ -8,13 +8,18 @@
         typedef	struct VECTOR2D {
                 int64_t	x;
                 int64_t	y;
-        } vector2d;
+	} vector2d;
 
         typedef	struct VECTOR2D1F {
                 int64_t	x;
                 int64_t	y;
 		double	z;
         } vector2d1f;
+
+	typedef	struct VECTOR2F {
+		double	x;
+		double	y;
+	} vector2f;
 
 	typedef	struct VECTOR3F {
 		double	x;

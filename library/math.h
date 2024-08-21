@@ -10,8 +10,9 @@
 	#define	LIB_MATH_EPSILON (0.000000000000000000000000000000000000000000000000001)
 
 	int8_t lib_math_compare_double( double f1, double f2 );
-	double cos( double x );
-	double sin( double x );
-	double tan( double x );
-	double ctan( double x );
+	double lib_math_cos( double x );
+	double lib_math_sin( double x );
+	double lib_math_tan( double x );
+	double lib_math_ctan( double x );
+	double lib_math_sign( double x );
 #endif

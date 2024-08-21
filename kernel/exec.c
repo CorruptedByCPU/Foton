@@ -36,19 +36,20 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	if( length > LIB_VFS_NAME_limit ) return STD_ERROR_limit;	// no
 
 	// default location of executables
-	uint64_t path_length = 0;
 	uint8_t path_default[ 12 ] = "/system/bin/";
 
-	// length of exec name
-	uint64_t exec_length = lib_string_word( name, length );
+	// assign area for combined path
+	exec.path = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + length ) >> STD_SHIFT_PAGE );
 
 	// set file path name
-	uint8_t path[ 12 + LIB_VFS_NAME_limit ];
-	for( uint64_t i = 0; i < 12; i++ ) path[ path_length++ ] = path_default[ i ];
-	for( uint64_t i = 0; i < exec_length; i++ ) path[ path_length++ ] = name[ i ];
+	for( uint64_t i = 0; i < 12; i++ ) exec.path[ exec.path_length++ ] = path_default[ i ];
+	for( uint64_t i = 0; i < length; i++ ) exec.path[ exec.path_length++ ] = name[ i ];
 
 	// retrieve information about executable file
-	exec.socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length );
+	exec.socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( exec.path, exec.path_length );
+
+	// release area of path
+	kernel_memory_release( (uintptr_t) exec.path, MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + length ) >> STD_SHIFT_PAGE );
 
 	// if executable does not exist
 	if( ! exec.socket ) return STD_ERROR_file_not_found;

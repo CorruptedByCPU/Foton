@@ -6,7 +6,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory_map, uint64_t N, uint64_t p, ui
 	// define memory semaphore location
 	uint8_t *semaphore = (uint8_t *) memory_map + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) - STD_SIZE_BYTE_byte;
 
-	// block access to binary memory map (only one at a time)
+	// block access to binary memory map (only one process at a time)
 	MACRO_LOCK( *semaphore );
 
 	// search binary memory map for N continuous (p)ages
@@ -57,7 +57,7 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	// search for requested length of area
 	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, KERNEL_MEMORY_HIGH, kernel -> page_limit )) ) return EMPTY;
 
-	// less available pages
+	// less memory available
 	kernel -> page_available -= N;
 
 	// we guarantee clean memory area at first use

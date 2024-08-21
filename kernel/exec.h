@@ -17,6 +17,8 @@
 		uint64_t				page;
 		uint8_t					*stack;
 		uint64_t				stack_byte;
+		uint8_t					*path;
+		uint64_t				path_length;
 	};
 
 	// returns new process ID or error
