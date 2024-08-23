@@ -529,7 +529,7 @@ uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 	uint8_t flag = FALSE;
 
 	// properties of opened file
-	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) socket -> knot;
+	struct LIB_VFS_STRUCTURE *vfs = socket -> knot;
 
 	// it is a directory?
 	if( vfs -> type & STD_FILE_TYPE_directory ) {
@@ -590,7 +590,7 @@ uint64_t kernel_syscall_time( void ) {
 
 int64_t kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
 	// retrieve information about module file
-	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length );
+	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_file_open( path, path_length );
 
 	// if file doesn't exist
 	if( ! socket ) return STD_ERROR_file_not_found;

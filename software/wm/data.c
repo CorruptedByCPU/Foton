@@ -24,6 +24,7 @@ volatile uint8_t wm_taskbar_semaphore = FALSE;
 struct WM_STRUCTURE_OBJECT wm_object_cache = { EMPTY };
 
 struct WM_STRUCTURE_OBJECT *wm_object_workbench = EMPTY;
+struct WM_STRUCTURE_OBJECT *wm_object_logo = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_taskbar = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_cursor = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_menu = EMPTY;

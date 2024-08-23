@@ -43,7 +43,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 
 	// set file path name
 	for( uint64_t i = 0; i < 12; i++ ) exec.path[ exec.path_length++ ] = path_default[ i ];
-	for( uint64_t i = 0; i < length; i++ ) exec.path[ exec.path_length++ ] = name[ i ];
+	for( uint64_t i = 0; i < lib_string_word_end( name, length, STD_ASCII_SPACE ); i++ ) exec.path[ exec.path_length++ ] = name[ i ];
 
 	// retrieve information about executable file
 	exec.socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( exec.path, exec.path_length );

@@ -88,6 +88,6 @@ void kernel_init_vfs( void ) {
 		kernel -> storage_root = i;
 
 		// kernels current directory
-		kernel -> task_base_address -> directory = kernel -> storage_base_address[ i ].device_block;
+		kernel -> task_base_address -> directory = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ i ].device_block;
 	}
 }

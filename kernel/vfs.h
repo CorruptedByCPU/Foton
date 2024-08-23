@@ -8,17 +8,17 @@
 	#define	KERNEL_VFS_limit		(STD_PAGE_byte / sizeof( struct KERNEL_STRUCTURE_VFS ))
 
 	struct	KERNEL_STRUCTURE_VFS {
-		uint64_t	storage;
-		uint64_t	knot;
-		int64_t		pid;
-		uint64_t	lock;		// amount of opened instances
-		uint8_t		semaphore;	// set if someone is writing or reallocating file area
+		uint64_t			storage;
+		struct LIB_VFS_STRUCTURE	*knot;
+		int64_t				pid;
+		uint64_t			lock;		// amount of opened instances
+		uint8_t				semaphore;	// set if someone is writing or reallocating file area
 	};
 
 	struct	KERNEL_STRUCTURE_VFS_PROPERTIES {
-		uint64_t	byte;
-		uint8_t		name_length;
-		uint8_t		name[ LIB_VFS_NAME_limit + 1 ];
+		uint64_t			byte;
+		uint8_t				name_length;
+		uint8_t				name[ LIB_VFS_NAME_limit + 1 ];
 	};
 
 	void kernel_vfs_file_close( struct KERNEL_STRUCTURE_VFS *socket );
@@ -37,5 +37,5 @@
 
 	struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length );
 
-	uint64_t kernel_vfs_socket_add( uint64_t knot );
+	struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( struct LIB_VFS_STRUCTURE *knot );
 #endif

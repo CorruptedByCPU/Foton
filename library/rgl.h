@@ -5,6 +5,10 @@
 #ifndef	LIB_RGL
 	#define	LIB_RGL
 
+	#ifndef	LIB_STRING
+		#include	"./math.h"
+	#endif
+
         typedef	struct VECTOR2D {
                 int64_t	x;
                 int64_t	y;

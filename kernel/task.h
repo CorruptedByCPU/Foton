@@ -28,24 +28,24 @@
 	#define	KERNEL_TASK_STACK_limit		STD_PAGE_byte
 
 	struct	KERNEL_STRUCTURE_TASK {
-		uintptr_t		cr3;
-		uintptr_t		rsp;
-		int64_t			pid;
-		int64_t			pid_parent;
-		uint64_t		sleep;
-		uint64_t		storage;
-		uint64_t		directory;
-		uint64_t		page;	// amount of pages assigned to process
-		uint8_t			page_type;
-		uint64_t		stack;	// size of stack in Pages
-		uint64_t		time;
-		uint64_t		time_previous;
-		struct KERNEL_STRUCTURE_STREAM *stream_in;
-		struct KERNEL_STRUCTURE_STREAM *stream_out;
-		uint32_t		*memory_map;
-		volatile uint16_t	flags;
-		uint8_t			name_length;
-		uint8_t			name[ KERNEL_TASK_NAME_limit + 1 ];
+		uintptr_t			cr3;
+		uintptr_t			rsp;
+		int64_t				pid;
+		int64_t				pid_parent;
+		uint64_t			sleep;
+		uint64_t			storage;
+		struct LIB_VFS_STRUCTURE	*directory;
+		uint64_t			page;	// amount of pages assigned to process
+		uint8_t				page_type;
+		uint64_t			stack;	// size of stack in Pages
+		uint64_t			time;
+		uint64_t			time_previous;
+		struct KERNEL_STRUCTURE_STREAM	*stream_in;
+		struct KERNEL_STRUCTURE_STREAM	*stream_out;
+		uint32_t			*memory_map;
+		volatile uint16_t		flags;
+		uint8_t				name_length;
+		uint8_t				name[ KERNEL_TASK_NAME_limit + 1 ];
 	};
 
 	// returns pointer to structure of currently executed task

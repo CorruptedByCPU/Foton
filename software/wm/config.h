@@ -10,12 +10,9 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
-	#include	"../../library/color.h"
-	#include	"../../library/font.h"
-	#include	"../../library/image.h"
 	#include	"../../library/integer.h"
 	#include	"../../library/interface.h"
-	#include	"../../library/string.h"
+	#include	"../../library/rgl.h"
 
 	//----------------------------------------------------------------------
 	// constants, structures, definitions
@@ -37,6 +34,9 @@
 	#define	WM_TASKBAR_BG_visible		0xFF101010
 	#define	WM_TASKBAR_BG_invisible		0xFF000000
 	#define	WM_TASKBAR_BG_active		0xFF181818
+
+	#define	WM_LOGO_width			320
+	#define	WM_LOGO_height			WM_LOGO_width
 
 	struct	WM_STRUCTURE_OBJECT {
 		int16_t		x;
@@ -68,3 +68,4 @@
 	void wm_object_remove( uint16_t i );
 	void wm_object_active_new( void );
 	int64_t wm_menu( void );
+	int64_t wm_logo( void );

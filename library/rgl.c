@@ -122,7 +122,7 @@ uint32_t lib_rgl_color( uint32_t argb, double light ) {
 	        blue = (255.0f - blue) * light + blue;
 	}
 
-	return STD_COLOR_mask | (((uint32_t) red) << 16) | (((uint32_t) green) << 8) | ((uint32_t) blue);
+	return 0x10000000 | (((uint32_t) red) << 16) | (((uint32_t) green) << 8) | ((uint32_t) blue);
 }
 
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_multiply_matrix( struct LIB_RGL_STRUCTURE_MATRIX this, struct LIB_RGL_STRUCTURE_MATRIX via ) {

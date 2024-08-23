@@ -16,13 +16,13 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 	if( ! (vfs = kernel_vfs_path( path, length )) ) return EMPTY;	// file not found
 
 	// open socket
-	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) vfs ) ];
+	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add( vfs );
 
 	// file located on definied storage
 	socket -> storage = kernel -> storage_root;
 
 	// file identificator
-	socket -> knot = (uint64_t) vfs;
+	socket -> knot = vfs;
 
 	// socket opened by process with ID
 	socket -> pid = kernel_task_pid();
@@ -33,7 +33,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 
 void kernel_vfs_file_properties( struct KERNEL_STRUCTURE_VFS *socket, struct KERNEL_STRUCTURE_VFS_PROPERTIES *properties ) {
 	// properties of file
-	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
+	struct LIB_VFS_STRUCTURE *file = socket -> knot;
 
 	// retrun file size in Bytes
 	properties -> byte = file -> byte;
@@ -45,7 +45,7 @@ void kernel_vfs_file_properties( struct KERNEL_STRUCTURE_VFS *socket, struct KER
 
 void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target, uint64_t seek, uint64_t byte ) {
 	// properties of file
-	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
+	struct LIB_VFS_STRUCTURE *file = socket -> knot;
 
 	// invalid read request?
 	if( seek + byte > file -> byte ) {
@@ -117,13 +117,13 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 	}
 
 	// open socket
-	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ kernel_vfs_socket_add( (uint64_t) &file[ entry ] ) ];
+	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add( (struct LIB_VFS_STRUCTURE *) &file[ entry ] );
 
 	// file located on definied storage
 	socket -> storage = kernel -> storage_root;
 
 	// file identificator
-	socket -> knot = (uint64_t) &file[ entry ];
+	socket -> knot = (struct LIB_VFS_STRUCTURE *) &file[ entry ];
 
 	// socket opened by process with ID
 	socket -> pid = kernel_task_pid();
@@ -137,7 +137,7 @@ void kernel_vfs_file_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source
 	MACRO_LOCK( socket -> semaphore );
 
 	// properties of file
-	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
+	struct LIB_VFS_STRUCTURE *file = socket -> knot;
 
 	// invalid write request?
 	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> byte ) ) {
@@ -202,11 +202,13 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 
 	// start from current file?
 	if( *path != STD_ASCII_SLASH ) {
+		MACRO_DEBUF();
+
 		// properties of task
 		struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 	
 		// choose task current file
-		file = (struct LIB_VFS_STRUCTURE *) task -> directory;
+		file = task -> directory;
 	} else
 		// start from default file
 		file = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].device_block;
@@ -260,22 +262,22 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 	return EMPTY;
 }
 
-uint64_t kernel_vfs_socket_add( uint64_t knot ) {
+struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( struct LIB_VFS_STRUCTURE *knot ) {
 	// lock exclusive access
 	MACRO_LOCK( kernel -> vfs_semaphore );
 
 	// available entry, doesn't exist by default
-	uint64_t available = EMPTY;
+	struct KERNEL_STRUCTURE_VFS *available = EMPTY;
 
 	// search thru all sockets
 	for( uint64_t i = TRUE; i < KERNEL_VFS_limit; i++ ) {
 		// if available for use, remember it
-		if( ! kernel -> vfs_base_address[ i ].lock ) available = i;
+		if( ! kernel -> vfs_base_address[ i ].lock ) available = (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ i ];
 
 		// file already opened?
 		if( kernel -> vfs_base_address[ i ].knot == knot ) {
 			// set entry for use
-			available = i;
+			available = (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ i ];
 
 			// done
 			break;
@@ -283,7 +285,7 @@ uint64_t kernel_vfs_socket_add( uint64_t knot ) {
 	}
 
 	// increase lock level of socket
-	if( available ) kernel -> vfs_base_address[ available ].lock++;
+	if( available ) available -> lock++;
 
 	// unlock access
 	MACRO_UNLOCK( kernel -> vfs_semaphore );

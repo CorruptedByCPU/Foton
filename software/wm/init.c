@@ -103,6 +103,29 @@ uint8_t wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
+	// create logo object
+	wm_object_logo = wm_object_create( (wm_object_workbench -> width >> STD_SHIFT_2) - (WM_LOGO_width >> STD_SHIFT_2), (wm_object_workbench -> height >> STD_SHIFT_2) - (WM_LOGO_height >> STD_SHIFT_2), WM_LOGO_width, WM_LOGO_height );
+
+	// mark it as our
+	wm_object_logo -> pid = wm_pid;
+
+	// properties of logo area content
+	uint32_t *logo_pixel = (uint32_t *) ((uintptr_t) wm_object_logo -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+
+	// fill workbench as transparent
+	for( uint16_t y = 0; y < wm_object_logo -> height; y++ )
+		for( uint16_t x = 0; x < wm_object_logo -> width; x++ )
+			logo_pixel[ (y * wm_object_logo -> width) + x ] = EMPTY;
+
+	// object content ready for display
+	wm_object_logo -> descriptor -> flags |= STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+
+	// execute logo function as thread
+	uint8_t wm_string_logo[] = "wm logo";
+	std_thread( (uintptr_t) &wm_logo, (uint8_t *) &wm_string_logo, sizeof( wm_string_logo ) );
+
+	//----------------------------------------------------------------------
+
 	// create taskbar object
 	wm_object_taskbar = wm_object_create( 0, wm_object_workbench -> height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_workbench -> width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
 
@@ -199,8 +222,8 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// debug
-	std_exec( (uint8_t *) "3d", 2, EMPTY );
-	std_exec( (uint8_t *) "console", 7, EMPTY );
+	// std_exec( (uint8_t *) "3d", 2, EMPTY );
+	// std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console tm", 10, EMPTY );
 
 	// Window Manager initialized.
