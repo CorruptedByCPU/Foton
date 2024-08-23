@@ -2,22 +2,6 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-	//----------------------------------------------------------------------
-	// required libraries
-	//----------------------------------------------------------------------
-	// #include	"../library/interface.h"
-	// #include	"../library/rgl.h"
-	//----------------------------------------------------------------------
-	// variables
-	//----------------------------------------------------------------------
-	// #include	"3d/data.c"
-	//----------------------------------------------------------------------
-	// routines, procedures
-	//----------------------------------------------------------------------
-	// #include	"3d/config.h"
-	// #include	"3d/object.c"
-	// #include	"3d/init.c"
-
 uint64_t fps = 0;
 uint64_t fps_average = 0;
 uint64_t fps_count = 1;
@@ -290,6 +274,9 @@ void wm_logo_init( void ) {
 	// default background is transparent
 	rgl -> color_background = EMPTY;
 
+	// any object opacity
+	rgl -> color_alpha = 0x04;
+
 	// parse object properties
 	wm_logo_object();
 }
@@ -393,5 +380,9 @@ int64_t wm_logo( void ) {
 
 		// next frame ready
 		fps++;
+
+		// slow down up to 60 FPS
+		uint64_t wait = std_microtime() + (1000 / 60);
+		while( wait > std_microtime() ) sleep( TRUE );
 	}
 }

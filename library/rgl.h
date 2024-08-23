@@ -41,6 +41,7 @@
 		uint32_t	*workbench_base_address;
 		double		*depth_base_address;
 		uint32_t	color_background;
+		uint8_t		color_alpha;
 		vector3f	camera;
 		vector3f	target;
 	};
@@ -109,7 +110,7 @@
 	void lib_rgl_multiply_vector( vector3f *v, struct LIB_RGL_STRUCTURE_MATRIX *matrix );
 	inline uint8_t lib_rgl_edge( vector2d *a, vector2d *b, vector2d *c );
 	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RGL_STRUCTURE *rgl, double fov, double aspect, double n, double f );
-	uint32_t lib_rgl_color( uint32_t argb, double light );
+	uint32_t lib_rgl_color( uint8_t alpha, uint32_t argb, double light );
 	void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material );
 	void lib_rgl_fill( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material );
 	void lib_rgl_2d_square( struct LIB_RGL_STRUCTURE *rgl, int64_t x, int64_t y, uint64_t width, uint64_t height, uint32_t color );

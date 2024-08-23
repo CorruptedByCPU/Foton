@@ -46,8 +46,9 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 	// prepare workbench area
 	rgl -> depth_base_address = (double *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> width_pixel * rgl -> height_pixel * sizeof( double ) ) >> STD_SHIFT_PAGE );
 
-	// set default color of RGL area
+	// set default color of RGL area not transparent
 	rgl -> color_background = STD_COLOR_BLACK;
+	rgl -> color_alpha = STD_MAX_unsigned;
 
 	// camera position
 	rgl -> camera.x = 0.0f;
@@ -105,7 +106,7 @@ void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t
 	}
 }
 
-uint32_t lib_rgl_color( uint32_t argb, double light ) {
+uint32_t lib_rgl_color( uint8_t alpha, uint32_t argb, double light ) {
 	double red = (double) ((argb & 0x00FF0000) >> 16);
 	double green = (double) ((argb & 0x0000FF00) >> 8);
 	double blue = (double) (argb & 0x000000FF);
@@ -122,7 +123,7 @@ uint32_t lib_rgl_color( uint32_t argb, double light ) {
 	        blue = (255.0f - blue) * light + blue;
 	}
 
-	return 0x10000000 | (((uint32_t) red) << 16) | (((uint32_t) green) << 8) | ((uint32_t) blue);
+	return (alpha << 24) | (((((uint32_t) red) << 16) | (((uint32_t) green) << 8) | ((uint32_t) blue)) & ~STD_COLOR_mask);
 }
 
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_multiply_matrix( struct LIB_RGL_STRUCTURE_MATRIX this, struct LIB_RGL_STRUCTURE_MATRIX via ) {
@@ -380,7 +381,7 @@ void lib_rgl_scanline( struct LIB_RGL_STRUCTURE *rgl, double y, vector3f pa, vec
 }
 
 void lib_rgl_fill( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material ) {
-	uint32_t color = lib_rgl_color( material[ t -> material ].Kd, t -> light );
+	uint32_t color = lib_rgl_color( rgl -> color_alpha, material[ t -> material ].Kd, t -> light );
 
 	vector3f p1 = { (vp[ t -> v[ 0 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> STD_SHIFT_2), -(vp[ t -> v[ 0 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> STD_SHIFT_2), vp[ t -> v[ 0 ] ].z };
 	vector3f p2 = { (vp[ t -> v[ 1 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> STD_SHIFT_2), -(vp[ t -> v[ 1 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> STD_SHIFT_2), vp[ t -> v[ 1 ] ].z };
