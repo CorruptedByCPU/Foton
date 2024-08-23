@@ -12,7 +12,6 @@
 	//----------------------------------------------------------------------
 	#include	"../../library/integer.h"
 	#include	"../../library/interface.h"
-	#include	"../../library/rgl.h"
 
 	//----------------------------------------------------------------------
 	// constants, structures, definitions
