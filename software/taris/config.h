@@ -25,4 +25,6 @@
 	#define	TARIS_WINDOW_WIDTH_pixel	(1 + TARIS_PLAYGROUND_WIDTH_pixel + 1)
 	#define	TARIS_WINDOW_HEIGHT_pixel	(LIB_INTERFACE_HEADER_HEIGHT_pixel + TARIS_MENU_HEIGHT_pixel + 1 + TARIS_PLAYGROUND_HEIGHT_pixel)
 
+	#define	TARIS_GHOST_color		STD_COLOR_mask | 0x00101010
+
 	void close( void );

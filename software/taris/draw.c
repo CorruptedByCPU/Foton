@@ -12,6 +12,19 @@ void taris_draw( void ) {
 			if( taris_playground[ y ] & 1 << x )
 				lib_rgl_2d_square( taris_rgl, (x - 3) * (TARIS_BRICK_WIDTH_pixel + 1), (y - 1) * (TARIS_BRICK_HEIGHT_pixel + 1), TARIS_BRICK_WIDTH_pixel, TARIS_BRICK_HEIGHT_pixel, taris_color[ taris_playground_color[ (y * TARIS_PLAYGROUND_WIDTH_bit) + x ] ] );
 
+	// calculate ghost position
+	int taris_ghost_y = taris_brick_selected_y;
+	while( ! taris_collision( taris_brick_selected_x, taris_ghost_y + 1 ) ) taris_ghost_y++;
+
+	// show ghost
+	for( int64_t y = 0; y < TARIS_BRICK_WIDTH_bit; y++ ) {
+		// n'line of brick
+		uint16_t brick_line = (taris_brick_selected >> (y * TARIS_BRICK_WIDTH_bit)) & 0x0F;
+
+		for( int64_t x = 0; x < TARIS_BRICK_WIDTH_bit; x++ )
+			if( brick_line & 1 << x ) lib_rgl_2d_square( taris_rgl, (x + (taris_brick_selected_x - 3)) * (TARIS_BRICK_WIDTH_pixel + 1), ((y - 1) + taris_ghost_y) * (TARIS_BRICK_HEIGHT_pixel + 1), TARIS_BRICK_WIDTH_pixel, TARIS_BRICK_HEIGHT_pixel, TARIS_GHOST_color );
+	}
+
 	// show player
 	for( int64_t y = 0; y < TARIS_BRICK_WIDTH_bit; y++ ) {
 		// n'line of brick

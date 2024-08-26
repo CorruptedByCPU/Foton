@@ -3,7 +3,7 @@
 		"x": -1,
 		"y": -1,
 		"width": 171,
-		"height": 394,
+		"height": 396,
 		"name": "Taris"
 	},
 	"control": {
@@ -63,5 +63,23 @@
 		"height": 16,
 		"align": "center",
 		"name": "0"
+	},
+	"label": {
+		"id": 99,
+		"x": 1,
+		"y": 184,
+		"width": 169,
+		"height": 16,
+		"align": "center",
+		"name": "Game Over"
+	},
+	"label": {
+		"id": 98,
+		"x": 1,
+		"y": 201,
+		"width": 169,
+		"height": 16,
+		"align": "center",
+		"name": "Press SPACE or ESC."
 	}
 }
