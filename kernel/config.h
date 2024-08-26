@@ -163,6 +163,6 @@ struct KERNEL {
 
 	// variables of VFS management functions
 	struct KERNEL_STRUCTURE_VFS				*vfs_base_address;
-	uint64_t						vfs_root;
 	uint8_t							vfs_semaphore;
 };
+// } __attribute__( (packed) );

@@ -2,32 +2,6 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-static void kernel_exec_cancel( struct KERNEL_STRUCTURE_EXEC_TMP *exec ) {
-	// undo performed operations depending on cavity
-	switch( exec -> level ) {
-		case 5: {
-			// release memory map from task entry
-			kernel_memory_release( (uintptr_t) exec -> task -> memory_map, MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE );
-		}
-		case 4: {
-			// release paging structure
-			kernel_page_deconstruct( (uint64_t *) exec -> task -> cr3, exec -> task -> page_type );
-		}
-		case 3: {
-			// release task entry
-			exec -> task -> flags = EMPTY;
-		}
-		case 2: {
-			// release workbench area
-			kernel_memory_release( exec -> workbench_address, MACRO_PAGE_ALIGN_UP( exec -> properties.byte ) >> STD_SHIFT_PAGE );
-		}
-		case 1: {
-			// close file
-			kernel_vfs_file_close( exec -> socket );
-		}
-	}
-}
-
 int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	// prepare temporary execution area
 	struct KERNEL_STRUCTURE_EXEC_TMP exec = { EMPTY };
@@ -278,4 +252,30 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 
 	// return PID of created job
 	return exec.task -> pid;
+}
+
+static void kernel_exec_cancel( struct KERNEL_STRUCTURE_EXEC_TMP *exec ) {
+	// undo performed operations depending on cavity
+	switch( exec -> level ) {
+		case 5: {
+			// release memory map from task entry
+			kernel_memory_release( (uintptr_t) exec -> task -> memory_map, MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE );
+		}
+		case 4: {
+			// release paging structure
+			kernel_page_deconstruct( (uint64_t *) exec -> task -> cr3, exec -> task -> page_type );
+		}
+		case 3: {
+			// release task entry
+			exec -> task -> flags = EMPTY;
+		}
+		case 2: {
+			// release workbench area
+			kernel_memory_release( exec -> workbench_address, MACRO_PAGE_ALIGN_UP( exec -> properties.byte ) >> STD_SHIFT_PAGE );
+		}
+		case 1: {
+			// close file
+			kernel_vfs_file_close( exec -> socket );
+		}
+	}
 }

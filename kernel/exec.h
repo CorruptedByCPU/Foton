@@ -23,4 +23,6 @@
 
 	// returns new process ID or error
 	int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow );
+
+	static void kernel_exec_cancel( struct KERNEL_STRUCTURE_EXEC_TMP *exec );
 #endif

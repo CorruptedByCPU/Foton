@@ -125,7 +125,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				uint16_t key = getkey();
 
 				// exit game?
-				if( key == 'q' ) return 0;	// yes
+				if( key == STD_ASCII_ESC ) return 0;	// yes
 
 				// move left?
 				if( key == STD_KEY_ARROW_LEFT && ! taris_collision( taris_brick_selected_x - 1, taris_brick_selected_y ) ) taris_brick_selected_x--;

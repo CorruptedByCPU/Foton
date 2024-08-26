@@ -270,7 +270,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( struct LIB_VFS_STRUCTURE *kn
 	struct KERNEL_STRUCTURE_VFS *available = EMPTY;
 
 	// search thru all sockets
-	for( uint64_t i = TRUE; i < KERNEL_VFS_limit; i++ ) {
+	for( uint64_t i = 0; i < KERNEL_VFS_limit; i++ ) {
 		// if available for use, remember it
 		if( ! kernel -> vfs_base_address[ i ].lock ) available = (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ i ];
 
