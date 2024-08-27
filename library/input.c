@@ -83,7 +83,7 @@ uint64_t lib_input( uint8_t *cache, uint64_t limit, uint64_t length, uint8_t *ct
 				continue;
 			}
 		
-			// remove previous character?
+			// remove next character?
 			if( keyboard -> key == STD_KEY_DELETE ) {
 				// if input is empty or at end
 				if( ! length || cursor_index == length ) continue;	// ignore
@@ -121,6 +121,7 @@ uint64_t lib_input( uint8_t *cache, uint64_t limit, uint64_t length, uint8_t *ct
 						// move cursor left
 						print( "\e[D" );
 
+						// cursor position inside cache
 						cursor_index--;
 					}
 				} else {
@@ -146,6 +147,7 @@ uint64_t lib_input( uint8_t *cache, uint64_t limit, uint64_t length, uint8_t *ct
 						// move cursor right
 						print( "\e[C" );
 
+						// cursor position inside cache
 						cursor_index++;
 					}
 				} else {
@@ -166,7 +168,8 @@ uint64_t lib_input( uint8_t *cache, uint64_t limit, uint64_t length, uint8_t *ct
 				cache[ length ] = STD_ASCII_TERMINATOR;
 				printf( "\e[38;5;8m%s", cache );
 
-				return EMPTY;	// yes
+				// yes
+				return EMPTY;
 			}
 
 			// Home key?
