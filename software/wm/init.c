@@ -200,7 +200,7 @@ uint8_t wm_init( void ) {
 
 	// debug
 	// std_exec( (uint8_t *) "3d", 2, EMPTY );
-	// std_exec( (uint8_t *) "console", 7, EMPTY );
+	std_exec( (uint8_t *) "console", 7, EMPTY );
 	// std_exec( (uint8_t *) "console tm", 10, EMPTY );
 
 	// Window Manager initialized.

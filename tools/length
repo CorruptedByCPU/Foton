@@ -1,0 +1,7 @@
+#!/bin/bash
+#=================================================================================
+# Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+#=================================================================================
+
+# show length in Bytes of each symbol/function etc.
+nm -AP ${1} | cut -d " " -f 2,5 | awk -F " " '{print $1, strtonum( "0x"$2 ) | "sort -k 2 -g" }' | awk -F " " '{ sum += strtonum( "0x"$2 ); printf( "%32s %6d\n" ), $1, strtonum( "0x"$2 ) } END { printf( "---------------------------------------\n%32s %6d\n", "Bytes", sum ); }' "$@"

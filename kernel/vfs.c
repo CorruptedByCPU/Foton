@@ -202,8 +202,6 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 
 	// start from current file?
 	if( *path != STD_ASCII_SLASH ) {
-		MACRO_DEBUF();
-
 		// properties of task
 		struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 	
