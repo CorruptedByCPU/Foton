@@ -138,7 +138,13 @@ uint64_t lib_input( uint8_t *cache, uint64_t limit, uint64_t length, uint8_t *ct
 				// move by whole word?
 				if( *ctrl_semaphore ) {
 					// are we at white character?
-					while( cursor_index < length && cache[ cursor_index ] == STD_ASCII_SPACE ) { print( "\e[C" ); cursor_index++; }
+					while( cursor_index < length && cache[ cursor_index ] == STD_ASCII_SPACE ) {
+						// move cursor right
+						print( "\e[C" );
+
+						// cursor position inside cache
+						cursor_index++;
+					}
 
 					// find end of next word
 					while( cursor_index < length ) {

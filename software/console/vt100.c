@@ -44,8 +44,8 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 0; }	// by default 1 step
 
 					// move cursor N steps up, if possible
-					if( console_terminal -> cursor_y >= arg_value[ 0 ] ) console_terminal -> cursor_y -= arg_value[ 0 ];
-					else console_terminal -> cursor_y = 0;
+					if( console_terminal -> cursor_y < arg_value[ 0 ] ) console_terminal -> cursor_y = 0;
+					else console_terminal -> cursor_y -= arg_value[ 0 ];
 					
 					// update cursor position inside terminal
 					lib_terminal_cursor_set( console_terminal );
@@ -59,12 +59,9 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 					// if steps are not specified
 					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 0; }	// by default 1 step
 
-					// move cursor N steps down
-					console_terminal -> cursor_y += arg_value[ 0 ];
-
 					// cursor behind text area?
-					if( console_terminal -> height_char < console_terminal -> cursor_y )
-						// leave it at last position
+					if( console_terminal -> cursor_y + arg_value[ 0 ] < console_terminal -> height_char ) console_terminal -> cursor_y += arg_value[ 0 ];
+					else	// leave it at last position
 						console_terminal -> cursor_y = console_terminal -> height_char - 1;
 					
 					// update cursor position inside terminal
@@ -79,13 +76,23 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 					// if steps are not specified
 					if( ! arg_value[ 0 ] ) { arg_value[ 0 ] = 1; arg_length[ 0 ] = 0; }	// by default 1 step
 
-					// move cursor N steps forward
-					console_terminal -> cursor_x += arg_value[ 0 ];
-
 					// cursor behind text area?
-					if( console_terminal -> width_char < console_terminal -> cursor_x )
-						// leave it at last position
-						console_terminal -> cursor_x = console_terminal -> width_char - 1;
+					if( console_terminal -> cursor_x + arg_value[ 0 ] < console_terminal -> width_char )
+						// move cursor N steps forward
+						console_terminal -> cursor_x += arg_value[ 0 ];
+					else {
+						// cursor behind text area?
+						if( console_terminal -> cursor_y + 1 < console_terminal -> height_char ) {
+							// move cursor one line below
+							console_terminal -> cursor_y++;
+
+							// and at right position
+							console_terminal -> cursor_x += arg_value[ 0 ];
+							console_terminal -> cursor_x -= console_terminal -> width_char;
+						} else
+							// leave cursor at end of current line
+							console_terminal -> cursor_x = console_terminal -> width_char - 1;
+					}
 					
 					// update cursor position inside terminal
 					lib_terminal_cursor_set( console_terminal );
@@ -101,7 +108,18 @@ uint8_t console_vt100( uint8_t *string, uint64_t length ) {
 
 					// move cursor N steps back, if possible
 					if( console_terminal -> cursor_x >= arg_value[ 0 ] ) console_terminal -> cursor_x -= arg_value[ 0 ];
-					else console_terminal -> cursor_x = 0;
+					else {
+						// can we move one line up?
+						if( console_terminal -> cursor_y ) {
+							// move cursor one line up
+							console_terminal -> cursor_y--;
+
+							// and at the end of that line
+							console_terminal -> cursor_x = console_terminal -> width_char - 1;
+						} else
+							// leave cursor at beginning of current line
+							console_terminal -> cursor_x = 0;
+					}
 
 					// update cursor position inside terminal
 					lib_terminal_cursor_set( console_terminal );
