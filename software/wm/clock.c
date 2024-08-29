@@ -27,7 +27,7 @@ int64_t wm_clock( void ) {
 		else lib_integer_to_string( hours, 10, (uint8_t *) &clock_string );
 
 		// colon animation
-		if( seconds % 2 ) clock_string[ 2 ] = STD_ASCII_SPACE;
+		// if( seconds % 2 ) clock_string[ 2 ] = STD_ASCII_SPACE;
 
 		// minute
 		if( minutes < 10 ) { clock_string[ 3 ] = STD_ASCII_DIGIT_0; lib_integer_to_string( minutes, 10, (uint8_t *) &clock_string[ 4 ] ); }

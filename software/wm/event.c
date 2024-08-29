@@ -394,6 +394,10 @@ void wm_event( void ) {
 			if( wm_object_hover -> width < TRUE ) wm_object_hover -> width = TRUE;
 			if( wm_object_hover -> height < TRUE ) wm_object_hover -> height = TRUE;
 
+			// and larger than current screen properties
+			if( wm_object_hover -> width > wm_object_workbench -> width ) wm_object_hover -> width = wm_object_workbench -> width;
+			if( wm_object_hover -> height > wm_object_workbench -> height ) wm_object_hover -> height = wm_object_workbench -> height;
+
 			// calculate new object area size in Bytes
 			wm_object_hover -> size_byte = ( wm_object_hover -> width * wm_object_hover -> height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR );
 
@@ -404,7 +408,7 @@ void wm_event( void ) {
 			uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 			for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
 				for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
-					hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x20008000;
+					hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x10008000;
 
 			// and point border
 			for( uint16_t y = 0; y < wm_object_hover -> height; y++ )

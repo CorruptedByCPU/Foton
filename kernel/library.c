@@ -314,7 +314,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	if( ! (library.base_address = (kernel_memory_acquire( kernel -> library_map_address, library.page, KERNEL_MEMORY_LOW, kernel -> page_limit ) << STD_SHIFT_PAGE) + KERNEL_LIBRARY_base_address) ) { kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library ); return STD_ERROR_memory_low; }
 
 	// debug
-	kernel_log( (uint8_t *) "Library %s at 0x%X\n", name, library.base_address );
+	// kernel_log( (uint8_t *) "Library %s at 0x%X\n", name, library.base_address );
 
 	// checkpoint reached: assigned area for library
 	library.level++;

@@ -109,7 +109,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	uintptr_t module_content = kernel_memory_alloc( module_page );
 
 	// debug
-	kernel_log( (uint8_t *) "Module %s at 0x%X\n", name, module_content );
+	// kernel_log( (uint8_t *) "Module %s at 0x%X\n", name, module_content );
 
 	// load module segments in place
 	for( uint16_t i = 0; i < elf -> h_entry_count; i++ ) {

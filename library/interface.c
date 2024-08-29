@@ -54,15 +54,18 @@ void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 void lib_interface_border( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// default border color
 	uint32_t color = LIB_INTERFACE_BORDER_COLOR_default;
+	uint32_t color_shadow = LIB_INTERFACE_BORDER_COLOR_default_shadow;
 
 	// change border of window if not active
-	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = LIB_INTERFACE_BORDER_COLOR_inactive;
+	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) { color = LIB_INTERFACE_BORDER_COLOR_inactive; color_shadow = LIB_INTERFACE_BORDER_COLOR_inactive_shadow; }
 
 	// and point border
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = 0; y < interface -> height; y++ )
-		for( uint16_t x = 0; x < interface -> width; x++ )
-			if( ! x || ! y || x == interface -> width - 1 || y == interface -> height - 1 ) pixel[ (y * interface -> width) + x ] = color;
+		for( uint16_t x = 0; x < interface -> width; x++ ) {
+			if( ! x || ! y ) { pixel[ (y * interface -> width) + x ] = color; }
+			if( x == interface -> width - 1 || y == interface -> height - 1 ) pixel[ (y * interface -> width) + x ] = color_shadow;
+		}
 }
 
 void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -780,7 +783,7 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = 0xFF808080;
 
 	// print new header
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> name_length, color, pixel + (4 * interface -> width) + 4, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> name_length, color, pixel + (5 * interface -> width) + 5, interface -> width, LIB_FONT_ALIGN_left );
 }
 
 uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
