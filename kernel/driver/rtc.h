@@ -37,4 +37,6 @@
 
 	// external routine (assembly language)
 	extern void driver_rtc_entry( void );
+
+	uint8_t driver_rtc_register( uint8_t mode );
 #endif

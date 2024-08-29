@@ -83,6 +83,7 @@ struct KERNEL {
 	uint32_t						*memory_base_address;
 	// functions of Memory management
 	uintptr_t						(*memory_alloc)( uint64_t N );
+	uintptr_t						(*memory_alloc_low)( uint64_t N );
 	uintptr_t						(*memory_alloc_page)( void );
 	void							(*memory_clean)( uintptr_t *address, uint64_t n );
 	void							(*memory_release)( uintptr_t address, uint64_t N );

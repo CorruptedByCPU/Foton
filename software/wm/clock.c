@@ -40,7 +40,7 @@ int64_t wm_clock( void ) {
 				clock_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;
 
 		// show clock on taskbar
-		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &clock_string, sizeof( clock_string ), 0xFFFFFFFF, clock_pixel + (((WM_OBJECT_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) * wm_object_taskbar -> width) + (50 >> STD_SHIFT_2), wm_object_taskbar -> width, LIB_FONT_ALIGN_center );
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &clock_string, sizeof( clock_string ), 0xFFFFFFFF, clock_pixel + ((((WM_OBJECT_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) + 2) * wm_object_taskbar -> width) + (50 >> STD_SHIFT_2), wm_object_taskbar -> width, LIB_FONT_ALIGN_center );
 
 		// update taskbar content on screen
 		wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_flush;

@@ -67,22 +67,22 @@ uintptr_t kernel_memory_alloc( uint64_t N ) {
 	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror;
 }
 
-// uintptr_t kernel_memory_alloc_low( uint64_t N ) {
-// 	// initialize value
-// 	uintptr_t p = EMPTY;
+uintptr_t kernel_memory_alloc_low( uint64_t N ) {
+	// initialize value
+	uintptr_t p = EMPTY;
 
-// 	// search for requested length of area
-// 	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, KERNEL_MEMORY_LOW, KERNEL_MEMORY_HIGH )) ) return EMPTY;
+	// search for requested length of area
+	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, N, KERNEL_MEMORY_LOW, KERNEL_MEMORY_HIGH )) ) return EMPTY;
 
-// 	// less available pages
-// 	kernel -> page_available -= N;
+	// less available pages
+	kernel -> page_available -= N;
 
-// 	// we guarantee clean memory area at first use
-// 	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror), N );
+	// we guarantee clean memory area at first use
+	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror), N );
 
-// 	// convert page ID to logical address and return
-// 	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror;
-// }
+	// convert page ID to logical address and return
+	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_PAGE_mirror;
+}
 
 uintptr_t kernel_memory_alloc_page( void ) {
 	// acquire single physical page
