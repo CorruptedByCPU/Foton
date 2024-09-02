@@ -79,223 +79,133 @@ void module_usb_uhci_queue( uint32_t *frame_list ) {
 		frame_list[ i ] = (uintptr_t) module_usb_queue_1ms | MODULE_USB_DEFAULT_FLAG_queue;
 }
 
-void module_usb_debug_descriptors( struct MODULE_USB_STRUCTURE_TD *td ) {
-	kernel -> log( (uint8_t *) "Link pointer 0x%X (flags: %4b)\n", td -> link_pointer << 4, td -> flags );
-	kernel -> log( (uint8_t *) "Status: %8b (", td -> status );
-	uint16_t status = td -> status;
-	if( status & 1 << 7 ) { kernel -> log( (uint8_t *) "Active" ); status ^= 1 << 7; if( status ) kernel -> log( (uint8_t *) ", " ); }
-	if( status & 1 << 6 ) { kernel -> log( (uint8_t *) "Stalled" ); status ^= 1 << 6; if( status ) kernel -> log( (uint8_t *) ", " ); }
-	if( status & 1 << 5 ) { kernel -> log( (uint8_t *) "Data Buffer Error" ); status ^= 1 << 5; if( status ) kernel -> log( (uint8_t *) ", " ); }
-	if( status & 1 << 4 ) { kernel -> log( (uint8_t *) "Babble Detected" ); status ^= 1 << 4; if( status ) kernel -> log( (uint8_t *) ", " ); }
-	if( status & 1 << 3 ) { kernel -> log( (uint8_t *) "NAK Received" ); status ^= 1 << 3; if( status ) kernel -> log( (uint8_t *) ", " ); }
-	if( status & 1 << 2 ) { kernel -> log( (uint8_t *) "CRC/Time Out Error" ); status ^= 1 << 2; if( status ) kernel -> log( (uint8_t *) ", " ); }
-	if( status & 1 << 1 ) { kernel -> log( (uint8_t *) "Bitstuff Error" ); status ^= 1 << 1; if( status ) kernel -> log( (uint8_t *) ", " ); }
-	kernel -> log( (uint8_t *) ")\n" );
-	kernel -> log( (uint8_t *) "Error Counter: %u, Device Address: %u, Max Length: ", td -> error_counter, td -> device_address );
-	if( ! td -> max_length || td -> max_length == 2047 ) kernel -> log( (uint8_t *) "0\n" );
-	else kernel -> log( (uint8_t *) "%u\n", td -> max_length + 1 );
-}
-
-// void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_t target ) {
-// 	// prepare Transfer Descriptors area
-// 	struct MODULE_USB_STRUCTURE_TD *td = (struct MODULE_USB_STRUCTURE_TD *) kernel -> memory_alloc_low( TRUE );
-
-// 	// amount of required TDs
-// 	uint64_t tds = length / module_usb_port[ port ].max_packet_size;
-// 	if( length % module_usb_port[ port ].max_packet_size ) tds++;
-
-// 	uint64_t *buffer = (uint64_t *) &td[ tds + 2 ];
-// 	switch( type ) {
-// 		case 1: {
-// 			// set REQUEST information
-// 			*buffer = 0x0000000001000680 | ((uint64_t) length << 48);
-
-// 			break;
-// 		}
-
-// 		case 2: {
-// 			// set ADDRESS
-// 			*buffer = 0x0000000000000500 | (((uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_STRUCTURE_PORT )) << 16);
-
-// 			break;
-// 		}
-// 	}
-
-// 	uint8_t i = 0;
-
-// 	uint8_t status;
-
-// 	//----------------------------------------------------------------------
-
-// 	// SETUP descriptor
-// 	td[ i ].pid = 0x2D;
-
-// 	// send this descriptor to
-// 	td[ i ].device_address = module_usb_port[ port ].address_id;
-
-// 	// set device speed
-// 	td[ i ].low_speed = module_usb_port[ port ].low_speed;
-
-// 	// if there was error while parsing this descriptor, decrease value
-// 	td[ i ].error_counter = 3;
-
-// 	// request N Bytes
-// 	td[ i ].max_length = length - 1; if( type == 2 ) td[ i ].max_length = 7; else if( ! length ) td[ i ].max_length = 0b11111110100;
-
-// 	// REQUEST description is located there ...
-// 	if( length ) td[ i ].buffer_pointer = (uintptr_t) &td[ tds + 2 ];
-
-// 	// even descriptor
-// 	td[ i ].data_toggle = FALSE;
-
-// 	// TD ready
-// 	td[ i ].status = MODULE_USB_TRANSFER_DESCRIPTOR_STATUS_active;
-
-// 	// next TD
-// 	td[ i ].flags = MODULE_USB_DEFAULT_FLAG_data;
-// 	td[ i ].link_pointer = (uintptr_t) &td[ i + 1 ] >> 4;	// which is at
-
-// 	// debug
-// 	kernel -> log( (uint8_t *) "\n\n>> SEND\n" );
-// 	module_usb_debug_descriptors( (struct MODULE_USB_STRUCTURE_TD *) &td[ i ] );
-
-// 	//----------------------------------------------------------------------
-
-// 	uint8_t toggle = TRUE;
-// 	if( length ) { i++; for( ; i < 254; i++ ) {
-// 		// IN descriptor - inform device where to save requested data by SETUP descriptor
-// 		td[ i ].pid = 0x69;
-
-// 		// send this descriptor to
-// 		td[ i ].device_address = module_usb_port[ port ].address_id;
-
-// 		// set device speed
-// 		td[ i ].low_speed = module_usb_port[ port ].low_speed;
-
-// 		// if there was error while parsing this descriptor, decrease value
-// 		td[ i ].error_counter = 3;
-
-// 		// receive chunk of Bytes
-// 		if( length > module_usb_port[ port ].max_packet_size ) {
-// 			td[ i ].max_length = module_usb_port[ port ].max_packet_size - 1;
-// 			length -= module_usb_port[ port ].max_packet_size;
-// 		} else {
-// 			td[ i ].max_length = length - 1;
-// 			length = EMPTY;
-// 		}
-
-// 		// WRITE answer to this location ...
-// 		td[ i ].buffer_pointer = target + ((i - 1) * module_usb_port[ port ].max_packet_size);
-
-// 		// odd descriptor
-// 		td[ i ].data_toggle = toggle;
-
-// 		// TD ready
-// 		td[ i ].status = MODULE_USB_TRANSFER_DESCRIPTOR_STATUS_active;
-
-// 		// next TD
-// 		td[ i ].flags = MODULE_USB_DEFAULT_FLAG_data;
-// 		td[ i ].link_pointer = (uintptr_t) &td[ i + 1 ] >> 4;	// which is at
-
-// 		// debug
-// 		module_usb_debug_descriptors( (struct MODULE_USB_STRUCTURE_TD *) &td[ i ] );
-
-// 		if( ! length ) break;
-
-// 		if( toggle ) toggle = FALSE; else toggle = TRUE;
-// 	} }
-
-// 	//----------------------------------------------------------------------
-
-// 	// STATUS descriptor - tell device that we are done with requests
-// 	td[ ++i ].pid = 0xE1;
-
-// 	// send this descriptor to
-// 	td[ i ].device_address = module_usb_port[ port ].address_id;
-
-// 	// set device speed
-// 	td[ i ].low_speed = module_usb_port[ port ].low_speed;
-
-// 	// if there was error while parsing this descriptor, decrease value
-// 	td[ i ].error_counter = 3;
-
-// 	// we do not sending enything
-// 	td[ i ].max_length = 0b11111110100;
-
-// 	// last descriptor
-// 	td[ i ].data_toggle = TRUE;
-
-// 	// TD ready
-// 	td[ i ].status = MODULE_USB_TRANSFER_DESCRIPTOR_STATUS_active;
-
-// 	// there will be no more descriptors
-// 	td[ i ].flags = MODULE_USB_DEFAULT_FLAG_terminate;
-
-// 	// debug
-// 	module_usb_debug_descriptors( (struct MODULE_USB_STRUCTURE_TD *) &td[ i ] );
-
-// 	//----------------------------------------------------------------------
-
-// 	// insert Transfer Descriptors on Queue
-// 	module_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
-
-// 	// wait for device
-// 	while( (td[ 0 ].status & 0b10000000) || (td[ tds ].status & 0b10000000) ) {
-// 		__asm__ volatile( "nop" );
-// 	}
-
-// 	// debug
-// 	kernel -> log( (uint8_t *) "<< RECEIVED\n" );
-// 	for( uint64_t i = 0; i < 2 + tds; i++ ) module_usb_debug_descriptors( (struct MODULE_USB_STRUCTURE_TD *) &td[ i ] );
-
-// 	// remove Transfer Descriptors from Queue
-// 	module_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
-
-// 	// relase Transfer Descriptors
-// 	kernel -> memory_release( (uintptr_t) td, TRUE );
-// }
-
-void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_t target ) {
+void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_t target, uint8_t flow, uintptr_t packet ) {
 	// prepare Transfer Descriptors area
 	struct MODULE_USB_STRUCTURE_TD *td = (struct MODULE_USB_STRUCTURE_TD *) kernel -> memory_alloc_low( TRUE );
-	uint32_t *data = (uint32_t *) td;
+	struct MODULE_USB_STRUCTURE_TD *td_pointer = (struct MODULE_USB_STRUCTURE_TD *) td;	// preserve original pointer
 
+// TODO, remove me after refactorization
+uint32_t *data = (uint32_t *) td;
+
+	// choose action
 	switch( type ) {
 		// SETUP packet
-		case 0: {
-			td[ 0 ].flags = 0b0100;
-			td[ 0 ].link_pointer = (uintptr_t) &td[ 1 ] >> 4;
-			data[ 1 ] = 0x18800000; td[ 0 ].low_speed = module_usb_port[ port ].low_speed;
-			data[ 2 ] = 0x0000002D; td[ 0 ].max_length = 7; td[ 0 ].data_toggle = FALSE;
-			uint64_t setup = (uint64_t) &td[ 3 ]; data[ 3 ] = setup;
+		case MODULE_USB_TD_PACKET_IDENTIFICATION_setup: {
+			// data Transfer Descriptor
+			td -> flags = MODULE_USB_DEFAULT_FLAG_data;
+			// select descriptor which tells USB device where incomming data should be placed
+			td -> link_pointer = (uintptr_t) (td + TRUE) >> 4;
 
-			td[ 1 ].flags = 0b0100;
-			td[ 1 ].link_pointer = (uintptr_t) &td[ 2 ] >> 4;
-			data[ 9 ] = 0x18800000; td[ 1 ].low_speed = module_usb_port[ port ].low_speed;
-			data[ 10 ] = 0x00000069; td[ 1 ].max_length = 7; td[ 1 ].data_toggle = TRUE;
-			data[ 11 ] = target;
+			// descriptor active
+			td -> status = MODULE_USB_TD_STATUS_active;
+			// set device speed
+			td -> low_speed = module_usb_port[ port ].low_speed;
+			// default error counter
+			td -> error_counter = STD_MAX_unsigned;
 
-			td[ 2 ].flags = 0b0001;
-			td[ 2 ].link_pointer = EMPTY;
-			data[ 17 ] = 0x19800000; td[ 2 ].low_speed = module_usb_port[ port ].low_speed;
-			data[ 18 ] = 0x000000E1; td[ 2 ].max_length = -1; td[ 2 ].data_toggle = TRUE;
-			data[ 19 ] = EMPTY;
+			// set Packet Identification as
+			td -> packet_identification = type;
+			// set Device Identification
+			td -> device_address = module_usb_port[ port ].address_id;
+			// requested data length to be received
+			if( length ) td -> max_length = length - 1;
 
-			data[ 24 ] = 0x01000680;
-			data[ 25 ] = 0x00080000;
+			// location of packet properties
+			td -> buffer_pointer = packet;
+
+			//----------------------------------------------------------------------
+
+			// TD semaphore
+			uint8_t td_semaphore = TRUE;
+
+			// create Transfer Descriptors until end of length
+			while( length ) {
+				// next Transfer Descriptor
+				td++;
+
+				// data Transfer Descriptor
+				td -> flags = MODULE_USB_DEFAULT_FLAG_data;
+				// select descriptor which tells USB device where incomming data should be placed
+				td -> link_pointer = (uintptr_t) (td + TRUE) >> 4;
+
+				// descriptor active
+				td -> status = MODULE_USB_TD_STATUS_active;
+				// set device speed
+				td -> low_speed = module_usb_port[ port ].low_speed;
+				// default error counter
+				td -> error_counter = STD_MAX_unsigned;
+
+				// set Packet Identification as
+				td -> packet_identification = flow;
+				// set Device Identification
+				td -> device_address = module_usb_port[ port ].address_id;
+				// TD semaphore
+				td -> data_toggle = td_semaphore;
+				// receive a chunk of requested Bytes
+				if( length > module_usb_port[ port ].max_packet_size ) {
+					// requested data length to be received
+					td -> max_length = module_usb_port[ port ].max_packet_size - 1;
+
+					// how much Bytes to receive in next Transfer Descriptor
+					length -= module_usb_port[ port ].max_packet_size;
+				} else {
+					// requested data length to be received
+					td -> max_length = length - 1;
+
+					// nothing more to do
+					length = EMPTY;
+				}
+
+				// location of packet properties
+				td -> buffer_pointer = target;
+
+				// next TD semaphore state
+				if( td_semaphore ) td_semaphore = FALSE; else td_semaphore = TRUE;
+			}
+
+			//----------------------------------------------------------------------
+
+			// next Transfer Descriptor
+			td++;
+
+			// terminate Transfer Descriptor
+			td -> flags = MODULE_USB_DEFAULT_FLAG_terminate;
+			// nothing more to do
+			td -> link_pointer = EMPTY;
+
+			// descriptor active
+			td -> status = MODULE_USB_TD_STATUS_active;
+			// launch Interrupt when finished
+			td -> ioc = TRUE;
+			// set device speed
+			td -> low_speed = module_usb_port[ port ].low_speed;
+			// default error counter
+			td -> error_counter = STD_MAX_unsigned;
+
+			// set Packet Identification as
+			td -> packet_identification = MODULE_USB_TD_PACKET_IDENTIFICATION_out;
+			// set Device Identification
+			td -> device_address = module_usb_port[ port ].address_id;
+			// TD semaphore
+			td -> data_toggle = TRUE;	// last descriptor is always TRUE
+			// no more data to be transferred
+			td -> max_length = STD_MAX_unsigned;
+
+			// nothing to transfer
+			td -> buffer_pointer = EMPTY;
 
 			break;
 		}
 
 		// ADDRESS packet
 		case 1: {
-			td[ 0 ].flags = 0b0100;
+			td[ 0 ].flags = MODULE_USB_DEFAULT_FLAG_data;
 			td[ 0 ].link_pointer = (uintptr_t) &td[ 1 ] >> 4;
 			data[ 1 ] = 0x18800000; td[ 0 ].low_speed = module_usb_port[ port ].low_speed;
 			data[ 2 ] = 0x0000002D; td[ 0 ].max_length = 7; td[ 0 ].data_toggle = FALSE;
 			uint64_t setup = (uint64_t) &td[ 2 ]; data[ 3 ] = setup;
 
-			td[ 1 ].flags = 0b0001;
+			td[ 1 ].flags = MODULE_USB_DEFAULT_FLAG_terminate;
 			td[ 1 ].link_pointer = EMPTY;
 			data[ 9 ] = 0x19800000; td[ 1 ].low_speed = module_usb_port[ port ].low_speed;
 			data[ 10 ] = 0x00000069; td[ 1 ].max_length = -1; td[ 1 ].data_toggle = TRUE;
@@ -308,7 +218,7 @@ void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_
 
 		// DEFAULT packet
 		case 2: {
-			td[ 0 ].flags = 0b0100;
+			td[ 0 ].flags = MODULE_USB_DEFAULT_FLAG_data;
 			td[ 0 ].link_pointer = (uintptr_t) &td[ 1 ] >> 4;
 			data[ 1 ] = 0x18800000; td[ 0 ].low_speed = module_usb_port[ port ].low_speed;
 			data[ 2 ] = 0x0000002D; td[ 0 ].max_length = 7; td[ 0 ].data_toggle = FALSE; td[ 0 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
@@ -316,32 +226,32 @@ void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_
 
 			// ----------
 			if( module_usb_port[ port ].low_speed ) {
-				td[ 1 ].flags = 0b0100;
+				td[ 1 ].flags = MODULE_USB_DEFAULT_FLAG_data;
 				td[ 1 ].link_pointer = (uintptr_t) &td[ 2 ] >> 4;
 				data[ 9 ] = 0x18800000; td[ 1 ].low_speed = module_usb_port[ port ].low_speed;
 				data[ 10 ] = 0x00000069; td[ 1 ].max_length = 7; td[ 1 ].data_toggle = TRUE; td[ 1 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
 				data[ 11 ] = target;
 
-				td[ 2 ].flags = 0b0100;
+				td[ 2 ].flags = MODULE_USB_DEFAULT_FLAG_data;
 				td[ 2 ].link_pointer = (uintptr_t) &td[ 3 ] >> 4;
 				data[ 17 ] = 0x18800000; td[ 2 ].low_speed = module_usb_port[ port ].low_speed;
 				data[ 18 ] = 0x00000069; td[ 2 ].max_length = 7; td[ 2 ].data_toggle = FALSE; td[ 2 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
 				data[ 19 ] = target + 0x08;
 
-				td[ 3 ].flags = 0b0100;
+				td[ 3 ].flags = MODULE_USB_DEFAULT_FLAG_data;
 				td[ 3 ].link_pointer = (uintptr_t) &td[ 4 ] >> 4;
 				data[ 25 ] = 0x18800000; td[ 3 ].low_speed = module_usb_port[ port ].low_speed;
 				data[ 26 ] = 0x00000069; td[ 3 ].max_length = 1; td[ 3 ].data_toggle = TRUE; td[ 3 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
 				data[ 27 ] = target + 0x10;
 			} else {
-				td[ 1 ].flags = 0b0100;
+				td[ 1 ].flags = MODULE_USB_DEFAULT_FLAG_data;
 				td[ 1 ].link_pointer = (uintptr_t) &td[ 4 ] >> 4;
 				data[ 9 ] = 0x18800000; td[ 1 ].low_speed = module_usb_port[ port ].low_speed;
 				data[ 10 ] = 0x00000069; td[ 1 ].max_length = 17; td[ 1 ].data_toggle = TRUE; td[ 1 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
 				data[ 11 ] = target;
 			}
 	
-			td[ 4 ].flags = 0b0001;
+			td[ 4 ].flags = MODULE_USB_DEFAULT_FLAG_terminate;
 			td[ 4 ].link_pointer = EMPTY;
 			data[ 33 ] = 0x19800000; td[ 4 ].low_speed = module_usb_port[ port ].low_speed;
 			data[ 34 ] = 0x000000E1; td[ 4 ].max_length = -1; td[ 4 ].data_toggle = TRUE; td[ 4 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
@@ -351,57 +261,22 @@ void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_
 			data[ 41 ] = 0x00000000 | 0x12 << 16;
 
 			break;
-
-			// td[ 0 ].flags = 0b0100;
-			// td[ 0 ].link_pointer = (uintptr_t) &td[ 1 ] >> 4;
-			// data[ 1 ] = 0x18800000; td[ 0 ].low_speed = module_usb_port[ port ].low_speed;
-			// data[ 2 ] = 0x0000002D; td[ 0 ].max_length = 7; td[ 0 ].data_toggle = FALSE; td[ 0 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
-			// uint64_t setup = (uint64_t) &td[ 5 ]; data[ 3 ] = setup;
-
-			// td[ 1 ].flags = 0b0100;
-			// td[ 1 ].link_pointer = (uintptr_t) &td[ 4 ] >> 4;
-			// data[ 9 ] = 0x18800000; td[ 1 ].low_speed = module_usb_port[ port ].low_speed;
-			// data[ 10 ] = 0x00000069; td[ 1 ].max_length = 63; td[ 1 ].data_toggle = TRUE; td[ 1 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
-			// data[ 11 ] = target;
-
-			// // td[ 2 ].flags = 0b0100;
-			// // td[ 2 ].link_pointer = (uintptr_t) &td[ 3 ] >> 4;
-			// // data[ 17 ] = 0x18800000; td[ 2 ].low_speed = module_usb_port[ port ].low_speed;
-			// // data[ 18 ] = 0x00000069; td[ 2 ].max_length = 7; td[ 2 ].data_toggle = FALSE; td[ 2 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
-			// // data[ 19 ] = target + 0x08;
-
-			// // td[ 3 ].flags = 0b0100;
-			// // td[ 3 ].link_pointer = (uintptr_t) &td[ 4 ] >> 4;
-			// // data[ 25 ] = 0x18800000; td[ 3 ].low_speed = module_usb_port[ port ].low_speed;
-			// // data[ 26 ] = 0x00000069; td[ 3 ].max_length = 1; td[ 3 ].data_toggle = TRUE; td[ 3 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
-			// // data[ 27 ] = target + 0x10;
-
-			// td[ 4 ].flags = 0b0001;
-			// td[ 4 ].link_pointer = EMPTY;
-			// data[ 33 ] = 0x19800000; td[ 4 ].low_speed = module_usb_port[ port ].low_speed;
-			// data[ 34 ] = 0x000000E1; td[ 4 ].max_length = -1; td[ 4 ].data_toggle = TRUE; td[ 4 ].device_address = module_usb_port[ module_usb_port_count ].address_id;
-			// data[ 35 ] = EMPTY;
-
-			// data[ 40 ] = 0x01000680;
-			// data[ 41 ] = 0x00000000 | 0x12 << 16;
-
-			// break;
 		}
 	}
 
 	//----------------------------------------------------------------------
 
 	// insert Transfer Descriptors on Queue
-	module_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
+	module_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td_pointer;
 
 	// wait for device
-	while( (td[ 0 ].status & 0b10000000) || (td[ 1 ].status & 0b10000000) ) { __asm__ volatile( "nop" ); }	// i don't know why... but clang removed whole line if there is no at least something like "nop"
+	while( td -> status & 0b10000000 );
 
 	// remove Transfer Descriptors from Queue
 	module_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
 
-	// relase Transfer Descriptors
-	kernel -> memory_release( (uintptr_t) td, TRUE );
+	// relase Transfer Descriptors list
+	kernel -> memory_release( (uintptr_t) td_pointer, TRUE );
 }
 
 uint16_t module_usb_port_reset( uint8_t id ) {
@@ -577,9 +452,16 @@ void _entry( uintptr_t kernel_ptr ) {
 					// debug
 					kernel -> log( (uint8_t *) "[USB].%u Port%u - device connected.\n", i, j );
 
+					// prepare SETUP packet
+					struct MODULE_USB_STRUCTURE_PACKET *packet = (struct MODULE_USB_STRUCTURE_PACKET *) kernel -> memory_alloc_low( TRUE );
+					packet -> type		= MODULE_USB_PACKET_TYPE_direction_device_to_host;
+					packet -> request	= MODULE_USB_PACKET_REQUEST_descriptor_get;
+					packet -> value		= MODULE_USB_PACKET_VALUE_device;
+					packet -> length	= 0x08;	// Bytes requested
+
 					// retrieve default descriptor from device
-					struct MODULE_USB_DESCRIPTOR_STANDARD *device_descriptor = (struct MODULE_USB_DESCRIPTOR_STANDARD *) kernel -> memory_alloc_low( TRUE );
-					module_usb_descriptor( module_usb_port_count, 0, 0x08, (uintptr_t) device_descriptor & ~KERNEL_PAGE_mirror );
+					struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEVICE *device_descriptor = (struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEVICE *) kernel -> memory_alloc_low( TRUE );
+					module_usb_descriptor( module_usb_port_count, MODULE_USB_TD_PACKET_IDENTIFICATION_setup, 0x08, (uintptr_t) device_descriptor & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
 
 					// port reset
 					if( ! (status = module_usb_port_reset( module_usb_port_count )) ) continue;	// device doesn't exist anymore
@@ -590,15 +472,22 @@ void _entry( uintptr_t kernel_ptr ) {
 					// acquired default descriptor length
 					module_usb_port[ module_usb_port_count ].default_descriptor_length = device_descriptor -> length;
 
+					// prepare SETUP packet
+					packet -> type		= MODULE_USB_PACKET_TYPE_direction_host_to_device;
+					packet -> request	= MODULE_USB_PACKET_REQUEST_address_set;
+					packet -> value		= (uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_STRUCTURE_PORT );
+					packet -> length	= EMPTY;
+
 					// set device address
-					module_usb_descriptor( module_usb_port_count, 1, EMPTY, EMPTY );
+					module_usb_descriptor( module_usb_port_count, 1, EMPTY, EMPTY, EMPTY, (uintptr_t) packet );
 
 					// assigned device address
 					module_usb_port[ module_usb_port_count ].address_id = (uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_STRUCTURE_PORT );
 
 					// retrieve full device descriptor
+					MACRO_DEBUF();
 					kernel -> memory_clean( (uint64_t *) device_descriptor, 1 );
-					module_usb_descriptor( module_usb_port_count, 2, module_usb_port[ module_usb_port_count ].default_descriptor_length, (uintptr_t) device_descriptor & ~KERNEL_PAGE_mirror );
+					module_usb_descriptor( module_usb_port_count, 2, module_usb_port[ module_usb_port_count ].default_descriptor_length, (uintptr_t) device_descriptor & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in, EMPTY );
 				}
 			}
 		}
