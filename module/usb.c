@@ -79,7 +79,7 @@ void module_usb_uhci_queue( uint32_t *frame_list ) {
 		frame_list[ i ] = (uintptr_t) module_usb_queue_1ms | MODULE_USB_DEFAULT_FLAG_queue;
 }
 
-void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_t target, uint8_t flow, uintptr_t packet ) {
+void module_usb_descriptor( uint8_t port, uint8_t length, uintptr_t target, uint8_t flow, uintptr_t packet ) {
 	// prepare Transfer Descriptors area
 	struct MODULE_USB_STRUCTURE_TD *td = (struct MODULE_USB_STRUCTURE_TD *) kernel -> memory_alloc_low( TRUE );
 	struct MODULE_USB_STRUCTURE_TD *td_pointer = (struct MODULE_USB_STRUCTURE_TD *) td;	// preserve original pointer
@@ -97,7 +97,7 @@ void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_
 	td -> error_counter = STD_MAX_unsigned;
 
 	// set Packet Identification as
-	td -> packet_identification = type;
+	td -> packet_identification = MODULE_USB_TD_PACKET_IDENTIFICATION_setup;
 	// set Device Identification
 	td -> device_address = module_usb_port[ port ].address_id;
 	// packet length
@@ -207,7 +207,7 @@ void module_usb_descriptor( uint8_t port, uint8_t type, uint8_t length, uintptr_
 
 	// relase Transfer Descriptors list
 	kernel -> memory_release( (uintptr_t) td_pointer, TRUE );
-}
+} 
 
 uint16_t module_usb_port_reset( uint8_t id ) {
 	// by default, nothing there
@@ -361,9 +361,11 @@ void _entry( uintptr_t kernel_ptr ) {
 
 				//-------------------
 
+				// allocate area for requests data
+				uintptr_t descriptor_default = kernel -> memory_alloc_low( TRUE );
+
 				// discover every port
 				for( uint16_t j = 0; j < module_usb_controller[ i ].size_byte >> 4; j++ ) {	// thats a proper way of calculating amount of available ports inside controller, but for UHCI only
-				// for( uint16_t j = 0; j < 1; j++ ) {	// DEBUG
 					// register port / it doesn't matter right now if device is connected to it or not
 					module_usb_port[ module_usb_port_count ].flags = MODULE_USB_PORT_FLAG_reserved;
 
@@ -386,21 +388,23 @@ void _entry( uintptr_t kernel_ptr ) {
 					struct MODULE_USB_STRUCTURE_PACKET *packet = (struct MODULE_USB_STRUCTURE_PACKET *) kernel -> memory_alloc_low( TRUE );
 					packet -> type		= MODULE_USB_PACKET_TYPE_direction_device_to_host;
 					packet -> request	= MODULE_USB_PACKET_REQUEST_descriptor_get;
-					packet -> value		= MODULE_USB_PACKET_VALUE_device;
+					packet -> value		= MODULE_USB_PACKET_VALUE_descriptor_type_device;
 					packet -> length	= 0x08;	// default Bytes requested
 
 					// retrieve default descriptor from device
-					struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEVICE *device_descriptor = (struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEVICE *) kernel -> memory_alloc_low( TRUE );
-					module_usb_descriptor( module_usb_port_count, MODULE_USB_TD_PACKET_IDENTIFICATION_setup, 0x08, (uintptr_t) device_descriptor & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
+					module_usb_descriptor( module_usb_port_count, 0x08, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
+
+					// properties of device descriptor
+					struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEVICE *descriptor_device = (struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEVICE *) descriptor_default;
 
 					// port reset
 					if( ! (status = module_usb_port_reset( module_usb_port_count )) ) continue;	// device doesn't exist anymore
 
 					// remember max packet size
-					module_usb_port[ module_usb_port_count ].max_packet_size = device_descriptor -> max_packet_size;
+					module_usb_port[ module_usb_port_count ].max_packet_size = descriptor_device -> max_packet_size;
 
 					// acquired default descriptor length
-					module_usb_port[ module_usb_port_count ].default_descriptor_length = device_descriptor -> length;
+					module_usb_port[ module_usb_port_count ].default_descriptor_length = descriptor_device -> length;
 
 					// prepare SETUP packet
 					packet -> type		= MODULE_USB_PACKET_TYPE_direction_host_to_device;
@@ -409,7 +413,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					packet -> length	= EMPTY;
 
 					// set device address
-					module_usb_descriptor( module_usb_port_count, MODULE_USB_TD_PACKET_IDENTIFICATION_setup, EMPTY, EMPTY, EMPTY, (uintptr_t) packet );
+					module_usb_descriptor( module_usb_port_count, EMPTY, EMPTY, EMPTY, (uintptr_t) packet );
 
 					// assigned device address
 					module_usb_port[ module_usb_port_count ].address_id = (uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_STRUCTURE_PORT );
@@ -417,12 +421,32 @@ void _entry( uintptr_t kernel_ptr ) {
 					// prepare SETUP packet
 					packet -> type		= MODULE_USB_PACKET_TYPE_direction_device_to_host;
 					packet -> request	= MODULE_USB_PACKET_REQUEST_descriptor_get;
-					packet -> value		= MODULE_USB_PACKET_VALUE_device;
+					packet -> value		= MODULE_USB_PACKET_VALUE_descriptor_type_device;
 					packet -> length	= module_usb_port[ module_usb_port_count ].default_descriptor_length;
 
 					// retrieve full device descriptor
-					kernel -> memory_clean( (uint64_t *) device_descriptor, 1 );
-					module_usb_descriptor( module_usb_port_count, MODULE_USB_TD_PACKET_IDENTIFICATION_setup, module_usb_port[ module_usb_port_count ].default_descriptor_length, (uintptr_t) device_descriptor & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
+					module_usb_descriptor( module_usb_port_count, module_usb_port[ module_usb_port_count ].default_descriptor_length, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
+
+					// remember amount of configuration of device
+					module_usb_port[ module_usb_port_count ].configurations = descriptor_device -> configurations;
+
+					// prepare CONFIG packet
+					packet -> type		= MODULE_USB_PACKET_TYPE_direction_device_to_host;
+					packet -> request	= MODULE_USB_PACKET_REQUEST_descriptor_get;
+					packet -> value		= MODULE_USB_PACKET_VALUE_descriptor_type_configuration;
+					packet -> length	= sizeof( struct MODULE_USB_STRUCTURE_DESCRIPTOR_CONFIGURATION );
+
+					// retrieve part of first configuration properties
+					module_usb_descriptor( module_usb_port_count, sizeof( struct MODULE_USB_STRUCTURE_DESCRIPTOR_CONFIGURATION ), descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
+
+					// properties of device descriptor
+					struct MODULE_USB_STRUCTURE_DESCRIPTOR_CONFIGURATION *descriptor_configuration = (struct MODULE_USB_STRUCTURE_DESCRIPTOR_CONFIGURATION *) descriptor_default;
+
+MACRO_DEBUF();
+
+					// retrieve first configuration properties (full)
+					packet -> length = descriptor_configuration -> total_length;
+					module_usb_descriptor( module_usb_port_count, descriptor_configuration -> total_length, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
 				}
 			}
 		}

@@ -80,13 +80,45 @@
 	#define	MODULE_USB_PACKET_REQUEST_interface_get				0x0A
 	#define	MODULE_USB_PACKET_REQUEST_sync_frame				0x0C
 
-	#define	MODULE_USB_PACKET_VALUE_device					0x0100
+	#define	MODULE_USB_PACKET_VALUE_descriptor_type_device			0x0100
+	#define	MODULE_USB_PACKET_VALUE_descriptor_type_configuration		0x0200
+	#define	MODULE_USB_PACKET_VALUE_descriptor_type_string			0x0300
+	#define	MODULE_USB_PACKET_VALUE_descriptor_type_interface		0x0400
+	#define	MODULE_USB_PACKET_VALUE_descriptor_type_endpoint		0x0500
+	#define	MODULE_USB_PACKET_VALUE_descriptor_type_device_qualifier	0x0600
+	#define	MODULE_USB_PACKET_VALUE_descriptor_type_other_speed_config	0x0700
+	#define	MODULE_USB_PACKET_VALUE_descriptor_type_interface_power		0x0800
+	#define	MODULE_USB_PACKET_VALUE_descriptor_type_report			0x2200
 
 	#define	MODULE_USB_TD_STATUS_active					0b10000000
 
 	#define	MODULE_USB_TD_PACKET_IDENTIFICATION_setup			0x2D
 	#define	MODULE_USB_TD_PACKET_IDENTIFICATION_in				0x69
 	#define	MODULE_USB_TD_PACKET_IDENTIFICATION_out				0xE1
+
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_undefinied			0x00
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_audio			0x01
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_communication_and_cdc	0x02
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_hid				0x03
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_physical			0x05
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_image			0x06
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_printer			0x07
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_mass_storage			0x08
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_hub				0x09
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_cdc_data			0x0A
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_smart_card			0x0B
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_content_security		0x0D
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_video			0x0E
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_personal_healthcare		0x0F
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_diagnostic_device		0xDC
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_wireless_controller		0xE0
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_miscellaneous		0xEF
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_application_specific		0xFE
+	#define	MODULE_USB_DESCRIPTOR_DEVICE_CLASS_vendor_specific		0xFF
+
+	#define	MODULE_USB_DESCRIPTOR_INTERFACE_CLASS_hid			0x03
+	#define	MODULE_USB_DESCRIPTOR_INTERFACE_SUBCLASS_boot_interface		0x01
+	#define	MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_keyboard		0x01
 
 	struct MODULE_USB_STRUCTURE_CONTROLLER {
 		uint8_t			type;
@@ -161,6 +193,7 @@
 		uint8_t			low_speed;
 		uint64_t		max_packet_size;
 		uint64_t		default_descriptor_length;
+		uint8_t			configurations;
 	};
 
 	struct MODULE_USB_STRUCTURE_QUEUE {

@@ -14,3 +14,4 @@ uint8_t module_usb_controller_count = EMPTY;
 uint8_t	module_usb_port_count = 1;	// 0th entry is reserved, others mean as device assigned enumeration
 
 struct MODULE_USB_STRUCTURE_QUEUE *module_usb_queue_1ms = EMPTY;
+struct MODULE_USB_STRUCTURE_QUEUE *module_usb_queue_8ms = EMPTY;
