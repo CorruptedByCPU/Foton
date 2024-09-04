@@ -397,6 +397,15 @@ void _entry( uintptr_t kernel_ptr ) {
 					// properties of device descriptor
 					struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEVICE *descriptor_device = (struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEVICE *) descriptor_default;
 
+					// definied class of configuration?
+					if( descriptor_device -> class != MODULE_USB_DESCRIPTOR_DEVICE_CLASS_undefinied ) {
+						// debug
+						kernel -> log( (uint8_t *) "[USB].%u Port%u - definied device class - no support.\n", i, j );
+
+						// next device
+						continue;
+					}
+
 					// port reset
 					if( ! (status = module_usb_port_reset( module_usb_port_count )) ) continue;	// device doesn't exist anymore
 
@@ -430,6 +439,15 @@ void _entry( uintptr_t kernel_ptr ) {
 					// remember amount of configuration of device
 					module_usb_port[ module_usb_port_count ].configurations = descriptor_device -> configurations;
 
+					// there is more than one configuration?
+					if( module_usb_port[ module_usb_port_count ].configurations != 1 ) {
+						// debug
+						kernel -> log( (uint8_t *) "[USB].%u Port%u - more than 1 configuration - no support.\n", i, j );
+
+						// next device
+						continue;
+					}
+
 					// prepare CONFIG packet
 					packet -> type		= MODULE_USB_PACKET_TYPE_direction_device_to_host;
 					packet -> request	= MODULE_USB_PACKET_REQUEST_descriptor_get;
@@ -442,11 +460,58 @@ void _entry( uintptr_t kernel_ptr ) {
 					// properties of device descriptor
 					struct MODULE_USB_STRUCTURE_DESCRIPTOR_CONFIGURATION *descriptor_configuration = (struct MODULE_USB_STRUCTURE_DESCRIPTOR_CONFIGURATION *) descriptor_default;
 
-MACRO_DEBUF();
+					// there is more than one interface?
+					if( descriptor_configuration -> interface_count != 1 ) {
+						// debug
+						kernel -> log( (uint8_t *) "[USB].%u Port%u - more than 1 interface - no support.\n", i, j );
+
+						// next device
+						continue;
+					}
 
 					// retrieve first configuration properties (full)
 					packet -> length = descriptor_configuration -> total_length;
 					module_usb_descriptor( module_usb_port_count, descriptor_configuration -> total_length, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
+
+					// prepare CONFIG packet
+					packet -> type		= MODULE_USB_PACKET_TYPE_direction_host_to_device;
+					packet -> request	= MODULE_USB_PACKET_REQUEST_configuration_set;
+					packet -> value		= descriptor_configuration -> config_value;
+					packet -> length	= EMPTY;
+
+					// select first configuration as default
+					module_usb_descriptor( module_usb_port_count, EMPTY, EMPTY, EMPTY, (uintptr_t) packet );
+
+					// prepare pointer to first interface and endpoint
+					struct MODULE_USB_STRUCTURE_DESCRIPTOR_INTERFACE *descriptor_interface = EMPTY;
+					struct MODULE_USB_STRUCTURE_DESCRIPTOR_ENDPOINT *descriptor_endpoint = EMPTY;
+
+					// locate first interface of device configuration
+					uint16_t k = sizeof( struct MODULE_USB_STRUCTURE_DESCRIPTOR_CONFIGURATION );
+					while( k < descriptor_configuration -> total_length ) {
+						// default properties of descriptor
+						struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEFAULT *descriptor_find = (struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEFAULT *) ((uintptr_t) descriptor_configuration + k);
+
+						// Interface?
+						if( ! descriptor_interface && descriptor_find -> type == (MODULE_USB_PACKET_VALUE_descriptor_type_interface >> STD_MOVE_BYTE) ) descriptor_interface = (struct MODULE_USB_STRUCTURE_DESCRIPTOR_INTERFACE *) descriptor_find;	// found
+
+						// Endpoint?
+						if( ! descriptor_endpoint && descriptor_find -> type == (MODULE_USB_PACKET_VALUE_descriptor_type_endpoint >> STD_MOVE_BYTE) ) descriptor_endpoint = (struct MODULE_USB_STRUCTURE_DESCRIPTOR_ENDPOINT *) descriptor_find;	// found
+
+						// move default further of configuration descriptor
+						k += descriptor_find -> length;
+					}
+
+					// HID device?
+					if( descriptor_interface -> class != MODULE_USB_DESCRIPTOR_INTERFACE_CLASS_hid ) continue;	// no
+
+					// available Boot Interface?
+					if( descriptor_interface -> subclass != MODULE_USB_DESCRIPTOR_INTERFACE_SUBCLASS_boot_interface ) continue;	// no
+
+					// device type of Keyboard?
+					if( descriptor_interface -> protocol != MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_keyboard ) continue;	// no
+
+					MACRO_DEBUF();
 				}
 			}
 		}

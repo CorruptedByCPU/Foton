@@ -77,8 +77,10 @@
 	#define	MODULE_USB_PACKET_REQUEST_descriptor_get			0x06
 	#define	MODULE_USB_PACKET_REQUEST_descriptor_set			0x07
 	#define	MODULE_USB_PACKET_REQUEST_configuration_get			0x08
+	#define	MODULE_USB_PACKET_REQUEST_configuration_set			0x09
 	#define	MODULE_USB_PACKET_REQUEST_interface_get				0x0A
-	#define	MODULE_USB_PACKET_REQUEST_sync_frame				0x0C
+	#define	MODULE_USB_PACKET_REQUEST_interface_set				0x11
+	#define	MODULE_USB_PACKET_REQUEST_sync_frame				0x12
 
 	#define	MODULE_USB_PACKET_VALUE_descriptor_type_device			0x0100
 	#define	MODULE_USB_PACKET_VALUE_descriptor_type_configuration		0x0200
@@ -119,6 +121,7 @@
 	#define	MODULE_USB_DESCRIPTOR_INTERFACE_CLASS_hid			0x03
 	#define	MODULE_USB_DESCRIPTOR_INTERFACE_SUBCLASS_boot_interface		0x01
 	#define	MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_keyboard		0x01
+	#define	MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_mouse			0x02
 
 	struct MODULE_USB_STRUCTURE_CONTROLLER {
 		uint8_t			type;
@@ -137,6 +140,11 @@
 		uint8_t			config_index;
 		uint8_t			attributes;
 		uint8_t			max_power;
+	} __attribute__( (packed) );
+
+	struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEFAULT {
+		uint8_t			length;
+		uint8_t			type;
 	} __attribute__( (packed) );
 
 	struct MODULE_USB_STRUCTURE_DESCRIPTOR_DEVICE {
@@ -165,7 +173,7 @@
 		uint8_t			interval;
 	} __attribute__( (packed) );
 
-	struct MODULE_USB_STRUCTURE_DESCRIPTOR_FUNCTION {
+	struct MODULE_USB_STRUCTURE_DESCRIPTOR_INTERFACE {
 		uint8_t			length;
 		uint8_t			type;
 		uint8_t			interface_count;
