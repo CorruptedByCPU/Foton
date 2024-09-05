@@ -78,7 +78,7 @@
 	#define	MODULE_USB_PACKET_REQUEST_descriptor_set			0x07
 	#define	MODULE_USB_PACKET_REQUEST_configuration_get			0x08
 	#define	MODULE_USB_PACKET_REQUEST_configuration_set			0x09
-	#define	MODULE_USB_PACKET_REQUEST_interface_get				0x0A
+	#define	MODULE_USB_PACKET_REQUEST_idle_set				0x0A
 	#define	MODULE_USB_PACKET_REQUEST_interface_set				0x11
 	#define	MODULE_USB_PACKET_REQUEST_sync_frame				0x12
 
@@ -176,7 +176,7 @@
 	struct MODULE_USB_STRUCTURE_DESCRIPTOR_INTERFACE {
 		uint8_t			length;
 		uint8_t			type;
-		uint8_t			interface_count;
+		uint8_t			interface_id;
 		uint8_t			alternate_settings;
 		uint8_t			endpoint_count;
 		uint8_t			class;

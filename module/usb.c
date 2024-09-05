@@ -84,36 +84,40 @@ void module_usb_descriptor( uint8_t port, uint8_t length, uintptr_t target, uint
 	struct MODULE_USB_STRUCTURE_TD *td = (struct MODULE_USB_STRUCTURE_TD *) kernel -> memory_alloc_low( TRUE );
 	struct MODULE_USB_STRUCTURE_TD *td_pointer = (struct MODULE_USB_STRUCTURE_TD *) td;	// preserve original pointer
 
-	// data Transfer Descriptor
-	td -> flags = MODULE_USB_DEFAULT_FLAG_data;
-	// select descriptor which tells USB device where incomming data should be placed
-	td -> link_pointer = (uintptr_t) (td + TRUE) >> 4;
+	// request provided?
+	if( packet ) {
+		// data Transfer Descriptor
+		td -> flags = MODULE_USB_DEFAULT_FLAG_data;
+		// select descriptor which tells USB device where incomming data should be placed
+		td -> link_pointer = (uintptr_t) (td + TRUE) >> 4;
 
-	// descriptor active
-	td -> status = MODULE_USB_TD_STATUS_active;
-	// set device speed
-	td -> low_speed = module_usb_port[ port ].low_speed;
-	// default error counter
-	td -> error_counter = STD_MAX_unsigned;
+		// descriptor active
+		td -> status = MODULE_USB_TD_STATUS_active;
+		// set device speed
+		td -> low_speed = module_usb_port[ port ].low_speed;
+		// default error counter
+		td -> error_counter = STD_MAX_unsigned;
 
-	// set Packet Identification as
-	td -> packet_identification = MODULE_USB_TD_PACKET_IDENTIFICATION_setup;
-	// set Device Identification
-	td -> device_address = module_usb_port[ port ].address_id;
-	// packet length
-	td -> max_length = 0x07;
+		// set Packet Identification as
+		td -> packet_identification = MODULE_USB_TD_PACKET_IDENTIFICATION_setup;
+		// set Device Identification
+		td -> device_address = module_usb_port[ port ].address_id;
+		// packet length
+		td -> max_length = 0x07;
 
-	// location of packet properties
-	td -> buffer_pointer = packet;
+		// location of packet properties
+		td -> buffer_pointer = packet;
+	// no
+	} else td--;
 
 	//----------------------------------------------------------------------
 
 	// TD semaphore
 	uint8_t td_semaphore = TRUE;
 
-	// change Transfer Descriptor Itendification by existing length
+	// change Transfer Descriptor Itendification by existing length and request
 	uint8_t length_semaphore = FALSE;
-	if( length ) length_semaphore = TRUE;
+	if( length && packet ) length_semaphore = TRUE;
 
 	// create Transfer Descriptors until end of length
 	while( length ) {
@@ -269,6 +273,9 @@ void _entry( uintptr_t kernel_ptr ) {
 	// assign space for discovered USB ports
 	module_usb_port = (struct MODULE_USB_STRUCTURE_PORT *) kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( sizeof( struct MODULE_USB_STRUCTURE_PORT ) * MODULE_USB_PORT_limit ) >> STD_SHIFT_PAGE );
 
+	// first entry is reserved;
+	module_usb_port -> flags = MODULE_USB_PORT_FLAG_reserved;
+
 	// check every bus;device;function of PCI controller
 	for( uint16_t b = 0; b < 256; b++ )
 		for( uint8_t d = 0; d < 32; d++ )
@@ -366,17 +373,20 @@ void _entry( uintptr_t kernel_ptr ) {
 
 				// discover every port
 				for( uint16_t j = 0; j < module_usb_controller[ i ].size_byte >> 4; j++ ) {	// thats a proper way of calculating amount of available ports inside controller, but for UHCI only
-					// register port / it doesn't matter right now if device is connected to it or not
+					// port reset
+					uint16_t status = EMPTY;
+					if( ! (status = module_usb_port_reset( module_usb_port_count )) ) continue;	// device doesn't exist on port
+
+					// first device number
+					module_usb_port_count++;
+
+					// register port
 					module_usb_port[ module_usb_port_count ].flags = MODULE_USB_PORT_FLAG_reserved;
 
 					// preserve port and controller IDs
 					module_usb_port[ module_usb_port_count ].controller_id = i;
 					module_usb_port[ module_usb_port_count ].port_id = j;
 					module_usb_port[ module_usb_port_count ].max_packet_size = 0x08;	// default 8 Bytes
-
-					// port reset
-					uint16_t status = EMPTY;
-					if( ! (status = module_usb_port_reset( module_usb_port_count )) ) continue;	// device doesn't exist on port
 
 					// register device speed
 					module_usb_port[ module_usb_port_count ].low_speed = status >> 8;
@@ -418,7 +428,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					// prepare SETUP packet
 					packet -> type		= MODULE_USB_PACKET_TYPE_direction_host_to_device;
 					packet -> request	= MODULE_USB_PACKET_REQUEST_address_set;
-					packet -> value		= (uint64_t) ((uintptr_t) &module_usb_port[ module_usb_port_count ] - (uintptr_t) module_usb_port) / sizeof( struct MODULE_USB_STRUCTURE_PORT );
+					packet -> value		= module_usb_port_count;
 					packet -> length	= EMPTY;
 
 					// set device address
@@ -511,7 +521,18 @@ void _entry( uintptr_t kernel_ptr ) {
 					// device type of Keyboard?
 					if( descriptor_interface -> protocol != MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_keyboard ) continue;	// no
 
-					MACRO_DEBUF();
+					// prepare IDLE packet
+					packet -> type		= MODULE_USB_PACKET_TYPE_direction_host_to_device | MODULE_USB_PACKET_TYPE_subtype_class | MODULE_USB_PACKET_TYPE_recipient_interface;
+					packet -> request	= MODULE_USB_PACKET_REQUEST_idle_set;
+					packet -> value		= 0x0800;
+					packet -> index		= descriptor_interface -> interface_id;
+					packet -> length	= EMPTY;
+
+					// set interface as IDLE
+					module_usb_descriptor( module_usb_port_count, EMPTY, EMPTY, EMPTY, (uintptr_t) packet );
+
+					// debug
+					while( TRUE ) { MACRO_DEBUF(); module_usb_descriptor( module_usb_port_count, 0x08, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in, EMPTY ); }
 				}
 			}
 		}
