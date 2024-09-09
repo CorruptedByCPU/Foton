@@ -591,16 +591,16 @@ void _entry( uintptr_t kernel_ptr ) {
 					module_usb_port[ module_usb_port_count ].toggle = FALSE;
 
 					// debug
-					uint8_t *test = (uint64_t *) descriptor_default;
+					uint8_t *test = (uint8_t *) descriptor_default;
 					kernel -> memory_clean( (uint64_t *) descriptor_default, TRUE );
 					while( TRUE ) {
 						module_usb_descriptor_io( module_usb_port_count, 0x08, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in );
-						if( test[ 2 ] ) {
+						if( test[ 2 ] && test[ 2 ] < 0x28 ) {
 							for( uint8_t q = 2; q < 8; q++ ) if( test[ q ] )
 								// in first free space in keyboard buffer
 								for( uint8_t i = 0; i < 8; i++ )
 									// save key code
-									if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = test[ q ]; break; }
+									if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = module_usb_keyboard_matrix_low[ test[ q ] ]; test[ q ] = EMPTY; break; }
 						}
 					}
 				}
