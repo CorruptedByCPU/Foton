@@ -580,7 +580,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					// prepare IDLE packet
 					packet -> type		= MODULE_USB_PACKET_TYPE_direction_host_to_device | MODULE_USB_PACKET_TYPE_subtype_class | MODULE_USB_PACKET_TYPE_recipient_interface;
 					packet -> request	= MODULE_USB_PACKET_REQUEST_idle_set;
-					packet -> value		= 0x0800;
+					packet -> value		= EMPTY;	// Indefinitiely and All Reports
 					packet -> index		= descriptor_interface -> interface_id;
 					packet -> length	= EMPTY;
 
@@ -591,9 +591,18 @@ void _entry( uintptr_t kernel_ptr ) {
 					module_usb_port[ module_usb_port_count ].toggle = FALSE;
 
 					// debug
-					uint64_t *test = (uint64_t *) descriptor_default;
+					uint8_t *test = (uint64_t *) descriptor_default;
 					kernel -> memory_clean( (uint64_t *) descriptor_default, TRUE );
-					while( TRUE ) { module_usb_descriptor_io( module_usb_port_count, 0x08, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in ); }
+					while( TRUE ) {
+						module_usb_descriptor_io( module_usb_port_count, 0x08, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in );
+						if( test[ 2 ] ) {
+							for( uint8_t q = 2; q < 8; q++ ) if( test[ q ] )
+								// in first free space in keyboard buffer
+								for( uint8_t i = 0; i < 8; i++ )
+									// save key code
+									if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = test[ q ]; break; }
+						}
+					}
 				}
 			}
 		}
