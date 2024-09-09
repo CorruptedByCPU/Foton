@@ -202,6 +202,8 @@
 		uint64_t		max_packet_size;
 		uint64_t		default_descriptor_length;
 		uint8_t			configurations;
+		uint8_t			endpoint_id;
+		uint8_t			toggle;
 	};
 
 	struct MODULE_USB_STRUCTURE_QUEUE {
