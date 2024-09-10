@@ -71,12 +71,35 @@ uintptr_t module_usb_queue_empty( void ) {
 
 void module_usb_uhci_queue( uint32_t *frame_list ) {
 	// acquire 1/1024u query
-	module_usb_queue_1ms = (struct MODULE_USB_STRUCTURE_QUEUE *) module_usb_queue_empty();
+	module_usb_queue_1u = (struct MODULE_USB_STRUCTURE_QUEUE *) module_usb_queue_empty();
+
+	// acquire 8/1024u query
+	module_usb_queue_8u = (struct MODULE_USB_STRUCTURE_QUEUE *) module_usb_queue_empty();
+
+	// acquire 16/1024u query
+	module_usb_queue_16u = (struct MODULE_USB_STRUCTURE_QUEUE *) module_usb_queue_empty();
+
+	// connect 8u > 1u
+	// module_usb_queue_8u[ 0 ].element_link_pointer_and_flags = (uintptr_t) module_usb_queue_1u | MODULE_USB_DEFAULT_FLAG_queue;
+	// module_usb_queue_8u[ 0 ].head_link_pointer_and_flags = (uintptr_t) module_usb_queue_16u | MODULE_USB_DEFAULT_FLAG_queue;
+
+	// connect 16u > 8u
+	// module_usb_queue_16u[ 0 ].element_link_pointer_and_flags = (uintptr_t) module_usb_queue_8u | MODULE_USB_DEFAULT_FLAG_queue;
+
+	// for every 16th entry inside frame list
+	for( uint64_t i = 15; i < STD_PAGE_byte >> STD_SHIFT_32; i += 16 )
+		// insert 16u queue
+		frame_list[ i ] = (uintptr_t) module_usb_queue_16u | MODULE_USB_DEFAULT_FLAG_queue;
+
+	// for every 8th entry inside frame list
+	for( uint64_t i = 7; i < STD_PAGE_byte >> STD_SHIFT_32; i += 8 )
+		// insert 8u queue
+		frame_list[ i ] = (uintptr_t) module_usb_queue_8u | MODULE_USB_DEFAULT_FLAG_queue;
 
 	// for each entry inside frame list
-	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_32; i++ )
-		// insert ~1ms queue
-		frame_list[ i ] = (uintptr_t) module_usb_queue_1ms | MODULE_USB_DEFAULT_FLAG_queue;
+	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_32; i += 2 )
+		// insert 1u queue
+		frame_list[ i ] = (uintptr_t) module_usb_queue_1u | MODULE_USB_DEFAULT_FLAG_queue;
 }
 
 void module_usb_descriptor( uint8_t port, uint8_t length, uintptr_t target, uint8_t flow, uintptr_t packet ) {
@@ -203,13 +226,13 @@ void module_usb_descriptor( uint8_t port, uint8_t length, uintptr_t target, uint
 	//----------------------------------------------------------------------
 
 	// insert Transfer Descriptors on Queue
-	module_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td_pointer;
+	module_usb_queue_1u[ 0 ].element_link_pointer_and_flags = (uintptr_t) td_pointer;
 
 	// wait for device
 	while( td -> status & 0b10000000 );
 
 	// remove Transfer Descriptors from Queue
-	module_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
+	module_usb_queue_1u[ 0 ].element_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
 
 	// relase Transfer Descriptors list
 	kernel -> memory_release( (uintptr_t) td_pointer, TRUE );
@@ -242,7 +265,7 @@ void module_usb_descriptor_io( uint8_t port, uint8_t length, uintptr_t target, u
 	// TD semaphore
 	td -> data_toggle = module_usb_port[ port ].toggle;
 	// requested data length to be received
-	td -> max_length = 0x07;
+	td -> max_length = length - 1;
 
 	// location of chunk of retrieved data
 	td -> buffer_pointer = target;
@@ -253,13 +276,13 @@ void module_usb_descriptor_io( uint8_t port, uint8_t length, uintptr_t target, u
 	//----------------------------------------------------------------------
 
 	// insert Transfer Descriptors on Queue
-	module_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
+	module_usb_queue_8u[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
 
 	// wait for device
 	while( td -> status & 0b10000000 );
 
 	// remove Transfer Descriptors from Queue
-	module_usb_queue_1ms[ 0 ].element_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
+	module_usb_queue_8u[ 0 ].element_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
 
 	// relase Transfer Descriptors list
 	kernel -> memory_release( (uintptr_t) td, TRUE );
