@@ -69,6 +69,49 @@ uintptr_t module_usb_queue_empty( void ) {
 	return (uintptr_t) queue;
 }
 
+uint64_t module_usb_queue_insert( uint8_t unit, uint8_t type, uintptr_t source ) {
+	// properties of default queue
+	struct MODULE_USB_STRUCTURE_QUEUE *queue = EMPTY;
+
+	// select target queue
+	switch( unit ) {
+		// queue 1u
+		case 1: { queue = module_usb_queue_1u; break; }
+		// queue 8u
+		case 8: { queue = module_usb_queue_8u; break; }
+		// queue 16u
+		case 16: { queue = module_usb_queue_16u; break; }
+	}
+
+	// search every entry
+	while( TRUE ) for( uint64_t i = 0; i < STD_PAGE_byte / sizeof( struct MODULE_USB_STRUCTURE_QUEUE ); i++ ) {
+		// another queue?
+		if( type ) if( queue -> head_link_pointer_and_flags & MODULE_USB_DEFAULT_FLAG_terminate ) { queue -> head_link_pointer_and_flags = source | type; return EMPTY; }
+
+
+		// available?
+		if( queue -> element_link_pointer_and_flags & MODULE_USB_DEFAULT_FLAG_terminate ) { queue -> element_link_pointer_and_flags = source; return i; }
+	}
+}
+
+void module_usb_queue_remove( uint8_t unit, uint64_t entry ) {
+	// properties of default queue
+	struct MODULE_USB_STRUCTURE_QUEUE *queue = EMPTY;
+
+	// select target queue
+	switch( unit ) {
+		// queue 1u
+		case 1: { queue = module_usb_queue_1u; break; }
+		// queue 8u
+		case 8: { queue = module_usb_queue_8u; break; }
+		// queue 16u
+		case 16: { queue = module_usb_queue_16u; break; }
+	}
+
+	// truncate queue
+	queue[ entry ].element_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
+}
+
 void module_usb_uhci_queue( uint32_t *frame_list ) {
 	// acquire 1/1024u query
 	module_usb_queue_1u = (struct MODULE_USB_STRUCTURE_QUEUE *) module_usb_queue_empty();
@@ -80,26 +123,22 @@ void module_usb_uhci_queue( uint32_t *frame_list ) {
 	module_usb_queue_16u = (struct MODULE_USB_STRUCTURE_QUEUE *) module_usb_queue_empty();
 
 	// connect 8u > 1u
-	// module_usb_queue_8u[ 0 ].element_link_pointer_and_flags = (uintptr_t) module_usb_queue_1u | MODULE_USB_DEFAULT_FLAG_queue;
-	// module_usb_queue_8u[ 0 ].head_link_pointer_and_flags = (uintptr_t) module_usb_queue_16u | MODULE_USB_DEFAULT_FLAG_queue;
+	module_usb_queue_insert( 1, MODULE_USB_DEFAULT_FLAG_queue, (uintptr_t) module_usb_queue_8u );
 
 	// connect 16u > 8u
-	// module_usb_queue_16u[ 0 ].element_link_pointer_and_flags = (uintptr_t) module_usb_queue_8u | MODULE_USB_DEFAULT_FLAG_queue;
+	module_usb_queue_insert( 8, MODULE_USB_DEFAULT_FLAG_queue, (uintptr_t) module_usb_queue_16u );
 
-	// for every 16th entry inside frame list
-	for( uint64_t i = 15; i < STD_PAGE_byte >> STD_SHIFT_32; i += 16 )
-		// insert 16u queue
-		frame_list[ i ] = (uintptr_t) module_usb_queue_16u | MODULE_USB_DEFAULT_FLAG_queue;
-
-	// for every 8th entry inside frame list
-	for( uint64_t i = 7; i < STD_PAGE_byte >> STD_SHIFT_32; i += 8 )
-		// insert 8u queue
-		frame_list[ i ] = (uintptr_t) module_usb_queue_8u | MODULE_USB_DEFAULT_FLAG_queue;
-
-	// for each entry inside frame list
-	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_32; i += 2 )
-		// insert 1u queue
+	// insert queues
+	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_32; i++ ) {
+		// 1u
 		frame_list[ i ] = (uintptr_t) module_usb_queue_1u | MODULE_USB_DEFAULT_FLAG_queue;
+
+		// 8u
+		if( ! ((i + 1) % 8) ) frame_list[ i ] = (uintptr_t) module_usb_queue_8u | MODULE_USB_DEFAULT_FLAG_queue;
+
+		// 16u
+		if( ! ((i + 1) % 16) ) frame_list[ i ] = (uintptr_t) module_usb_queue_16u | MODULE_USB_DEFAULT_FLAG_queue;
+	}
 }
 
 void module_usb_descriptor( uint8_t port, uint8_t length, uintptr_t target, uint8_t flow, uintptr_t packet ) {
@@ -226,13 +265,13 @@ void module_usb_descriptor( uint8_t port, uint8_t length, uintptr_t target, uint
 	//----------------------------------------------------------------------
 
 	// insert Transfer Descriptors on Queue
-	module_usb_queue_1u[ 0 ].element_link_pointer_and_flags = (uintptr_t) td_pointer;
+	uint64_t entry = module_usb_queue_insert( 1, EMPTY, (uintptr_t) td_pointer );
 
 	// wait for device
 	while( td -> status & 0b10000000 );
 
 	// remove Transfer Descriptors from Queue
-	module_usb_queue_1u[ 0 ].element_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
+	module_usb_queue_remove( 1, entry );
 
 	// relase Transfer Descriptors list
 	kernel -> memory_release( (uintptr_t) td_pointer, TRUE );
@@ -276,13 +315,13 @@ void module_usb_descriptor_io( uint8_t port, uint8_t length, uintptr_t target, u
 	//----------------------------------------------------------------------
 
 	// insert Transfer Descriptors on Queue
-	module_usb_queue_8u[ 0 ].element_link_pointer_and_flags = (uintptr_t) td;
+	uint64_t entry = module_usb_queue_insert( 16, EMPTY, (uintptr_t) td );
 
 	// wait for device
 	while( td -> status & 0b10000000 );
 
 	// remove Transfer Descriptors from Queue
-	module_usb_queue_8u[ 0 ].element_link_pointer_and_flags = MODULE_USB_DEFAULT_FLAG_terminate;
+	module_usb_queue_remove( 16, entry );
 
 	// relase Transfer Descriptors list
 	kernel -> memory_release( (uintptr_t) td, TRUE );
@@ -335,7 +374,7 @@ uint16_t module_usb_port_reset( uint8_t id ) {
 
 	// device connected?
 	if( connected ) return status;
-	else return EMPTY;
+	else return EMPTY;	// no
 }
 
 void _entry( uintptr_t kernel_ptr ) {
@@ -376,10 +415,11 @@ void _entry( uintptr_t kernel_ptr ) {
 
 					// type different than UHCI?
 					uint64_t base_address_space = driver_pci_read( pci, hci );
-					if( ! base_address_space )	// yes
+					if( ! base_address_space ) {	// yes
 						// change bar to EHCI/xHCI
 						hci = DRIVER_PCI_REGISTER_bar0;
 						base_address_space = driver_pci_read( pci, hci );
+					}
 
 					// check type of base address space
 					uint8_t *base_address_type = (uint8_t *) &module_usb_string_memory;
@@ -615,15 +655,16 @@ void _entry( uintptr_t kernel_ptr ) {
 
 					// debug
 					uint8_t *test = (uint8_t *) descriptor_default;
-					kernel -> memory_clean( (uint64_t *) descriptor_default, TRUE );
 					while( TRUE ) {
+						kernel -> memory_clean( (uint64_t *) descriptor_default, TRUE );
 						module_usb_descriptor_io( module_usb_port_count, 0x08, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in );
-						if( test[ 2 ] && test[ 2 ] < 0x28 ) {
-							for( uint8_t q = 2; q < 8; q++ ) if( test[ q ] )
-								// in first free space in keyboard buffer
-								for( uint8_t i = 0; i < 8; i++ )
-									// save key code
-									if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = module_usb_keyboard_matrix_low[ test[ q ] ]; test[ q ] = EMPTY; break; }
+						if( test[ 2 ] && test[ 2 ] < (sizeof( module_usb_keyboard_matrix_low ) >> STD_SHIFT_2) ) {
+							for( uint8_t q = 2; q < 8; q++ )
+								if( test[ q ] )
+									// in first free space in keyboard buffer
+									for( uint8_t i = 0; i < 8; i++ )
+										// save key code
+										if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = module_usb_keyboard_matrix_low[ test[ q ] ]; break; }
 						}
 					}
 				}
