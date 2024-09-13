@@ -209,6 +209,7 @@
 		uint8_t			configurations;
 		uint8_t			endpoint_id;
 		uint8_t			toggle;
+		uint8_t			protocol;
 	};
 
 	struct MODULE_USB_STRUCTURE_QUEUE {
@@ -249,4 +250,6 @@
 		uint32_t		buffer_pointer;
 		uint32_t		reserved[ 4 ];
 	} __attribute__( (packed) );
+
+	uint8_t module_usb_descriptor_io( uint8_t port, uint8_t length, uintptr_t target, uint8_t flow );
 #endif

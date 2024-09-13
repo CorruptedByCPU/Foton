@@ -23,6 +23,90 @@
 	//----------------------------------------------------------------------
 	#include	"./usb/data.c"
 
+void module_usb_hid_keyboard( uintptr_t kernel_ptr ) {
+	// prepare keyboard input cache
+	uint8_t *cache = (uint8_t *) kernel -> memory_alloc_low( TRUE );
+
+	// receive keys
+	while( TRUE ) {
+		// from any available keyboard
+		for( uint8_t i = 0; i < module_usb_controller_count; i++ ) {
+			// registered controller with definied protocol?
+			if( module_usb_port[ i ].protocol != MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_keyboard ) continue;	// no
+
+			// clean up cache
+			kernel -> memory_clean( (uint64_t *) cache, TRUE );
+
+			// create input Transfer Descriptor
+			uint8_t status = module_usb_descriptor_io( i, 0x08, (uintptr_t) cache & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in );
+
+			// if something bad hapenned
+			if( status ) continue;	// ignore keys
+
+			// recieved data?
+			if( ! cache[ 2 ] || cache[ 2 ] >= (sizeof( module_usb_keyboard_matrix_low ) >> STD_SHIFT_2) ) continue;
+
+			// for every received existing key
+			for( uint8_t k = 2; k < 8 && cache[ k ]; k++ )
+				// in first free space in keyboard buffer
+				for( uint8_t c = 0; c < 8; c++ )
+					// save key code
+					if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = module_usb_keyboard_matrix_low[ cache[ k ] ]; break; }
+		}
+
+		// release CPU time
+		kernel -> time_sleep( TRUE );
+	}
+}
+
+void module_usb_hid_mouse( uintptr_t kernel_ptr ) {
+	// prepare mouse input cache
+	int8_t *cache = (int8_t *) kernel -> memory_alloc_low( TRUE );
+
+	// receive properties
+	while( TRUE ) {
+		// from any available mouse
+		for( uint8_t i = 0; i < module_usb_controller_count; i++ ) {
+			// registered controller with definied protocol?
+			if( module_usb_port[ i ].protocol != MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_mouse ) continue;	// no
+
+			// clean up cache
+			kernel -> memory_clean( (uint64_t *) cache, TRUE );
+
+			// create input Transfer Descriptor
+			module_usb_descriptor_io( i, 0x04, (uintptr_t) cache & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in );
+
+			// Buttons status
+			kernel -> device_mouse_status = cache[ 0 ];
+
+			// X axis
+
+			// overflow from left?
+			if( kernel -> device_mouse_x + cache[ 1 ] < 0 ) kernel -> device_mouse_x = EMPTY;
+
+			// overflow from right?
+			else if( kernel -> device_mouse_x + cache[ 1 ] > kernel -> framebuffer_width_pixel - 1 ) kernel -> device_mouse_x = kernel -> framebuffer_width_pixel - 1;
+				
+			// compound new position
+			else kernel -> device_mouse_x += cache[ 1 ];
+
+			// Y axis
+
+			// overflow from top?
+			if( kernel -> device_mouse_y + cache[ 2 ] < 0 ) kernel -> device_mouse_y = EMPTY;
+
+			// overflow from bottom?
+			else if( kernel -> device_mouse_y + cache[ 2 ] > kernel -> framebuffer_height_pixel - 1 ) kernel -> device_mouse_y = kernel -> framebuffer_height_pixel - 1;
+
+			// compound new position
+			else kernel -> device_mouse_y += cache[ 2 ];
+		}
+
+		// release CPU time
+		kernel -> time_sleep( TRUE );
+	}
+}
+
 uint8_t module_usb_detect_uhci( uint8_t i ) {
 	// controller type: port?
 	if( module_usb_controller[ i ].type & MODULE_USB_BASE_ADDRESS_type ) return FALSE;	// no
@@ -241,8 +325,6 @@ void module_usb_descriptor( uint8_t port, uint8_t length, uintptr_t target, uint
 
 	// descriptor active
 	td -> status = MODULE_USB_TD_STATUS_active;
-	// launch Interrupt when finished
-	td -> ioc = TRUE;
 	// set device speed
 	td -> low_speed = module_usb_port[ port ].low_speed;
 	// default error counter
@@ -277,7 +359,7 @@ void module_usb_descriptor( uint8_t port, uint8_t length, uintptr_t target, uint
 	kernel -> memory_release( (uintptr_t) td_pointer, TRUE );
 }
 
-void module_usb_descriptor_io( uint8_t port, uint8_t length, uintptr_t target, uint8_t flow ) {
+uint8_t module_usb_descriptor_io( uint8_t port, uint8_t length, uintptr_t target, uint8_t flow ) {
 	// prepare Transfer Descriptors area
 	struct MODULE_USB_STRUCTURE_TD *td = (struct MODULE_USB_STRUCTURE_TD *) kernel -> memory_alloc_low( TRUE );
 
@@ -320,11 +402,17 @@ void module_usb_descriptor_io( uint8_t port, uint8_t length, uintptr_t target, u
 	// wait for device
 	while( td -> status & 0b10000000 );
 
+	// remember status of Transfer Descriptor
+	volatile uint8_t status = td -> status;
+
 	// remove Transfer Descriptors from Queue
 	module_usb_queue_remove( 16, entry );
 
 	// relase Transfer Descriptors list
 	kernel -> memory_release( (uintptr_t) td, TRUE );
+
+	// return Transfer Descriptor status
+	return status;
 }
 
 uint16_t module_usb_port_reset( uint8_t id ) {
@@ -487,8 +575,7 @@ void _entry( uintptr_t kernel_ptr ) {
 				uintptr_t descriptor_default = kernel -> memory_alloc_low( TRUE );
 
 				// discover every port
-				// for( uint16_t j = 0; j < module_usb_controller[ i ].size_byte >> 4; j++ ) {	// thats a proper way of calculating amount of available ports inside controller, but for UHCI only
-				for( uint16_t j = 0; j < 1; j++ ) {
+				for( uint16_t j = 0; j < module_usb_controller[ i ].size_byte >> 4; j++ ) {	// thats a proper way of calculating amount of available ports inside controller, but for UHCI only
 					// port reset
 					uint16_t status = EMPTY;
 					if( ! (status = module_usb_port_reset( module_usb_port_count )) ) continue;	// device doesn't exist on port
@@ -634,8 +721,11 @@ void _entry( uintptr_t kernel_ptr ) {
 					// available Boot Interface?
 					if( descriptor_interface -> subclass != MODULE_USB_DESCRIPTOR_INTERFACE_SUBCLASS_boot_interface ) continue;	// no
 
-					// device type of Keyboard?
-					if( descriptor_interface -> protocol != MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_keyboard ) continue;	// no
+					// device type of Keyboard or Mouse?
+					if( descriptor_interface -> protocol != MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_keyboard && descriptor_interface -> protocol != MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_mouse ) continue;	// no
+
+					// remember device protocol
+					module_usb_port[ module_usb_port_count ].protocol = descriptor_interface -> protocol;
 
 					// remember endpoint value
 					module_usb_port[ module_usb_port_count ].endpoint_id = (descriptor_endpoint -> address & 0x1111) - 1;
@@ -654,23 +744,20 @@ void _entry( uintptr_t kernel_ptr ) {
 					module_usb_port[ module_usb_port_count ].toggle = FALSE;
 
 					// debug
-					uint8_t *test = (uint8_t *) descriptor_default;
-					while( TRUE ) {
-						kernel -> memory_clean( (uint64_t *) descriptor_default, TRUE );
-						module_usb_descriptor_io( module_usb_port_count, 0x08, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_TD_PACKET_IDENTIFICATION_in );
-						if( test[ 2 ] && test[ 2 ] < (sizeof( module_usb_keyboard_matrix_low ) >> STD_SHIFT_2) ) {
-							for( uint8_t q = 2; q < 8; q++ )
-								if( test[ q ] )
-									// in first free space in keyboard buffer
-									for( uint8_t i = 0; i < 8; i++ )
-										// save key code
-										if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = module_usb_keyboard_matrix_low[ test[ q ] ]; break; }
-						}
-					}
+					if( module_usb_port[ module_usb_port_count ].protocol == MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_keyboard ) module_usb_hid_keyboard( (uintptr_t) kernel_ptr );
+					// if( module_usb_port[ module_usb_port_count ].protocol == MODULE_USB_DESCRIPTOR_INTERFACE_PROTOCOL_mouse ) module_usb_hid_mouse( (uintptr_t) kernel_ptr );
 				}
 			}
 		}
 	}
+
+	// // enable keyboard thread
+	// uint8_t module_usb_string_hid_keyboard[] = "usb.ko - keyboard";
+	// kernel -> module_thread( (uintptr_t) &module_usb_hid_keyboard, (uint8_t *) &module_usb_string_hid_keyboard, sizeof( module_usb_string_hid_keyboard ) - 1 );
+
+	// // enable mouse thread
+	// uint8_t module_usb_string_hid_mouse[] = "usb.ko - mouse";
+	// kernel -> module_thread( (uintptr_t) &module_usb_hid_mouse, (uint8_t *) &module_usb_string_hid_mouse, sizeof( module_usb_string_hid_mouse ) - 1 );
 
 	// hold the door
 	while( TRUE ) kernel -> time_sleep( TRUE );
