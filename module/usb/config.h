@@ -126,7 +126,7 @@
 	#define MODULE_USB_HID_KEYBOARD_KEY_CODE_CTRL_LEFT			0b00000001
 	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_LEFT			0b00000010
 	#define MODULE_USB_HID_KEYBOARD_KEY_CODE_CTRL_RIGHT			0b00010000
-	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_RIGHT			0x00100000
+	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_RIGHT			0b00100000
 
 	struct MODULE_USB_STRUCTURE_CONTROLLER {
 		uint8_t			type;
@@ -202,13 +202,13 @@
 		uint8_t			flags;
 		uint8_t			controller_id;
 		uint8_t			port_id;
-		uint8_t			address_id;
-		uint8_t			low_speed;
+		uint8_t			address_id		: 7;
+		uint8_t			low_speed		: 1;
 		uint64_t		max_packet_size;
 		uint64_t		default_descriptor_length;
 		uint8_t			configurations;
-		uint8_t			endpoint_id;
-		uint8_t			toggle;
+		uint8_t			endpoint_id		: 4;
+		uint8_t			toggle			: 1;
 		uint8_t			protocol;
 	};
 

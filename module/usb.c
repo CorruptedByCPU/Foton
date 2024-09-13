@@ -47,11 +47,20 @@ void module_usb_hid_keyboard( uintptr_t kernel_ptr ) {
 			if( ! cache[ 2 ] || cache[ 2 ] >= (sizeof( module_usb_keyboard_matrix_low ) >> STD_SHIFT_2) ) continue;
 
 			// for every received existing key
-			for( uint8_t k = 2; k < 8 && cache[ k ]; k++ )
+			for( uint8_t k = 2; k < 8 && cache[ k ]; k++ ) {
+				// translate key code, default: low matrix
+				uint16_t key = module_usb_keyboard_matrix_low[ cache[ k ] ];
+
+				// high matrix?
+				if( cache[ 0 ] & (MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_LEFT | MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_RIGHT) )
+					// yes
+					key = module_usb_keyboard_matrix_high[ cache[ k ] ];
+
 				// in first free space in keyboard buffer
 				for( uint8_t c = 0; c < 8; c++ )
-					// save key code
-					if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = module_usb_keyboard_matrix_low[ cache[ k ] ]; break; }
+					// save character
+					if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = key; break; }
+			}
 		}
 
 		// release CPU time
