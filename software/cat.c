@@ -12,9 +12,12 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// user selected file?
 	if( argc == 1 ) return 0;	// no
 
-	// open file for read
+	// open file for readd
 	struct STD_STRUCTURE_FILE file = { EMPTY };
-	if( ! (file.socket = std_file_open( argv[ 1 ], lib_string_length( argv[ 1 ] ) )) ) return STD_ERROR_file_not_found;
+	file.socket = std_file_open( argv[ 1 ], lib_string_length( argv[ 1 ] ) );
+	
+	// default error if path not found
+	if( file.socket < EMPTY ) return STD_ERROR_file_not_found;
 
 	// retrieve file properties
 	std_file( (struct STD_STRUCTURE_FILE *) &file );

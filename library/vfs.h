@@ -14,7 +14,7 @@
 	#define	LIB_VFS_block		STD_PAGE_byte
 	#define	LIB_VFS_default		2		// default number of files in new directory (2 links)
 
-	#define	LIB_VFS_NAME_limit	(254 - 1)
+	#define	LIB_VFS_NAME_limit	254
 
 	struct LIB_VFS_STRUCTURE {
 		uintptr_t	offset;
