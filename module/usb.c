@@ -23,6 +23,51 @@
 	//----------------------------------------------------------------------
 	#include	"./usb/data.c"
 
+void module_usb_hid_keyboard( void ) {
+	// prepare keyboard input cache
+	uint8_t *cache = (uint8_t *) kernel -> memory_alloc_low( TRUE );
+
+	// receive keys
+	while( TRUE ) {
+		// from any available keyboard
+		for( uint8_t p = 0; p < MODULE_USB_PORT_limit; p++ ) {
+			// registered controller with definied protocol?
+			if( module_usb_port[ p ].type != MODULE_USB_DEVICE_TYPE_HID_KEYBOARD ) continue;	// no
+
+			// clean up cache
+			kernel -> memory_clean( (uint64_t *) cache, TRUE );
+
+			// create input Transfer Descriptor
+			uint8_t status = module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x08, (uintptr_t) cache & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in );
+
+			// if something bad hapenned
+			if( status ) continue;	// ignore keys
+
+			// recieved data?
+			if( ! cache[ 2 ] || cache[ 2 ] >= (sizeof( module_usb_keyboard_matrix_low ) >> STD_SHIFT_2) ) continue;
+
+			// for every received existing key
+			for( uint8_t k = 2; k < 8 && cache[ k ]; k++ ) {
+				// translate key code, default: low matrix
+				uint16_t key = module_usb_keyboard_matrix_low[ cache[ k ] ];
+
+				// high matrix?
+				if( cache[ 0 ] & (MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_LEFT | MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_RIGHT) )
+					// yes
+					key = module_usb_keyboard_matrix_high[ cache[ k ] ];
+
+				// in first free space in keyboard buffer
+				for( uint8_t c = 0; c < 8; c++ )
+					// save character
+					if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = key; break; }
+			}
+		}
+
+		// release CPU time
+		kernel -> time_sleep( TRUE );
+	}
+}
+
 struct MODULE_USB_STRUCTURE_PORT *module_usb_port_register( uint8_t c, uint8_t p ) {
 	// locate already existing port configuration
 	uint8_t limit = TRUE; for( ; limit < MODULE_USB_PORT_limit; limit++ ) if( module_usb_port[ limit ].id_controller == c && module_usb_port[ limit ].id_port == p ) return (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ limit ];
@@ -196,6 +241,62 @@ void module_usb_uhci_descriptor( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t
 	kernel -> memory_release( (uintptr_t) td_pointer, TRUE );
 }
 
+uint8_t module_usb_uhci_descriptor_io( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t length, uintptr_t target, uint8_t flow ) {
+	// prepare Transfer Descriptors area
+	struct MODULE_USB_STRUCTURE_UHCI_TD *td = (struct MODULE_USB_STRUCTURE_UHCI_TD *) kernel -> memory_alloc_low( TRUE );
+
+	//----------------------------------------------------------------------
+
+	// data Transfer Descriptor
+	td -> flags = MODULE_USB_UHCI_QTD_FLAG_data;
+	// select descriptor which tells USB device where incomming data should be placed
+	td -> link_pointer = (uintptr_t) (td + TRUE) >> 4;
+
+	// descriptor active
+	td -> status = MODULE_USB_UHCI_TD_STATUS_active;
+	// set device speed
+	td -> low_speed = port -> low_speed;
+	// default error counter
+	td -> error_counter = STD_MAX_unsigned;
+
+	// set Packet Identification as
+	td -> packet_identification = flow;
+	// set Device Identification
+	td -> device_address = port -> id_address;
+	// set Endpoint Identification
+	td -> endpoint = port -> id_endpoint + 1;
+	// TD semaphore
+	td -> data_toggle = port -> toggle;
+	// requested data length to be received
+	td -> max_length = length - 1;
+
+	// location of chunk of retrieved data
+	td -> buffer_pointer = target;
+
+	// next TD semaphore state
+	if( port -> toggle ) port -> toggle = FALSE; else port -> toggle = TRUE;
+
+	//----------------------------------------------------------------------
+
+	// insert Transfer Descriptors on Queue
+	uint64_t entry = module_usb_uhci_queue_insert( 16, EMPTY, (uintptr_t) td );
+
+	// wait for device
+	while( td -> status & 0b10000000 );
+
+	// remember status of Transfer Descriptor
+	volatile uint8_t status = td -> status;
+
+	// remove Transfer Descriptors from Queue
+	module_usb_uhci_queue_remove( 16, entry );
+
+	// relase Transfer Descriptors list
+	kernel -> memory_release( (uintptr_t) td, TRUE );
+
+	// return Transfer Descriptor status
+	return status;
+}
+
 uint16_t module_usb_uhci_device_init( uint8_t c, uint8_t p ) {
 	// send command, RESET
 	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 64 );
@@ -304,6 +405,15 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 	// retrieve full configuration properties
 	module_usb_uhci_descriptor( port, descriptor_configuration -> total_length, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
 
+	// prepare packet
+	packet -> type		= MODULE_USB_PACKET_TYPE_direction_host_to_device;
+	packet -> request	= MODULE_USB_PACKET_REQUEST_configuration_set;
+	packet -> value		= descriptor_configuration -> config_value;
+	packet -> length	= EMPTY;
+
+	// select first configuration as default
+	module_usb_uhci_descriptor( port, EMPTY, EMPTY, EMPTY, (uintptr_t) packet );
+
 	// properties of interface descriptor
 	struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_INTERFACE *descriptor_interface = EMPTY;
 
@@ -319,7 +429,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 			descriptor_configuration = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_CONFIGURATION *) parse;
 
 			// debug
-			// kernel -> log( (uint8_t *) "[USB].%u Port%u - Configuration ID:%u, %u Interface/s", port -> id_controller, port -> id_port, descriptor_configuration -> config_value, descriptor_configuration -> interface_count ); if( (descriptor_configuration -> attributes >> 5) & TRUE ) kernel -> log( (uint8_t *) ", Remote Wakeup" ); if( (descriptor_configuration -> attributes >> 6) & TRUE ) kernel -> log( (uint8_t *) ", Self Powered" ); kernel -> log( (uint8_t *) ", Maximum Power Consumption %umA\n", descriptor_configuration -> max_power << STD_SHIFT_2 );
+			kernel -> log( (uint8_t *) "[USB].%u Port%u - Configuration ID:%u, %u Interface/s", port -> id_controller, port -> id_port, descriptor_configuration -> config_value, descriptor_configuration -> interface_count ); if( (descriptor_configuration -> attributes >> 5) & TRUE ) kernel -> log( (uint8_t *) ", Remote Wakeup" ); if( (descriptor_configuration -> attributes >> 6) & TRUE ) kernel -> log( (uint8_t *) ", Self Powered" ); kernel -> log( (uint8_t *) ", Maximum Power Consumption %umA\n", descriptor_configuration -> max_power << STD_SHIFT_2 );
 		} else
 
 		// interface descriptor
@@ -328,7 +438,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 			descriptor_interface = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_INTERFACE *) parse;
 
 			// debug
-			// kernel -> log( (uint8_t *) "[USB].%u Port%u - Interface ID:%u, %u Endpoint/s", port -> id_controller, port -> id_port, descriptor_interface -> interface_id, descriptor_interface -> endpoint_count ); kernel -> log( (uint8_t *) ", Class: " ); switch( descriptor_interface -> class ) { case 0x03: { kernel -> log( (uint8_t *) "HID" ); if( descriptor_interface -> protocol == 0x01 ) kernel -> log( (uint8_t *) " (Protocol: Keyboard)" ); if( descriptor_interface -> protocol == 0x02 ) kernel -> log( (uint8_t *) " (Protocol: Mouse)" ); if( descriptor_interface -> subclass == 1 ) kernel -> log( (uint8_t *) ", Subclass: Boot Interface" ); else kernel -> log( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x07: { kernel -> log( (uint8_t *) "Printer" ); break; } case 0x08: { kernel -> log( (uint8_t *) "Mass Storage" ); if( descriptor_interface -> subclass == 0x06 ) kernel -> log( (uint8_t *) ", Subclass: SCSI transparent command set" ); else kernel -> log( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x09: { kernel -> log( (uint8_t *) "HUB" ); break; } default: kernel -> log( (uint8_t *) "{unknown}" ); } kernel -> log( (uint8_t *) "\n" );
+			kernel -> log( (uint8_t *) "[USB].%u Port%u - Interface ID:%u, %u Endpoint/s", port -> id_controller, port -> id_port, descriptor_interface -> interface_id, descriptor_interface -> endpoint_count ); kernel -> log( (uint8_t *) ", Class: " ); switch( descriptor_interface -> class ) { case 0x03: { kernel -> log( (uint8_t *) "HID" ); if( descriptor_interface -> protocol == 0x01 ) kernel -> log( (uint8_t *) " (Protocol: Keyboard)" ); if( descriptor_interface -> protocol == 0x02 ) kernel -> log( (uint8_t *) " (Protocol: Mouse)" ); if( descriptor_interface -> subclass == 1 ) kernel -> log( (uint8_t *) ", Subclass: Boot Interface" ); else kernel -> log( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x07: { kernel -> log( (uint8_t *) "Printer" ); break; } case 0x08: { kernel -> log( (uint8_t *) "Mass Storage" ); if( descriptor_interface -> subclass == 0x06 ) kernel -> log( (uint8_t *) ", Subclass: SCSI transparent command set" ); else kernel -> log( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x09: { kernel -> log( (uint8_t *) "HUB" ); break; } default: kernel -> log( (uint8_t *) "{unknown}" ); } kernel -> log( (uint8_t *) "\n" );
 		} else
 
 		// endpoint descriptor
@@ -337,7 +447,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 			descriptor_endpoint = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_ENDPOINT *) parse;
 
 			// debug
-			// kernel -> log( (uint8_t *) "[USB].%u Port%u - Endpoint ID:%u", port -> id_controller, port -> id_port, descriptor_endpoint -> address & 0x1111 ); if( descriptor_endpoint -> address >> 7 ) kernel -> log( (uint8_t *) ", In" ); else kernel -> log( (uint8_t *) ", Out" ); switch( descriptor_endpoint -> attributes & 0x11 ) { case 0x01: { kernel -> log( (uint8_t *) ", Isochronous" ); break; } case 0x02: { kernel -> log( (uint8_t *) ", Bulk" ); break; } case 0x03: { kernel -> log( (uint8_t *) ", Interrupt" ); break; } default: kernel -> log( (uint8_t *) ", Control" ); } kernel -> log( (uint8_t *) ", Max Packet Size %u Byte/s", descriptor_endpoint -> max_packet_size ); kernel -> log( (uint8_t *) "\n" );
+			kernel -> log( (uint8_t *) "[USB].%u Port%u - Endpoint ID:%u", port -> id_controller, port -> id_port, descriptor_endpoint -> address & 0x1111 ); if( descriptor_endpoint -> address >> 7 ) kernel -> log( (uint8_t *) ", In" ); else kernel -> log( (uint8_t *) ", Out" ); switch( descriptor_endpoint -> attributes & 0x11 ) { case 0x01: { kernel -> log( (uint8_t *) ", Isochronous" ); break; } case 0x02: { kernel -> log( (uint8_t *) ", Bulk" ); break; } case 0x03: { kernel -> log( (uint8_t *) ", Interrupt" ); break; } default: kernel -> log( (uint8_t *) ", Control" ); } kernel -> log( (uint8_t *) ", Max Packet Size %u Byte/s", descriptor_endpoint -> max_packet_size ); kernel -> log( (uint8_t *) "\n" );
 		}
 
 		// next
@@ -351,6 +461,31 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 	if( descriptor_interface -> class == 0x03 && descriptor_interface -> protocol == 0x01 )	port -> type = MODULE_USB_DEVICE_TYPE_HID_KEYBOARD;
 	if( descriptor_interface -> class == 0x03 && descriptor_interface -> protocol == 0x02 )	port -> type = MODULE_USB_DEVICE_TYPE_HID_MOUSE;
 	if( descriptor_interface -> class == 0x08 )						port -> type = MODULE_USB_DEVICE_TYPE_HID_STORAGE;
+
+	// prepare packet
+	packet -> type		= MODULE_USB_PACKET_TYPE_direction_host_to_device | MODULE_USB_PACKET_TYPE_subtype_standard | MODULE_USB_PACKET_TYPE_recipient_interface;
+	packet -> request	= MODULE_USB_PACKET_REQUEST_interface_set;
+	packet -> value		= descriptor_interface -> interface_id;
+	packet -> length	= EMPTY;
+
+	// select first interface as default
+	module_usb_uhci_descriptor( port, EMPTY, EMPTY, EMPTY, (uintptr_t) packet );
+
+	// prepare packet
+	packet -> type		= MODULE_USB_PACKET_TYPE_direction_host_to_device | MODULE_USB_PACKET_TYPE_subtype_class | MODULE_USB_PACKET_TYPE_recipient_interface;
+	packet -> request	= MODULE_USB_PACKET_REQUEST_idle_set;
+	packet -> value		= EMPTY;	// Indefinitiely and All Reports
+	packet -> index		= descriptor_interface -> interface_id;
+	packet -> length	= EMPTY;
+
+	// set interface as IDLE
+	module_usb_uhci_descriptor( port, EMPTY, EMPTY, EMPTY, (uintptr_t) packet );
+
+	// TD semaphore, reset
+	port -> toggle = FALSE;
+
+	// debug
+	if( port -> type == MODULE_USB_DEVICE_TYPE_HID_KEYBOARD ) module_usb_hid_keyboard();
 
 	// done
 	return TRUE;

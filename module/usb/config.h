@@ -85,8 +85,9 @@
 	#define	MODULE_USB_PACKET_REQUEST_configuration_get			0x08
 	#define	MODULE_USB_PACKET_REQUEST_configuration_set			0x09
 	#define	MODULE_USB_PACKET_REQUEST_idle_set				0x0A
-	#define	MODULE_USB_PACKET_REQUEST_interface_set				0x11
-	#define	MODULE_USB_PACKET_REQUEST_sync_frame				0x12
+	#define	MODULE_USB_PACKET_REQUEST_interface_set				0x0B
+	// #define	MODULE_USB_PACKET_REQUEST_interface_set				0x11
+	// #define	MODULE_USB_PACKET_REQUEST_sync_frame				0x12
 
 	#define	MODULE_USB_PACKET_VALUE_descriptor_type_device			0x0100
 	#define	MODULE_USB_PACKET_VALUE_descriptor_type_configuration		0x0200
@@ -199,33 +200,17 @@
 		uint8_t			interval;
 	} __attribute__( (packed) );
 
-	// #define	MODULE_USB_REQUEST_SETUP					0
-	// #define	MODULE_USB_REQUEST_ADDRESS					1
-	// #define	MODULE_USB_DESCRIPTOR_SETUP					0x0008000001000680
-
-	// enum MODULE_USB_CONTROLLER_PORT_state {
-	// 	MODULE_USB_CONTROLLER_PORT_NO_DEVICE,
-	// 	MODULE_USB_CONTROLLER_PORT_DEVICE_EXIST,
-	// 	MODULE_USB_CONTROLLER_PORT_DEVICE_INITIALIZED
-	// };
-
-	// struct MODULE_USB_STRUCTURE_DEVICE_HID {
-	// 	uint8_t		controller_type;
-	// 	uint8_t		controller_number;
-	// 	uint8_t		port;
-	// 	uint8_t		address;
-	// 	uint8_t		device_speed;
-	// 	uint8_t		endpoint;
-	// 	uint8_t		endpoint_size;
-	// 	uint8_t		interrupt_time;
-	// 	uint32_t	transfer_descriptor_check;
-	// };
+	#define MODULE_USB_HID_KEYBOARD_KEY_CODE_CTRL_LEFT			0b00000001
+	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_LEFT			0b00000010
+	#define MODULE_USB_HID_KEYBOARD_KEY_CODE_CTRL_RIGHT			0b00010000
+	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_RIGHT			0b00100000
 
 	void module_usb_uhci_init( uint8_t c );
 	void module_usb_uhci_queue( uint32_t *frame_list );
 	uintptr_t module_usb_uhci_queue_empty( void );
 	uint64_t module_usb_uhci_queue_insert( uint8_t unit, uint8_t type, uintptr_t source );
 	void module_usb_uhci_descriptor( struct MODULE_USB_STRUCTURE_PORT *p, uint8_t length, uintptr_t target, uint8_t flow, uintptr_t packet );
+	uint8_t module_usb_uhci_descriptor_io( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t length, uintptr_t target, uint8_t flow );
 	void module_usb_uhci_queue_remove( uint8_t unit, uint64_t entry );
 	uint16_t module_usb_uhci_device_init( uint8_t c, uint8_t p );
 	uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port );
