@@ -33,6 +33,10 @@
         #define	DRIVER_PCI_CLASS_SUBCLASS_network		0x0200
 	#define	DRIVER_PCI_CLASS_SUBCLASS_audio			0x0401
 	#define	DRIVER_PCI_CLASS_SUBCLASS_usb			0x0C03
+	#define	DRIVER_PCI_CLASS_SUBCLASS_usb_uhci		0x0C0300
+	#define	DRIVER_PCI_CLASS_SUBCLASS_usb_ohci		0x0C0310
+	#define	DRIVER_PCI_CLASS_SUBCLASS_usb_ehci		0x0C0320
+	#define	DRIVER_PCI_CLASS_SUBCLASS_usb_xhci		0x0C0330
 
         struct	DRIVER_PCI_STRUCTURE {
                 uint16_t	result;
