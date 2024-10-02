@@ -38,7 +38,7 @@ void module_usb_hid_keyboard( void ) {
 			kernel -> memory_clean( (uint64_t *) cache, TRUE );
 
 			// create input Transfer Descriptor
-			uint8_t status = module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x08, (uintptr_t) cache & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in );
+			uint8_t status = module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x08, (uintptr_t) cache & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 8 );
 
 			// if something bad hapenned
 			if( status ) continue;	// ignore keys
@@ -61,6 +61,54 @@ void module_usb_hid_keyboard( void ) {
 					// save character
 					if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = key; break; }
 			}
+		}
+
+		// release CPU time
+		kernel -> time_sleep( TRUE );
+	}
+}
+
+void module_usb_hid_mouse( void ) {
+	// prepare mouse input cache
+	int8_t *cache = (int8_t *) kernel -> memory_alloc_low( TRUE );
+
+	// receive properties
+	while( TRUE ) {
+		// from any available mouse
+		for( uint8_t p = 0; p < MODULE_USB_PORT_limit; p++ ) {
+			// registered controller with definied protocol?
+			if( module_usb_port[ p ].type != MODULE_USB_DEVICE_TYPE_HID_MOUSE ) continue;	// no
+
+			// clean up cache
+			kernel -> memory_clean( (uint64_t *) cache, TRUE );
+
+			// create input Transfer Descriptor
+			module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x04, (uintptr_t) cache & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 8 );
+
+			// Buttons status
+			kernel -> device_mouse_status = cache[ 0 ];
+
+			// X axis
+
+			// overflow from left?
+			if( kernel -> device_mouse_x + cache[ 1 ] < 0 ) kernel -> device_mouse_x = EMPTY;
+
+			// overflow from right?
+			else if( kernel -> device_mouse_x + cache[ 1 ] > kernel -> framebuffer_width_pixel - 1 ) kernel -> device_mouse_x = kernel -> framebuffer_width_pixel - 1;
+				
+			// compound new position
+			else kernel -> device_mouse_x += cache[ 1 ];
+
+			// Y axis
+
+			// overflow from top?
+			if( kernel -> device_mouse_y + cache[ 2 ] < 0 ) kernel -> device_mouse_y = EMPTY;
+
+			// overflow from bottom?
+			else if( kernel -> device_mouse_y + cache[ 2 ] > kernel -> framebuffer_height_pixel - 1 ) kernel -> device_mouse_y = kernel -> framebuffer_height_pixel - 1;
+
+			// compound new position
+			else kernel -> device_mouse_y += cache[ 2 ];
 		}
 
 		// release CPU time
@@ -241,14 +289,14 @@ void module_usb_uhci_descriptor( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t
 	kernel -> memory_release( (uintptr_t) td_pointer, TRUE );
 }
 
-uint8_t module_usb_uhci_descriptor_io( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t length, uintptr_t target, uint8_t flow ) {
+uint8_t module_usb_uhci_descriptor_io( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t length, uintptr_t target, uint8_t flow, uint8_t queue ) {
 	// prepare Transfer Descriptors area
 	struct MODULE_USB_STRUCTURE_UHCI_TD *td = (struct MODULE_USB_STRUCTURE_UHCI_TD *) kernel -> memory_alloc_low( TRUE );
 
 	//----------------------------------------------------------------------
 
 	// data Transfer Descriptor
-	td -> flags = MODULE_USB_UHCI_QTD_FLAG_data;
+	td -> flags = MODULE_USB_UHCI_QTD_FLAG_terminate;
 	// select descriptor which tells USB device where incomming data should be placed
 	td -> link_pointer = (uintptr_t) (td + TRUE) >> 4;
 
@@ -279,16 +327,16 @@ uint8_t module_usb_uhci_descriptor_io( struct MODULE_USB_STRUCTURE_PORT *port, u
 	//----------------------------------------------------------------------
 
 	// insert Transfer Descriptors on Queue
-	uint64_t entry = module_usb_uhci_queue_insert( 16, EMPTY, (uintptr_t) td );
+	uint64_t entry = module_usb_uhci_queue_insert( queue, EMPTY, (uintptr_t) td );
 
 	// wait for device
-	while( td -> status & 0b10000000 );
+	while( td -> status & 0b10000000 ) kernel -> time_sleep( 1 );
 
 	// remember status of Transfer Descriptor
 	volatile uint8_t status = td -> status;
 
 	// remove Transfer Descriptors from Queue
-	module_usb_uhci_queue_remove( 16, entry );
+	module_usb_uhci_queue_remove( queue, entry );
 
 	// relase Transfer Descriptors list
 	kernel -> memory_release( (uintptr_t) td, TRUE );
@@ -485,7 +533,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 	port -> toggle = FALSE;
 
 	// debug
-	if( port -> type == MODULE_USB_DEVICE_TYPE_HID_KEYBOARD ) module_usb_hid_keyboard();
+	// if( port -> type == MODULE_USB_DEVICE_TYPE_HID_KEYBOARD ) module_usb_hid_keyboard();
 
 	// done
 	return TRUE;
@@ -501,11 +549,14 @@ void module_usb_uhci_queue( uint32_t *frame_list ) {
 	// acquire 16/1024u query
 	module_usb_uhci_queue_16u = (struct MODULE_USB_STRUCTURE_UHCI_QUEUE *) module_usb_uhci_queue_empty();
 
+	// debug
+	kernel -> log( (uint8_t *) "u1 0x%16X, u8 0x%16X, u16 0x%16X\n", (uintptr_t) module_usb_uhci_queue_1u, (uintptr_t) module_usb_uhci_queue_8u, (uintptr_t) module_usb_uhci_queue_16u );
+
 	// connect 8u > 1u
-	module_usb_uhci_queue_insert( 1, MODULE_USB_UHCI_QTD_FLAG_queue, (uintptr_t) module_usb_uhci_queue_8u );
+	module_usb_uhci_queue_insert( 8, MODULE_USB_UHCI_QTD_FLAG_queue, (uintptr_t) module_usb_uhci_queue_1u );
 
 	// connect 16u > 8u
-	module_usb_uhci_queue_insert( 8, MODULE_USB_UHCI_QTD_FLAG_queue, (uintptr_t) module_usb_uhci_queue_16u );
+	module_usb_uhci_queue_insert( 16, MODULE_USB_UHCI_QTD_FLAG_queue, (uintptr_t) module_usb_uhci_queue_8u );
 
 	// insert queues
 	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_32; i++ ) {
@@ -546,7 +597,14 @@ uint64_t module_usb_uhci_queue_insert( uint8_t unit, uint8_t type, uintptr_t sou
 		// queue 1u
 		case 1: { queue = module_usb_uhci_queue_1u; break; }
 		// queue 8u
-		case 8: { queue = module_usb_uhci_queue_8u; break; }
+		case 8: {
+			MACRO_DEBUF();
+			MACRO_DEBUF();
+			MACRO_DEBUF();
+
+			queue = module_usb_uhci_queue_8u;
+			break;
+		}
 		// queue 16u
 		case 16: { queue = module_usb_uhci_queue_16u; break; }
 	}
@@ -555,7 +613,6 @@ uint64_t module_usb_uhci_queue_insert( uint8_t unit, uint8_t type, uintptr_t sou
 	while( TRUE ) for( uint64_t i = 0; i < STD_PAGE_byte / sizeof( struct MODULE_USB_STRUCTURE_UHCI_QUEUE ); i++ ) {
 		// another queue?
 		if( type ) if( queue -> head_link_pointer_and_flags & MODULE_USB_UHCI_QTD_FLAG_terminate ) { queue -> head_link_pointer_and_flags = source | type; return EMPTY; }
-
 
 		// available?
 		if( queue -> element_link_pointer_and_flags & MODULE_USB_UHCI_QTD_FLAG_terminate ) { queue -> element_link_pointer_and_flags = source; return i; }
@@ -702,6 +759,14 @@ void _entry( uintptr_t kernel_ptr ) {
 			}
 		}
 	}
+
+	// enable keyboard thread
+	uint8_t module_usb_string_hid_keyboard[] = "usb.ko - keyboard";
+	kernel -> module_thread( (uintptr_t) &module_usb_hid_keyboard, (uint8_t *) &module_usb_string_hid_keyboard, sizeof( module_usb_string_hid_keyboard ) - 1 );
+
+	// enable mouse thread
+	uint8_t module_usb_string_hid_mouse[] = "usb.ko - mouse";
+	kernel -> module_thread( (uintptr_t) &module_usb_hid_mouse, (uint8_t *) &module_usb_string_hid_mouse, sizeof( module_usb_string_hid_mouse ) - 1 );
 
 	// hold the door
 	while( TRUE ) kernel -> time_sleep( TRUE );

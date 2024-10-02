@@ -210,7 +210,7 @@
 	uintptr_t module_usb_uhci_queue_empty( void );
 	uint64_t module_usb_uhci_queue_insert( uint8_t unit, uint8_t type, uintptr_t source );
 	void module_usb_uhci_descriptor( struct MODULE_USB_STRUCTURE_PORT *p, uint8_t length, uintptr_t target, uint8_t flow, uintptr_t packet );
-	uint8_t module_usb_uhci_descriptor_io( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t length, uintptr_t target, uint8_t flow );
+	uint8_t module_usb_uhci_descriptor_io( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t length, uintptr_t target, uint8_t flow, uint8_t queue );
 	void module_usb_uhci_queue_remove( uint8_t unit, uint64_t entry );
 	uint16_t module_usb_uhci_device_init( uint8_t c, uint8_t p );
 	uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port );
