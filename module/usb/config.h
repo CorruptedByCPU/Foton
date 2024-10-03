@@ -138,12 +138,13 @@
 	#define	MODULE_USB_UHCI_QTD_FLAG_mask					0x0F
 	#define	MODULE_USB_UHCI_QTD_FLAG_terminate				0b0001
 	#define	MODULE_USB_UHCI_QTD_FLAG_queue					0b0010
-	#define	MODULE_USB_UHCI_QTD_FLAG_data					0b0100
+	#define	MODULE_USB_UHCI_QTD_FLAG_depth_first				0b0100
 
 	struct MODULE_USB_STRUCTURE_UHCI_QUEUE {
 		uint32_t		head_link_pointer_and_flags;
 		uint32_t		element_link_pointer_and_flags;
-		uint32_t		reserved[ 2 ];
+		uint32_t		preserved_head;
+		uint32_t		preserved_element;
 	} __attribute__( (packed) );
 
 	struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_DEFAULT {

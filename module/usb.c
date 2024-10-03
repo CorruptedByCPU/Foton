@@ -38,7 +38,7 @@ void module_usb_hid_keyboard( void ) {
 			kernel -> memory_clean( (uint64_t *) cache, TRUE );
 
 			// create input Transfer Descriptor
-			uint8_t status = module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x08, (uintptr_t) cache & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 8 );
+			uint8_t status = module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x08, (uintptr_t) cache & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 16 );
 
 			// if something bad hapenned
 			if( status ) continue;	// ignore keys
@@ -160,7 +160,7 @@ void module_usb_uhci_descriptor( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t
 	struct MODULE_USB_STRUCTURE_UHCI_TD *td = (struct MODULE_USB_STRUCTURE_UHCI_TD *) td_pointer;	// start from first TD
 
 	// data Transfer Descriptor
-	td -> flags = MODULE_USB_UHCI_QTD_FLAG_data;
+	td -> flags = MODULE_USB_UHCI_QTD_FLAG_depth_first;
 	// select descriptor which tells USB device where incomming data should be placed
 	td -> link_pointer = (uintptr_t) (td + TRUE) >> 4;
 
@@ -199,7 +199,7 @@ void module_usb_uhci_descriptor( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t
 		td++;
 
 		// data Transfer Descriptor
-		td -> flags = MODULE_USB_UHCI_QTD_FLAG_data;
+		td -> flags = MODULE_USB_UHCI_QTD_FLAG_depth_first;
 		// select descriptor which tells USB device where incomming data should be placed
 		td -> link_pointer = (uintptr_t) (td + TRUE) >> 4;
 
@@ -335,10 +335,7 @@ uint8_t module_usb_uhci_descriptor_io( struct MODULE_USB_STRUCTURE_PORT *port, u
 	// remember status of Transfer Descriptor
 	volatile uint8_t status = td -> status;
 
-	// remove Transfer Descriptors from Queue
-	module_usb_uhci_queue_remove( queue, entry );
-
-	// relase Transfer Descriptors list
+	// release Transfer Descriptor area
 	kernel -> memory_release( (uintptr_t) td, TRUE );
 
 	// return Transfer Descriptor status
@@ -549,9 +546,6 @@ void module_usb_uhci_queue( uint32_t *frame_list ) {
 	// acquire 16/1024u query
 	module_usb_uhci_queue_16u = (struct MODULE_USB_STRUCTURE_UHCI_QUEUE *) module_usb_uhci_queue_empty();
 
-	// debug
-	kernel -> log( (uint8_t *) "u1 0x%16X, u8 0x%16X, u16 0x%16X\n", (uintptr_t) module_usb_uhci_queue_1u, (uintptr_t) module_usb_uhci_queue_8u, (uintptr_t) module_usb_uhci_queue_16u );
-
 	// connect 8u > 1u
 	module_usb_uhci_queue_insert( 8, MODULE_USB_UHCI_QTD_FLAG_queue, (uintptr_t) module_usb_uhci_queue_1u );
 
@@ -559,7 +553,7 @@ void module_usb_uhci_queue( uint32_t *frame_list ) {
 	module_usb_uhci_queue_insert( 16, MODULE_USB_UHCI_QTD_FLAG_queue, (uintptr_t) module_usb_uhci_queue_8u );
 
 	// insert queues
-	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_32; i++ ) {
+	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_4; i++ ) {
 		// 1u
 		frame_list[ i ] = (uintptr_t) module_usb_uhci_queue_1u | MODULE_USB_UHCI_QTD_FLAG_queue;
 
@@ -582,6 +576,10 @@ uintptr_t module_usb_uhci_queue_empty( void ) {
 
 		// and current
 		queue[ i ].element_link_pointer_and_flags = MODULE_USB_UHCI_QTD_FLAG_terminate;
+
+		// preserved head and element
+		queue[ i ].preserved_head = MODULE_USB_UHCI_QTD_FLAG_terminate;
+		queue[ i ].preserved_element = MODULE_USB_UHCI_QTD_FLAG_terminate;
 	}
 
 	// return address of queue
@@ -597,25 +595,33 @@ uint64_t module_usb_uhci_queue_insert( uint8_t unit, uint8_t type, uintptr_t sou
 		// queue 1u
 		case 1: { queue = module_usb_uhci_queue_1u; break; }
 		// queue 8u
-		case 8: {
-			MACRO_DEBUF();
-			MACRO_DEBUF();
-			MACRO_DEBUF();
-
-			queue = module_usb_uhci_queue_8u;
-			break;
-		}
+		case 8: { queue = module_usb_uhci_queue_8u; break; }
 		// queue 16u
 		case 16: { queue = module_usb_uhci_queue_16u; break; }
 	}
 
 	// search every entry
 	while( TRUE ) for( uint64_t i = 0; i < STD_PAGE_byte / sizeof( struct MODULE_USB_STRUCTURE_UHCI_QUEUE ); i++ ) {
-		// another queue?
-		if( type ) if( queue -> head_link_pointer_and_flags & MODULE_USB_UHCI_QTD_FLAG_terminate ) { queue -> head_link_pointer_and_flags = source | type; return EMPTY; }
-
 		// available?
-		if( queue -> element_link_pointer_and_flags & MODULE_USB_UHCI_QTD_FLAG_terminate ) { queue -> element_link_pointer_and_flags = source; return i; }
+		if( queue[ i ].element_link_pointer_and_flags & MODULE_USB_UHCI_QTD_FLAG_terminate ) {
+			if( type == MODULE_USB_UHCI_QTD_FLAG_queue ) {
+				// insert Queue
+				queue[ i ].head_link_pointer_and_flags = source | type;
+
+				// remember Queue properties
+				queue[ i ].preserved_head = source | type;
+			} else
+				// insert Transfer Descriptors
+				queue[ i ].element_link_pointer_and_flags = source | type;
+
+			// next entry already occupied?
+			if( ! (queue[ i + 1 ].element_link_pointer_and_flags & MODULE_USB_UHCI_QTD_FLAG_terminate)  )
+				// make a path to next one
+				queue[ i ].head_link_pointer_and_flags = (uintptr_t) &queue[ i + 1 ] | MODULE_USB_UHCI_QTD_FLAG_queue;
+
+			// return entry id
+			return i;
+		}
 	}
 }
 
@@ -633,8 +639,12 @@ void module_usb_uhci_queue_remove( uint8_t unit, uint64_t entry ) {
 		case 16: { queue = module_usb_uhci_queue_16u; break; }
 	}
 
-	// truncate queue
-	queue[ entry ].element_link_pointer_and_flags = MODULE_USB_UHCI_QTD_FLAG_terminate;
+	if( queue[ entry + 1 ].head_link_pointer_and_flags & MODULE_USB_UHCI_QTD_FLAG_terminate )
+		// truncate queue
+		queue[ entry ].head_link_pointer_and_flags = MODULE_USB_UHCI_QTD_FLAG_terminate;
+	else
+		// create link to next entry
+		queue[ entry + 1 ].element_link_pointer_and_flags = (uintptr_t) &queue[ entry + 1 ] | MODULE_USB_UHCI_QTD_FLAG_queue;
 }
 
 void _entry( uintptr_t kernel_ptr ) {
@@ -648,7 +658,7 @@ void _entry( uintptr_t kernel_ptr ) {
 	module_usb_port = (struct MODULE_USB_STRUCTURE_PORT *) kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( sizeof( struct MODULE_USB_STRUCTURE_PORT ) * MODULE_USB_PORT_limit ) >> STD_SHIFT_PAGE );
 
 	// check every bus;device;function of PCI controller
-	for( uint16_t b = 0; b < 256; b++ )
+	for( uint16_t b = 0; b < TRUE; b++ )
 		for( uint8_t d = 0; d < 32; d++ )
 			for( uint8_t f = 0; f < 8; f++ ) {
 				// PCI properties
@@ -760,13 +770,13 @@ void _entry( uintptr_t kernel_ptr ) {
 		}
 	}
 
-	// enable keyboard thread
-	uint8_t module_usb_string_hid_keyboard[] = "usb.ko - keyboard";
-	kernel -> module_thread( (uintptr_t) &module_usb_hid_keyboard, (uint8_t *) &module_usb_string_hid_keyboard, sizeof( module_usb_string_hid_keyboard ) - 1 );
-
 	// enable mouse thread
 	uint8_t module_usb_string_hid_mouse[] = "usb.ko - mouse";
 	kernel -> module_thread( (uintptr_t) &module_usb_hid_mouse, (uint8_t *) &module_usb_string_hid_mouse, sizeof( module_usb_string_hid_mouse ) - 1 );
+
+	// enable keyboard thread
+	uint8_t module_usb_string_hid_keyboard[] = "usb.ko - keyboard";
+	kernel -> module_thread( (uintptr_t) &module_usb_hid_keyboard, (uint8_t *) &module_usb_string_hid_keyboard, sizeof( module_usb_string_hid_keyboard ) - 1 );
 
 	// hold the door
 	while( TRUE ) kernel -> time_sleep( TRUE );

@@ -22,6 +22,6 @@ qemu-system-x86_64					\
 	-rtc base=localtime				\
 	-audio driver=alsa,model=sb16,id=7		\
 	-serial stdio					\
-	# -usb						\
-	# -device usb-kbd,bus=usb-bus.0,port=1		\
-	# -device usb-mouse,bus=usb-bus.0,port=2		\
+	-usb						\
+	-device usb-kbd,bus=usb-bus.0,port=1		\
+	-device usb-mouse,bus=usb-bus.0,port=2		\
