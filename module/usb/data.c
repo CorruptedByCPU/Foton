@@ -13,6 +13,14 @@ struct MODULE_USB_STRUCTURE_UHCI_QUEUE *module_usb_uhci_queue_1u	= EMPTY;
 struct MODULE_USB_STRUCTURE_UHCI_QUEUE *module_usb_uhci_queue_8u	= EMPTY;
 struct MODULE_USB_STRUCTURE_UHCI_QUEUE *module_usb_uhci_queue_16u	= EMPTY;
 
+uint8_t module_usb_keyboard_alt_left_semaphore		= EMPTY;
+uint8_t module_usb_keyboard_alt_right_semaphore		= EMPTY;
+uint8_t module_usb_keyboard_ctrl_left_semaphore		= EMPTY;
+uint8_t module_usb_keyboard_ctrl_right_semaphore	= EMPTY;
+uint8_t module_usb_keyboard_shift_left_semaphore	= EMPTY;
+uint8_t module_usb_keyboard_shift_right_semaphore	= EMPTY;
+uint8_t module_usb_keyboard_arrow_semaphore		= EMPTY;
+
 uint16_t module_usb_keyboard_matrix_low[] = {
 	EMPTY,			// 0x00
 	EMPTY,			// 0x01
