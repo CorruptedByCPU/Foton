@@ -23,12 +23,29 @@
 	//----------------------------------------------------------------------
 	#include	"./usb/data.c"
 
+uint16_t module_usb_hid_keyboard_matrix( uint8_t id ) {
+	// translate key id, default: low matrix
+	uint16_t key = module_usb_keyboard_matrix_low[ id ];
+
+	// high matrix?
+	if( module_usb_keyboard_cache[ 0 ] & (MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_LEFT | MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_RIGHT) )
+		// yes
+		key = module_usb_keyboard_matrix_high[ id ];
+
+	// return key from matrix
+	return key;
+}
+
+void module_usb_hid_keyboard_save( uint16_t key ) {
+	// in first free space in keyboard buffer
+	for( uint8_t c = 0; c < 8; c++ )
+		// save character
+		if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = key; break; }
+}
+
 void module_usb_hid_keyboard( void ) {
 	// prepare keyboard input cache
 	uint8_t *cache = (uint8_t *) kernel -> memory_alloc_low( TRUE );
-
-	// prevention of key combination repeatedness
-	uint8_t key_shadow[ 8 ] = { EMPTY };
 
 	// receive keys
 	while( TRUE ) {
@@ -46,114 +63,102 @@ void module_usb_hid_keyboard( void ) {
 			// if something bad hapenned
 			if( status ) continue;	// ignore keys
 
-			// special keys
-			if( cache[ 0 ] || module_usb_keyboard_alt_left_semaphore || module_usb_keyboard_alt_right_semaphore || module_usb_keyboard_ctrl_left_semaphore || module_usb_keyboard_ctrl_right_semaphore || module_usb_keyboard_shift_left_semaphore || module_usb_keyboard_shift_right_semaphore ) {
+			// check special key
+			if( *cache != module_usb_keyboard_cache[ 0 ] ) {
 				// key update
 				uint16_t key;
 
-				// ALT left
-				if( cache[ 0 ] & 0x04 || module_usb_keyboard_alt_left_semaphore ) {
-					// by default pressed
-					key = STD_KEY_ALT_LEFT;
-					if( ! (cache[ 0 ] & 0x04) ) {
-						// nope, released
-						key |= STD_KEY_RELEASE;
-						module_usb_keyboard_alt_left_semaphore = FALSE;
-					// yes, pressed
-					} else module_usb_keyboard_alt_left_semaphore = TRUE;
+				// CTRL left
+				if( module_usb_keyboard_cache[ 0 ] != (*cache & MODULE_USB_HID_KEYBOARD_KEY_CODE_CTRL_LEFT) ) {
+					// default state
+					key = STD_KEY_CTRL_LEFT;
 
-					// in first free space in keyboard buffer
-					for( uint8_t c = 0; c < 8; c++ )
-						// save character
-						if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = key; break; }
+					// if released
+					if( ! (*cache & MODULE_USB_HID_KEYBOARD_KEY_CODE_CTRL_LEFT) ) key |= STD_KEY_RELEASE;
+
+					// insert key into cache
+					module_usb_hid_keyboard_save( key );
 				}
 
 				// SHIFT left
-				if( cache[ 0 ] & 0x02 || module_usb_keyboard_shift_left_semaphore ) {
-					// by default pressed
+				if( module_usb_keyboard_cache[ 0 ] != (*cache & MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_LEFT) ) {
+					// default state
 					key = STD_KEY_SHIFT_LEFT;
-					if( ! (cache[ 0 ] & 0x02) ) {
-						// nope, released
-						key |= STD_KEY_RELEASE;
-						module_usb_keyboard_shift_left_semaphore = FALSE;
-					// yes, pressed
-					} else module_usb_keyboard_shift_left_semaphore = TRUE;
 
-					// in first free space in keyboard buffer
-					for( uint8_t c = 0; c < 8; c++ )
-						// save character
-						if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = key; break; }
+					// if released
+					if( ! (*cache & MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_LEFT) ) key |= STD_KEY_RELEASE;
+					
+					// insert key into cache
+					module_usb_hid_keyboard_save( key );
 				}
 
-				// SHIFT right
-				if( cache[ 0 ] & 0x20 || module_usb_keyboard_shift_right_semaphore ) {
-					// by default pressed
-					key = STD_KEY_SHIFT_RIGHT;
-					if( ! (cache[ 0 ] & 0x20) ) {
-						// nope, released
-						key |= STD_KEY_RELEASE;
-						module_usb_keyboard_shift_right_semaphore = FALSE;
-					// yes, pressed
-					} else module_usb_keyboard_shift_right_semaphore = TRUE;
+				// ALT left
+				if( module_usb_keyboard_cache[ 0 ] != (*cache & MODULE_USB_HID_KEYBOARD_KEY_CODE_ALT_LEFT) ) {
+					// default state
+					key = STD_KEY_ALT_LEFT;
 
-					// in first free space in keyboard buffer
-					for( uint8_t c = 0; c < 8; c++ )
-						// save character
-						if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = key; break; }
+					// if released
+					if( ! (*cache & MODULE_USB_HID_KEYBOARD_KEY_CODE_ALT_LEFT) ) key |= STD_KEY_RELEASE;
+					
+					// insert key into cache
+					module_usb_hid_keyboard_save( key );
 				}
+
+				// MENU left
+				if( module_usb_keyboard_cache[ 0 ] != (*cache & MODULE_USB_HID_KEYBOARD_KEY_CODE_MENU_LEFT) ) {
+					// default state
+					key = STD_KEY_MENU;
+
+					// if released
+					if( ! (*cache & MODULE_USB_HID_KEYBOARD_KEY_CODE_MENU_LEFT) ) key |= STD_KEY_RELEASE;
+					
+					// insert key into cache
+					module_usb_hid_keyboard_save( key );
+				}
+
+				// preserve special key state
+				module_usb_keyboard_cache[ 0 ] = *cache;
 			}
 
-			// check for released key
-			uint8_t released_for_sure = FALSE;
-			for( uint8_t k = 2; k < 8; k++ ) {
+			// release key
+			for( uint8_t i = 2; i < 8; i++ ) {
+				// ignore empty fields
+				if( ! module_usb_keyboard_cache[ i ] ) continue;
+
+				// released by default
 				uint8_t released = TRUE;
-				for( uint8_t s = 2; s < 8; s++ ) {
-					if( key_shadow[ k ] == cache[ s ] ) released = FALSE;
-				}
 
-				if( released ) {
-					released_for_sure = TRUE;
-					// in first free space in keyboard buffer
-					for( uint8_t c = 0; c < 8; c++ )
-						// save character
-						if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = key_shadow[ k ] | STD_KEY_RELEASE; break; }
+				// search for released key
+				for( uint8_t j = 2; j < 8; j++ ) if( module_usb_keyboard_cache[ i ] == cache[ j ] ) released = FALSE;
 
-					kernel -> log( (uint8_t *) "Released 0x%X\n", key_shadow[ k ] );
+				// released a key?
+				if( ! released ) continue;	// no
 
-					// remove key from shadow
-					key_shadow[ k ] = EMPTY;
-				}
+				// insert key into kernel cache
+				module_usb_hid_keyboard_save( module_usb_hid_keyboard_matrix( module_usb_keyboard_cache[ i ] ) | STD_KEY_RELEASE );
 			}
 
-			// for every received existing key
-			uint8_t parsed = FALSE;
-			for( uint8_t k = 7; k > 1 && released_for_sure == FALSE; k-- ) {
-				// recieved data?
-				if( ! cache[ k ] || cache[ k ] >= (sizeof( module_usb_keyboard_matrix_low ) >> STD_SHIFT_2) ) continue;
 
-				// translate key code, default: low matrix
-				uint16_t key = module_usb_keyboard_matrix_low[ cache[ k ] ];
+			// press key
+			for( uint8_t i = 2; i < 8; i++ ) {
+				// ignore empty fields
+				if( ! cache[ i ] ) continue;
 
-				// high matrix?
-				if( module_usb_keyboard_shift_left_semaphore || module_usb_keyboard_shift_right_semaphore )
-					// yes
-					key = module_usb_keyboard_matrix_high[ cache[ k ] ];
+				// not pressed by default
+				uint8_t pressed = TRUE;
 
-				if( ! parsed ) {
-					// in first free space in keyboard buffer
-					for( uint8_t c = 0; c < 8; c++ )
-						// save character
-						if( ! kernel -> device_keyboard[ c ] ) { kernel -> device_keyboard[ c ] = key; break; }
+				// search for pressed key
+				for( uint8_t j = 2; j < 8; j++ ) if( cache[ i ] == module_usb_keyboard_cache[ j ] ) pressed = FALSE;
 
-					kernel -> log( (uint8_t *) "Pressed 0x%X\n", cache[ k ] );
+				// pressed a key?
+				if( ! pressed ) continue;	// no
 
-					// done
-					parsed = TRUE;
-				}
-
-				// store key in shadow
-				key_shadow[ k ] = cache[ k ];
+				// insert key into kernel cache
+				module_usb_hid_keyboard_save( module_usb_hid_keyboard_matrix( cache[ i ] ) );
 			}
+
+			// update local key cache
+			for( uint8_t i = 2; i < 8; i++ ) module_usb_keyboard_cache[ i ] = cache[ i ];
 		}
 	}
 }
