@@ -810,7 +810,7 @@ void _entry( uintptr_t kernel_ptr ) {
 	module_usb_port = (struct MODULE_USB_STRUCTURE_PORT *) kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( sizeof( struct MODULE_USB_STRUCTURE_PORT ) * MODULE_USB_PORT_limit ) >> STD_SHIFT_PAGE );
 
 	// check every bus;device;function of PCI controller
-	for( uint16_t b = 0; b < TRUE; b++ )
+	for( uint16_t b = 0; b < 256; b++ )
 		for( uint8_t d = 0; d < 32; d++ )
 			for( uint8_t f = 0; f < 8; f++ ) {
 				// PCI properties
@@ -841,12 +841,20 @@ void _entry( uintptr_t kernel_ptr ) {
 						// yes
 						module_usb_controller[ module_usb_controller_limit ].mmio_semaphore = TRUE;
 
+						// 64 bit address?
+						if( (module_usb_controller[ module_usb_controller_limit ].base_address & ~STD_PAGE_mask) == 0b0100 )
+							// retrieve higher address value
+							module_usb_controller[ module_usb_controller_limit ].base_address |= (uint64_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_bar5 ) << STD_MOVE_DWORD;
+
+						// map MMIO controller area
+						kernel -> page_map( kernel -> page_base_address, module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask, module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( TRUE ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+
 						// debug
-						kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - Enabled MMIO access.\n", module_usb_controller_limit, pci.bus, pci.device, pci.function );
+						kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - MMIO address 0x%16X\n", module_usb_controller_limit, pci.bus, pci.device, pci.function, module_usb_controller[ module_usb_controller_limit ].base_address );
 					}
 
-					// remove I/O flag, if exist
-					module_usb_controller[ module_usb_controller_limit ].base_address &= ~TRUE;
+					// reset flags
+					module_usb_controller[ module_usb_controller_limit ].base_address &= ~0b00001111;
 
 					// disable BIOS legacy support
 					driver_pci_write( pci, 0xC0, 0x8F00 );
