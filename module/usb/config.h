@@ -48,6 +48,7 @@
 
 		uintptr_t	base_address;
 		uint8_t		limit;
+		uint8_t		mmio_semaphore;
 
 		uint64_t	frame_base_address;
 	};

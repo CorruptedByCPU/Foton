@@ -223,8 +223,41 @@ struct MODULE_USB_STRUCTURE_PORT *module_usb_port_register( uint8_t c, uint8_t p
 }
 
 void module_usb_uhci_init( uint8_t c ) {
+	// alloc area for frame list
+	module_usb_controller[ c ].frame_base_address = (uint32_t) (kernel -> memory_alloc_low( TRUE ) & ~KERNEL_PAGE_mirror);
+
+	// type of access
+	if( module_usb_controller[ c ].mmio_semaphore ) {
+		// properties of UHCI controller
+		struct MODULE_USB_STRUCTURE_UHCI_REGISTER *uhci = (struct MODULE_USB_STRUCTURE_UHCI_REGISTER *) module_usb_controller[ c ].base_address;
+
+		// reset controller
+		uhci -> command = 0x0004; kernel -> time_sleep( 16 ); uhci -> command = EMPTY;
+
+		// disable interrupts
+		uhci -> interrupt_enable = EMPTY;
+
+		// reset frame number
+		uhci -> frame_number = EMPTY;
+
+		// set area of frame list
+		uhci -> frame_list_base_address = module_usb_controller[ c ].frame_base_address;
+
+		// fill up frame list with queues
+		module_usb_uhci_queue( (uint32_t *) (module_usb_controller[ c ].frame_base_address | KERNEL_PAGE_mirror) );
+
+		// clear status register
+		uhci -> status = 0b00111111;
+
+		// enable controller
+		uhci -> command = TRUE;
+
+		// done
+		return;
+	}
+
 	// reset controller
-	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, command ), 0x0004 ); kernel -> time_sleep( 16 ); driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, command ), 0x0000 );
+	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, command ), 0x0004 ); kernel -> time_sleep( 16 ); driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, command ), EMPTY );
 
 	// disable interrupts
 	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, interrupt_enable ), EMPTY );
@@ -232,8 +265,7 @@ void module_usb_uhci_init( uint8_t c ) {
 	// reset frame number
 	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, frame_number ), EMPTY );
 
-	// alloc area for frame list
-	module_usb_controller[ c ].frame_base_address = (uint32_t) (kernel -> memory_alloc_low( TRUE ) & ~KERNEL_PAGE_mirror);
+	// set area of frame list
 	driver_port_out_dword( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, frame_list_base_address ), module_usb_controller[ c ].frame_base_address );
 
 	// fill up frame list with queues
@@ -435,14 +467,32 @@ uint8_t module_usb_uhci_descriptor_io( struct MODULE_USB_STRUCTURE_PORT *port, u
 }
 
 uint16_t module_usb_uhci_device_init( uint8_t c, uint8_t p ) {
-	// send command, RESET
-	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 64 );
-	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), EMPTY ); kernel -> time_sleep( 16 );
+	// properties of UHCI controller
+	struct MODULE_USB_STRUCTURE_UHCI_REGISTER *uhci = (struct MODULE_USB_STRUCTURE_UHCI_REGISTER *) module_usb_controller[ c ].base_address;
+
+	// type of access
+	if( module_usb_controller[ c ].mmio_semaphore ) {
+		// send command, RESET
+		uhci -> port[ p ] = MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_reset; kernel -> time_sleep( 64 );
+		uhci -> port[ p ] = EMPTY; kernel -> time_sleep( 16 );
+	} else {
+		// send command, RESET
+		driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_reset ); kernel -> time_sleep( 64 );
+		driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), EMPTY ); kernel -> time_sleep( 16 );
+	}
 
 	// try to enable attached device
 	for( uint8_t i = 0; i < 7; i++ ) {
-		// retrieve port status
-		uint16_t status = driver_port_in_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ) );
+		// undefinied status
+		uint16_t status;
+
+		// type of access
+		if( module_usb_controller[ c ].mmio_semaphore )
+			// retrieve port status
+			status = uhci-> port[ p ];
+		else
+			// retrieve port status
+			status = driver_port_in_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ) );
 
 		// debug
 		// kernel -> log( (uint8_t *) "[USB].%u Port%u - Status:%16b\n", c, p, status );
@@ -455,8 +505,13 @@ uint16_t module_usb_uhci_device_init( uint8_t c, uint8_t p ) {
 	
 		// port status change?
 		if( status & (MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_connect_status_change | MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enable_change) ) {
-			// clean it
-			driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_connect_status_change | MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enable_change ); kernel -> time_sleep( 1 );
+			// type of access
+			if( module_usb_controller[ c ].mmio_semaphore ) {
+				// clean it
+				uhci -> port[ p ] = MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_connect_status_change | MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enable_change; kernel -> time_sleep( 1 );
+			} else
+				// clean it
+				driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_connect_status_change | MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enable_change ); kernel -> time_sleep( 1 );
 
 			// try again
 			continue;
@@ -466,9 +521,14 @@ uint16_t module_usb_uhci_device_init( uint8_t c, uint8_t p ) {
 		if( status & MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enabled )
 			// done
 			return status;
-		
-		// try to enable port
-		driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enabled );
+
+		// type of access
+		if( module_usb_controller[ c ].mmio_semaphore )
+			// try to enable port
+			uhci -> port[ p ] = MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enabled;
+		else
+			// try to enable port
+			driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enabled );
 	}
 
 	// no device attached
@@ -566,7 +626,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 			descriptor_configuration = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_CONFIGURATION *) parse;
 
 			// debug
-			kernel -> log( (uint8_t *) "[USB].%u Port%u - Configuration ID:%u, %u Interface/s", port -> id_controller, port -> id_port, descriptor_configuration -> config_value, descriptor_configuration -> interface_count ); if( (descriptor_configuration -> attributes >> 5) & TRUE ) kernel -> log( (uint8_t *) ", Remote Wakeup" ); if( (descriptor_configuration -> attributes >> 6) & TRUE ) kernel -> log( (uint8_t *) ", Self Powered" ); kernel -> log( (uint8_t *) ", Maximum Power Consumption %umA\n", descriptor_configuration -> max_power << STD_SHIFT_2 );
+			// kernel -> log( (uint8_t *) "[USB].%u Port%u - Configuration ID:%u, %u Interface/s", port -> id_controller, port -> id_port, descriptor_configuration -> config_value, descriptor_configuration -> interface_count ); if( (descriptor_configuration -> attributes >> 5) & TRUE ) kernel -> log( (uint8_t *) ", Remote Wakeup" ); if( (descriptor_configuration -> attributes >> 6) & TRUE ) kernel -> log( (uint8_t *) ", Self Powered" ); kernel -> log( (uint8_t *) ", Maximum Power Consumption %umA\n", descriptor_configuration -> max_power << STD_SHIFT_2 );
 		} else
 
 		// interface descriptor
@@ -575,7 +635,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 			descriptor_interface = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_INTERFACE *) parse;
 
 			// debug
-			kernel -> log( (uint8_t *) "[USB].%u Port%u - Interface ID:%u, %u Endpoint/s", port -> id_controller, port -> id_port, descriptor_interface -> interface_id, descriptor_interface -> endpoint_count ); kernel -> log( (uint8_t *) ", Class: " ); switch( descriptor_interface -> class ) { case 0x03: { kernel -> log( (uint8_t *) "HID" ); if( descriptor_interface -> protocol == 0x01 ) kernel -> log( (uint8_t *) " (Protocol: Keyboard)" ); if( descriptor_interface -> protocol == 0x02 ) kernel -> log( (uint8_t *) " (Protocol: Mouse)" ); if( descriptor_interface -> subclass == 1 ) kernel -> log( (uint8_t *) ", Subclass: Boot Interface" ); else kernel -> log( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x07: { kernel -> log( (uint8_t *) "Printer" ); break; } case 0x08: { kernel -> log( (uint8_t *) "Mass Storage" ); if( descriptor_interface -> subclass == 0x06 ) kernel -> log( (uint8_t *) ", Subclass: SCSI transparent command set" ); else kernel -> log( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x09: { kernel -> log( (uint8_t *) "HUB" ); break; } default: kernel -> log( (uint8_t *) "{unknown}" ); } kernel -> log( (uint8_t *) "\n" );
+			// kernel -> log( (uint8_t *) "[USB].%u Port%u - Interface ID:%u, %u Endpoint/s", port -> id_controller, port -> id_port, descriptor_interface -> interface_id, descriptor_interface -> endpoint_count ); kernel -> log( (uint8_t *) ", Class: " ); switch( descriptor_interface -> class ) { case 0x03: { kernel -> log( (uint8_t *) "HID" ); if( descriptor_interface -> protocol == 0x01 ) kernel -> log( (uint8_t *) " (Protocol: Keyboard)" ); if( descriptor_interface -> protocol == 0x02 ) kernel -> log( (uint8_t *) " (Protocol: Mouse)" ); if( descriptor_interface -> subclass == 1 ) kernel -> log( (uint8_t *) ", Subclass: Boot Interface" ); else kernel -> log( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x07: { kernel -> log( (uint8_t *) "Printer" ); break; } case 0x08: { kernel -> log( (uint8_t *) "Mass Storage" ); if( descriptor_interface -> subclass == 0x06 ) kernel -> log( (uint8_t *) ", Subclass: SCSI transparent command set" ); else kernel -> log( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x09: { kernel -> log( (uint8_t *) "HUB" ); break; } default: kernel -> log( (uint8_t *) "{unknown}" ); } kernel -> log( (uint8_t *) "\n" );
 		} else
 
 		// endpoint descriptor
@@ -584,7 +644,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 			descriptor_endpoint = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_ENDPOINT *) parse;
 
 			// debug
-			kernel -> log( (uint8_t *) "[USB].%u Port%u - Endpoint ID:%u", port -> id_controller, port -> id_port, descriptor_endpoint -> address & 0x1111 ); if( descriptor_endpoint -> address >> 7 ) kernel -> log( (uint8_t *) ", In" ); else kernel -> log( (uint8_t *) ", Out" ); switch( descriptor_endpoint -> attributes & 0x11 ) { case 0x01: { kernel -> log( (uint8_t *) ", Isochronous" ); break; } case 0x02: { kernel -> log( (uint8_t *) ", Bulk" ); break; } case 0x03: { kernel -> log( (uint8_t *) ", Interrupt" ); break; } default: kernel -> log( (uint8_t *) ", Control" ); } kernel -> log( (uint8_t *) ", Max Packet Size %u Byte/s", descriptor_endpoint -> max_packet_size ); kernel -> log( (uint8_t *) "\n" );
+			// kernel -> log( (uint8_t *) "[USB].%u Port%u - Endpoint ID:%u", port -> id_controller, port -> id_port, descriptor_endpoint -> address & 0x1111 ); if( descriptor_endpoint -> address >> 7 ) kernel -> log( (uint8_t *) ", In" ); else kernel -> log( (uint8_t *) ", Out" ); switch( descriptor_endpoint -> attributes & 0x11 ) { case 0x01: { kernel -> log( (uint8_t *) ", Isochronous" ); break; } case 0x02: { kernel -> log( (uint8_t *) ", Bulk" ); break; } case 0x03: { kernel -> log( (uint8_t *) ", Interrupt" ); break; } default: kernel -> log( (uint8_t *) ", Control" ); } kernel -> log( (uint8_t *) ", Max Packet Size %u Byte/s", descriptor_endpoint -> max_packet_size ); kernel -> log( (uint8_t *) "\n" );
 		}
 
 		// next
@@ -764,25 +824,29 @@ void _entry( uintptr_t kernel_ptr ) {
 					// set type and base address
 					module_usb_controller[ module_usb_controller_limit ].type = MODULE_USB_CONTROLLER_TYPE_UHCI;
 					module_usb_controller[ module_usb_controller_limit ].base_address = driver_pci_read( pci, DRIVER_PCI_REGISTER_bar4 );
+					module_usb_controller[ module_usb_controller_limit ].mmio_semaphore = FALSE;	// by default
 
 					// detect length of port area
 					driver_pci_write( pci, DRIVER_PCI_REGISTER_bar4, 0xFFFFFFFF );
 					module_usb_controller[ module_usb_controller_limit ].limit = ( ~( driver_pci_read( pci, DRIVER_PCI_REGISTER_bar4 ) & ~1 ) + 1 ) >> STD_SHIFT_16;
 			
-					// limit undefinied?
-					if( ! (module_usb_controller[ module_usb_controller_limit ].base_address & TRUE) || ! module_usb_controller[ module_usb_controller_limit ].limit ) {
-						// debug
-						kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - MMIO no support.\n", module_usb_controller_limit, pci.bus, pci.device, pci.function );
-
-						// next controller
-						continue;
-					}
-
-					// remove MMIO flag, if exist
-					module_usb_controller[ module_usb_controller_limit ].base_address &= ~TRUE;
-
 					// restore original value
 					driver_pci_write( pci, DRIVER_PCI_REGISTER_bar4, module_usb_controller[ module_usb_controller_limit ].base_address );
+
+					// undefinied limit?
+					if( ! module_usb_controller[ module_usb_controller_limit ].limit ) module_usb_controller[ module_usb_controller_limit ].limit = 2;	// default length
+
+					// MMIO type of address?
+					if( ! (module_usb_controller[ module_usb_controller_limit ].base_address & TRUE) ) {
+						// yes
+						module_usb_controller[ module_usb_controller_limit ].mmio_semaphore = TRUE;
+
+						// debug
+						kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - Enabled MMIO access.\n", module_usb_controller_limit, pci.bus, pci.device, pci.function );
+					}
+
+					// remove I/O flag, if exist
+					module_usb_controller[ module_usb_controller_limit ].base_address &= ~TRUE;
 
 					// disable BIOS legacy support
 					driver_pci_write( pci, 0xC0, 0x8F00 );
