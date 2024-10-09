@@ -15,6 +15,7 @@ clock: sync=realtime, time0=local, rtc_sync=1
 keyboard: type=mf, serial_delay=250, paste_delay=100000, user_shortcut=none
 mouse: type=ps2, enabled=false, toggle=ctrl+mbutton
 usb_uhci: enabled=1, port1=keyboard, options1="speed:low", port2=mouse, options2="speed:low"
+#usb_ehci: enabled=1, companion=uhci, port1=keyboard, options1="speed:low", port2=mouse, options2="speed:low"
 sound: waveoutdrv=alsa, waveout=none, waveindrv=alsa, wavein=none, midioutdrv=alsa, midiout=none
 #voodoo: enabled=true, model=voodoo1
 com1: enabled=true, mode=file, dev="serial.log"

@@ -25,3 +25,6 @@ qemu-system-x86_64					\
 	-usb						\
 	-device usb-kbd,bus=usb-bus.0,port=1		\
 	-device usb-mouse,bus=usb-bus.0,port=2		\
+	# -device usb-ehci,id=ehci			\
+	# -device usb-kbd,bus=ehci.0			\
+	# -device usb-mouse,bus=ehci.0			\
