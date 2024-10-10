@@ -218,9 +218,6 @@ uint16_t module_usb_uhci_device_init( uint8_t c, uint8_t p ) {
 			// retrieve port status
 			status = driver_port_in_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ) );
 
-		// debug
-		// kernel -> log( (uint8_t *) "[USB].%u Port%u - Status:%16b\n", c, p, status );
-
 		// device attached?
 		if( ! (status & MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_current_connect_status) ) {	// no
 			// ignore port

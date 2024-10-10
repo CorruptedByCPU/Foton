@@ -18,12 +18,14 @@
 	// variables, structures, definitions of module
 	//----------------------------------------------------------------------
 	#include	"./usb/config.h"
+	#include	"./usb/uhci.h"
+	#include	"./usb/ehci.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
 	#include	"./usb/data.c"
 	#include	"./usb/uhci.c"
-	// #include	"./usb/ehci.c"
+	#include	"./usb/ehci.c"
 
 uint16_t module_usb_hid_keyboard_matrix( uint8_t id ) {
 	// translate key id, default: low matrix
@@ -256,7 +258,10 @@ void _entry( uintptr_t kernel_ptr ) {
 					// set type
 					module_usb_controller[ module_usb_controller_limit ].type = MODULE_USB_CONTROLLER_TYPE_UHCI;
 
-					// UHCI uses different values for BAR
+					// disable BIOS legacy support
+					driver_pci_write( pci, 0xC0, 0x8F00 );
+
+					// UHCI uses different values for BARs
 					bar_low = DRIVER_PCI_REGISTER_bar4;
 					bar_high = DRIVER_PCI_REGISTER_bar5;
 				}
@@ -327,15 +332,12 @@ void _entry( uintptr_t kernel_ptr ) {
 				// reset flags
 				module_usb_controller[ module_usb_controller_limit ].base_address &= ~0b00001111;
 
-				// disable BIOS legacy support
-				driver_pci_write( pci, 0xC0, 0x8F00 );
-
 				// controller registered
 				module_usb_controller_limit++;
 			}
 
 	// initialize EHCI controllers
-	// for( uint8_t c = 0; c < module_usb_controller_limit; c++ ) if( module_usb_controller[ c ].type == MODULE_USB_CONTROLLER_TYPE_EHCI ) module_usb_ehci_init( c );
+	for( uint8_t c = 0; c < module_usb_controller_limit; c++ ) if( module_usb_controller[ c ].type == MODULE_USB_CONTROLLER_TYPE_EHCI ) module_usb_ehci_init( c );
 
 	// initialize controllers
 	for( uint8_t c = 0; c < module_usb_controller_limit; c++ )
