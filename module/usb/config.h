@@ -21,27 +21,28 @@
 	};
 
 	struct MODULE_USB_STRUCTURE_CONTROLLER {
-		uint8_t		type;
+		uint8_t				type;
+		struct DRIVER_PCI_STRUCTURE	pci;
 
-		uintptr_t	base_address;
-		uint8_t		limit;
-		uint8_t		mmio_semaphore;
+		uintptr_t			base_address;
+		uint8_t				limit;
+		uint8_t				mmio_semaphore;
 
-		uint64_t	frame_base_address;
+		uint64_t			frame_base_address;
 	};
 
 	struct MODULE_USB_STRUCTURE_PORT {
-		uint8_t		status;
-		uint8_t		type;
+		uint8_t				status;
+		uint8_t				type;
 
-		uint8_t		id_controller;
-		uint8_t		id_port;
-		uint8_t		id_address;
-		uint8_t		id_endpoint;
+		uint8_t				id_controller;
+		uint8_t				id_port;
+		uint8_t				id_address;
+		uint8_t				id_endpoint;
 
-		uint8_t		low_speed		: 1;
-		uint8_t		max_packet_length;
-		uint8_t		toggle;
+		uint8_t				low_speed		: 1;
+		uint8_t				max_packet_length;
+		uint8_t				toggle;
 	};
 
 	#define	MODULE_USB_PACKET_TYPE_direction_device_to_host			0b10000000

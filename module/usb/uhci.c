@@ -402,9 +402,6 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 	// TD semaphore, reset
 	port -> toggle = FALSE;
 
-	// debug
-	// if( port -> type == MODULE_USB_DEVICE_TYPE_HID_KEYBOARD ) module_usb_hid_keyboard();
-
 	// done
 	return TRUE;
 }

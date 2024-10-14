@@ -241,10 +241,13 @@ void _entry( uintptr_t kernel_ptr ) {
 		for( uint8_t d = 0; d < 32; d++ )
 			for( uint8_t f = 0; f < 8; f++ ) {
 				// PCI properties
-				struct DRIVER_PCI_STRUCTURE pci = { EMPTY, b, d, f };
+				module_usb_controller[ module_usb_controller_limit ].pci.result		= EMPTY;
+				module_usb_controller[ module_usb_controller_limit ].pci.bus		= b;
+				module_usb_controller[ module_usb_controller_limit ].pci.device		= d;
+				module_usb_controller[ module_usb_controller_limit ].pci.function	= f;
 
 				// retrieved class-subclass
-				uint32_t class_subclass = driver_pci_read( pci, DRIVER_PCI_REGISTER_class_and_subclass ) >> 8;
+				uint32_t class_subclass = driver_pci_read( module_usb_controller[ module_usb_controller_limit ].pci, DRIVER_PCI_REGISTER_class_and_subclass ) >> 8;
 
 				// localization of base address inside PCI, default values
 				uint8_t bar_low = DRIVER_PCI_REGISTER_bar0;
@@ -253,13 +256,13 @@ void _entry( uintptr_t kernel_ptr ) {
 				// if found
 				if( class_subclass == DRIVER_PCI_CLASS_SUBCLASS_usb_uhci ) {
 					// debug
-					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - USB controller found. (UHCI - Universal Host Controller Interface)\n", module_usb_controller_limit, pci.bus, pci.device, pci.function );
+					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - USB controller found. (UHCI - Universal Host Controller Interface)\n", module_usb_controller_limit, module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function );
 
 					// set type
 					module_usb_controller[ module_usb_controller_limit ].type = MODULE_USB_CONTROLLER_TYPE_UHCI;
 
 					// disable BIOS legacy support
-					driver_pci_write( pci, 0xC0, 0x8F00 );
+					driver_pci_write( module_usb_controller[ module_usb_controller_limit ].pci, 0xC0, 0x8F00 );
 
 					// UHCI uses different values for BARs
 					bar_low = DRIVER_PCI_REGISTER_bar4;
@@ -269,7 +272,7 @@ void _entry( uintptr_t kernel_ptr ) {
 				// if found
 				if( class_subclass == DRIVER_PCI_CLASS_SUBCLASS_usb_ohci ) {
 					// debug
-					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - USB controller found. (OHCI - Open Host Controller Interface)\n", module_usb_controller_limit, pci.bus, pci.device, pci.function );
+					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - USB controller found. (OHCI - Open Host Controller Interface)\n", module_usb_controller_limit, module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function );
 
 					// set type
 					module_usb_controller[ module_usb_controller_limit ].type = MODULE_USB_CONTROLLER_TYPE_OHCI;
@@ -278,7 +281,7 @@ void _entry( uintptr_t kernel_ptr ) {
 				// if found
 				if( class_subclass == DRIVER_PCI_CLASS_SUBCLASS_usb_ehci ) {
 					// debug
-					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - USB controller found. (EHCI - Enchanced Host Controller Interface)\n", module_usb_controller_limit, pci.bus, pci.device, pci.function );
+					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - USB controller found. (EHCI - Enchanced Host Controller Interface)\n", module_usb_controller_limit, module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function );
 
 					// set type
 					module_usb_controller[ module_usb_controller_limit ].type = MODULE_USB_CONTROLLER_TYPE_EHCI;
@@ -287,7 +290,7 @@ void _entry( uintptr_t kernel_ptr ) {
 				// if found
 				if( class_subclass == DRIVER_PCI_CLASS_SUBCLASS_usb_xhci ) {
 					// debug
-					kernel -> log( (uint8_t *) "[USB] PCI %2X:%2X.%u - USB controller found. (xHCI - eXtensible Host Controller Interface)\n", pci.bus, pci.device, pci.function );
+					kernel -> log( (uint8_t *) "[USB] PCI %2X:%2X.%u - USB controller found. (xHCI - eXtensible Host Controller Interface)\n", module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function );
 
 					// set type
 					module_usb_controller[ module_usb_controller_limit ].type = MODULE_USB_CONTROLLER_TYPE_xHCI;
@@ -297,15 +300,15 @@ void _entry( uintptr_t kernel_ptr ) {
 				if( ! module_usb_controller[ module_usb_controller_limit ].type ) continue;	// no
 
 				// set base address of controller and mmio semaphore
-				module_usb_controller[ module_usb_controller_limit ].base_address = driver_pci_read( pci, bar_low );
+				module_usb_controller[ module_usb_controller_limit ].base_address = driver_pci_read( module_usb_controller[ module_usb_controller_limit ].pci, bar_low );
 				module_usb_controller[ module_usb_controller_limit ].mmio_semaphore = FALSE;	// by default
 
 				// detect length of port area
-				driver_pci_write( pci, bar_low, 0xFFFFFFFF );
-				module_usb_controller[ module_usb_controller_limit ].limit = ( ~( driver_pci_read( pci, bar_low ) & ~1 ) + 1 ) >> STD_SHIFT_16;
+				driver_pci_write( module_usb_controller[ module_usb_controller_limit ].pci, bar_low, 0xFFFFFFFF );
+				module_usb_controller[ module_usb_controller_limit ].limit = ( ~( driver_pci_read( module_usb_controller[ module_usb_controller_limit ].pci, bar_low ) & ~1 ) + 1 ) >> STD_SHIFT_16;
 		
 				// restore original value
-				driver_pci_write( pci, bar_low, module_usb_controller[ module_usb_controller_limit ].base_address );
+				driver_pci_write( module_usb_controller[ module_usb_controller_limit ].pci, bar_low, module_usb_controller[ module_usb_controller_limit ].base_address );
 
 				// undefinied limit?
 				if( ! module_usb_controller[ module_usb_controller_limit ].limit ) module_usb_controller[ module_usb_controller_limit ].limit = 2;	// default length
@@ -318,19 +321,22 @@ void _entry( uintptr_t kernel_ptr ) {
 					// 64 bit address?
 					if( (module_usb_controller[ module_usb_controller_limit ].base_address & ~STD_PAGE_mask) == 0b0100 )
 						// retrieve higher address value
-						module_usb_controller[ module_usb_controller_limit ].base_address |= (uint64_t) driver_pci_read( pci, bar_high ) << STD_MOVE_DWORD;
+						module_usb_controller[ module_usb_controller_limit ].base_address |= (uint64_t) driver_pci_read( module_usb_controller[ module_usb_controller_limit ].pci, bar_high ) << STD_MOVE_DWORD;
 
 					// map MMIO controller area
-					kernel -> page_map( kernel -> page_base_address, module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask, module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask, MACRO_PAGE_ALIGN_UP( TRUE ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+					kernel -> page_map( kernel -> page_base_address, module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask, (module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask) | KERNEL_PAGE_mirror, MACRO_PAGE_ALIGN_UP( TRUE ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 					// debug
-					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - MMIO address 0x%16X\n", module_usb_controller_limit, pci.bus, pci.device, pci.function, module_usb_controller[ module_usb_controller_limit ].base_address );
+					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - MMIO address 0x%16X\n", module_usb_controller_limit, module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function, module_usb_controller[ module_usb_controller_limit ].base_address );
 				} else
 					// debug
-					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - I/O address 0x%X\n", module_usb_controller_limit, pci.bus, pci.device, pci.function, module_usb_controller[ module_usb_controller_limit ].base_address &= ~0b00001111 );
+					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - I/O address 0x%X\n", module_usb_controller_limit, module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function, module_usb_controller[ module_usb_controller_limit ].base_address &= ~0b00001111 );
 
 				// reset flags
 				module_usb_controller[ module_usb_controller_limit ].base_address &= ~0b00001111;
+
+				// convert base address to logical
+				module_usb_controller[ module_usb_controller_limit ].base_address |= KERNEL_PAGE_mirror;
 
 				// controller registered
 				module_usb_controller_limit++;
