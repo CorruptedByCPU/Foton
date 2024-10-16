@@ -68,3 +68,4 @@
 	void wm_object_active_new( void );
 	int64_t wm_menu( void );
 	int64_t wm_logo( void );
+	int64_t wm_workbench( void );

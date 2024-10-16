@@ -1,0 +1,5 @@
+{
+	"path": "/system/var/gfx/icons/48-console.tga",
+	"name": "Menu",
+	"command": "console"
+}

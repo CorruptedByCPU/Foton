@@ -103,6 +103,12 @@ uint8_t wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
+	// execute workbench function as thread
+	uint8_t wm_string_workbench[] = "wm workbench";
+	std_thread( (uintptr_t) &wm_workbench, (uint8_t *) &wm_string_workbench, sizeof( wm_string_workbench ) );
+
+	//----------------------------------------------------------------------
+
 	// create taskbar object
 	wm_object_taskbar = wm_object_create( 0, wm_object_workbench -> height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_workbench -> width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
 
