@@ -504,10 +504,14 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		// compute absolute address of first pixel of icon
 		uint32_t *icon = (uint32_t *) pixel + 4 + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width);
 
+		// copy scaled image content to element area
+		float x_scale_factor = (float) (48.0f / 16.0f);
+		float y_scale_factor = (float) (48.0f / 16.0f);
+
 		// load icon to element area
 		for( uint16_t y = 0; y < 16; y++ )
 			for( uint16_t x = 0; x < 16; x++ )
-				icon[ (y * interface -> width) + x ] = lib_color_blend( icon[ (y * interface -> width) + x ], element -> icon[ (y * 16) + x ] );
+				icon[ (y * interface -> width) + x ] = lib_color_blend( icon[ (y * interface -> width) + x ], element -> icon[ (uint64_t) (((uint64_t) (y_scale_factor * y) * 48) + (uint64_t) (x * x_scale_factor)) ] );
 	}
 }
 

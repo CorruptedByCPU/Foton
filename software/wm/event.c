@@ -5,10 +5,7 @@
 void wm_event( void ) {
 	// incomming message
 	uint8_t data[ STD_IPC_SIZE_byte ]; int64_t source = EMPTY;
-	while( (source = std_ipc_receive( (uint8_t *) &data )) ) {
-		// event to parse?
-		if( data[ offsetof( struct STD_STRUCTURE_IPC_DEFAULT, type ) ] != STD_IPC_TYPE_event ) break;	// no
-
+	while( (source = std_ipc_receive_by_type( (uint8_t *) &data, STD_IPC_TYPE_event )) ) {
 		// properties of request
 		struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &data;
 
@@ -45,6 +42,28 @@ void wm_event( void ) {
 
 		// send answer
 		std_ipc_send( source, (uint8_t *) answer );
+	}
+
+	// incomming mouse event
+	while( (source = std_ipc_receive_by_type( (uint8_t *) &data, STD_IPC_TYPE_mouse )) ) {
+		// properties of mouse event
+		struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
+
+		// different button than required?
+		if( ! wm_mouse_button_left_semaphore || ! (mouse -> button & STD_IPC_MOUSE_BUTTON_left) ) continue;	// yes
+
+		// search whole list for icon objects
+		for( uint16_t i = 0; i < wm_list_limit; i++ ) {
+			// not an icon object?
+			if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_icon) ) continue;	// yes
+
+			// cursor within icon area?
+			if( wm_list_base_address[ i ] -> descriptor -> x > wm_list_base_address[ i ] -> width ) continue;	// no
+			if( wm_list_base_address[ i ] -> descriptor -> y > wm_list_base_address[ i ] -> height ) continue;	// no
+
+			// execute command inside object name
+			std_exec( (uint8_t *) wm_list_base_address[ i ] -> descriptor -> name, wm_list_base_address[ i ] -> descriptor -> name_length, EMPTY );
+		}
 	}
 
 	// check keyboard cache
@@ -201,8 +220,8 @@ void wm_event( void ) {
 					// check incomming interface events
 					lib_interface_event_handler( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 
-				// make object as active if not a taskbar
-				if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_taskbar) ) wm_object_active = wm_object_selected;
+				// make object as active if not a taskbar or icon
+				if( ! (wm_object_selected -> descriptor -> flags & (STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_icon)) ) wm_object_active = wm_object_selected;
 
 				// properties of mouse message
 				struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;

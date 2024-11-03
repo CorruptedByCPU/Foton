@@ -427,6 +427,7 @@
 	#define	STD_WINDOW_FLAG_resizable	0b0000000100000000
 	#define	STD_WINDOW_FLAG_properties	0b0000001000000000	// Window Manager proposed new window properties
 	#define	STD_WINDOW_FLAG_maximize	0b0000010000000000
+	#define	STD_WINDOW_FLAG_icon		0b0000100000000000
 	#define	STD_WINDOW_FLAG_workbench	0b0001000000000000
 	#define	STD_WINDOW_FLAG_flush		0b0010000000000000
 	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000

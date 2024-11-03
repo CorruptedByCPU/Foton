@@ -22,7 +22,7 @@
 		"height": 24,
 		"name": "Moko",
 		"command": "console moko",
-		"icon": "/system/var/gfx/icons/moko.tga"
+		"icon": "/system/var/gfx/icons/notepad.tga"
 	},
 	"menu": {
 		"id": 2,
