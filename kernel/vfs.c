@@ -55,7 +55,7 @@ void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target,
 	}
 
 	// copy content of file to destination
-	uint8_t *source = (uint8_t *) file -> offset + seek;
+	uint8_t *source = (uint8_t *) file -> offset[ FALSE ] + seek;
 	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
 }
 
@@ -77,7 +77,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 	if( ! (directory = kernel_vfs_path( path, length - file_name_length )) ) return EMPTY;	// path not resolvable
 
 	// content of directory
-	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) directory -> offset;
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) directory -> offset[ FALSE ];
 
 	// empty entry id
 	uint64_t entry = 0;
@@ -109,7 +109,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 
 		default: {
 			// clean data pointer
-			file[ entry ].offset = EMPTY;
+			file[ entry ].offset[ FALSE ] = EMPTY;
 
 			// and file size
 			file[ entry ].byte = EMPTY;
@@ -145,23 +145,23 @@ void kernel_vfs_file_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source
 		uint8_t *new = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
 
 		// if file content exist
-		if( file -> offset ) {
+		if( file -> offset[ FALSE ] ) {
 			// copy current content to new location only if current file content will not be truncated
-			uint8_t *old = (uint8_t *) file -> offset;
+			uint8_t *old = (uint8_t *) file -> offset[ FALSE ];
 			if( ! seek ) for( uint64_t i = 0; i < file -> byte; i++ ) new[ i ] = old[ i ];
 
 			// release old file content
-			kernel_memory_release( file -> offset, MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
+			kernel_memory_release( file -> offset[ FALSE ], MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
 		}
 
 		// update file properties with new content location
-		file -> offset = (uintptr_t) new;
+		file -> offset[ FALSE ] = (uintptr_t) new;
 	}
 
 	// INFO: writing to file from seek == EMPTY, means the same as create new content
 
 	// copy content of memory to file
-	uint8_t *target = (uint8_t *) file -> offset + seek;
+	uint8_t *target = (uint8_t *) file -> offset[ FALSE ] + seek;
 	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
 
 	// truncate file size?
@@ -172,7 +172,7 @@ void kernel_vfs_file_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source
 			uint64_t blocks = (MACRO_PAGE_ALIGN_UP( file -> byte ) - MACRO_PAGE_ALIGN_UP( byte )) >> STD_SHIFT_PAGE;
 
 			// remove unused blocks from file
-			kernel_memory_release( file -> offset + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
+			kernel_memory_release( file -> offset[ FALSE ] + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
 		}
 
 		// new file size
@@ -222,7 +222,7 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 	// parse path
 	while( TRUE ) {
 		// start from current file
-		file = (struct LIB_VFS_STRUCTURE *) file -> offset;
+		file = (struct LIB_VFS_STRUCTURE *) file -> offset[ FALSE ];
 
 		// remove leading '/', if exist
 		while( *path == '/' ) { path++; length--; }
@@ -240,7 +240,7 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 		// last file from path and requested one?
 		if( length == file_length ) {
 			// follow symbolic links (if possible)
-			while( file -> type & STD_FILE_TYPE_link ) file = (struct LIB_VFS_STRUCTURE *) file -> offset;
+			while( file -> type & STD_FILE_TYPE_link ) file = (struct LIB_VFS_STRUCTURE *) file -> offset[ FALSE ];
 
 			// acquired file
 			return file;
@@ -250,7 +250,7 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 		directory = file;
 
 		// follow symbolic links (if possible)
-		while( file -> type & STD_FILE_TYPE_link ) { directory = file; file = (struct LIB_VFS_STRUCTURE *) file -> offset; }
+		while( file -> type & STD_FILE_TYPE_link ) { directory = file; file = (struct LIB_VFS_STRUCTURE *) file -> offset[ FALSE ]; }
 
 		// remove parsed file from path
 		path += file_length; length -= file_length;

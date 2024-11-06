@@ -20,6 +20,7 @@
 	#include	"../library/macro.h"
 	//======================================================================
 
+	#define	FALSE			0
 	#define	EMPTY			0
 
 	#define	STD_FILE_TYPE_file	0b00000001
@@ -40,11 +41,11 @@ DIR *isdir;
 
 void vfs_default( struct LIB_VFS_STRUCTURE *vfs ) {
 	// prepare default symlinks for root directory
-	vfs[ 0 ].offset = EMPTY;
+	vfs[ 0 ].offset[ FALSE ] = EMPTY;
 	vfs[ 0 ].name_length = 1;
 	vfs[ 0 ].type = STD_FILE_TYPE_link;
 	strncpy( (char *) &vfs[ 0 ].name, name_symlink, 1 );
-	vfs[ 1 ].offset = EMPTY;
+	vfs[ 1 ].offset[ FALSE ] = EMPTY;
 	vfs[ 1 ].name_length = 2;
 	vfs[ 1 ].type = STD_FILE_TYPE_link;
 	strncpy( (char *) &vfs[ 1 ].name, name_symlink, 2 );
@@ -151,7 +152,7 @@ int main( int argc, char *argv[] ) {
 	// calculate offset for every registered file
 	for( uint64_t i = LIB_VFS_default; i < files_included - 1; i++ ) {
 		// first file
-		vfs[ i ].offset = offset;
+		vfs[ i ].offset[ FALSE ] = offset;
 
 		// next file (align file position)
 		offset += MACRO_PAGE_ALIGN_UP( vfs[ i ].byte );
@@ -199,7 +200,7 @@ int main( int argc, char *argv[] ) {
 		}
 
 		// last data offset in Bytes
-		size = vfs[ i ].offset + vfs[ i ].byte;
+		size = vfs[ i ].offset[ FALSE ] + vfs[ i ].byte;
 	}
 
 	// release header

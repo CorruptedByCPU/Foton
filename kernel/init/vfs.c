@@ -7,22 +7,22 @@ uint64_t kernel_init_vfs_realloc( struct LIB_VFS_STRUCTURE *current, struct LIB_
 	uint64_t bytes = EMPTY;
 
 	// file properties
-	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) current -> offset;
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) current -> offset[ FALSE ];
 
 	// for every file
 	do {
 		// default file content address
-		file -> offset += current -> offset;
+		file -> offset[ FALSE ] += current -> offset[ FALSE ];
 
 		// modify offset depending on file type
 		switch( file -> type ) {
 			// for default symbolic links
 			case STD_FILE_TYPE_link: {
 				// current?
-				if( file -> name_length == 1 && file -> name[ 0 ] == STD_ASCII_DOT ) file -> offset = (uintptr_t) current;
+				if( file -> name_length == 1 && file -> name[ 0 ] == STD_ASCII_DOT ) file -> offset[ FALSE ] = (uintptr_t) current;
 
 				// previous?
-				if( file -> name_length == 2 && file -> name[ 0 ] == STD_ASCII_DOT && file -> name[ 1 ] == STD_ASCII_DOT ) file -> offset = (uintptr_t) previous;
+				if( file -> name_length == 2 && file -> name[ 0 ] == STD_ASCII_DOT && file -> name[ 1 ] == STD_ASCII_DOT ) file -> offset[ FALSE ] = (uintptr_t) previous;
 
 				// done
 				break;
@@ -67,7 +67,7 @@ void kernel_init_vfs( void ) {
 		*superblock -> name = STD_ASCII_SLASH;
 
 		// superblock content offset
-		superblock -> offset = kernel -> storage_base_address[ i ].device_block;
+		superblock -> offset[ FALSE ] = kernel -> storage_base_address[ i ].device_block;
 
 		// realloc VFS structures regarded of memory location
 		superblock -> byte = kernel_init_vfs_realloc( superblock, superblock );
