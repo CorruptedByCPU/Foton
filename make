@@ -156,13 +156,14 @@ done
 
 # prepare virtual file system with content of all available software, libraries, files
 (cd build && clang ../tools/vfs.c -o vfs && find root -name '.keep' -delete && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs)
-cp build/kernel build/root.vfs tools/limine.conf limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin build/iso
+#cp build/kernel build/root.vfs tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin build/iso
+cp build/kernel.gz build/root.vfs.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin build/iso
 
 # information
 echo -e "\nOverall ------------"
 kernel_size=`ls -lh build/kernel | cut -d ' ' -f 5`
 echo -e "|kernel|${kernel_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
-root_size=`ls -lh build/iso/root.vfs 2>&1 | cut -d ' ' -f 5`
+root_size=`ls -lh build/root.vfs 2>&1 | cut -d ' ' -f 5`
 echo -e "|root.vfs|${root_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
 echo -e "\nCompressed ---------"
 kernel_size=`ls -lh build/kernel.gz | cut -d ' ' -f 5`
