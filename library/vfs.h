@@ -17,7 +17,7 @@
 	#define	LIB_VFS_NAME_limit	254
 
 	struct LIB_VFS_STRUCTURE {
-		uintptr_t	offset[ 16 ];
+		uintptr_t	offset[ 16 ];	// 0-12th direct, 13th indirect, 14th double-indirect, 15th triple-indirect
 		uint64_t	byte;
 		uint8_t		type;
 		uint8_t		name_length;

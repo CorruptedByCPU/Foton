@@ -21,6 +21,8 @@
 		uint8_t				name[ LIB_VFS_NAME_limit + 1 ];
 	};
 
+	uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i );
+
 	void kernel_vfs_file_close( struct KERNEL_STRUCTURE_VFS *socket );
 
 	struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t length );

@@ -2,6 +2,23 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
+	// direct block?
+	if( i <= 12 ) return vfs -> offset[ i ];	// return pointer
+
+	// indirect block?
+	if( i > 12 && i < 524 ) {
+		// properties of indirect block
+		uintptr_t *indirect = (uintptr_t *) vfs -> offset[ 13 ];
+
+		// return pointer
+		return indirect[ i - 12 ];
+	}
+
+	// no support for block id, yet
+	return EMPTY;
+}
+
 void kernel_vfs_file_close( struct KERNEL_STRUCTURE_VFS *socket ) {
 	// can we close file?
 	if( socket -> pid != kernel_task_pid() ) return;	// no! TODO: something nasty
@@ -196,9 +213,29 @@ uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte ) {
 	return FALSE;
 }
 
+struct LIB_VFS_STRUCTURE *kernel_vfs_search_file( struct LIB_VFS_STRUCTURE *directory, uint8_t *name, uint64_t name_length ) {
+	// for each data block of directory
+	for( uint64_t b = 0; b < (directory -> byte >> STD_SHIFT_PAGE); b++ ) {
+		// properties of directory entry
+		struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( directory, b );
+
+		// for every possible entry
+		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) {
+			// if 
+			if( entry[ e ].name_length == name_length && lib_string_compare( (uint8_t *) entry[ e ].name, name, name_length ) ) return (struct LIB_VFS_STRUCTURE *) &entry[ e ];
+		}
+	}
+
+	// not located
+	return EMPTY;
+}
+
 struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 	// properties of current file
 	struct LIB_VFS_STRUCTURE *file;
+
+	// properties of current directory
+	struct LIB_VFS_STRUCTURE *directory;
 
 	// start from current file?
 	if( *path != STD_ASCII_SLASH ) {
@@ -206,39 +243,32 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 		struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 	
 		// choose task current file
-		file = task -> directory;
+		directory = task -> directory;
 	} else
 		// start from default file
-		file = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].device_block;
+		directory = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].device_block;
 
 	// if path is empty
 	if( ! length )
 		// acquired VFS root file
-		return file;
-
-	// properties of current directory
-	struct LIB_VFS_STRUCTURE *directory = file;
+		return directory;
 
 	// parse path
 	while( TRUE ) {
-		// start from current file
-		file = (struct LIB_VFS_STRUCTURE *) file -> offset[ FALSE ];
-
 		// remove leading '/', if exist
 		while( *path == '/' ) { path++; length--; }
 
 		// select file name from path
-		uint64_t file_length = lib_string_word_end( path, length, '/' );
+		uint64_t name_length = lib_string_word_end( path, length, '/' );
 
-		// search file inside current file
-		do { if( file_length == file -> name_length && lib_string_compare( path, (uint8_t *) file -> name, file_length ) ) break;
-		} while( (++file) -> name_length );
+		// locate file inside directory
+		file = kernel_vfs_search_file( directory, path, name_length );
 
 		// file not found?
-		if( ! file -> name_length ) return EMPTY;
+		if( ! file ) return EMPTY;
 
 		// last file from path and requested one?
-		if( length == file_length ) {
+		if( length == name_length ) {
 			// follow symbolic links (if possible)
 			while( file -> type & STD_FILE_TYPE_link ) file = (struct LIB_VFS_STRUCTURE *) file -> offset[ FALSE ];
 
@@ -253,7 +283,7 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 		while( file -> type & STD_FILE_TYPE_link ) { directory = file; file = (struct LIB_VFS_STRUCTURE *) file -> offset[ FALSE ]; }
 
 		// remove parsed file from path
-		path += file_length; length -= file_length;
+		path += name_length; length -= name_length;
 	}
 
 	// file not found
