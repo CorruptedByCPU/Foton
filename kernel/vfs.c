@@ -71,9 +71,35 @@ void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target,
 		else return;	// no, ignore
 	}
 
-	// copy content of file to destination
-	uint8_t *source = (uint8_t *) file -> offset[ FALSE ] + seek;
-	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
+	// calculate first block number
+	uint64_t b = MACRO_PAGE_ALIGN_DOWN( seek ) >> STD_SHIFT_PAGE;
+
+	// read first part of file
+	seek %= STD_PAGE_byte;
+
+	// source block pointer
+	uint8_t *source;
+
+	// read all blocks containing requested data
+	while( byte ) {
+		// block containing first part of data
+		source = (uint8_t *) kernel_vfs_block_by_id( file, b++ );
+
+		// full or part of block?
+		uint64_t limit = STD_PAGE_byte;
+		if( limit > byte ) limit = byte;
+
+		// copy data from block
+		for( uint64_t i = seek; i < limit; i++ ) {
+			*(target++) = source[ i ];
+
+			// data retrieved
+			byte--;
+		}
+
+		// start from begining of next block
+		seek = EMPTY;
+	}
 }
 
 struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type ) {
