@@ -19,6 +19,62 @@ uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	return EMPTY;
 }
 
+void kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
+	// direct blocks
+	for( uint64_t b = 0; b < 13 && i--; b++ ) {
+		// block exist?
+		if( vfs -> offset[ b ] ) continue;	// yep
+
+		// allocate block
+		vfs -> offset[ b ] = kernel_memory_alloc( TRUE );
+	}
+
+	// end of filament?
+	if( ! i ) return;	// yes
+
+	// indirect block exist?
+	if( ! vfs -> offset[ 13 ] ) kernel_memory_alloc( TRUE );	// no, add
+
+	// indirect blocks
+	uintptr_t *indirect = (uintptr_t *) vfs -> offset[ 13 ];
+	for( uint64_t b = 0; b < 512 && i--; b++ ) {
+		// block exist?
+		if( indirect[ b ] ) continue;	// yep
+
+		// allocate block
+		indirect[ b ] = kernel_memory_alloc( TRUE );
+	}
+}
+
+uintptr_t kernel_vfs_block_remove( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
+	// removed block pointer
+	uintptr_t block = EMPTY;
+
+	// direct block?
+	if( i <= 12 ) {
+		// preserve block pointer
+		block = vfs -> offset[ i ];
+
+		// remove it
+		vfs -> offset[ i ] = EMPTY;
+	}
+
+	// indirect block?
+	if( i > 12 && i < 524 ) {
+		// properties of indirect block
+		uintptr_t *indirect = (uintptr_t *) vfs -> offset[ 13 ];
+
+		// preserve block pointer
+		block = indirect[ i ];
+
+		// remove it
+		indirect[ i ] = EMPTY;
+	}
+
+	// released block pointer
+	return block;
+}
+
 void kernel_vfs_file_close( struct KERNEL_STRUCTURE_VFS *socket ) {
 	// can we close file?
 	if( socket -> pid != kernel_task_pid() ) return;	// no! TODO: something nasty
@@ -182,47 +238,54 @@ void kernel_vfs_file_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source
 	// properties of file
 	struct LIB_VFS_STRUCTURE *file = socket -> knot;
 
-	// invalid write request?
+	// insufficient file length?
 	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> byte ) ) {
-		// prepare new file content area
-		uint8_t *new = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
-
-		// if file content exist
-		if( file -> offset[ FALSE ] ) {
-			// copy current content to new location only if current file content will not be truncated
-			uint8_t *old = (uint8_t *) file -> offset[ FALSE ];
-			if( ! seek ) for( uint64_t i = 0; i < file -> byte; i++ ) new[ i ] = old[ i ];
-
-			// release old file content
-			kernel_memory_release( file -> offset[ FALSE ], MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
-		}
-
-		// update file properties with new content location
-		file -> offset[ FALSE ] = (uintptr_t) new;
+		// assign required blocks
+		kernel_vfs_block_fill( file, MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
 	}
+
+	// set new file length
+	file -> byte = seek + byte;
 
 	// INFO: writing to file from seek == EMPTY, means the same as create new content
 
-	// copy content of memory to file
-	uint8_t *target = (uint8_t *) file -> offset[ FALSE ] + seek;
-	for( uint64_t i = 0; i < byte; i++ ) target[ i ] = source[ i ];
+	// calculate first block number
+	uint64_t b = MACRO_PAGE_ALIGN_DOWN( seek ) >> STD_SHIFT_PAGE;
 
-	// truncate file size?
-	if( ! seek ) {
-		// remove obsolete blocks of file
-		if( MACRO_PAGE_ALIGN_UP( file -> byte ) > MACRO_PAGE_ALIGN_UP( byte ) ) {
-			// locate amount of file blocks to truncate
-			uint64_t blocks = (MACRO_PAGE_ALIGN_UP( file -> byte ) - MACRO_PAGE_ALIGN_UP( byte )) >> STD_SHIFT_PAGE;
+	// write first part of data
+	seek %= STD_PAGE_byte;
 
-			// remove unused blocks from file
-			kernel_memory_release( file -> offset[ FALSE ] + (MACRO_PAGE_ALIGN_UP( file -> byte ) - (blocks << STD_SHIFT_PAGE)), blocks );
-		}
+	// target block pointer
+	uint8_t *target;
 
-		// new file size
-		file -> byte = byte;
-	} else
-		// file size will change after overwrite?
-		if( seek + byte > file -> byte ) file -> byte = seek + byte;	// yes
+	// write all blocks with provided data
+	while( byte ) {
+		// block for first part of data
+		target = (uint8_t *) kernel_vfs_block_by_id( file, b++ );
+
+		// full or part of block?
+		uint64_t limit = STD_PAGE_byte;
+		if( limit > byte ) limit = byte;
+
+		// copy data to block
+		for( uint64_t i = seek; i < limit && byte--; i++ ) target[ i ] = *(source++);
+
+		// start from begining of next block
+		seek = EMPTY;
+	}
+
+	// truncate no more needed file blocks
+	do {
+		// obtain block to truncate
+		uintptr_t block = kernel_vfs_block_remove( file, b );
+
+		// no more blocks?
+		if( ! block ) break;	// yes
+
+		// release it
+		kernel_memory_release( block, TRUE );
+	// until forever
+	} while( TRUE );
 	
 	// unlock access
 	MACRO_UNLOCK( socket -> semaphore );

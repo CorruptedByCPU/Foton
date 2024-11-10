@@ -3,7 +3,7 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
 started:
-- refactoring code
+- vfs - change file/directory data blocks structure
 
 yet to be done:
 - window selected change coloristic
@@ -14,7 +14,6 @@ yet to be done:
 - kernels internal debugger
 - libinput.so library (alike libreadline from GNU/Linux)
   history, replenishment, inline edit
-- vfs - change file/directory data blocks structure
 - software: cal, cp, cut, date, df, du, echo, find, grep, halt, head, kill,
   less/more, ln, mkdir, mv, ps, reboot, rm, sleep, tail, time,
   uname, uptime, wc
