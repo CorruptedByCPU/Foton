@@ -19,7 +19,10 @@ uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	return EMPTY;
 }
 
-void kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
+uintptr_t kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
+	// last assigned block
+	uintptr_t block = vfs -> offset[ FALSE ];
+
 	// direct blocks
 	for( uint64_t b = 0; b < 13 && i--; b++ ) {
 		// block exist?
@@ -27,10 +30,13 @@ void kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 
 		// allocate block
 		vfs -> offset[ b ] = kernel_memory_alloc( TRUE );
+
+		// remember last assigned block
+		block = vfs -> offset[ b ];
 	}
 
 	// end of filament?
-	if( ! i ) return;	// yes
+	if( ! i ) return block;	// yes, return last assigned block
 
 	// indirect block exist?
 	if( ! vfs -> offset[ 13 ] ) kernel_memory_alloc( TRUE );	// no, add
@@ -43,7 +49,13 @@ void kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 
 		// allocate block
 		indirect[ b ] = kernel_memory_alloc( TRUE );
+
+		// remember last assigned block
+		block = vfs -> offset[ b ];
 	}
+
+	// done
+	return block;	// return last assigned block
 }
 
 uintptr_t kernel_vfs_block_remove( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
@@ -176,28 +188,42 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 	if( ! (directory = kernel_vfs_path( path, length - file_name_length )) ) return EMPTY;	// path not resolvable
 
 	// content of directory
-	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) directory -> offset[ FALSE ];
+	struct LIB_VFS_STRUCTURE *file;
 
-	// empty entry id
-	uint64_t entry = 0;
+	// for each data block of directory
+	for( uint64_t b = 0; b < (directory -> byte >> STD_SHIFT_PAGE); b++ ) {
+		// properties of directory entry
+		struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( directory, b );
 
-	// search for empty entry
-	for( uint64_t i = 0; i < directory -> byte / sizeof( struct LIB_VFS_STRUCTURE ); i++ ) {
-		// found?
-		if( ! entry && ! file[ i ].name_length ) entry = i;
+		// for every possible entry
+		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ && entry++ ) {
+			// if free entry, remember
+			if( ! entry -> name_length ) file = entry;
 
-		// file with exact same name found?
-		if( file_name_length == file[ i ].name_length && lib_string_compare( file_name, file[ i ].name, file_name_length ) ) return EMPTY;	// ignore file creation
+			// if entry already exist with that name
+			if( entry -> name_length == file_name_length && lib_string_compare( entry -> name, file_name, file_name_length ) ) {
+				// select file
+				file = entry;
+
+				// end of search
+				b = STD_PAGE_byte >> STD_SHIFT_PAGE;
+
+				// end
+				break;
+			}
+		}
 	}
 
-	// if empty entry not found
-	if( ! entry ) return EMPTY;
+	// if no pointer is selected
+	if( ! file )
+		// extend directory structure and select first entry
+		file = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_fill( directory, (directory -> byte >> STD_SHIFT_PAGE) + 1 );
 
 	// set file name
-	for( uint8_t j = 0; j < file_name_length; j++ ) file[ entry ].name[ file[ entry ].name_length++ ] = file_name[ j ];
+	for( uint8_t j = 0; j < file_name_length; j++ ) file -> name[ file -> name_length++ ] = file_name[ j ];
 
 	// set file type
-	file[ entry ].type = type;
+	file -> type = type;
 
 	// create empty directory if required
 	switch( type ) {
@@ -208,21 +234,21 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 
 		default: {
 			// clean data pointer
-			file[ entry ].offset[ FALSE ] = EMPTY;
+			file -> offset[ FALSE ] = EMPTY;
 
 			// and file size
-			file[ entry ].byte = EMPTY;
+			file -> byte = EMPTY;
 		}
 	}
 
 	// open socket
-	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add( (struct LIB_VFS_STRUCTURE *) &file[ entry ] );
+	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add( file );
 
 	// file located on definied storage
 	socket -> storage = kernel -> storage_root;
 
 	// file identificator
-	socket -> knot = (struct LIB_VFS_STRUCTURE *) &file[ entry ];
+	socket -> knot = file;
 
 	// socket opened by process with ID
 	socket -> pid = kernel_task_pid();

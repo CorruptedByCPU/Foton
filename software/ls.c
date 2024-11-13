@@ -108,13 +108,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		uint16_t column_width = LS_MARGIN;
 
 		// amount of files to show
-		uint64_t file_limit = EMPTY;
-		while( vfs[ file_limit ].name_length ) {
-			// set longest file name as column width
-			if( column_width <= vfs[ file_limit ].name_length ) column_width = vfs[ file_limit ].name_length + LS_MARGIN;
+		for( uint64_t b = 0; b < (dir[ j ].file -> byte >> STD_SHIFT_PAGE); b++ ) {
+			// properties of directory entry
+			struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) ((uintptr_t) vfs + (b << STD_SHIFT_PAGE));
 
-			// next file
-			file_limit++;
+			// for every possible entry
+			for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ && file++ )
+				// set longest file name as column width
+				if( file -> name_length && column_width <= file -> name_length ) column_width = file -> name_length + LS_MARGIN;
 		}
 
 		// prepare column movement sequence
@@ -122,51 +123,63 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		sprintf( "\e[%uC", (uint8_t *) &column_string, column_width );
 
 		// parse each file
-		for( uint64_t k = 0; k < file_limit; k++ ) {
-			// show hidden?
-			if( vfs[ k ].name[ 0 ] == '.' && ! show_hidden ) continue;	// no
+		for( uint64_t b = 0; b < (dir[ j ].file -> byte >> STD_SHIFT_PAGE); b++ ) {
+			// properties of directory entry
+			struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) ((uintptr_t) vfs + (b << STD_SHIFT_PAGE));
 
-			// properties mode?
-			if( show_properties )
-				// size of file
-				ls_format( vfs[ k ].byte );
+			// for every possible entry
+			for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ && file++ ) {
+				// empty entry?
+				if( ! file -> name_length ) continue;
 
-			// cannot fit name in this column?
-			if( column + vfs[ k ].name_length >= stream_meta.width ) {
-				// start from new line
-				print( "\n" );
+				// show hidden?
+				if( file -> name[ 0 ] == '.' && ! show_hidden ) continue;	// no
 
-				// first column
-				column = 0;
-			} else
-				// move cursor to next column
-				if( column ) printf( "%s", column_string );
+				// properties mode?
+				if( show_properties )
+					// size of file
+					ls_format( file -> byte );
 
-			// change color by type
-			switch( vfs[ k ].type ) {
-				case STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
-				case STD_FILE_TYPE_link: { print( "\e[38;5;45m" ); break; }
-				default: { print( "\e[38;5;253m" ); }
+				// cannot fit name in this column?
+				if( column + file -> name_length >= stream_meta.width ) {
+					// start from new line
+					print( "\n" );
+
+					// first column
+					column = 0;
+				} else
+					// move cursor to next column
+					if( column ) printf( "%s", column_string );
+
+				// change color by type
+				switch( file -> type ) {
+					case STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
+					case STD_FILE_TYPE_link: { print( "\e[38;5;45m" ); break; }
+					default: { print( "\e[38;5;253m" ); }
+				}
+
+				// properties mode?
+				if( show_properties ) {
+					// name of file
+					printf( "%s\n", (uint8_t *) &file -> name );
+
+					// next file
+					continue;
+				}
+
+				// show file name
+				printf( "\e[s%s\e[u\e[0m", (uint8_t *) &file -> name );
+
+				// next column position
+				column += column_width;
 			}
-
-			// properties mode?
-			if( show_properties ) {
-				// name of file
-				printf( "%s\n", (uint8_t *) &vfs[ k ].name );
-
-				// next file
-				continue;
-			}
-
-			// show file name
-			printf( "\e[s%s\e[u\e[0m", (uint8_t *) &vfs[ k ].name );
-
-			// next column position
-			column += column_width;
-
-			// last file showed somewhere far in column
-			if( k + 1 == file_limit && column ) print( "\n" );
 		}
+
+		// retrieve stream meta data
+		std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT );
+
+		// not at beginning of line?
+		if( stream_meta.width ) printf( "\n" );	// new line
 
 		// first directory showed?
 		if( i > 1 && j + 1 < i ) print( "\n" );	// yep
