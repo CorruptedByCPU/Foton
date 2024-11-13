@@ -12,7 +12,7 @@ uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 		uintptr_t *indirect = (uintptr_t *) vfs -> offset[ 13 ];
 
 		// return pointer
-		return indirect[ i - 12 ];
+		return indirect[ i - 13 ];
 	}
 
 	// no support for block id, yet
@@ -155,15 +155,11 @@ void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target,
 
 		// full or part of block?
 		uint64_t limit = STD_PAGE_byte;
-		if( limit > byte ) limit = byte;
+		if( limit > byte ) { limit = byte; byte = EMPTY; }
+		else byte -= limit;
 
 		// copy data from block
-		for( uint64_t i = seek; i < limit; i++ ) {
-			*(target++) = source[ i ];
-
-			// data retrieved
-			byte--;
-		}
+		for( uint64_t i = seek; i < limit; i++ ) *(target++) = source[ i ];
 
 		// start from begining of next block
 		seek = EMPTY;
