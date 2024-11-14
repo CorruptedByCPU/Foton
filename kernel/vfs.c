@@ -20,42 +20,36 @@ uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 }
 
 uintptr_t kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
-	// last assigned block
-	uintptr_t block = vfs -> offset[ FALSE ];
-
 	// direct blocks
-	for( uint64_t b = 0; b < 13 && i--; b++ ) {
+	for( uint64_t b = 0; b < 13; b++ ) {
+		// that was last block
+		if( ! i-- ) return vfs -> offset[ b ];
+
 		// block exist?
 		if( vfs -> offset[ b ] ) continue;	// yep
 
 		// allocate block
 		vfs -> offset[ b ] = kernel_memory_alloc( TRUE );
-
-		// remember last assigned block
-		block = vfs -> offset[ b ];
 	}
-
-	// end of filament?
-	if( ! i ) return block;	// yes, return last assigned block
 
 	// indirect block exist?
 	if( ! vfs -> offset[ 13 ] ) kernel_memory_alloc( TRUE );	// no, add
 
 	// indirect blocks
 	uintptr_t *indirect = (uintptr_t *) vfs -> offset[ 13 ];
-	for( uint64_t b = 0; b < 512 && i--; b++ ) {
+	for( uint64_t b = 0; b < 512; b++ ) {
+		// that was last block
+		if( ! i-- ) return vfs -> offset[ b ];
+
 		// block exist?
 		if( indirect[ b ] ) continue;	// yep
 
 		// allocate block
 		indirect[ b ] = kernel_memory_alloc( TRUE );
-
-		// remember last assigned block
-		block = vfs -> offset[ b ];
 	}
 
-	// done
-	return block;	// return last assigned block
+	// we should not be in here
+	return EMPTY;
 }
 
 uintptr_t kernel_vfs_block_remove( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
