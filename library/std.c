@@ -667,7 +667,7 @@ FILE *touch( uint8_t *path, uint8_t type ) {
 	FILE *file = malloc( sizeof( FILE ) );
 
 	// open new socket for file
-	file -> socket = std_file_touch( path, STD_FILE_TOUCH_file );
+	file -> socket = std_file_touch( path, type );
 
 	// if cannot create file
 	if( file -> socket < 0 ) {

@@ -134,9 +134,6 @@
 
 	#define	STD_FILE_NAME_limit				LIB_VFS_NAME_limit
 
-	#define	STD_FILE_TOUCH_file				STD_FILE_TYPE_file
-	#define	STD_FILE_TOUCH_directory			STD_FILE_TYPE_directory
-
 	struct	STD_STRUCTURE_FILE {
 		int64_t		socket;
 		uint64_t	byte;

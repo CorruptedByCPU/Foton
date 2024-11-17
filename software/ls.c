@@ -128,20 +128,22 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) ((uintptr_t) vfs + (b << STD_SHIFT_PAGE));
 
 			// for every possible entry
-			for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ && file++ ) {
+			for( uint8_t e = 0; e <= STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) {
+				if( file[ e ].name[ 0 ] == 'a' ) MACRO_DEBUF();
+
 				// empty entry?
-				if( ! file -> name_length ) continue;
+				if( ! file[ e ].name_length ) continue;
 
 				// show hidden?
-				if( file -> name[ 0 ] == '.' && ! show_hidden ) continue;	// no
+				if( file[ e ].name[ 0 ] == '.' && ! show_hidden ) continue;	// no
 
 				// properties mode?
 				if( show_properties )
 					// size of file
-					ls_format( file -> byte );
+					ls_format( file[ e ].byte );
 
 				// cannot fit name in this column?
-				if( column + file -> name_length >= stream_meta.width ) {
+				if( column + file[ e ].name_length >= stream_meta.width ) {
 					// start from new line
 					print( "\n" );
 
@@ -152,7 +154,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					if( column ) printf( "%s", column_string );
 
 				// change color by type
-				switch( file -> type ) {
+				switch( file[ e ].type ) {
 					case STD_FILE_TYPE_directory: { print( "\e[38;5;27m" ); break; }
 					case STD_FILE_TYPE_link: { print( "\e[38;5;45m" ); break; }
 					default: { print( "\e[38;5;253m" ); }
@@ -161,14 +163,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				// properties mode?
 				if( show_properties ) {
 					// name of file
-					printf( "%s\n", (uint8_t *) &file -> name );
+					printf( "%s\n", (uint8_t *) &file[ e ].name );
 
 					// next file
 					continue;
 				}
 
 				// show file name
-				printf( "\e[s%s\e[u\e[0m", (uint8_t *) &file -> name );
+				printf( "\e[s%s\e[u\e[0m", (uint8_t *) &file[ e ].name );
 
 				// next column position
 				column += column_width;

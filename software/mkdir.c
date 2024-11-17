@@ -10,11 +10,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// ignore any passed options, no support yet
 			if( argv[ i ][ 0 ] == '-' ) continue;
 			else {
-				// create empty file of definied name
-				FILE *file = touch( argv[ i ], STD_FILE_TYPE_file );
+				// create directory of definied name
+				FILE *dir = touch( argv[ i ], STD_FILE_TYPE_directory );
 
 				// if created
-				if( file ) fclose( file );	// close it
+				if( dir ) fclose( dir );	// close it
 			}
 		}
 	}

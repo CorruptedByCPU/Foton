@@ -160,6 +160,74 @@ void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target,
 	}
 }
 
+struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_create( struct LIB_VFS_STRUCTURE *directory, struct LIB_VFS_STRUCTURE *vfs, uint8_t *name, uint64_t length, uint8_t type ) {
+	// new file?
+	if( ! vfs -> name_length ) {	// yes
+		// set file name
+		vfs -> name_length = EMPTY;
+		for( uint8_t j = 0; j < length; j++ ) vfs -> name[ vfs -> name_length++ ] = name[ j ];
+
+		// set file type
+		vfs -> type = type;
+
+		// default block content
+		switch( type ) {
+			// for file of type: directory
+			case STD_FILE_TYPE_directory: {
+				// assign first block for directory
+				vfs -> offset[ FALSE ] = kernel_memory_alloc( TRUE );
+
+				// directory default block properties
+				struct LIB_VFS_STRUCTURE *dir = (struct LIB_VFS_STRUCTURE *) vfs -> offset[ FALSE ];
+
+				// prepare default symlinks for root directory
+
+				// current location
+				dir[ FALSE ].offset[ FALSE ]	= (uintptr_t) vfs;
+				dir[ FALSE ].type		= STD_FILE_TYPE_link;
+				dir[ FALSE ].name_length	= 1;
+				dir[ FALSE ].name[ FALSE ]	= '.';
+				
+				// previous location
+				dir[ TRUE ].offset[ FALSE ]	= (uintptr_t) directory;
+				dir[ TRUE ].type		= STD_FILE_TYPE_link;
+				dir[ TRUE ].name_length		= 2;
+				dir[ TRUE ].name[ FALSE ]	= '.'; dir[ TRUE ].name[ TRUE ] = '.';
+
+				// default directory size
+				vfs -> byte = STD_PAGE_byte;
+
+				// done
+				break;
+			}
+
+			// for file
+			default: {
+				// clean data pointer
+				vfs -> offset[ FALSE ] = EMPTY;
+
+				// and file size
+				vfs -> byte = EMPTY;
+			}
+		}
+	}
+
+	// open socket
+	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add( vfs );
+
+	// file located on definied storage
+	socket -> storage = kernel -> storage_root;
+
+	// file identificator
+	socket -> knot = vfs;
+
+	// socket opened by process with ID
+	socket -> pid = kernel_task_pid();
+
+	// return new socket
+	return socket;
+}
+
 struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type ) {
 	// retrieve path length
 	uint64_t length = lib_string_length( path );
@@ -173,78 +241,37 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 	// file name length
 	uint64_t file_name_length = length - ((uintptr_t) file_name - (uintptr_t) path);
 
-	// properties of directory from path
+	// open destination directory
 	struct LIB_VFS_STRUCTURE *directory;
 	if( ! (directory = kernel_vfs_path( path, length - file_name_length )) ) return EMPTY;	// path not resolvable
 
-	// content of directory
+	// check if file already exist
 	struct LIB_VFS_STRUCTURE *file;
+	if( (file = kernel_vfs_path( path, length )) ) return kernel_vfs_file_create( directory, file, file_name, file_name_length, type );
 
 	// for each data block of directory
-	for( uint64_t b = 0; b < (directory -> byte >> STD_SHIFT_PAGE); b++ ) {
-		// properties of directory entry
+	uint64_t blocks = directory -> byte >> STD_SHIFT_PAGE;
+	for( uint64_t b = 0; b < blocks; b++ ) {
+		// first directory block entries
 		struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( directory, b );
 
 		// for every possible entry
-		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ && entry++ ) {
-			// if free entry, remember
-			if( ! entry -> name_length ) file = entry;
+		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
+			// if free entry, found
+			if( ! entry[ e ].name_length ) return kernel_vfs_file_create( directory, (struct LIB_VFS_STRUCTURE *) &entry[ e ], file_name, file_name_length, type );
 
-			// if entry already exist with that name
-			if( entry -> name_length == file_name_length && lib_string_compare( entry -> name, file_name, file_name_length ) ) {
-				// select file
-				file = entry;
+		// extend search?
+		if( ! kernel_vfs_block_by_id( directory, b + 1 ) ) {
+			// expand directory content by block
+			kernel_vfs_block_fill( directory, ++blocks );
 
-				// end of search
-				b = STD_PAGE_byte >> STD_SHIFT_PAGE;
-
-				// end
-				break;
-			}
+			// new directory size
+			directory -> byte += STD_PAGE_byte;
 		}
 	}
 
-	// if no pointer is selected
-	if( ! file )
-		// extend directory structure and select first entry
-		file = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_fill( directory, (directory -> byte >> STD_SHIFT_PAGE) + 1 );
-
-	// set file name
-	for( uint8_t j = 0; j < file_name_length; j++ ) file -> name[ file -> name_length++ ] = file_name[ j ];
-
-	// set file type
-	file -> type = type;
-
-	// create empty directory if required
-	switch( type ) {
-		case STD_FILE_TOUCH_directory: {
-			// done
-			break;
-		}
-
-		default: {
-			// clean data pointer
-			file -> offset[ FALSE ] = EMPTY;
-
-			// and file size
-			file -> byte = EMPTY;
-		}
-	}
-
-	// open socket
-	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add( file );
-
-	// file located on definied storage
-	socket -> storage = kernel -> storage_root;
-
-	// file identificator
-	socket -> knot = file;
-
-	// socket opened by process with ID
-	socket -> pid = kernel_task_pid();
-
-	// file found
-	return socket;
+	// no free entry
+	return EMPTY;
 }
 
 void kernel_vfs_file_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source, uint64_t seek, uint64_t byte ) {

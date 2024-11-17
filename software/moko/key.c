@@ -97,7 +97,7 @@ uint8_t moko_key_ctrl( uint16_t key ) {
 						// TODO, do something if directory structure of selected path doesn't exist...
 
 						// try to create empty file
-						if( (file_save_as = touch( save_as, STD_FILE_TOUCH_file )) ) {
+						if( (file_save_as = touch( save_as, STD_FILE_TYPE_file )) ) {
 							// set new name of document
 							sprintf( "%s", (uint8_t *) document_name, file_save_as -> name );
 							
