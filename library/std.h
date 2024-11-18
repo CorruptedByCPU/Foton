@@ -451,6 +451,7 @@
 		uint8_t		name[ 64 ];
 	} __attribute__( (aligned( STD_PAGE_byte )) );
 
+	#define	STD_MASK_byte			0x00000000000000FF
 	#define	STD_MASK_word			0x000000000000FFFF
 
 	// returns properties of available framebuffer ()

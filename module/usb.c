@@ -19,12 +19,14 @@
 	//----------------------------------------------------------------------
 	#include	"./usb/config.h"
 	#include	"./usb/uhci.h"
+	#include	"./usb/ohci.h"
 	#include	"./usb/ehci.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
 	#include	"./usb/data.c"
 	#include	"./usb/uhci.c"
+	#include	"./usb/ohci.c"
 	#include	"./usb/ehci.c"
 
 uint16_t module_usb_hid_keyboard_matrix( uint8_t id ) {
@@ -358,14 +360,14 @@ void _entry( uintptr_t kernel_ptr ) {
 				break;
 			}
 
-			// // initialize controller
-			// case MODULE_USB_CONTROLLER_TYPE_OHCI: {
-			// 	// initialize OHCI Controller
-			// 	module_usb_ohci_init( c );
+			// initialize controller
+			case MODULE_USB_CONTROLLER_TYPE_OHCI: {
+				// initialize OHCI Controller
+				module_usb_ohci_init( c );
 
-			// 	// done
-			// 	break;
-			// }
+				// done
+				break;
+			}
 		}
 
 	// initialize connected devices
