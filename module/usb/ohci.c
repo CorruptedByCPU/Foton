@@ -29,12 +29,20 @@ void module_usb_ohci_init( uint8_t c ) {
 
 	// SETUP ---------------------------------------------------------------
 
-	MACRO_DEBUF();
-
 	// acquire size of HCCA
 	ohci -> hcca = STD_MAX_unsigned;
 	volatile uint32_t bytes = ~ohci -> hcca + 1;
 
 	// reserve memory area below 1 MiB
 	uintptr_t base_address = kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( bytes ) >> STD_SHIFT_PAGE );
+
+	// debug
+	kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - HCCA memory block at 0x%X\n", c, module_usb_controller[ c ].pci.bus, module_usb_controller[ c ].pci.device, module_usb_controller[ c ].pci.function, base_address );
+
+	// reset all ports
+	ohci -> control = EMPTY;
+	// wait at least 50 ms
+	kernel -> time_sleep( 64 );
+	// after 64ms, stop reset
+	ohci -> control = MODULE_USB_OHCI_REGISTER_CONTROL_host_controller_functional_state;
 }

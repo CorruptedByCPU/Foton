@@ -129,8 +129,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// for every possible entry
 			for( uint8_t e = 0; e <= STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) {
-				if( file[ e ].name[ 0 ] == 'a' ) MACRO_DEBUF();
-
 				// empty entry?
 				if( ! file[ e ].name_length ) continue;
 
