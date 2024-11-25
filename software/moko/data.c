@@ -38,3 +38,5 @@ uint8_t key_ctrl_semaphore = FALSE;
 
 uint8_t string_cursor_at_menu[ 42 + 4 + 1 ] = { EMPTY };
 uint8_t string_cursor_at_interaction[ 42 + 4 + 1 ] = { EMPTY };
+
+// struct LIB_INPUT_STRUCTURE *document_input = EMPTY;

@@ -12,7 +12,7 @@
 		#include	"./string.h"
 	#endif
 
-uint64_t lib_input( uint8_t *cache, uint64_t limit, uint64_t length, uint8_t *ctrl_semaphore ) {
+uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t limit, uint64_t length, uint8_t *ctrl_semaphore ) {
 	// prepare area for stream meta data
 	// struct STD_STRUCTURE_STREAM_META stream_meta;
 
@@ -234,4 +234,9 @@ uint64_t lib_input( uint8_t *cache, uint64_t limit, uint64_t length, uint8_t *ct
 	}
 
 	return EMPTY;
+}
+
+struct LIB_INPUT_STRUCTURE *lib_input_init( void ) {
+	// allocate memory for history
+	return (struct LIB_INPUT_STRUCTURE *) std_memory_alloc( TRUE );
 }

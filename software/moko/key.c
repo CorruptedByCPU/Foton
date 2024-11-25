@@ -38,7 +38,7 @@ uint8_t moko_key_ctrl( uint16_t key ) {
 					printf( "\e[s\e[%u;%uH\e[48;5;15m\e[38;5;0m\e[2KSave as: %s", 0, stream_meta.height - 2, save_as );
 
 					// select current or new file name form user
-					save_as_length = lib_input( save_as, stream_meta.width - 9, save_as_length, (uint8_t *) &key_ctrl_semaphore );
+					save_as_length = lib_input( EMPTY, save_as, stream_meta.width - 9, save_as_length, (uint8_t *) &key_ctrl_semaphore );
 
 					// properties of file if exist
 					FILE *file_save_as;

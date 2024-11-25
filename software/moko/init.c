@@ -3,6 +3,9 @@
 ===============================================================================*/
 
 void moko_init( uint64_t argc, uint8_t *argv[] ) {
+	// initialize input library
+	// struct LIB_INPUT_STRUCTURE *document_input = lib_input_init();
+
 	// retrieve stream meta data
 	std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT );
 
