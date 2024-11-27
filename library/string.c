@@ -74,6 +74,17 @@ uint64_t lib_string_length_line( uint8_t *string ) {
 	return length;
 }
 
+uint64_t lib_string_length_line_previous( uint8_t *string, uint64_t length ) {
+	// length of string
+	uint64_t n = 0;
+
+	// increment until EMPTY
+	while( *(--string) != '\n' && length-- ) n++;
+
+	// return length of string
+	return n;
+}
+
 uint64_t lib_string_length_scope_digit( uint8_t *string ) {
 	// amount of digits in string
 	uint64_t length = 0;

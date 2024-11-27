@@ -13,9 +13,6 @@
 	#endif
 
 uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t limit, uint64_t length, uint8_t *ctrl_semaphore ) {
-	// prepare area for stream meta data
-	// struct STD_STRUCTURE_STREAM_META stream_meta;
-
 	// keep track of cursor position inside cache
 	uint64_t cursor_index = length;
 
@@ -45,6 +42,23 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 
 				// terminate command from previous one
 				cache[ length ] = STD_ASCII_TERMINATOR;
+
+				// history available?
+				if( input ) {
+					// do not preserve duplicates
+					uint64_t length_previous = lib_string_length_line_previous( input -> history + input -> history_index - TRUE, input -> history_index - TRUE );
+					if( ! lib_string_compare( (uint8_t *) &input -> history[ input -> history_index - (length_previous + TRUE) ], cache, length ) ) {
+						// keep in history
+						input -> history = (uint8_t *) realloc( input -> history, input -> history_length + length + 1 );
+						for( uint64_t i = 0; i < length; i++ ) input -> history[ input -> history_length++ ] = cache[ i ];
+
+						// separate each command with new line character
+						input -> history[ input -> history_length++ ] = STD_ASCII_NEW_LINE;
+
+						// reset history index
+						input -> history_index = input -> history_length;
+					}
+				}
 
 				// return current cursor_index
 				return length;
@@ -165,6 +179,52 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 				}
 			}
 
+			// select previous command?
+			if( keyboard -> key == STD_KEY_ARROW_UP && input ) {
+				// beginning of history?
+				if( ! input -> history_index ) continue;	// ignore
+
+				// calculate length of previous command
+				uint64_t length_previous = lib_string_length_line_previous( input -> history + input -> history_index - TRUE, input -> history_index - TRUE );
+				input -> history_index -= length_previous + TRUE;
+
+				// move cursor at end of current command
+				if( cursor_index != length ) while( cursor_index++ != length ) { print( "\e[C" ); cursor_index++; }
+
+				// and clear prompt
+				while( length-- ) { print( "\b" ); cursor_index--; }
+
+				// load previous command
+				for( uint64_t i = 0; i < length_previous; i++ ) cache[ i ] = input -> history[ input -> history_index + i ]; cache[ length_previous ] = STD_ASCII_TERMINATOR;
+
+				// show it
+				printf( "%s", cache );
+				cursor_index = length = length_previous;
+			}
+
+			// select previous command?
+			if( keyboard -> key == STD_KEY_ARROW_DOWN && input ) {
+				// end of history?
+				if( input -> history_index == input -> history_length ) continue;	// ignore
+
+				// calculate length of next command
+				input -> history_index += lib_string_length_line( input -> history + input -> history_index ) + TRUE;
+				uint64_t length_next = lib_string_length_line( input -> history + input -> history_index );
+
+				// move cursor at end of current command
+				if( cursor_index != length ) while( cursor_index++ != length ) { print( "\e[C" ); cursor_index++; }
+
+				// and clear prompt
+				while( length-- ) { print( "\b" ); cursor_index--; }
+
+				// load next command
+				for( uint64_t i = 0; i < length_next; i++ ) cache[ i ] = input -> history[ input -> history_index + i ]; cache[ length_next ] = STD_ASCII_TERMINATOR;
+
+				// show it
+				printf( "%s", cache );
+				cursor_index = length = length_next;
+			}
+
 			// cancel operation?
 			if( keyboard -> key == 'c' && *ctrl_semaphore ) {
 				// move cursor at beginning of input
@@ -237,6 +297,14 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 }
 
 struct LIB_INPUT_STRUCTURE *lib_input_init( void ) {
-	// allocate memory for history
-	return (struct LIB_INPUT_STRUCTURE *) std_memory_alloc( TRUE );
+	// allocate memory for input structure
+	struct LIB_INPUT_STRUCTURE *input = (struct LIB_INPUT_STRUCTURE *) std_memory_alloc( TRUE );
+
+	// allocate memory for input history
+	input -> history = (uint8_t *) malloc( TRUE );
+	input -> history_index = EMPTY;
+	input -> history_length = EMPTY;
+
+	// return input structure pointer
+	return input;
 }
