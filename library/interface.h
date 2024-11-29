@@ -31,6 +31,7 @@
 	#define	LIB_INTERFACE_ELEMENT_TYPE_control_maximize	0x04
 	#define	LIB_INTERFACE_ELEMENT_TYPE_control_minimize	0x05
 	#define	LIB_INTERFACE_ELEMENT_TYPE_menu			0x06
+	#define	LIB_INTERFACE_ELEMENT_TYPE_input		0x07
 
 	#define	LIB_INTERFACE_ELEMENT_FLAG_hover		0b00000001
 
@@ -44,6 +45,8 @@
 	#define	LIB_INTERFACE_COLOR_background_dark		0xFF080808
 	#define	LIB_INTERFACE_COLOR_foreground			0xFFF0F0F0
 	#define	LIB_INTERFACE_COLOR_background_light		0xFF282828
+	#define	LIB_INTERFACE_COLOR_background_button		0xFF202020
+	#define	LIB_INTERFACE_COLOR_background_input		0xFF101010
 	#define	LIB_INTERFACE_COLOR_background_hover		0xFF208020
 
 	#define	LIB_INTERFACE_COLOR_MENU_background_hover	0xFF0C0C0C
@@ -98,6 +101,12 @@
 		uint8_t		*name;
 	};
 
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT {
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	input;
+		uint16_t	name_length;
+		uint8_t		*name;
+	};
+
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	menu;
 		void		(*event)( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu );
@@ -127,6 +136,10 @@
 
 	// show label element of definied properties
 	void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element );
+
+	void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element );
+
+	void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *element );
 
 	// show menu element of definied properties
 	void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element );
