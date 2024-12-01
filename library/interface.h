@@ -46,7 +46,7 @@
 	#define	LIB_INTERFACE_COLOR_foreground			0xFFF0F0F0
 	#define	LIB_INTERFACE_COLOR_background_light		0xFF282828
 	#define	LIB_INTERFACE_COLOR_background_button		0xFF202020
-	#define	LIB_INTERFACE_COLOR_background_input		0xFF101010
+	#define	LIB_INTERFACE_COLOR_background_input		0xFF080808
 	#define	LIB_INTERFACE_COLOR_background_hover		0xFF208020
 
 	#define	LIB_INTERFACE_COLOR_MENU_background_hover	0xFF0C0C0C
@@ -103,8 +103,8 @@
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	input;
-		uint16_t	name_length;
-		uint8_t		*name;
+		uint16_t	limit;
+		uint8_t		*string;
 	};
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU {

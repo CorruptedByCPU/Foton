@@ -26,5 +26,5 @@ void module_usb_ehci_init( uint8_t c ) {
 	kernel -> time_sleep( 8 );
 
 	// nothing more, leave ports to companion controllers if they exist
-	// op -> config = EMPTY;
+	op -> config = EMPTY;	// required by OHCI Companion Controller
 }

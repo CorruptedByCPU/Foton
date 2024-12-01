@@ -34,6 +34,8 @@ const uint8_t lib_interface_string_menu[] = "menu";
 const uint8_t lib_interface_string_command[] = "command";
 const uint8_t lib_interface_string_icon[] = "icon";
 const uint8_t lib_interface_string_input[] = "input";
+const uint8_t lib_interface_string_limit[] = "limit";
+const uint8_t lib_interface_string_string[] = "string";
 
 
 void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -375,8 +377,8 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			// 	// element name alignment
 			// 	uint16_t element_name_align = EMPTY;
 
-			// 	// id
-			// 	if( lib_json_key( input, (uint8_t *) &lib_interface_string_id ) ) element -> input.id = input.value;
+				// id
+				if( lib_json_key( input, (uint8_t *) &lib_interface_string_id ) ) element -> input.id = input.value;
 
 				// x
 				if( lib_json_key( input, (uint8_t *) &lib_interface_string_x ) ) element -> input.x = input.value;
@@ -390,35 +392,24 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				// height
 				if( lib_json_key( input, (uint8_t *) &lib_interface_string_height ) ) element -> input.height = input.value;
 		
-			// 	// align
-			// 	if( lib_json_key( input, (uint8_t *) &lib_interface_string_align ) ) {
-			// 		// by default
-			// 		element -> input.flags = LIB_FONT_ALIGN_left;
+				// limit
+				if( lib_json_key( input, (uint8_t *) &lib_interface_string_limit ) ) element -> limit = input.value;
 
-			// 		// center?
-			// 		if( lib_string_compare( (uint8_t *) input.value, (uint8_t *) &lib_interface_string_center, input.length ) )
-			// 			element -> input.flags = LIB_FONT_ALIGN_center;
+				// string
+				if( lib_json_key( input, (uint8_t *) &lib_interface_string_string ) ) {
+					// alloc area for element content
+					uint8_t *string = (uint8_t *) calloc( element -> limit + 1 );
 
-			// 		// right?
-			// 		if( lib_string_compare( (uint8_t *) input.value, (uint8_t *) &lib_interface_string_right, input.length ) )
-			// 			element -> input.flags = LIB_FONT_ALIGN_right;
-			// 	}
+					// set element content
+					uint8_t *source = (uint8_t *) input.value;
+					for( uint64_t i = 0; i < input.length; i++ ) string[ i ] = source[ i ];
 
-			// 	// name
-			// 	if( lib_json_key( input, (uint8_t *) &lib_interface_string_name ) ) {
-			// 		// length if proper
-			// 		element -> name_length = input.length;
+					// limit update
+					element -> limit -= input.length;
 
-			// 		// alloc area for element name
-			// 		uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
-
-			// 		// copy element name
-			// 		uint8_t *name_source = (uint8_t *) input.value;
-			// 		for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = name_source[ i ];
-
-			// 		// update element name pointer
-			// 		element -> name = name_target;
-			// 	}
+					// set element content pointer
+					element -> string = string;
+				}
 
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &input ) );
@@ -577,9 +568,6 @@ void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, st
 }
 
 void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *element ) {
-	// limit string length to element width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> input.width ) if( ! --element -> name_length ) return;
-
 	// compute absolute address of first pixel of element space
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> input.y * interface -> width) + element -> input.x;
 
@@ -595,11 +583,8 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 	// vertical align of element content
 	if( element -> input.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> input.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
 
-	// horizontal align of element content
-	pixel += element -> input.width >> STD_SHIFT_2;
-
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, LIB_FONT_ALIGN_center );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> string, lib_string_length( element -> string ), LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + TRUE, interface -> width, LIB_FONT_ALIGN_left );
 }
 
 void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element ) {

@@ -6,6 +6,9 @@
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
 	#include	"../kernel/config.h"
+	#include	"../kernel/idt.h"
+	#include	"../kernel/io_apic.h"
+	#include	"../kernel/lapic.h"
 	#include	"../kernel/page.h"
 	//----------------------------------------------------------------------
 	// drivers
@@ -301,8 +304,9 @@ void _entry( uintptr_t kernel_ptr ) {
 				// controller recognized?
 				if( ! module_usb_controller[ module_usb_controller_limit ].type ) continue;	// no
 
-				// set base address of controller and mmio semaphore
+				// set base address of controller, irq and mmio semaphore
 				module_usb_controller[ module_usb_controller_limit ].base_address = driver_pci_read( module_usb_controller[ module_usb_controller_limit ].pci, bar_low );
+				module_usb_controller[ module_usb_controller_limit ].irq_pin_and_line = driver_pci_read( module_usb_controller[ module_usb_controller_limit ].pci, DRIVER_PCI_REGISTER_irq ) & STD_MASK_word;
 				module_usb_controller[ module_usb_controller_limit ].mmio_semaphore = FALSE;	// by default
 
 				// detect length of port area

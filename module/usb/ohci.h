@@ -9,6 +9,15 @@
 
 	#define	MODULE_USB_OHCI_REGISTER_CONTROL_host_controller_functional_state	(0b11 << 6)
 
+	#define	MODULE_USB_OHCI_REGISTER_FM_INTERVAL_update				(1 << 31)
+	#define	MODULE_USB_OHCI_REGISTER_FM_INTERVAL_default				0x2EDF
+	#define	MODULE_USB_OHCI_REGISTER_FM_INTERVAL_full_speed				0x2A2F0000
+
+	#define	MODULE_USB_OHCI_REGISTER_PERIODIC_START_default				0x2A2F
+
+	#define	MODULE_USB_OHCI_REGISTER_RH_DESCRIPTOR_A_power_individual		(1 << 8)
+	#define	MODULE_USB_OHCI_REGISTER_RH_DESCRIPTOR_A_always_on			(1 << 9)
+
 	struct MODULE_USB_STRUCTURE_OHCI_REGISTER {
 		uint32_t	revision;
 		uint32_t	control;

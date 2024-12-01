@@ -7,7 +7,7 @@ void object_load( void ) {
 	FILE *file_material = (FILE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( FILE ) ) >> STD_SHIFT_PAGE );
 
 	// open new socket for file
-	uint8_t file_material_path[] = "/system/var/3d.mtl";
+	uint8_t file_material_path[] = "/system/var/teapot.mtl";
 	file_material -> socket = std_file_open( (uint8_t *) &file_material_path, lib_string_trim( (uint8_t *) &file_material_path, lib_string_length( (uint8_t *) &file_material_path ) ) );
 
 	// if file doesn't exist
@@ -105,7 +105,7 @@ void object_load( void ) {
 	FILE *file_object = (FILE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( FILE ) ) >> STD_SHIFT_PAGE );
 
 	// open new socket for file
-	uint8_t file_object_path[] = "/system/var/3d.obj";
+	uint8_t file_object_path[] = "/system/var/teapot.obj";
 	file_object -> socket = std_file_open( (uint8_t *) &file_object_path, lib_string_trim( (uint8_t *) &file_object_path, lib_string_length( (uint8_t *) &file_object_path ) ) );
 
 	// if file doesn't exist
