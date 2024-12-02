@@ -24,6 +24,7 @@
 	#include	"./usb/uhci.h"
 	#include	"./usb/ohci.h"
 	#include	"./usb/ehci.h"
+	#include	"./usb/xhci.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -31,6 +32,7 @@
 	#include	"./usb/uhci.c"
 	#include	"./usb/ohci.c"
 	#include	"./usb/ehci.c"
+	#include	"./usb/xhci.c"
 
 uint16_t module_usb_hid_keyboard_matrix( uint8_t id ) {
 	// translate key id, default: low matrix
@@ -295,7 +297,7 @@ void _entry( uintptr_t kernel_ptr ) {
 				// if found
 				if( class_subclass == DRIVER_PCI_CLASS_SUBCLASS_usb_xhci ) {
 					// debug
-					kernel -> log( (uint8_t *) "[USB] PCI %2X:%2X.%u - USB controller found. (xHCI - eXtensible Host Controller Interface)\n", module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function );
+					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - USB controller found. (xHCI - eXtensible Host Controller Interface)\n", module_usb_controller_limit, module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function );
 
 					// set type
 					module_usb_controller[ module_usb_controller_limit ].type = MODULE_USB_CONTROLLER_TYPE_xHCI;
@@ -325,7 +327,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					module_usb_controller[ module_usb_controller_limit ].mmio_semaphore = TRUE;
 
 					// 64 bit address?
-					if( (module_usb_controller[ module_usb_controller_limit ].base_address & ~STD_PAGE_mask) == 0b0100 )
+					if( (module_usb_controller[ module_usb_controller_limit ].base_address & ~STD_PAGE_mask) == 0x04 )
 						// retrieve higher address value
 						module_usb_controller[ module_usb_controller_limit ].base_address |= (uint64_t) driver_pci_read( module_usb_controller[ module_usb_controller_limit ].pci, bar_high ) << STD_MOVE_DWORD;
 
@@ -333,7 +335,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					kernel -> page_map( kernel -> page_base_address, module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask, (module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask) | KERNEL_PAGE_mirror, MACRO_PAGE_ALIGN_UP( TRUE ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 					// debug
-					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - MMIO address 0x%16X\n", module_usb_controller_limit, module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function, module_usb_controller[ module_usb_controller_limit ].base_address );
+					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - MMIO address 0x%16X\n", module_usb_controller_limit, module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function, module_usb_controller[ module_usb_controller_limit ].base_address &= ~0b00001111 );
 				} else
 					// debug
 					kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - I/O address 0x%X\n", module_usb_controller_limit, module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function, module_usb_controller[ module_usb_controller_limit ].base_address &= ~0b00001111 );
@@ -347,6 +349,9 @@ void _entry( uintptr_t kernel_ptr ) {
 				// controller registered
 				module_usb_controller_limit++;
 			}
+
+	// initialize xHCI controllers
+	for( uint8_t c = 0; c < module_usb_controller_limit; c++ ) if( module_usb_controller[ c ].type == MODULE_USB_CONTROLLER_TYPE_xHCI ) module_usb_xhci_init( c );
 
 	// initialize EHCI controllers
 	for( uint8_t c = 0; c < module_usb_controller_limit; c++ ) if( module_usb_controller[ c ].type == MODULE_USB_CONTROLLER_TYPE_EHCI ) module_usb_ehci_init( c );

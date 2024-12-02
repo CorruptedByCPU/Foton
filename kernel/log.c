@@ -52,9 +52,9 @@ void kernel_log( uint8_t *string, ... ) {
 
 				// show 'value' on terminal
 				#ifdef LIB_TERMINAL
-					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 2, p_value, ' ' );
+					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 2, p_value, STD_ASCII_DIGIT_0 );
 				#else
-					driver_serial_value( value, 2, p_value, '0' );
+					driver_serial_value( value, 2, p_value, STD_ASCII_DIGIT_0 );
 				#endif
 
 				// next character from string
@@ -95,9 +95,9 @@ void kernel_log( uint8_t *string, ... ) {
 
 				// show 'value' on terminal
 				#ifdef LIB_TERMINAL
-					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, ' ' );
+					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, STD_ASCII_DIGIT_0 );
 				#else
-					driver_serial_value( value, 10, p_value, ' ' );
+					driver_serial_value( value, 10, p_value, STD_ASCII_DIGIT_0 );
 				#endif
 
 				// next character from string
@@ -126,9 +126,9 @@ void kernel_log( uint8_t *string, ... ) {
 
 				// show 'value' on terminal
 				#ifdef LIB_TERMINAL
-					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, ' ' );
+					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, STD_ASCII_DIGIT_0 );
 				#else
-					driver_serial_value( value, 10, p_value, ' ' );
+					driver_serial_value( value, 10, p_value, STD_ASCII_DIGIT_0 );
 				#endif
 
 				// next character from string
@@ -141,9 +141,9 @@ void kernel_log( uint8_t *string, ... ) {
 
 				// show 'value' on terminal
 				#ifdef LIB_TERMINAL
-					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 16, p_value, '0' );
+					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 16, p_value, STD_ASCII_DIGIT_0 );
 				#else
-					driver_serial_value( value, 16, p_value, '0' );
+					driver_serial_value( value, 16, p_value, STD_ASCII_DIGIT_0 );
 				#endif
 
 				// next character from string

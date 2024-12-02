@@ -81,8 +81,8 @@ void module_usb_ohci_init( uint8_t c ) {
 
 	// PORT(s) -------------------------------------------------------------
 
-MACRO_DEBUF();
-MACRO_DEBUF();
+// MACRO_DEBUF();
+// MACRO_DEBUF();
 
 	uint32_t *port_status = (uint32_t *) ohci ->rh_port_status;
 	volatile uint32_t test = port_status[ 0 ];

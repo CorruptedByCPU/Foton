@@ -26,6 +26,10 @@
 	#include		"./idt.h"
 #endif
 
+#ifndef	LIB_TERMINAL
+	#include		"../library/terminal.h"
+#endif
+
 struct KERNEL {
 	// variables of Kernel management functions
 	volatile uint64_t					cpu_count;
@@ -166,4 +170,3 @@ struct KERNEL {
 	struct KERNEL_STRUCTURE_VFS				*vfs_base_address;
 	uint8_t							vfs_semaphore;
 };
-// } __attribute__( (packed) );
