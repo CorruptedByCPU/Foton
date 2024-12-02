@@ -5,6 +5,10 @@
 #ifndef	MODULE_USB_XHCI
 	#define	MODULE_USB_XHCI
 
+	#define	MODULE_USB_XHCI_EXTENDED_CAPABILITIES_ID_usb_legacy_support		1
+	#define	MODULE_USB_XHCI_EXTENDED_CAPABILITIES_ID_supported_protocols		2
+	#define	MODULE_USB_XHCI_EXTENDED_CAPABILITIES_ID_extended_power_management	3
+
 	struct	MODULE_USB_STRUCTURE_XHCI {
 		uint8_t		length;
 		uint8_t		reserved0;
