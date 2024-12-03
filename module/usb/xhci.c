@@ -2,6 +2,8 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+// STILL IN PROGRESS !
+
 void module_usb_xhci_init( uint8_t c ) {
 	// properties of controller registers
 	volatile struct MODULE_USB_STRUCTURE_XHCI *xhci = (struct MODULE_USB_STRUCTURE_XHCI *) module_usb_controller[ c ].base_address;
@@ -28,6 +30,16 @@ void module_usb_xhci_init( uint8_t c ) {
 
 			// wait for BIOS release
 			while( *xecp & (1 << 16) ) kernel -> time_sleep( TRUE );
+
+			kernel -> log( (uint8_t *) "[USB].%u USB Legacy Support, disabled.\n" );
+		}
+
+		// Supported Protocol
+		if( (*xecp & STD_MASK_byte) == MODULE_USB_XHCI_EXTENDED_CAPABILITIES_ID_supported_protocols ) {
+			// take ownership of xHCI controller
+			volatile uint32_t first_dword = *xecp;
+
+			kernel -> log( (uint8_t *) "[USB].%u Supported Protocol: %u.%u\n", c, first_dword >> 28, (first_dword >> 16) & 0x00FF );
 		}
 
 		// next entry
