@@ -77,9 +77,6 @@ void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
 	if( interface -> background_color ) background_color = interface -> background_color;	// change to choosen one
 
-	// debug, how and why...
-	// if( (uintptr_t) interface -> descriptor > 0x700000000000 ) exit();	// kill me
-
 	// fill window with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( int64_t i = 0; i < interface -> width * interface -> height; i++ )
@@ -374,9 +371,6 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 			// parse all keys
 			do {
-			// 	// element name alignment
-			// 	uint16_t element_name_align = EMPTY;
-
 				// id
 				if( lib_json_key( input, (uint8_t *) &lib_interface_string_id ) ) element -> input.id = input.value;
 
@@ -410,7 +404,6 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 					// set element content pointer
 					element -> string = string;
 				}
-
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &input ) );
 
@@ -629,6 +622,33 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	}
 }
 
+void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// incomming message
+	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
+
+	// receive pending messages
+	if( ! std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) return;
+
+	// message properties
+	struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_data;
+
+	// TAB key pressed?
+	if( keyboard -> key != STD_KEY_TAB ) return;
+
+	// start from first element
+	uint8_t *element = (uint8_t *) interface -> properties;
+
+	// if not selected previously
+	if( interface -> element_active ) element = interface -> element_active;
+
+	// 		// // select another element as active
+	// 		// while( *element ) {
+	// 		// 	// element properties
+	// 		// 	struct LIB_INTERFACE_STRUCTURE_ELEMENT *properties = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) &element[ e ];
+
+	//		// }
+}
+
 struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// incomming message
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
@@ -645,7 +665,7 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 	//--------------------------------------------------------------------------------
 	// "hover over elements"
 	//--------------------------------------------------------------------------------
-	lib_interface_hover( interface );
+	lib_interface_active_or_hover( interface );
 
 	// acquired new window properties?
 	if( interface -> descriptor -> flags & STD_WINDOW_FLAG_properties ) {
@@ -816,7 +836,7 @@ void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	}
 }
 
-void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
+void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// check every element of interface
 	uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
 

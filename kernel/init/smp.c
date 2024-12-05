@@ -33,7 +33,7 @@ void kernel_init_smp( void ) {
 		// no support for CPU clusters, yet
 		//--------------------------------------------------------------
 
-		// CPU limit acquired?
-		if( kernel -> cpu_count >= 8 || i >= 8 ) break;	// yes
+		// no support for multiple I/O APIC controller, CPU limit acquired?
+		if( kernel -> cpu_count >= 6 || i >= 6 ) break;	// yes
 	}
 }

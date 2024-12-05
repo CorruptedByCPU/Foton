@@ -58,7 +58,7 @@ int64_t wm_menu( void ) {
 	// main loop
 	while( TRUE ) {
 		// check elements hover
-		lib_interface_hover( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
+		lib_interface_active_or_hover( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 
 		// release CPU time
 		sleep( TRUE );

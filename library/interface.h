@@ -34,6 +34,7 @@
 	#define	LIB_INTERFACE_ELEMENT_TYPE_input		0x07
 
 	#define	LIB_INTERFACE_ELEMENT_FLAG_hover		0b00000001
+	#define	LIB_INTERFACE_ELEMENT_FLAG_active		0b00000010
 
 	#define	LIB_INTERFACE_BORDER_pixel			1
 	#define	LIB_INTERFACE_BORDER_COLOR_default		0xFF404040
@@ -72,6 +73,7 @@
 		//--------------------------------------------------
 		uint8_t		controls;
 		uint8_t		active_semaphore;
+		uint8_t		*element_active;
 		uint32_t	background_color;	// if set (alpha channel set), choose as background color
 		//--------------------------------------------------
 		uint8_t		name_length;
@@ -148,9 +150,10 @@
 	struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface );
 	// support function of lib_interface_event, performed exclusively by WM
 	void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface );
+	void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// change status of elements of interface
-	void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface );
+	void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// rename window header
 	void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface );
