@@ -35,7 +35,7 @@ int64_t wm_menu( void ) {
 	}
 
 	// create menu object
-	wm_object_menu = wm_object_create( 0, wm_object_taskbar -> y - menu_interface.height, menu_interface.width, menu_interface.height );
+	wm_object_menu = wm_object_create( -1, wm_object_taskbar -> y - menu_interface.height + 1, menu_interface.width, menu_interface.height );
 
 	// mark it as own
 	wm_object_menu -> pid = wm_pid;
@@ -57,6 +57,9 @@ int64_t wm_menu( void ) {
 
 	// main loop
 	while( TRUE ) {
+		// check events
+		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
+
 		// check elements hover
 		lib_interface_active_or_hover( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 

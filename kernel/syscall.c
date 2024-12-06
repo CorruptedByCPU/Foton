@@ -287,7 +287,7 @@ uintptr_t kernel_syscall_memory_share( int64_t pid, uintptr_t source, uint64_t p
 }
 
 void kernel_syscall_mouse( struct STD_STRUCTURE_MOUSE_SYSCALL *mouse ) {
-	// return information about existing framebuffer
+	// return information about mouse device
 	mouse -> x	= kernel -> device_mouse_x;
 	mouse -> y	= kernel -> device_mouse_y;
 	mouse -> status	= kernel -> device_mouse_status;

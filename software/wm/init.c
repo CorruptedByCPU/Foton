@@ -95,8 +95,8 @@ uint8_t wm_init( void ) {
 				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = 0xFF101010;
 
 	// show debug information
-	// uint8_t build_version[] = "System build on "__DATE__" "__TIME__;
-	// lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, build_version, sizeof( build_version ) - 1, STD_COLOR_GRAY, workbench_pixel, wm_object_workbench -> width, LIB_FONT_ALIGN_right );
+	uint8_t build_version[] = "System build on "__DATE__" "__TIME__;
+	lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, build_version, sizeof( build_version ) - 1, STD_COLOR_GRAY, workbench_pixel, wm_object_workbench -> width, LIB_FONT_ALIGN_right );
 
 	// object content ready for display
 	wm_object_workbench -> descriptor -> flags |= STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;

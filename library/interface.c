@@ -939,7 +939,7 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = TRUE; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
-		for( uint16_t x = TRUE; x < interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel); x++ )
+		for( uint16_t x = TRUE; x < interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) - 1; x++ )
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 
