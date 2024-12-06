@@ -4,7 +4,7 @@
 		"y": -1,
 		"width": 336,
 		"height": 216,
-		"name": "Welcome"
+		"name": "GUI Debug Window"
 	},
 	"control": {
 		"id": 0,
@@ -18,16 +18,7 @@
 		"y": 30,
 		"width": 314,
 		"height": 16,
-		"name": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi quis consectetur diam. Ut luctus nibh quis posuere semper. Cras rutrum condimentum sem vitae faucibus. Aenean eu cursus metus. Suspendisse tortor ex, ullamcorper a mauris at, accumsan efficitur purus. Sed pellentesque faucibus interdum. Phasellus id justo vitae dolor venenatis sagittis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eget neque sit amet magna scelerisque tincidunt. Pellentesque ac arcu pharetra, lobortis nisi eu, viverra mi. Fusce condimentum sapien vel massa semper iaculis. Vestibulum a viverra ipsum. Donec hendrerit, sem viverra euismod tincidunt, justo justo viverra arcu, ut molestie odio urna ac nulla. Sed sed sodales neque. Mauris tristique erat ut nulla efficitur volutpat. Vivamus mattis arcu id lorem dapibus ultricies."
-	},
-	"input": {
-		"id": 2,
-		"x": 9,
-		"y": 54,
-		"width": 160,
-		"height": 22,
-		"limit": 8,
-		"string": "test"
+		"name": "Use `TAB` key to move between elements."
 	},
 	"button": {
 		"id": 1,
@@ -35,6 +26,31 @@
 		"y": 84,
 		"width": 160,
 		"height": 22,
-		"name": "Button"
+		"name": "Button 0"
+	},
+	"button": {
+		"id": 2,
+		"x": 9,
+		"y": 110,
+		"width": 160,
+		"height": 22,
+		"name": "Button 1"
+	},
+	"button": {
+		"id": 3,
+		"x": 9,
+		"y": 136,
+		"width": 160,
+		"height": 22,
+		"name": "Button 2"
+	},
+	"input": {
+		"id": 4,
+		"x": 9,
+		"y": 54,
+		"width": 160,
+		"height": 22,
+		"limit": 8,
+		"string": "{input test}"
 	}
 }
