@@ -25,3 +25,7 @@ qemu-system-x86_64					\
 	-readconfig tools/qemu-ehci-uhci.cfg		\
 	-device usb-kbd,bus=ehci.0			\
 	-device usb-mouse,bus=ehci.0			\
+#	-device qemu-xhci				\
+#	-device usb-kbd					\
+#	-device usb-mouse				\
+

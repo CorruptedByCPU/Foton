@@ -34,6 +34,7 @@
 	#define	LIB_INTERFACE_ELEMENT_TYPE_input		0x07
 
 	#define	LIB_INTERFACE_ELEMENT_FLAG_hover		0b00000001
+	#define	LIB_INTERFACE_ELEMENT_FLAG_active		0b00000010
 
 	#define	LIB_INTERFACE_BORDER_pixel			1
 	#define	LIB_INTERFACE_BORDER_COLOR_default		0xFF404040
@@ -45,11 +46,17 @@
 	#define	LIB_INTERFACE_COLOR_background_dark		0xFF080808
 	#define	LIB_INTERFACE_COLOR_foreground			0xFFF0F0F0
 	#define	LIB_INTERFACE_COLOR_background_light		0xFF282828
-	#define	LIB_INTERFACE_COLOR_background_button		0xFF202020
-	#define	LIB_INTERFACE_COLOR_background_input		0xFF080808
+	#define	LIB_INTERFACE_COLOR_background_active		0xFF303030
+	#define	LIB_INTERFACE_COLOR_background_button_default	0xFF202020
+	#define	LIB_INTERFACE_COLOR_background_button_hover	0xFF282828
+	#define	LIB_INTERFACE_COLOR_background_button_active	0xFF303030
+	#define	LIB_INTERFACE_COLOR_background_menu_default	LIB_INTERFACE_COLOR_background
+	#define	LIB_INTERFACE_COLOR_background_menu_hover	0xFF202020
+	#define	LIB_INTERFACE_COLOR_background_menu_active	LIB_INTERFACE_COLOR_background_button_active
+	#define	LIB_INTERFACE_COLOR_background_input_default	0xFF101010
+	#define	LIB_INTERFACE_COLOR_background_input_hover	0xFF181818
+	#define	LIB_INTERFACE_COLOR_background_input_active	0xFF202020
 	#define	LIB_INTERFACE_COLOR_background_hover		0xFF208020
-
-	#define	LIB_INTERFACE_COLOR_MENU_background_hover	0xFF0C0C0C
 
 	#define	LIB_INTERFACE_NAME_limit			LIB_INTERFACE_GLOBAL_NAME_limit
 
@@ -72,6 +79,7 @@
 		//--------------------------------------------------
 		uint8_t		controls;
 		uint8_t		active_semaphore;
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*element_active;
 		uint32_t	background_color;	// if set (alpha channel set), choose as background color
 		//--------------------------------------------------
 		uint8_t		name_length;
@@ -148,9 +156,10 @@
 	struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface );
 	// support function of lib_interface_event, performed exclusively by WM
 	void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface );
+	void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// change status of elements of interface
-	void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface );
+	void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// rename window header
 	void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface );

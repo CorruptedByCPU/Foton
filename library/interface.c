@@ -77,9 +77,6 @@ void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
 	if( interface -> background_color ) background_color = interface -> background_color;	// change to choosen one
 
-	// debug, how and why...
-	// if( (uintptr_t) interface -> descriptor > 0x700000000000 ) exit();	// kill me
-
 	// fill window with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( int64_t i = 0; i < interface -> width * interface -> height; i++ )
@@ -374,9 +371,6 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 			// parse all keys
 			do {
-			// 	// element name alignment
-			// 	uint16_t element_name_align = EMPTY;
-
 				// id
 				if( lib_json_key( input, (uint8_t *) &lib_interface_string_id ) ) element -> input.id = input.value;
 
@@ -410,7 +404,6 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 					// set element content pointer
 					element -> string = string;
 				}
-
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &input ) );
 
@@ -549,8 +542,9 @@ void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, st
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
 
 	// select background color
-	uint32_t color = LIB_INTERFACE_COLOR_background_button;
-	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_light;
+	uint32_t color = LIB_INTERFACE_COLOR_background_button_default;
+	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_button_hover;
+	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_button_active;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> label_or_button.height; y++ )
@@ -572,8 +566,9 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> input.y * interface -> width) + element -> input.x;
 
 	// select background color
-	uint32_t color = LIB_INTERFACE_COLOR_background_input;
-	if( element -> input.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background;
+	uint32_t color = LIB_INTERFACE_COLOR_background_input_default;
+	if( element -> input.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_input_hover;
+	if( element -> input.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_input_active;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> input.height; y++ )
@@ -595,20 +590,14 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> menu.y * interface -> width) + element -> menu.x;
 
 	// choose background color
-	uint32_t background_color = LIB_INTERFACE_COLOR_background;
-	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) background_color = LIB_INTERFACE_COLOR_MENU_background_hover;
+	uint32_t color = LIB_INTERFACE_COLOR_background_menu_default;
+	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_menu_hover;
+	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_menu_active;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> menu.height; y++ )
 		for( uint16_t x = 0; x < element -> menu.width; x++ )
-			pixel[ (y * interface -> width) + x ] = background_color;
-
-	// if hovered
-	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) {
-		// add some fancy :)
-		for( uint16_t x = 0; x < element -> menu.width; x++ ) pixel[ x ] = LIB_INTERFACE_COLOR_MENU_background_hover - 0x00040404;
-		for( uint16_t x = 0; x < element -> menu.width; x++ ) pixel[ x + ((element -> menu.height - 1) * interface -> width) ] = LIB_INTERFACE_COLOR_MENU_background_hover + 0x00101010;
-	}
+			pixel[ (y * interface -> width) + x ] = color;
 
 	// display the content of element
 	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4 + 16 + 2 + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width), interface -> width, element -> menu.flags );
@@ -629,6 +618,67 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	}
 }
 
+void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// incomming message
+	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
+
+	// receive pending messages
+	if( ! std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) return;
+
+	// message properties
+	struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_data;
+
+	// TAB key pressed?
+	if( keyboard -> key != STD_KEY_TAB ) return;
+
+	// start from first element
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
+
+	// if not selected previously
+	if( interface -> element_active ) element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> element_active;
+
+	while( TRUE ) {
+		// remove active flag from current element
+		if( element -> flags & LIB_INTERFACE_ELEMENT_FLAG_active ) {
+			// if existed
+			element -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_active;
+
+			// redraw element inside object
+			switch( element -> type ) {
+				case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
+				case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
+			}
+		}
+
+		// select next element from list
+		element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) element + element -> size_byte);
+
+		// end of list, start from beginning
+		if( ! element -> type ) element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
+
+		// if element of type
+		if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_label || element -> type == LIB_INTERFACE_ELEMENT_TYPE_control_close || element -> type == LIB_INTERFACE_ELEMENT_TYPE_control_minimize || element -> type == LIB_INTERFACE_ELEMENT_TYPE_control_maximize || element -> type == LIB_INTERFACE_ELEMENT_TYPE_menu ) continue;	// ignore
+
+		// set element as active
+		element -> flags |= LIB_INTERFACE_ELEMENT_FLAG_active;
+
+		// store information
+		interface -> element_active = element;
+
+		// redraw element inside object
+		switch( element -> type ) {
+			case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
+			case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
+		}
+
+		// update window content on screen
+		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+		// found
+		break;
+	}
+}
+
 struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// incomming message
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
@@ -645,7 +695,7 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 	//--------------------------------------------------------------------------------
 	// "hover over elements"
 	//--------------------------------------------------------------------------------
-	lib_interface_hover( interface );
+	lib_interface_active_or_hover( interface );
 
 	// acquired new window properties?
 	if( interface -> descriptor -> flags & STD_WINDOW_FLAG_properties ) {
@@ -816,7 +866,7 @@ void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	}
 }
 
-void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
+void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// check every element of interface
 	uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
 
@@ -858,6 +908,7 @@ void lib_interface_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
 				case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
 				case LIB_INTERFACE_ELEMENT_TYPE_menu: { lib_interface_element_menu( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) &element[ e ] ); break; }
+				case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) &element[ e ] ); break; }
 			}
 
 			// update window content on screen
@@ -888,7 +939,7 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = TRUE; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
-		for( uint16_t x = TRUE; x < interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel); x++ )
+		for( uint16_t x = TRUE; x < interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) - 1; x++ )
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 

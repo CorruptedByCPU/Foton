@@ -158,12 +158,12 @@ void wm_event( void ) {
 	}
 
 	// retrieve current mouse status and position
-	struct STD_STRUCTURE_MOUSE_SYSCALL mouse;
-	std_mouse( (struct STD_STRUCTURE_MOUSE_SYSCALL *) &mouse );
+	struct STD_STRUCTURE_MOUSE_SYSCALL mouse_syscall;
+	std_mouse( (struct STD_STRUCTURE_MOUSE_SYSCALL *) &mouse_syscall );
 
 	// calculate delta of cursor new position
-	int16_t delta_x = mouse.x - wm_object_cursor -> x;
-	int16_t delta_y = mouse.y - wm_object_cursor -> y;
+	int16_t delta_x = mouse_syscall.x - wm_object_cursor -> x;
+	int16_t delta_y = mouse_syscall.y - wm_object_cursor -> y;
 
 	//--------------------------------------------------------------------------
 
@@ -189,14 +189,14 @@ void wm_event( void ) {
 	//--------------------------------------------------------------------------
 
 	// left mouse button pressed?
-	if( mouse.status & STD_MOUSE_BUTTON_left ) {
+	if( mouse_syscall.status & STD_MOUSE_BUTTON_left ) {
 		// isn't holded down?
 		if( ! wm_mouse_button_left_semaphore ) {
 			// remember mouse button state
 			wm_mouse_button_left_semaphore = TRUE;
 
 			// select object under cursor position
-			wm_object_selected = wm_object_find( mouse.x, mouse.y, FALSE );
+			wm_object_selected = wm_object_find( mouse_syscall.x, mouse_syscall.y, FALSE );
 
 			// if cursor over selected object is in place of possible header
 			if( wm_object_selected -> descriptor -> y > 0 && wm_object_selected -> descriptor -> y < LIB_INTERFACE_HEADER_HEIGHT_pixel && wm_object_selected -> descriptor -> x < wm_object_selected -> width - ((LIB_INTERFACE_HEADER_HEIGHT_pixel * 0x03)) ) wm_object_drag_semaphore = TRUE;
@@ -250,16 +250,31 @@ void wm_event( void ) {
 					// and redraw area behind
 					wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 				}
-			}
 
-			// substitute of menu
-			//--------------------
-			// if left ALT key is not on hold
-			if( ! wm_keyboard_status_alt_left )
+				// substitute of menu
+				//--------------------
+
 				// menu button click?
-				if( mouse.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse.y >= wm_object_taskbar -> y )
-					// generate and show menu window
-					wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+				if( mouse_syscall.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse_syscall.y >= wm_object_taskbar -> y ) {
+					// menu window already visible?
+					if( wm_object_menu -> descriptor -> flags & STD_WINDOW_FLAG_active ) {
+						// don't show anymore
+						wm_object_menu -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
+
+						// and redraw area behind
+						wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+						// search for next active window
+						wm_object_active_new();
+					} else {
+						// generate and show menu window
+						wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_active | STD_WINDOW_FLAG_flush;
+
+						// mark as active
+						wm_object_active = wm_object_menu;
+					}
+				}
+			}
 		}
 	} else {
 		// left mouse button was held?
@@ -288,14 +303,14 @@ void wm_event( void ) {
 	//--------------------------------------------------------------------------
 
 	// right mouse button pressed?
-	if( mouse.status & STD_IPC_MOUSE_BUTTON_right ) {
+	if( mouse_syscall.status & STD_IPC_MOUSE_BUTTON_right ) {
 		// left ALT key is on hold
 		if( wm_keyboard_status_alt_left && ! wm_object_hover_semaphore ) {
 			// first initialization executed
 			wm_object_hover_semaphore = TRUE;
 
 			// find object under cursor position
-			wm_object_modify = wm_object_find( mouse.x, mouse.y, FALSE );
+			wm_object_modify = wm_object_find( mouse_syscall.x, mouse_syscall.y, FALSE );
 
 			// object resizable?
 			if( wm_object_modify -> descriptor -> flags & STD_WINDOW_FLAG_resizable ) {
@@ -366,8 +381,8 @@ void wm_event( void ) {
 		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_cursor, FALSE );
 
 		// update cursor position
-		wm_object_cursor -> x = mouse.x;
-		wm_object_cursor -> y = mouse.y;
+		wm_object_cursor -> x = mouse_syscall.x;
+		wm_object_cursor -> y = mouse_syscall.y;
 
 		// redisplay cursor at new location
 		wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;

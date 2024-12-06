@@ -38,6 +38,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// check events from interface
 		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface );
+
+		// check events from keyboard
+		lib_interface_event_keyboard( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface );
 	}
 
 	// end of execution
