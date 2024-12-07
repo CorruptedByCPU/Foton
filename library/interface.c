@@ -36,6 +36,8 @@ const uint8_t lib_interface_string_icon[] = "icon";
 const uint8_t lib_interface_string_input[] = "input";
 const uint8_t lib_interface_string_limit[] = "limit";
 const uint8_t lib_interface_string_string[] = "string";
+const uint8_t lib_interface_string_checkbox[] = "checkbox";
+const uint8_t lib_interface_string_group[] = "group";
 
 
 void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -411,6 +413,64 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			i += element -> input.size_byte;
 		}
 
+		// checkbox?
+		if( lib_json_key( json, (uint8_t *) &lib_interface_string_checkbox ) ) {
+			// alloc space for element
+			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX ) );
+
+			// element structure position
+			struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) &properties[ i ];
+	
+			// checkbox properties
+			struct LIB_JSON_STRUCTURE checkbox = lib_json( (uint8_t *) json.value );
+
+			// default properties of checkbox
+			element -> checkbox.type = LIB_INTERFACE_ELEMENT_TYPE_checkbox;
+			element -> checkbox.flags = EMPTY;
+			element -> checkbox.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX );
+
+			// parse all keys
+			do {
+				// element name alignment
+				uint16_t element_name_align = EMPTY;
+
+				// id
+				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_id ) ) element -> checkbox.id = checkbox.value;
+
+				// x
+				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_x ) ) element -> checkbox.x = checkbox.value;
+
+				// y
+				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_y ) ) element -> checkbox.y = checkbox.value;
+
+				// width
+				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_width ) ) element -> checkbox.width = checkbox.value;
+
+				// height
+				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_height ) ) element -> checkbox.height = checkbox.value;
+		
+				// name
+				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_name ) ) {
+					// length if proper
+					element -> name_length = checkbox.length;
+
+					// alloc area for element name
+					uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
+
+					// copy element name
+					uint8_t *name_source = (uint8_t *) checkbox.value;
+					for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = name_source[ i ];
+
+					// update element name pointer
+					element -> name = name_target;
+				}
+
+			// next key
+			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &checkbox ) );
+
+			// change interface structure index
+			i += element -> checkbox.size_byte;
+		}
 	// until no more elements
 	} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &json ) );
 
@@ -436,6 +496,7 @@ void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
 			case LIB_INTERFACE_ELEMENT_TYPE_menu: { lib_interface_element_menu( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) element ); break; }
 			case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
+			case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) element ); break; }
 		}
 	
 		// next element properties
@@ -579,7 +640,36 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 	if( element -> input.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> input.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> string, lib_string_length( element -> string ), LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + TRUE, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> string, lib_string_length( element -> string ), LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4, interface -> width, LIB_FONT_ALIGN_left );
+}
+
+void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *element ) {
+	// limit string length to element width
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > (element -> checkbox.width - element -> checkbox.height) ) if( ! --element -> name_length ) return;
+
+	// compute absolute address of first pixel of element space
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> checkbox.y * interface -> width) + element -> checkbox.x;
+
+	// select background color
+	uint32_t color = LIB_INTERFACE_COLOR_background_input_default;
+	if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_input_hover;
+	if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_input_active;
+
+	// clean background
+	for( uint16_t y = 0; y < element -> checkbox.height; y++ )
+		for( uint16_t x = 0; x < element -> checkbox.width; x++ )
+			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
+
+	// checkbox
+	for( uint16_t y = 0; y < element -> checkbox.height - 0; y++ )
+		for( uint16_t x = 0; x < element -> checkbox.height - 0; x++ )
+			pixel[ (y * interface -> width) + x ] = color;
+
+	// vertical align of element content
+	if( element -> checkbox.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> checkbox.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
+
+	// display the content of element
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + element -> checkbox.height + 4, interface -> width, EMPTY );
 }
 
 void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element ) {
@@ -647,6 +737,7 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			switch( element -> type ) {
 				case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
 				case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
+				case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) element ); break; }
 			}
 		}
 
@@ -669,6 +760,7 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 		switch( element -> type ) {
 			case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
 			case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
+			case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) element ); break; }
 		}
 
 		// update window content on screen
@@ -909,6 +1001,7 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface ) 
 				case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
 				case LIB_INTERFACE_ELEMENT_TYPE_menu: { lib_interface_element_menu( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) &element[ e ] ); break; }
 				case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) &element[ e ] ); break; }
+				case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) &element[ e ] ); break; }
 			}
 
 			// update window content on screen

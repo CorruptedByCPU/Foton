@@ -20,37 +20,53 @@
 		"height": 16,
 		"name": "Use `TAB` key to move between elements."
 	},
-	"button": {
-		"id": 1,
-		"x": 9,
-		"y": 84,
-		"width": 160,
-		"height": 22,
-		"name": "Button 0"
-	},
-	"button": {
-		"id": 2,
-		"x": 9,
-		"y": 110,
-		"width": 160,
-		"height": 22,
-		"name": "Button 1"
-	},
-	"button": {
-		"id": 3,
-		"x": 9,
-		"y": 136,
-		"width": 160,
-		"height": 22,
-		"name": "Button 2"
-	},
 	"input": {
-		"id": 4,
+		"id": 1,
 		"x": 9,
 		"y": 54,
 		"width": 160,
 		"height": 22,
 		"limit": 8,
-		"string": "{input test}"
+		"string": "input.0"
+	},
+	"checkbox": {
+		"id": 2,
+		"x": 9,
+		"y": 80,
+		"width": 160,
+		"height": 22,
+		"name": "checkbox.0"
+	},
+	"checkbox": {
+		"id": 3,
+		"x": 9,
+		"y": 106,
+		"width": 160,
+		"height": 22,
+		"name": "checkbox.1"
+	},
+	"button": {
+		"id": 4,
+		"x": 9,
+		"y": 132,
+		"width": 160,
+		"height": 22,
+		"name": "button.0"
+	},
+	"button": {
+		"id": 5,
+		"x": 9,
+		"y": 158,
+		"width": 160,
+		"height": 22,
+		"name": "button.1"
+	},
+	"button": {
+		"id": 6,
+		"x": 9,
+		"y": 184,
+		"width": 160,
+		"height": 22,
+		"name": "button.2"
 	}
 }

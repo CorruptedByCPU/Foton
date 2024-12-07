@@ -32,6 +32,7 @@
 	#define	LIB_INTERFACE_ELEMENT_TYPE_control_minimize	0x05
 	#define	LIB_INTERFACE_ELEMENT_TYPE_menu			0x06
 	#define	LIB_INTERFACE_ELEMENT_TYPE_input		0x07
+	#define	LIB_INTERFACE_ELEMENT_TYPE_checkbox		0x08
 
 	#define	LIB_INTERFACE_ELEMENT_FLAG_hover		0b00000001
 	#define	LIB_INTERFACE_ELEMENT_FLAG_active		0b00000010
@@ -109,6 +110,12 @@
 		uint8_t		*name;
 	};
 
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX {
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	checkbox;
+		uint16_t	name_length;
+		uint8_t		*name;
+	};
+
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	input;
 		uint16_t	limit;
@@ -148,6 +155,8 @@
 	void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element );
 
 	void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *element );
+
+	void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *element );
 
 	// show menu element of definied properties
 	void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element );
