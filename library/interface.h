@@ -80,8 +80,11 @@
 		//--------------------------------------------------
 		uint8_t		controls;
 		uint8_t		active_semaphore;
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*element_active;
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*active_element;
 		uint32_t	background_color;	// if set (alpha channel set), choose as background color
+		//--------------------------------------------------
+		uint8_t		key_alt_semaphore;
+		uint8_t		key_shift_semaphore;
 		//--------------------------------------------------
 		uint8_t		name_length;
 		uint8_t		name[ LIB_INTERFACE_NAME_limit ];
@@ -175,6 +178,8 @@
 
 	// update name on window interface
 	void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface );
+
+	void lib_interface_draw_select( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT *element );
 
 	// create window space accoring to JSON specification
 	uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );

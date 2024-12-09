@@ -39,7 +39,6 @@ const uint8_t lib_interface_string_string[] = "string";
 const uint8_t lib_interface_string_checkbox[] = "checkbox";
 const uint8_t lib_interface_string_group[] = "group";
 
-
 void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// prepare JSON structure for parsing
 	lib_json_squeeze( interface -> properties );
@@ -488,20 +487,52 @@ void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// process all interface elements
 	while( element -> type != LIB_INTERFACE_ELEMENT_TYPE_null ) {
-		switch( element -> type ) {
-			case LIB_INTERFACE_ELEMENT_TYPE_label: { lib_interface_element_label( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
-			case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
-			case LIB_INTERFACE_ELEMENT_TYPE_control_close: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
-			case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
-			case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
-			case LIB_INTERFACE_ELEMENT_TYPE_menu: { lib_interface_element_menu( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) element ); break; }
-			case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
-			case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) element ); break; }
-		}
+		// redraw element inside object
+		lib_interface_draw_select( interface, element );
 	
 		// next element properties
 		element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uint64_t) element + element -> size_byte);
 	}
+}
+
+void lib_interface_draw_select( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT *element ) {			// redraw element inside object
+	// select redraw function
+	switch( element -> type ) {
+		case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
+		case LIB_INTERFACE_ELEMENT_TYPE_control_close: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
+		case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
+		case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
+		case LIB_INTERFACE_ELEMENT_TYPE_menu: { lib_interface_element_menu( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) element ); break; }
+		case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
+		case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) element ); break; }
+	}
+}
+
+void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
+	// limit string length to element width
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> label_or_button.width ) if( ! --element -> name_length ) return;
+
+	// compute absolute address of first pixel of element space
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
+
+	// select background color
+	uint32_t color = LIB_INTERFACE_COLOR_background_button_default;
+	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_button_hover;
+	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_button_active;
+
+	// fill element with background color
+	for( uint16_t y = 0; y < element -> label_or_button.height; y++ )
+		for( uint16_t x = 0; x < element -> label_or_button.width; x++ )
+			pixel[ (y * interface -> width) + x ] = color;
+
+	// vertical align of element content
+	if( element -> label_or_button.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> label_or_button.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
+
+	// horizontal align of element content
+	pixel += element -> label_or_button.width >> STD_SHIFT_2;
+
+	// display the content of element
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, LIB_FONT_ALIGN_center );
 }
 
 uintptr_t lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface, uint64_t id ) {
@@ -520,6 +551,35 @@ uintptr_t lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface
 
 	// element of ID not found
 	return EMPTY;
+}
+
+void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *element ) {
+	// limit string length to element width
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > (element -> checkbox.width - element -> checkbox.height) ) if( ! --element -> name_length ) return;
+
+	// compute absolute address of first pixel of element space
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> checkbox.y * interface -> width) + element -> checkbox.x;
+
+	// select background color
+	uint32_t color = LIB_INTERFACE_COLOR_background_input_default;
+	if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_input_hover;
+	if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_input_active;
+
+	// clean background
+	for( uint16_t y = 0; y < element -> checkbox.height; y++ )
+		for( uint16_t x = 0; x < element -> checkbox.width; x++ )
+			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
+
+	// checkbox
+	for( uint16_t y = 0; y < element -> checkbox.height - 0; y++ )
+		for( uint16_t x = 0; x < element -> checkbox.height - 0; x++ )
+			pixel[ (y * interface -> width) + x ] = color;
+
+	// vertical align of element content
+	if( element -> checkbox.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> checkbox.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
+
+	// display the content of element
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + element -> checkbox.height + 4, interface -> width, EMPTY );
 }
 
 void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *element ) {
@@ -572,56 +632,6 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 	}
 }
 
-void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
-	// limit string length to element width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> label_or_button.width ) if( ! --element -> name_length ) return;
-
-	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
-
-	// fill element with background color
-	for( uint16_t y = 0; y < element -> label_or_button.height; y++ )
-		for( uint16_t x = 0; x < element -> label_or_button.width; x++ )
-			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
-
-	// vertical align of element content
-	if( element -> label_or_button.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> label_or_button.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
-
-	// horizontal align of element content
-	if( element -> label_or_button.flags & LIB_FONT_ALIGN_center ) pixel += element -> label_or_button.width >> STD_SHIFT_2;
-	if( element -> label_or_button.flags & LIB_FONT_ALIGN_right ) pixel += element -> label_or_button.width;
-
-	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, element -> label_or_button.flags );
-}
-
-void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
-	// limit string length to element width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> label_or_button.width ) if( ! --element -> name_length ) return;
-
-	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
-
-	// select background color
-	uint32_t color = LIB_INTERFACE_COLOR_background_button_default;
-	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_button_hover;
-	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_button_active;
-
-	// fill element with background color
-	for( uint16_t y = 0; y < element -> label_or_button.height; y++ )
-		for( uint16_t x = 0; x < element -> label_or_button.width; x++ )
-			pixel[ (y * interface -> width) + x ] = color;
-
-	// vertical align of element content
-	if( element -> label_or_button.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> label_or_button.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
-
-	// horizontal align of element content
-	pixel += element -> label_or_button.width >> STD_SHIFT_2;
-
-	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, LIB_FONT_ALIGN_center );
-}
-
 void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *element ) {
 	// compute absolute address of first pixel of element space
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> input.y * interface -> width) + element -> input.x;
@@ -643,33 +653,27 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> string, lib_string_length( element -> string ), LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4, interface -> width, LIB_FONT_ALIGN_left );
 }
 
-void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *element ) {
+void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
 	// limit string length to element width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > (element -> checkbox.width - element -> checkbox.height) ) if( ! --element -> name_length ) return;
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> label_or_button.width ) if( ! --element -> name_length ) return;
 
 	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> checkbox.y * interface -> width) + element -> checkbox.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
 
-	// select background color
-	uint32_t color = LIB_INTERFACE_COLOR_background_input_default;
-	if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_input_hover;
-	if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_input_active;
-
-	// clean background
-	for( uint16_t y = 0; y < element -> checkbox.height; y++ )
-		for( uint16_t x = 0; x < element -> checkbox.width; x++ )
+	// fill element with background color
+	for( uint16_t y = 0; y < element -> label_or_button.height; y++ )
+		for( uint16_t x = 0; x < element -> label_or_button.width; x++ )
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 
-	// checkbox
-	for( uint16_t y = 0; y < element -> checkbox.height - 0; y++ )
-		for( uint16_t x = 0; x < element -> checkbox.height - 0; x++ )
-			pixel[ (y * interface -> width) + x ] = color;
-
 	// vertical align of element content
-	if( element -> checkbox.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> checkbox.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
+	if( element -> label_or_button.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> label_or_button.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
+
+	// horizontal align of element content
+	if( element -> label_or_button.flags & LIB_FONT_ALIGN_center ) pixel += element -> label_or_button.width >> STD_SHIFT_2;
+	if( element -> label_or_button.flags & LIB_FONT_ALIGN_right ) pixel += element -> label_or_button.width;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + element -> checkbox.height + 4, interface -> width, EMPTY );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, element -> label_or_button.flags );
 }
 
 void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element ) {
@@ -705,69 +709,6 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		for( uint16_t y = 0; y < 16; y++ )
 			for( uint16_t x = 0; x < 16; x++ )
 				icon[ (y * interface -> width) + x ] = lib_color_blend( icon[ (y * interface -> width) + x ], element -> icon[ (uint64_t) (((uint64_t) (y_scale_factor * y) * 48) + (uint64_t) (x * x_scale_factor)) ] );
-	}
-}
-
-void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
-	// incomming message
-	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
-
-	// receive pending messages
-	if( ! std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) return;
-
-	// message properties
-	struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_data;
-
-	// TAB key pressed?
-	if( keyboard -> key != STD_KEY_TAB ) return;
-
-	// start from first element
-	struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
-
-	// if not selected previously
-	if( interface -> element_active ) element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> element_active;
-
-	while( TRUE ) {
-		// remove active flag from current element
-		if( element -> flags & LIB_INTERFACE_ELEMENT_FLAG_active ) {
-			// if existed
-			element -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_active;
-
-			// redraw element inside object
-			switch( element -> type ) {
-				case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
-				case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
-				case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) element ); break; }
-			}
-		}
-
-		// select next element from list
-		element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) element + element -> size_byte);
-
-		// end of list, start from beginning
-		if( ! element -> type ) element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
-
-		// if element of type
-		if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_label || element -> type == LIB_INTERFACE_ELEMENT_TYPE_control_close || element -> type == LIB_INTERFACE_ELEMENT_TYPE_control_minimize || element -> type == LIB_INTERFACE_ELEMENT_TYPE_control_maximize || element -> type == LIB_INTERFACE_ELEMENT_TYPE_menu ) continue;	// ignore
-
-		// set element as active
-		element -> flags |= LIB_INTERFACE_ELEMENT_FLAG_active;
-
-		// store information
-		interface -> element_active = element;
-
-		// redraw element inside object
-		switch( element -> type ) {
-			case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
-			case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
-			case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) element ); break; }
-		}
-
-		// update window content on screen
-		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-
-		// found
-		break;
 	}
 }
 
@@ -958,6 +899,86 @@ void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	}
 }
 
+void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// incomming message
+	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
+
+	// receive pending messages
+	if( ! std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) return;
+
+	// message properties
+	struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_data;
+
+	// pressed LEFT ALT key?
+	if( keyboard -> key == STD_KEY_ALT_LEFT ) interface -> key_alt_semaphore = TRUE;
+	if( keyboard -> key == (STD_KEY_ALT_LEFT | STD_KEY_RELEASE) ) interface -> key_alt_semaphore = FALSE;
+
+	// pressed SHIFT key?
+	if( keyboard -> key == STD_KEY_SHIFT_LEFT ) interface -> key_shift_semaphore = TRUE;
+	if( keyboard -> key == (STD_KEY_SHIFT_LEFT | STD_KEY_RELEASE) ) interface -> key_shift_semaphore = FALSE;
+
+	// ignore any key, when ALT key is on hold
+	if( interface -> key_alt_semaphore ) return;
+
+	// TAB key pressed?
+	if( keyboard -> key == STD_KEY_TAB ) {
+		// start from first element
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
+
+		// init pointers
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT *previous	= EMPTY;
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT *next		= EMPTY;
+
+		// search for previous
+		while( element -> type ) {
+			// previos already selected?
+			if( element == interface -> active_element && previous ) break;	// yes
+
+			// allowed element type?
+			if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input ) previous = element;	// yes
+
+			// check next element from list
+			element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) element + element -> size_byte);
+		}
+
+		// start search from next of current active or beginning
+		if( interface -> active_element ) next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) interface -> active_element + interface -> active_element -> size_byte);
+		else next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
+
+		// search for next
+		while( TRUE ) {
+			// end of list?
+			if( ! next -> type ) next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;	// start from beginning
+
+			// allowed element type?
+			if( next -> type == LIB_INTERFACE_ELEMENT_TYPE_button || next -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || next -> type == LIB_INTERFACE_ELEMENT_TYPE_input ) break;	// found
+
+			// check next element from list
+			next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) next + next -> size_byte);
+		}
+
+		// by default next will be selected
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT *selected = next;
+		if( interface -> key_shift_semaphore ) selected = previous;
+
+		// update interface only if selected and current are different
+		if( interface -> active_element != selected ) {
+			// unmark current element if active
+			if( interface -> active_element ) { interface -> active_element -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_active; lib_interface_draw_select( interface, interface -> active_element ); }
+
+			// setup selected element
+			interface -> active_element = selected;
+			interface -> active_element -> flags |= LIB_INTERFACE_ELEMENT_FLAG_active;
+
+			// mark is on interface
+			lib_interface_draw_select( interface, selected );
+
+			// redraw window content
+			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		}
+	}
+}
+
 void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// check every element of interface
 	uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
@@ -994,15 +1015,7 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface ) 
 		// if "event" changed
 		if( properties -> flags != previous ) {
 			// redraw element inside object
-			switch( properties -> type ) {
-				case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) &element[ e ] ); break; }
-				case LIB_INTERFACE_ELEMENT_TYPE_control_close: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
-				case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
-				case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &element[ e ] ); break; }
-				case LIB_INTERFACE_ELEMENT_TYPE_menu: { lib_interface_element_menu( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) &element[ e ] ); break; }
-				case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) &element[ e ] ); break; }
-				case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) &element[ e ] ); break; }
-			}
+			lib_interface_draw_select( interface, properties );
 
 			// update window content on screen
 			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;

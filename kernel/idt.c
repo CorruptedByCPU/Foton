@@ -50,8 +50,8 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 		default: { kernel_log( (uint8_t *) "{unknown}" ); break; }
 	}
 
-	// debug
-	kernel_log( (uint8_t *) "\nRAX 0x%16X\nRBX 0x%16X\nRCX 0x%16X\nRDX 0x%16X\nRSI 0x%16X\nRDI 0x%16X\nRBP 0x%16X\nRSP 0x%16X\nR8  0x%16X\nR9  0x%16X\nR10 0x%16X\nR11 0x%16X\nR12 0x%16X\nR13 0x%16X\nR14 0x%16X\nR15 0x%16X", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rsi, exception -> rdi, exception -> rbp, exception -> rsp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
+	// // debug
+	// kernel_log( (uint8_t *) "\nRAX 0x%16X\nRBX 0x%16X\nRCX 0x%16X\nRDX 0x%16X\nRSI 0x%16X\nRDI 0x%16X\nRBP 0x%16X\nRSP 0x%16X\nR8  0x%16X\nR9  0x%16X\nR10 0x%16X\nR11 0x%16X\nR12 0x%16X\nR13 0x%16X\nR14 0x%16X\nR15 0x%16X", exception -> rax, exception -> rbx, exception -> rcx, exception -> rdx, exception -> rsi, exception -> rdi, exception -> rbp, exception -> rsp, exception -> r8, exception -> r9, exception -> r10, exception -> r11, exception -> r12, exception -> r13, exception -> r14, exception -> r15 );
 	
 	// show task name
 	kernel_log( (uint8_t *) "\nTask: '%s' near RIP: 0x%16X or CR2: 0x%16X)\n", task -> name, exception -> rip, exception -> cr2 );
