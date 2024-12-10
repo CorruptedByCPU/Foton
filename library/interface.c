@@ -571,9 +571,15 @@ void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, 
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 
 	// checkbox
-	for( uint16_t y = 0; y < element -> checkbox.height - 0; y++ )
-		for( uint16_t x = 0; x < element -> checkbox.height - 0; x++ )
+	for( uint16_t y = 0; y < element -> checkbox.height; y++ )
+		for( uint16_t x = 0; x < element -> checkbox.height; x++ )
 			pixel[ (y * interface -> width) + x ] = color;
+
+	// selected?
+	if( element -> checkbox.selected )
+		for( uint16_t y = 4; y < element -> checkbox.height - 4; y++ )
+			for( uint16_t x = 4; x < element -> checkbox.height - 4; x++ )
+				pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background_hover;
 
 	// vertical align of element content
 	if( element -> checkbox.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> checkbox.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
@@ -891,6 +897,21 @@ void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
 					// done
 					break;
 				}
+
+				case LIB_INTERFACE_ELEMENT_TYPE_checkbox: {
+					// properties of checkbox
+					struct LIB_INTERFACE_STRUCTURE_ELEMENT *checkbox = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) properties;
+
+					// set selected semaphore
+					if( checkbox -> selected ) checkbox -> selected = FALSE;
+					else checkbox -> selected = TRUE;
+
+					// mark is on interface
+					lib_interface_draw_select( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) checkbox );
+
+					// redraw window content
+					interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+				}
 			}
 		}
 
@@ -919,6 +940,19 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// ignore any key, when ALT key is on hold
 	if( interface -> key_alt_semaphore ) return;
+
+	// SPACE key pressed, and active element selected?
+	if( keyboard -> key == STD_KEY_SPACE && interface -> active_element ) {
+		// set selected semaphore
+		if( interface -> active_element -> selected ) interface -> active_element -> selected = FALSE;
+		else interface -> active_element -> selected = TRUE;
+
+		// mark is on interface
+		lib_interface_draw_select( interface, interface -> active_element );
+
+		// redraw window content
+		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+	}
 
 	// TAB key pressed?
 	if( keyboard -> key == STD_KEY_TAB ) {

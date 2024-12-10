@@ -54,7 +54,7 @@
 	#define	LIB_INTERFACE_COLOR_background_menu_default	LIB_INTERFACE_COLOR_background
 	#define	LIB_INTERFACE_COLOR_background_menu_hover	0xFF202020
 	#define	LIB_INTERFACE_COLOR_background_menu_active	LIB_INTERFACE_COLOR_background_button_active
-	#define	LIB_INTERFACE_COLOR_background_input_default	0xFF101010
+	#define	LIB_INTERFACE_COLOR_background_input_default	0xFF000000
 	#define	LIB_INTERFACE_COLOR_background_input_hover	0xFF181818
 	#define	LIB_INTERFACE_COLOR_background_input_active	0xFF202020
 	#define	LIB_INTERFACE_COLOR_background_hover		0xFF208020
@@ -99,6 +99,8 @@
 		uint16_t	width;
 		uint16_t	height;
 		uint16_t	id;
+		uint8_t		active;
+		uint8_t		selected;
 		void		(*function)( void );
 	};
 
