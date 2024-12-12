@@ -38,6 +38,8 @@ const uint8_t lib_interface_string_limit[] = "limit";
 const uint8_t lib_interface_string_string[] = "string";
 const uint8_t lib_interface_string_checkbox[] = "checkbox";
 const uint8_t lib_interface_string_group[] = "group";
+const uint8_t lib_interface_string_radio[] = "radio";
+const uint8_t lib_interface_string_selected[] = "selected";
 
 void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// prepare JSON structure for parsing
@@ -447,6 +449,9 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 				// height
 				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_height ) ) element -> checkbox.height = checkbox.value;
+
+				// selected
+				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_selected ) ) element -> checkbox.selected = checkbox.value;
 		
 				// name
 				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_name ) ) {
@@ -469,6 +474,71 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 			// change interface structure index
 			i += element -> checkbox.size_byte;
+		}
+
+		// radio?
+		if( lib_json_key( json, (uint8_t *) &lib_interface_string_radio ) ) {
+			// alloc space for element
+			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO ) );
+
+			// element structure position
+			struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *) &properties[ i ];
+	
+			// radio properties
+			struct LIB_JSON_STRUCTURE radio = lib_json( (uint8_t *) json.value );
+
+			// default properties of radio
+			element -> radio.type = LIB_INTERFACE_ELEMENT_TYPE_radio;
+			element -> radio.flags = EMPTY;
+			element -> radio.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO );
+
+			// parse all keys
+			do {
+				// element name alignment
+				uint16_t element_name_align = EMPTY;
+
+				// id
+				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_id ) ) element -> radio.id = radio.value;
+
+				// x
+				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_x ) ) element -> radio.x = radio.value;
+
+				// y
+				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_y ) ) element -> radio.y = radio.value;
+
+				// width
+				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_width ) ) element -> radio.width = radio.value;
+
+				// height
+				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_height ) ) element -> radio.height = radio.value;
+		
+				// group
+				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_group ) ) element -> radio.group = radio.value;
+
+				// selected
+				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_selected ) ) element -> radio.selected = radio.value;
+
+				// name
+				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_name ) ) {
+					// length if proper
+					element -> name_length = radio.length;
+
+					// alloc area for element name
+					uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
+
+					// copy element name
+					uint8_t *name_source = (uint8_t *) radio.value;
+					for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = name_source[ i ];
+
+					// update element name pointer
+					element -> name = name_target;
+				}
+
+			// next key
+			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &radio ) );
+
+			// change interface structure index
+			i += element -> radio.size_byte;
 		}
 	// until no more elements
 	} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &json ) );
@@ -505,6 +575,7 @@ void lib_interface_draw_select( struct LIB_INTERFACE_STRUCTURE *interface, struc
 		case LIB_INTERFACE_ELEMENT_TYPE_menu: { lib_interface_element_menu( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) element ); break; }
+		case LIB_INTERFACE_ELEMENT_TYPE_radio: { lib_interface_element_radio( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *) element ); break; }
 	}
 }
 
@@ -517,8 +588,8 @@ void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, st
 
 	// select background color
 	uint32_t color = LIB_INTERFACE_COLOR_background_button_default;
-	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_button_hover;
-	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_button_active;
+	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color += LIB_INTERFACE_COLOR_background_lighter;
+	if( element -> label_or_button.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color += LIB_INTERFACE_COLOR_background_lighter;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> label_or_button.height; y++ )
@@ -561,9 +632,9 @@ void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, 
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> checkbox.y * interface -> width) + element -> checkbox.x;
 
 	// select background color
-	uint32_t color = LIB_INTERFACE_COLOR_background_input_default;
-	if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_input_hover;
-	if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_input_active;
+	uint32_t color = LIB_INTERFACE_COLOR_background_checkbox_default;
+	if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color += LIB_INTERFACE_COLOR_background_lighter;
+	if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color += LIB_INTERFACE_COLOR_background_lighter;
 
 	// clean background
 	for( uint16_t y = 0; y < element -> checkbox.height; y++ )
@@ -576,10 +647,14 @@ void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, 
 			pixel[ (y * interface -> width) + x ] = color;
 
 	// selected?
-	if( element -> checkbox.selected )
-		for( uint16_t y = 4; y < element -> checkbox.height - 4; y++ )
-			for( uint16_t x = 4; x < element -> checkbox.height - 4; x++ )
-				pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background_hover;
+	if( element -> checkbox.selected ) {
+		color = LIB_INTERFACE_COLOR_background_checkbox_selected;
+		if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color += LIB_INTERFACE_COLOR_background_lighter;
+		if( element -> checkbox.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color += LIB_INTERFACE_COLOR_background_lighter;
+		for( uint16_t y = 0; y < element -> checkbox.height; y++ )
+			for( uint16_t x = 0; x < element -> checkbox.height; x++ )
+				pixel[ (y * interface -> width) + x ] = color;
+	}
 
 	// vertical align of element content
 	if( element -> checkbox.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> checkbox.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
@@ -595,8 +670,8 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 	// choose background color
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
 	if( element -> control.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) {
-		if( element -> control.type == LIB_INTERFACE_ELEMENT_TYPE_control_close ) background_color = LIB_INTERFACE_COLOR_background_hover;
-		else background_color = LIB_INTERFACE_COLOR_background_light;
+		if( element -> control.type == LIB_INTERFACE_ELEMENT_TYPE_control_close ) background_color = LIB_INTERFACE_COLOR_background_control_close_hover;
+		else background_color += LIB_INTERFACE_COLOR_background_lighter;
 	}
 
 	// clear element space
@@ -644,8 +719,8 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 
 	// select background color
 	uint32_t color = LIB_INTERFACE_COLOR_background_input_default;
-	if( element -> input.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_input_hover;
-	if( element -> input.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_input_active;
+	if( element -> input.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color += LIB_INTERFACE_COLOR_background_lighter;
+	if( element -> input.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color += LIB_INTERFACE_COLOR_background_lighter;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> input.height; y++ )
@@ -691,8 +766,8 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 
 	// choose background color
 	uint32_t color = LIB_INTERFACE_COLOR_background_menu_default;
-	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_menu_hover;
-	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_menu_active;
+	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_lighter;
+	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_lighter;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> menu.height; y++ )
@@ -716,6 +791,55 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			for( uint16_t x = 0; x < 16; x++ )
 				icon[ (y * interface -> width) + x ] = lib_color_blend( icon[ (y * interface -> width) + x ], element -> icon[ (uint64_t) (((uint64_t) (y_scale_factor * y) * 48) + (uint64_t) (x * x_scale_factor)) ] );
 	}
+}
+
+void lib_interface_element_radio( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *element ) {
+	// limit string length to element width
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > (element -> radio.width - element -> radio.height) ) if( ! --element -> name_length ) return;
+
+	// compute absolute address of first pixel of element space
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> radio.y * interface -> width) + element -> radio.x;
+
+	// select background color
+	uint32_t color = LIB_INTERFACE_COLOR_background_radio_default;
+	if( element -> radio.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color += LIB_INTERFACE_COLOR_background_lighter;
+	if( element -> radio.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color += LIB_INTERFACE_COLOR_background_lighter;
+
+	// clean background
+	for( uint16_t y = 0; y < element -> radio.height; y++ )
+		for( uint16_t x = 0; x < element -> radio.width; x++ )
+			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
+
+	// radio
+	uint64_t o = 0;
+	for( uint16_t y = 0; y < element -> radio.height; y++ ) {
+		for( uint16_t x = (element -> radio.height >> STD_SHIFT_2) - o; x < (element -> radio.height >> STD_SHIFT_2) + o; x++ )
+			pixel[ (y * interface -> width) + x ] = color;
+
+		if( y < (element -> radio.height >> STD_SHIFT_2) ) o++;
+		else o--;
+	}
+
+	// selected?
+	if( element -> radio.selected ) {
+		color = LIB_INTERFACE_COLOR_background_radio_selected;
+		if( element -> radio.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color += LIB_INTERFACE_COLOR_background_lighter;
+		if( element -> radio.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color += LIB_INTERFACE_COLOR_background_lighter;
+		o = 0;
+		for( uint16_t y = 0; y < element -> radio.height; y++ ) {
+			for( uint16_t x = (element -> radio.height >> STD_SHIFT_2) - o; x < (element -> radio.height >> STD_SHIFT_2) + o; x++ )
+				pixel[ (y * interface -> width) + x ] = color;
+
+			if( y < (element -> radio.height >> STD_SHIFT_2) ) o++;
+			else o--;
+		}
+	}
+
+	// vertical align of element content
+	if( element -> radio.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> radio.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
+
+	// display the content of element
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + element -> radio.height + 4, interface -> width, EMPTY );
 }
 
 struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -911,6 +1035,36 @@ void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 					// redraw window content
 					interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+					// done
+					break;
+				}
+
+				case LIB_INTERFACE_ELEMENT_TYPE_radio: {
+					// properties of checkbox
+					struct LIB_INTERFACE_STRUCTURE_ELEMENT *radio = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) properties;
+
+					// first element properties
+					struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
+
+					// disable selection for any other element of that group
+					while( element -> type != LIB_INTERFACE_ELEMENT_TYPE_null ) {
+						// part of group?
+						if( element == radio ) element -> selected = TRUE;
+						else if( element -> group == radio -> group ) element -> selected = FALSE;
+					
+						// mark is on interface
+						lib_interface_draw_select( interface, element );
+
+						// next element properties
+						element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uint64_t) element + element -> size_byte);
+					}
+
+					// redraw window content
+					interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+					// done
+					break;
 				}
 			}
 		}
@@ -943,13 +1097,34 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// SPACE key pressed, and active element selected?
 	if( keyboard -> key == STD_KEY_SPACE && interface -> active_element ) {
-		// set selected semaphore
-		if( interface -> active_element -> selected ) interface -> active_element -> selected = FALSE;
-		else interface -> active_element -> selected = TRUE;
+		// element belongs to a group?
+		if( interface -> active_element -> group ) {
+			// first element properties
+			struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
 
-		// mark is on interface
-		lib_interface_draw_select( interface, interface -> active_element );
+			// disable selection for any other element of that group
+			while( element -> type != LIB_INTERFACE_ELEMENT_TYPE_null ) {
+				// part of group?
+				if( element == interface -> active_element ) element -> selected = TRUE;
+				else if( element -> group == interface -> active_element -> group ) element -> selected = FALSE;
+			
+				// mark is on interface
+				lib_interface_draw_select( interface, element );
 
+				// next element properties
+				element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uint64_t) element + element -> size_byte);
+			}
+
+
+		} else {
+			// set selected semaphore
+			if( interface -> active_element -> selected ) interface -> active_element -> selected = FALSE;
+			else interface -> active_element -> selected = TRUE;
+
+			// mark is on interface
+			lib_interface_draw_select( interface, interface -> active_element );
+		}
+		
 		// redraw window content
 		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 	}
@@ -969,7 +1144,7 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			if( element == interface -> active_element && previous ) break;	// yes
 
 			// allowed element type?
-			if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input ) previous = element;	// yes
+			if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input || element -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) previous = element;	// yes
 
 			// check next element from list
 			element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) element + element -> size_byte);
@@ -985,7 +1160,7 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			if( ! next -> type ) next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;	// start from beginning
 
 			// allowed element type?
-			if( next -> type == LIB_INTERFACE_ELEMENT_TYPE_button || next -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || next -> type == LIB_INTERFACE_ELEMENT_TYPE_input ) break;	// found
+			if( next -> type == LIB_INTERFACE_ELEMENT_TYPE_button || next -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || next -> type == LIB_INTERFACE_ELEMENT_TYPE_input || next -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) break;	// found
 
 			// check next element from list
 			next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) next + next -> size_byte);

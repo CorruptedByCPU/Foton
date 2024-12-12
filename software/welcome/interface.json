@@ -35,6 +35,7 @@
 		"y": 80,
 		"width": 160,
 		"height": 22,
+		"selected": 0,
 		"name": "checkbox.0"
 	},
 	"checkbox": {
@@ -43,6 +44,7 @@
 		"y": 106,
 		"width": 160,
 		"height": 22,
+		"selected": 1,
 		"name": "checkbox.1"
 	},
 	"button": {
@@ -68,5 +70,65 @@
 		"width": 160,
 		"height": 22,
 		"name": "button.2"
+	},
+	"radio": {
+		"id": 7,
+		"x": 175,
+		"y": 54,
+		"width": 160,
+		"height": 22,
+		"group": 1,
+		"selected": 1,
+		"name": "group.1,radio.0"
+	},
+	"radio": {
+		"id": 8,
+		"x": 175,
+		"y": 80,
+		"width": 160,
+		"height": 22,
+		"group": 1,
+		"selected": 0,
+		"name": "group.1,radio.1"
+	},
+	"radio": {
+		"id": 9,
+		"x": 175,
+		"y": 106,
+		"width": 160,
+		"height": 22,
+		"group": 1,
+		"selected": 0,
+		"name": "group.1,radio.2"
+	},
+	"radio": {
+		"id": 10,
+		"x": 175,
+		"y": 132,
+		"width": 160,
+		"height": 22,
+		"group": 1,
+		"selected": 0,
+		"name": "group.1,radio.3"
+	},
+	"radio": {
+		"id": 11,
+		"x": 175,
+		"y": 158,
+		"width": 160,
+		"height": 22,
+		"group": 2,
+		"selected": 1,
+		"name": "group.2,radio.0"
+	},
+	"radio": {
+		"id": 12,
+		"x": 175,
+		"y": 184,
+		"width": 160,
+		"height": 22,
+		"group": 2,
+		"selected": 0,
+		"name": "group.2,radio.1"
 	}
 }
