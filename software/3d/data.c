@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct LIB_INTERFACE_STRUCTURE	d3_interface;
+struct LIB_INTERFACE_STRUCTURE	*d3_interface;
 
 struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER kernel_framebuffer;
 

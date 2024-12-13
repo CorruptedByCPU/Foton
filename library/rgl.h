@@ -114,4 +114,5 @@
 	void lib_rgl_triangle( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material );
 	void lib_rgl_fill( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material );
 	void lib_rgl_2d_square( struct LIB_RGL_STRUCTURE *rgl, int64_t x, int64_t y, uint64_t width, uint64_t height, uint32_t color );
+	void lib_rgl_resize( struct LIB_RGL_STRUCTURE *rgl, uint16_t width_pixel, uint16_t height_pixel, uint32_t scanline_pixel, uint32_t *base_address );
 #endif

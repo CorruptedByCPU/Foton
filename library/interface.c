@@ -895,6 +895,7 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		new_interface -> height	= interface -> descriptor -> new_height;
 
 		// copy window name
+		new_interface -> name_length = EMPTY;
 		for( uint64_t i = 0; i < interface -> name_length; i++ ) new_interface -> name[ new_interface -> name_length++ ] = interface -> name[ i ];
 
 		// create new window
@@ -905,6 +906,9 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 			// nothing to do
 			return EMPTY;
 		}
+
+		// show window name in header if set
+		lib_interface_name( new_interface );
 
 		// show interface elements
 		lib_interface_draw( new_interface );

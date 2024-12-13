@@ -50,7 +50,20 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// main loop
 	while( TRUE ) {
 		// check events from interface
-		if( ! d3_the_master_of_puppets ) lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &d3_interface );
+		if( ! d3_the_master_of_puppets ) {
+			// check incomming events
+			struct LIB_INTERFACE_STRUCTURE *new = EMPTY;
+			if( (new = lib_interface_event( d3_interface )) ) {
+				// update interface pointer
+				d3_interface = new;
+
+				// reinitizalize RGL areas
+				lib_rgl_resize( rgl, d3_interface -> width - (LIB_INTERFACE_BORDER_pixel << STD_SHIFT_2), d3_interface -> height - (LIB_INTERFACE_HEADER_HEIGHT_pixel + LIB_INTERFACE_BORDER_pixel), d3_interface -> width, (uint32_t *) ((uintptr_t) d3_interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ) + (((LIB_INTERFACE_HEADER_HEIGHT_pixel * d3_interface -> width) + LIB_INTERFACE_BORDER_pixel) << STD_VIDEO_DEPTH_shift)) );
+
+				// update window content on screen
+				d3_interface -> descriptor -> flags |= STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+			}
+		}
 
 		// recieve key
 		uint16_t key = getkey();
@@ -127,7 +140,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_rgl_flush( rgl );
 
 		// tell window manager to flush window
-		if( ! d3_the_master_of_puppets ) d3_interface.descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		if( ! d3_the_master_of_puppets ) d3_interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 		// next frame ready
 		fps++;

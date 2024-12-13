@@ -43,7 +43,7 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 	// prepare workbench area
 	rgl -> workbench_base_address = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> size_byte ) >> STD_SHIFT_PAGE );
 
-	// prepare workbench area
+	// prepare depth area
 	rgl -> depth_base_address = (double *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> width_pixel * rgl -> height_pixel * sizeof( double ) ) >> STD_SHIFT_PAGE );
 
 	// set default color of RGL area not transparent
@@ -94,6 +94,27 @@ uint64_t lib_rgl_partition( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint6
 	triangles[ high ] = tmp;
 
 	return (i + 1);
+}
+
+void lib_rgl_resize( struct LIB_RGL_STRUCTURE *rgl, uint16_t width_pixel, uint16_t height_pixel, uint32_t scanline_pixel, uint32_t *base_address ) {
+	// release old memory locations
+	std_memory_release( (uintptr_t) rgl -> workbench_base_address, MACRO_PAGE_ALIGN_UP( rgl -> size_byte ) >> STD_SHIFT_PAGE );
+	std_memory_release( (uintptr_t) rgl -> depth_base_address, MACRO_PAGE_ALIGN_UP( rgl -> width_pixel * rgl -> height_pixel * sizeof( double ) ) >> STD_SHIFT_PAGE );
+
+	// set new properties of RGL
+	rgl -> width_pixel = width_pixel;
+	rgl -> height_pixel = height_pixel;
+	rgl -> scanline_pixel = scanline_pixel;
+	rgl -> base_address = base_address;
+
+	// calculate display area size in Bytes
+	rgl -> size_byte = (rgl -> width_pixel * rgl -> height_pixel) << STD_VIDEO_DEPTH_shift;
+
+	// prepare workbench area
+	rgl -> workbench_base_address = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> size_byte ) >> STD_SHIFT_PAGE );
+
+	// prepare depth area
+	rgl -> depth_base_address = (double *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> width_pixel * rgl -> height_pixel * sizeof( double ) ) >> STD_SHIFT_PAGE );
 }
 
 void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high ) {

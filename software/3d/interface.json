@@ -11,6 +11,9 @@
 		"type": "close"
 	},
 	"control": {
+		"type": "maximize"
+	},
+	"control": {
 		"type": "minimize"
 	}
 }
