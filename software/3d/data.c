@@ -17,6 +17,7 @@ struct LIB_RGL_STRUCTURE *rgl;
 
 uint8_t string_material[ 6 ] = "newmtl";
 uint8_t string_material_change[ 6 ] = "usemtl";
+uint8_t	string_ka[ 2 ] = "Ka";
 uint8_t	string_kd[ 2 ] = "Kd";
 
 // amount of materials

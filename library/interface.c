@@ -766,8 +766,8 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 
 	// choose background color
 	uint32_t color = LIB_INTERFACE_COLOR_background_menu_default;
-	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color = LIB_INTERFACE_COLOR_background_lighter;
-	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color = LIB_INTERFACE_COLOR_background_lighter;
+	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color += LIB_INTERFACE_COLOR_background_lighter;
+	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color += LIB_INTERFACE_COLOR_background_lighter;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> menu.height; y++ )

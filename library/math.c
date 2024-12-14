@@ -44,11 +44,11 @@ double lib_math_cos( double x ) {
 	return 1.0f - (x * x / 2.0f) * ( 1.0f - (x * x / 12.0f) * ( 1.0f - (x * x / 30.0f) * (1.0f - (x * x / 56.0f) * (1.0f - ( x * x / 90.0f) * (1.0f - (x * x / 132.0f) * (1.0f - ( x * x / 182.0f)))))));
 }
 
-double lib_math_sin( double x ) { return lib_math_cos( x - 90 ); }
+double lib_math_sin( double x ) { return lib_math_cos( 90.0f - x ); }
 
 double lib_math_tan( double x ) { return lib_math_sin( x ) / lib_math_cos( x ); }
 
-double lib_math_ctan( double x ) { return 1.0f / lib_math_tan( x ); }
+double lib_math_ctan( double x ) { return lib_math_tan( 90.0f - x ); }
 
 double lib_math_sign( double x ) {
 	// lower than 0
