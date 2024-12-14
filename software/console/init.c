@@ -31,13 +31,16 @@ void console_init( void ) {
 		lib_terminal( console_terminal );
 	} else {
 		// for future window resize, set limits
-		console_interface -> min_width = LIB_FONT_WIDTH_pixel << STD_SHIFT_16;
-		console_interface -> min_height = LIB_INTERFACE_HEADER_HEIGHT_pixel + 1 + (LIB_FONT_HEIGHT_pixel << STD_SHIFT_2);
+		console_interface -> min_width = 1 + (LIB_FONT_WIDTH_pixel << STD_SHIFT_16) + 1;
+		console_interface -> min_height = LIB_INTERFACE_HEADER_HEIGHT_pixel + (LIB_FONT_HEIGHT_pixel << STD_SHIFT_2) + 1;
 
 		// initialize interface library
 		console_interface -> properties = (uint8_t *) &file_interface_start;
 		console_interface -> background_color = lib_color( 232 );
 		lib_interface( console_interface );
+
+		// allow window to be resiable
+		console_interface -> descriptor -> flags |= STD_WINDOW_FLAG_resizable;
 
 		// find control element of type: close
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( console_interface, 0 );
@@ -56,7 +59,7 @@ void console_init( void ) {
 		lib_terminal( console_terminal );
 
 		// update window content on screen
-		console_interface -> descriptor -> flags |= STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+		console_interface -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 	}
 
 	// default meta properties of stream

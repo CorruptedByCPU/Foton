@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct LIB_INTERFACE_STRUCTURE	d3_interface;
+struct LIB_INTERFACE_STRUCTURE	*d3_interface;
 
 struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER kernel_framebuffer;
 
@@ -17,6 +17,7 @@ struct LIB_RGL_STRUCTURE *rgl;
 
 uint8_t string_material[ 6 ] = "newmtl";
 uint8_t string_material_change[ 6 ] = "usemtl";
+uint8_t	string_ka[ 2 ] = "Ka";
 uint8_t	string_kd[ 2 ] = "Kd";
 
 // amount of materials

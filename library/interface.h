@@ -18,47 +18,45 @@
 		#include	"./string.h"
 	#endif
 
-	#define	LIB_INTERFACE_GLOBAL_NAME_limit			64
+	#define	LIB_INTERFACE_GLOBAL_NAME_limit				64
 
-	#define	LIB_INTERFACE_HEADER_HEIGHT_pixel		(LIB_FONT_HEIGHT_pixel + 8)	// 4 pixels from above and under
+	#define	LIB_INTERFACE_HEADER_HEIGHT_pixel			(LIB_FONT_HEIGHT_pixel + 8)	// 4 pixels from above and under
 
-	#define	LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel		LIB_INTERFACE_HEADER_HEIGHT_pixel
+	#define	LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel			LIB_INTERFACE_HEADER_HEIGHT_pixel
 
-	#define	LIB_INTERFACE_ELEMENT_TYPE_null			0x00
-	#define	LIB_INTERFACE_ELEMENT_TYPE_label		0x01
-	#define	LIB_INTERFACE_ELEMENT_TYPE_button		0x02
-	#define	LIB_INTERFACE_ELEMENT_TYPE_control_close	0x03
-	#define	LIB_INTERFACE_ELEMENT_TYPE_control_maximize	0x04
-	#define	LIB_INTERFACE_ELEMENT_TYPE_control_minimize	0x05
-	#define	LIB_INTERFACE_ELEMENT_TYPE_menu			0x06
-	#define	LIB_INTERFACE_ELEMENT_TYPE_input		0x07
+	#define	LIB_INTERFACE_ELEMENT_TYPE_null				0x00
+	#define	LIB_INTERFACE_ELEMENT_TYPE_label			0x01
+	#define	LIB_INTERFACE_ELEMENT_TYPE_button			0x02
+	#define	LIB_INTERFACE_ELEMENT_TYPE_control_close		0x03
+	#define	LIB_INTERFACE_ELEMENT_TYPE_control_maximize		0x04
+	#define	LIB_INTERFACE_ELEMENT_TYPE_control_minimize		0x05
+	#define	LIB_INTERFACE_ELEMENT_TYPE_menu				0x06
+	#define	LIB_INTERFACE_ELEMENT_TYPE_input			0x07
+	#define	LIB_INTERFACE_ELEMENT_TYPE_checkbox			0x08
+	#define	LIB_INTERFACE_ELEMENT_TYPE_radio			0x09
 
-	#define	LIB_INTERFACE_ELEMENT_FLAG_hover		0b00000001
-	#define	LIB_INTERFACE_ELEMENT_FLAG_active		0b00000010
+	#define	LIB_INTERFACE_ELEMENT_FLAG_hover			0b00000001
+	#define	LIB_INTERFACE_ELEMENT_FLAG_active			0b00000010
 
-	#define	LIB_INTERFACE_BORDER_pixel			1
-	#define	LIB_INTERFACE_BORDER_COLOR_default		0xFF404040
-	#define	LIB_INTERFACE_BORDER_COLOR_default_shadow	0xFF303030
-	#define	LIB_INTERFACE_BORDER_COLOR_inactive		0xFF282828
-	#define	LIB_INTERFACE_BORDER_COLOR_inactive_shadow	0xFF181818
+	#define	LIB_INTERFACE_BORDER_pixel				1
+	#define	LIB_INTERFACE_BORDER_COLOR_default			0xFF181818
+	#define	LIB_INTERFACE_BORDER_COLOR_default_shadow		0xFF141414
+	#define	LIB_INTERFACE_BORDER_COLOR_inactive			0xFF141414
+	#define	LIB_INTERFACE_BORDER_COLOR_inactive_shadow		0xFF121212
 
-	#define	LIB_INTERFACE_COLOR_background			0xFF141414
-	#define	LIB_INTERFACE_COLOR_background_dark		0xFF080808
-	#define	LIB_INTERFACE_COLOR_foreground			0xFFF0F0F0
-	#define	LIB_INTERFACE_COLOR_background_light		0xFF282828
-	#define	LIB_INTERFACE_COLOR_background_active		0xFF303030
-	#define	LIB_INTERFACE_COLOR_background_button_default	0xFF202020
-	#define	LIB_INTERFACE_COLOR_background_button_hover	0xFF282828
-	#define	LIB_INTERFACE_COLOR_background_button_active	0xFF303030
-	#define	LIB_INTERFACE_COLOR_background_menu_default	LIB_INTERFACE_COLOR_background
-	#define	LIB_INTERFACE_COLOR_background_menu_hover	0xFF202020
-	#define	LIB_INTERFACE_COLOR_background_menu_active	LIB_INTERFACE_COLOR_background_button_active
-	#define	LIB_INTERFACE_COLOR_background_input_default	0xFF101010
-	#define	LIB_INTERFACE_COLOR_background_input_hover	0xFF181818
-	#define	LIB_INTERFACE_COLOR_background_input_active	0xFF202020
-	#define	LIB_INTERFACE_COLOR_background_hover		0xFF208020
+	#define	LIB_INTERFACE_COLOR_background				0xFF101010
+	#define	LIB_INTERFACE_COLOR_foreground				0xFFF0F0F0
+	#define	LIB_INTERFACE_COLOR_background_lighter			0x00080808
+	#define	LIB_INTERFACE_COLOR_background_button_default		0xFF202020
+	#define	LIB_INTERFACE_COLOR_background_menu_default		LIB_INTERFACE_COLOR_background
+	#define	LIB_INTERFACE_COLOR_background_input_default		0xFF000000
+	#define	LIB_INTERFACE_COLOR_background_radio_default		LIB_INTERFACE_COLOR_background + 0x00101010;
+	#define	LIB_INTERFACE_COLOR_background_radio_selected		0xFF202080
+	#define	LIB_INTERFACE_COLOR_background_checkbox_default		LIB_INTERFACE_COLOR_background + 0x00101010;
+	#define	LIB_INTERFACE_COLOR_background_checkbox_selected	0xFF208020
+	#define	LIB_INTERFACE_COLOR_background_control_close_hover	0xFF208020
 
-	#define	LIB_INTERFACE_NAME_limit			LIB_INTERFACE_GLOBAL_NAME_limit
+	#define	LIB_INTERFACE_NAME_limit				LIB_INTERFACE_GLOBAL_NAME_limit
 
 	struct LIB_INTERFACE_STRUCTURE {
 		struct STD_STRUCTURE_WINDOW_DESCRIPTOR	*descriptor;
@@ -79,8 +77,11 @@
 		//--------------------------------------------------
 		uint8_t		controls;
 		uint8_t		active_semaphore;
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*element_active;
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*active_element;
 		uint32_t	background_color;	// if set (alpha channel set), choose as background color
+		//--------------------------------------------------
+		uint8_t		key_alt_semaphore;
+		uint8_t		key_shift_semaphore;
 		//--------------------------------------------------
 		uint8_t		name_length;
 		uint8_t		name[ LIB_INTERFACE_NAME_limit ];
@@ -95,6 +96,9 @@
 		uint16_t	width;
 		uint16_t	height;
 		uint16_t	id;
+		uint8_t		active;
+		uint8_t		selected;
+		uint8_t		group;
 		void		(*function)( void );
 	};
 
@@ -105,6 +109,18 @@
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	label_or_button;
+		uint16_t	name_length;
+		uint8_t		*name;
+	};
+
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX {
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	checkbox;
+		uint16_t	name_length;
+		uint8_t		*name;
+	};
+
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO {
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	radio;
 		uint16_t	name_length;
 		uint8_t		*name;
 	};
@@ -149,8 +165,12 @@
 
 	void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *element );
 
+	void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *element );
+
 	// show menu element of definied properties
 	void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element );
+
+	void lib_interface_element_radio( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *element );
 
 	// check incomming events
 	struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface );
@@ -166,6 +186,8 @@
 
 	// update name on window interface
 	void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface );
+
+	void lib_interface_draw_select( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT *element );
 
 	// create window space accoring to JSON specification
 	uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );

@@ -43,7 +43,7 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 	// prepare workbench area
 	rgl -> workbench_base_address = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> size_byte ) >> STD_SHIFT_PAGE );
 
-	// prepare workbench area
+	// prepare depth area
 	rgl -> depth_base_address = (double *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> width_pixel * rgl -> height_pixel * sizeof( double ) ) >> STD_SHIFT_PAGE );
 
 	// set default color of RGL area not transparent
@@ -52,13 +52,18 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 
 	// camera position
 	rgl -> camera.x = 0.0f;
-	rgl -> camera.y = 1.0f;
-	rgl -> camera.z = 5.0f;
+	rgl -> camera.y = -1.0f;
+	rgl -> camera.z = -2.0f;
 
 	// and its target
 	rgl -> target.x = 0.0f;
 	rgl -> target.y = 0.0f;
 	rgl -> target.z = 0.0f;
+
+	// ambient light
+	rgl -> ambient_light.x = 32.0f / 255.0f;
+	rgl -> ambient_light.y = 32.0f / 255.0f;
+	rgl -> ambient_light.z = 32.0f / 255.0f;
 
 	// clean up workbench
 	lib_rgl_clean( rgl );
@@ -96,6 +101,27 @@ uint64_t lib_rgl_partition( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint6
 	return (i + 1);
 }
 
+void lib_rgl_resize( struct LIB_RGL_STRUCTURE *rgl, uint16_t width_pixel, uint16_t height_pixel, uint32_t scanline_pixel, uint32_t *base_address ) {
+	// release old memory locations
+	std_memory_release( (uintptr_t) rgl -> workbench_base_address, MACRO_PAGE_ALIGN_UP( rgl -> size_byte ) >> STD_SHIFT_PAGE );
+	std_memory_release( (uintptr_t) rgl -> depth_base_address, MACRO_PAGE_ALIGN_UP( rgl -> width_pixel * rgl -> height_pixel * sizeof( double ) ) >> STD_SHIFT_PAGE );
+
+	// set new properties of RGL
+	rgl -> width_pixel = width_pixel;
+	rgl -> height_pixel = height_pixel;
+	rgl -> scanline_pixel = scanline_pixel;
+	rgl -> base_address = base_address;
+
+	// calculate display area size in Bytes
+	rgl -> size_byte = (rgl -> width_pixel * rgl -> height_pixel) << STD_VIDEO_DEPTH_shift;
+
+	// prepare workbench area
+	rgl -> workbench_base_address = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> size_byte ) >> STD_SHIFT_PAGE );
+
+	// prepare depth area
+	rgl -> depth_base_address = (double *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( rgl -> width_pixel * rgl -> height_pixel * sizeof( double ) ) >> STD_SHIFT_PAGE );
+}
+
 void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t low, uint64_t high ) {
 	if( low < high ) {
 		uint64_t pi = 0;
@@ -106,24 +132,26 @@ void lib_rgl_sort_quick( struct LIB_RGL_STRUCTURE_TRIANGLE **triangles, uint64_t
 	}
 }
 
-uint32_t lib_rgl_color( uint8_t alpha, uint32_t argb, double light ) {
-	double red = (double) ((argb & 0x00FF0000) >> 16);
-	double green = (double) ((argb & 0x0000FF00) >> 8);
-	double blue = (double) (argb & 0x000000FF);
+uint32_t lib_rgl_color( struct LIB_RGL_STRUCTURE *rgl, vector3f Ka, vector3f Kd, double light ) {
+	// ambient light
+	Kd.x += (rgl -> ambient_light.x * Ka.x);
+	Kd.y += (rgl -> ambient_light.y * Ka.y);
+	Kd.z += (rgl -> ambient_light.z * Ka.z);
 
+	// diffuse light
 	if( light < 0.0f ) {
 		light += 1.0f;
         
-		red *= light;
-        	green *= light;
-		blue *= light;
+		Kd.x *= light;
+        	Kd.y *= light;
+		Kd.z *= light;
     	} else {
-	        red = (255.0f - red) * light + red;
-	        green = (255.0f - green) * light + green;
-	        blue = (255.0f - blue) * light + blue;
+		Kd.x = (255.0f - Kd.x) * light + Kd.x;
+		Kd.y = (255.0f - Kd.y) * light + Kd.y;
+		Kd.z = (255.0f - Kd.z) * light + Kd.z;
 	}
 
-	return (alpha << 24) | (((((uint32_t) red) << 16) | (((uint32_t) green) << 8) | ((uint32_t) blue)) & ~STD_COLOR_mask);
+	return (rgl -> color_alpha << 24) | (((((uint32_t) Kd.x) << 16) | (((uint32_t) Kd.y) << 8) | ((uint32_t) Kd.z)) & ~STD_COLOR_mask);
 }
 
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_multiply_matrix( struct LIB_RGL_STRUCTURE_MATRIX this, struct LIB_RGL_STRUCTURE_MATRIX via ) {
@@ -297,7 +325,7 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 	// show only visible triangles
 	if( lib_rgl_vector_product_dot( normal, camera_ray ) < 0.0f ) {
 		// light source position
-		vector3f light = { 1.0f, 1.0f, 0.0f };
+		vector3f light = { 0.0f, -1.0f, 0.0f };
 		light = lib_rgl_return_vector_normalize( light );
 
 		// dot product
@@ -314,15 +342,13 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RGL_STRUCTURE *rgl, double fov, double aspect, double n, double f ) {
 	struct LIB_RGL_STRUCTURE_MATRIX matrix = lib_rgl_return_matrix_empty();
 
-	// double t = 1.0f / lib_math_tan( fov * 0.5f );
-	double t = 2.4327649740660564f;
+	double t = 1.0f / lib_math_tan( (fov * 0.5f) );
 
 	matrix.cell[ 0 ][ 0 ] = t / aspect;
 	matrix.cell[ 1 ][ 1 ] = t;
-	matrix.cell[ 2 ][ 2 ] = -f / (n - f);
-	matrix.cell[ 2 ][ 3 ] = 1.0f;
-	matrix.cell[ 3 ][ 2 ] = (n * f) / (n - f);
-	matrix.cell[ 3 ][ 3 ] = -1.0f;
+	matrix.cell[ 2 ][ 2 ] = -(f / (f - n));
+	matrix.cell[ 2 ][ 3 ] = -1.0f;
+	matrix.cell[ 3 ][ 2 ] = -(f * n) / (f - n);
 
 	return matrix;
 };
@@ -381,7 +407,7 @@ void lib_rgl_scanline( struct LIB_RGL_STRUCTURE *rgl, double y, vector3f pa, vec
 }
 
 void lib_rgl_fill( struct LIB_RGL_STRUCTURE *rgl, struct LIB_RGL_STRUCTURE_TRIANGLE *t, vector3f *vp, struct LIB_RGL_STRUCTURE_MATERIAL *material ) {
-	uint32_t color = lib_rgl_color( rgl -> color_alpha, material[ t -> material ].Kd, t -> light );
+	uint32_t color = lib_rgl_color( rgl, material[ t -> material ].Ka, material[ t -> material ].Kd, t -> light );
 
 	vector3f p1 = { (vp[ t -> v[ 0 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> STD_SHIFT_2), -(vp[ t -> v[ 0 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> STD_SHIFT_2), vp[ t -> v[ 0 ] ].z };
 	vector3f p2 = { (vp[ t -> v[ 1 ] ].x * (double) rgl -> width_pixel) + (double) (rgl -> width_pixel >> STD_SHIFT_2), -(vp[ t -> v[ 1 ] ].y * (double) rgl -> height_pixel) + (double) (rgl -> height_pixel >> STD_SHIFT_2), vp[ t -> v[ 1 ] ].z };

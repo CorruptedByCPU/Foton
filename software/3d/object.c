@@ -7,7 +7,7 @@ void object_load( void ) {
 	FILE *file_material = (FILE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( FILE ) ) >> STD_SHIFT_PAGE );
 
 	// open new socket for file
-	uint8_t file_material_path[] = "/system/var/teapot.mtl";
+	uint8_t file_material_path[] = "/system/var/model.mtl";
 	file_material -> socket = std_file_open( (uint8_t *) &file_material_path, lib_string_trim( (uint8_t *) &file_material_path, lib_string_length( (uint8_t *) &file_material_path ) ) );
 
 	// if file doesn't exist
@@ -58,29 +58,50 @@ void object_load( void ) {
 			while( lib_string_length_line( line ) ) {
 				// diffusion?
 				if( lib_string_compare( line, (uint8_t *) &string_kd, sizeof( string_kd ) ) ) {
-					// initialize color value
-					material[ m ].Kd = STD_COLOR_mask;
-
 					// set string pointer to first value
 					uint8_t *p = (uint8_t *) line + sizeof( string_kd ) + 1;
 					uint64_t pl = lib_string_word( p, lib_string_length_line( line ) );
 
 					// Red
-					material[ m ].Kd |= ((uint8_t) (255.0 * strtof( p, pl ))) << 16;
+					material[ m ].Kd.x = strtof( p, pl ) * 255.0f;
 
 					// set pointer at second value
 					p += pl + 1;
 					pl = lib_string_word( p, lib_string_length_line( line ) );
 
 					// Green
-					material[ m ].Kd |= ((uint8_t) (255.0 * strtof( p, pl ))) << 8;
+					material[ m ].Kd.y = strtof( p, pl ) * 255.0f;
 
 					// set pointer at third value
 					p += pl + 1;
 					pl = lib_string_word( p, lib_string_length_line( line ) );
 
 					// Blue
-					material[ m ].Kd |= (uint8_t) (255.0 * strtof( p, pl ));
+					material[ m ].Kd.z = strtof( p, pl ) * 255.0f;
+				}
+
+				// ambient?
+				if( lib_string_compare( line, (uint8_t *) &string_ka, sizeof( string_ka ) ) ) {
+					// set string pointer to first value
+					uint8_t *p = (uint8_t *) line + sizeof( string_ka ) + 1;
+					uint64_t pl = lib_string_word( p, lib_string_length_line( line ) );
+
+					// Red
+					material[ m ].Ka.x = strtof( p, pl );
+
+					// set pointer at second value
+					p += pl + 1;
+					pl = lib_string_word( p, lib_string_length_line( line ) );
+
+					// Green
+					material[ m ].Ka.y = strtof( p, pl );
+
+					// set pointer at third value
+					p += pl + 1;
+					pl = lib_string_word( p, lib_string_length_line( line ) );
+
+					// Blue
+					material[ m ].Ka.z = strtof( p, pl );
 				}
 
 				// next line from file
@@ -105,7 +126,7 @@ void object_load( void ) {
 	FILE *file_object = (FILE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( FILE ) ) >> STD_SHIFT_PAGE );
 
 	// open new socket for file
-	uint8_t file_object_path[] = "/system/var/teapot.obj";
+	uint8_t file_object_path[] = "/system/var/model.obj";
 	file_object -> socket = std_file_open( (uint8_t *) &file_object_path, lib_string_trim( (uint8_t *) &file_object_path, lib_string_length( (uint8_t *) &file_object_path ) ) );
 
 	// if file doesn't exist
@@ -147,7 +168,7 @@ void object_load( void ) {
 	face = (struct LIB_RGL_STRUCTURE_TRIANGLE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_RGL_STRUCTURE_TRIANGLE ) * fc ) >> STD_SHIFT_PAGE );
 
 	// register default material properties
-	material[ 0 ].Kd = STD_COLOR_WHITE;
+	// material[ 0 ].Kd = STD_COLOR_WHITE;
 
 	// by default use initial material
 	uint64_t material_id = 0;
