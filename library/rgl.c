@@ -323,20 +323,17 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 	vector3f camera_ray = lib_rgl_vector_substract( vr[ parse -> v[ 0 ] ], rgl -> camera );
 
 	// show only visible triangles
-	if( lib_rgl_vector_product_dot( normal, camera_ray ) < 0.0f ) {
-		// light source position
-		vector3f light = { 0.0f, -1.0f, 0.0f };
-		light = lib_rgl_return_vector_normalize( light );
+	if( lib_rgl_vector_product_dot( normal, camera_ray ) > 0.0f ) return FALSE;
 
-		// dot product
-		parse -> light = lib_rgl_vector_product_dot( normal, light ) / 3.0f;
+	// light source position
+	vector3f light = { 0.0f, -1.0f, 0.0f };
+	light = lib_rgl_return_vector_normalize( light );
 
-		// triangle visible
-		return TRUE;
-	}
+	// dot product
+	parse -> light = lib_rgl_vector_product_dot( normal, light ) / 3.0f;
 
-	// triangle invisible
-	return FALSE;
+	// triangle visible
+	return TRUE;
 }
 
 struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RGL_STRUCTURE *rgl, double fov, double aspect, double n, double f ) {
