@@ -1,11 +1,6 @@
-// /*===============================================================================
-//  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
-// ===============================================================================*/
-
-void wm_menu_exec( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu ) {
-	// execute command provieded with menu entry
-	std_exec( menu -> command, lib_string_length( menu -> command ), EMPTY );
-}
+/*===============================================================================
+ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+===============================================================================*/
 
 int64_t wm_menu( void ) {
 	// prepare JSON structure for parsing
@@ -60,13 +55,39 @@ int64_t wm_menu( void ) {
 		// check events
 		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 
-		// check elements hover
-		lib_interface_active_or_hover( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
-
 		// release CPU time
 		sleep( TRUE );
 	}
 
 	// dummy
 	return EMPTY;
+}
+
+
+void wm_menu_exec( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu ) {
+	// execute command provieded with menu entry
+	std_exec( menu -> command, lib_string_length( menu -> command ), EMPTY );
+}
+
+void wm_menu_switch( uint8_t menu_semaphore ) {
+	// menu window already visible?
+	if( menu_semaphore || wm_object_menu -> descriptor -> flags & STD_WINDOW_FLAG_active ) {
+		// don't show anymore
+		wm_object_menu -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
+
+		// and redraw area behind
+		wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+		// search for next active window
+		wm_object_active_new();
+	} else {
+		// generate and show menu window
+		wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_active | STD_WINDOW_FLAG_flush;
+
+		// show above other objects
+		wm_object_move_up( wm_object_menu );
+
+		// mark as active
+		wm_object_active = wm_object_menu;
+	}
 }

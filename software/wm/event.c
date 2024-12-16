@@ -102,7 +102,7 @@ void wm_event( void ) {
 			case STD_KEY_CTRL_LEFT | 0x80: { wm_keyboard_status_ctrl_left = FALSE; break; }
 
 			// menu pressed
-			case STD_KEY_MENU: { wm_keyboard_status_menu = TRUE; break; }
+			case STD_KEY_MENU: { wm_menu_switch( wm_keyboard_status_menu ); wm_keyboard_status_menu = TRUE; break; }
 
 			// menu released
 			case STD_KEY_MENU | 0x80: { wm_keyboard_status_menu = FALSE; break; }
@@ -255,25 +255,9 @@ void wm_event( void ) {
 				//--------------------
 
 				// menu button click?
-				if( mouse_syscall.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse_syscall.y >= wm_object_taskbar -> y ) {
-					// menu window already visible?
-					if( wm_object_menu -> descriptor -> flags & STD_WINDOW_FLAG_active ) {
-						// don't show anymore
-						wm_object_menu -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
-
-						// and redraw area behind
-						wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-
-						// search for next active window
-						wm_object_active_new();
-					} else {
-						// generate and show menu window
-						wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_active | STD_WINDOW_FLAG_flush;
-
-						// mark as active
-						wm_object_active = wm_object_menu;
-					}
-				}
+				if( mouse_syscall.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse_syscall.y >= wm_object_taskbar -> y )
+					// show/hide menu window
+					wm_menu_switch( FALSE );
 			}
 		}
 	} else {
@@ -459,4 +443,7 @@ void wm_event( void ) {
 			wm_object_hover -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 		}
 	}
+
+	// check events from keyboard
+	// lib_interface_event_keyboard( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 }

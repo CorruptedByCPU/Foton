@@ -69,3 +69,5 @@
 	int64_t wm_menu( void );
 	int64_t wm_logo( void );
 	int64_t wm_workbench( void );
+	void wm_menu_switch( uint8_t menu_semaphore );
+	void wm_menu_exec( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu );

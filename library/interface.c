@@ -1148,7 +1148,7 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			if( element == interface -> active_element && previous ) break;	// yes
 
 			// allowed element type?
-			if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input || element -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) previous = element;	// yes
+			if( next -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input || element -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) previous = element;	// yes
 
 			// check next element from list
 			element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) element + element -> size_byte);
@@ -1164,7 +1164,7 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			if( ! next -> type ) next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;	// start from beginning
 
 			// allowed element type?
-			if( next -> type == LIB_INTERFACE_ELEMENT_TYPE_button || next -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || next -> type == LIB_INTERFACE_ELEMENT_TYPE_input || next -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) break;	// found
+			if( next -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || next -> type == LIB_INTERFACE_ELEMENT_TYPE_button || next -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || next -> type == LIB_INTERFACE_ELEMENT_TYPE_input || next -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) break;	// found
 
 			// check next element from list
 			next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) next + next -> size_byte);
