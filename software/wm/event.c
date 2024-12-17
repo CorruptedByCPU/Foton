@@ -444,6 +444,7 @@ void wm_event( void ) {
 		}
 	}
 
+	// Hmmm....
 	// check events from keyboard
-	// lib_interface_event_keyboard( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
+	lib_interface_event_keyboard( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 }

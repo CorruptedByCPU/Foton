@@ -10,6 +10,11 @@ int64_t wm_menu( void ) {
 	menu_interface.properties = (uint8_t *) &file_menu_json_start;
 	lib_interface_convert( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 
+	// find control element of type: close
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu;
+	menu = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) lib_interface_element_by_id( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface, 0 );
+	menu -> event = (void *) wm_menu_exec;
+
 	// connect each menu entry to execution function
 	uint8_t *element = (uint8_t *) menu_interface.properties; uint64_t e = 0;
 	while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
@@ -67,6 +72,9 @@ int64_t wm_menu( void ) {
 void wm_menu_exec( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu ) {
 	// execute command provieded with menu entry
 	std_exec( menu -> command, lib_string_length( menu -> command ), EMPTY );
+
+	// hide menu window
+	wm_menu_switch( FALSE );
 }
 
 void wm_menu_switch( uint8_t menu_semaphore ) {

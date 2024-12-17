@@ -26,9 +26,9 @@
 	#include		"./idt.h"
 #endif
 
-#ifndef	LIB_TERMINAL
-	#include		"../library/terminal.h"
-#endif
+// #ifndef	LIB_TERMINAL
+// 	#include		"../library/terminal.h"
+// #endif
 
 struct KERNEL {
 	// variables of Kernel management functions

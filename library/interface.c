@@ -767,7 +767,7 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	// choose background color
 	uint32_t color = LIB_INTERFACE_COLOR_background_menu_default;
 	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) color += LIB_INTERFACE_COLOR_background_lighter;
-	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color += LIB_INTERFACE_COLOR_background_lighter;
+	if( element -> menu.flags & LIB_INTERFACE_ELEMENT_FLAG_active ) color += LIB_INTERFACE_COLOR_background_lighter + LIB_INTERFACE_COLOR_background_menu_selected;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> menu.height; y++ )
@@ -775,7 +775,7 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			pixel[ (y * interface -> width) + x ] = color;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4 + 16 + 2 + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width), interface -> width, element -> menu.flags );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4 + 16 + 2 + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width), interface -> width, LIB_FONT_ALIGN_left );
 
 	// icon provided?
 	if( element -> icon ) {
@@ -1078,12 +1078,12 @@ void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	}
 }
 
-void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
+uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// incomming message
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
 
 	// receive pending messages
-	if( ! std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) return;
+	if( ! std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) return EMPTY;
 
 	// message properties
 	struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_data;
@@ -1097,10 +1097,19 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( keyboard -> key == (STD_KEY_SHIFT_LEFT | STD_KEY_RELEASE) ) interface -> key_shift_semaphore = FALSE;
 
 	// ignore any key, when ALT key is on hold
-	if( interface -> key_alt_semaphore ) return;
+	if( interface -> key_alt_semaphore ) return keyboard -> key;
 
 	// SPACE key pressed, and active element selected?
 	if( keyboard -> key == STD_KEY_SPACE && interface -> active_element ) {
+		// element type of
+		if( interface -> active_element -> flags & LIB_INTERFACE_ELEMENT_TYPE_menu ) {
+			// properties of menu element
+			struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) interface -> active_element;
+
+			// if event function exist, do it
+			if( menu -> event ) menu -> event( menu );
+		} else
+
 		// element belongs to a group?
 		if( interface -> active_element -> group ) {
 			// first element properties
@@ -1118,8 +1127,6 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				// next element properties
 				element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uint64_t) element + element -> size_byte);
 			}
-
-
 		} else {
 			// set selected semaphore
 			if( interface -> active_element -> selected ) interface -> active_element -> selected = FALSE;
@@ -1148,7 +1155,7 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			if( element == interface -> active_element && previous ) break;	// yes
 
 			// allowed element type?
-			if( next -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input || element -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) previous = element;	// yes
+			if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input || element -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) previous = element;	// yes
 
 			// check next element from list
 			element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) element + element -> size_byte);
@@ -1190,6 +1197,9 @@ void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
 	}
+
+	// return parsed key
+	return keyboard -> key;
 }
 
 void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {

@@ -40,7 +40,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface );
 
 		// check events from keyboard
-		lib_interface_event_keyboard( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface );
+		uint16_t key = lib_interface_event_keyboard( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface );
+
+		// exit?
+		if( key == STD_ASCII_ESC ) break;	// yes
 	}
 
 	// end of execution

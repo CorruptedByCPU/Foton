@@ -50,6 +50,7 @@
 	#define	LIB_INTERFACE_COLOR_background_lighter			0x00080808
 	#define	LIB_INTERFACE_COLOR_background_button_default		0xFF202020
 	#define	LIB_INTERFACE_COLOR_background_menu_default		LIB_INTERFACE_COLOR_background
+	#define	LIB_INTERFACE_COLOR_background_menu_selected		LIB_INTERFACE_COLOR_background + 0x00002000;
 	#define	LIB_INTERFACE_COLOR_background_input_default		0xFF000000
 	#define	LIB_INTERFACE_COLOR_background_radio_default		LIB_INTERFACE_COLOR_background + 0x00101010;
 	#define	LIB_INTERFACE_COLOR_background_radio_selected		0xFF202080
@@ -105,11 +106,12 @@
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	control;
-		void	(*event)( void );
+		void		(*event)( void );
 	};
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	label_or_button;
+		void		(*event)( void );
 		uint16_t	name_length;
 		uint8_t		*name;
 	};
@@ -177,7 +179,7 @@
 	struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface );
 	// support function of lib_interface_event, performed exclusively by WM
 	void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface );
-	void lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface );
+	uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// change status of elements of interface
 	void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface );
