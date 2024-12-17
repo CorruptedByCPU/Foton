@@ -6,7 +6,7 @@
 
 __attribute__(( preserve_most ))
 void module_usb_ohci_irq( void ) {
-	MACRO_DEBUF(); MACRO_DEBUF(); MACRO_DEBUF(); MACRO_DEBUF(); MACRO_DEBUF();
+	// MACRO_DEBUF(); MACRO_DEBUF(); MACRO_DEBUF(); MACRO_DEBUF(); MACRO_DEBUF();
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely
 	kernel -> lapic_base_address -> eoi = EMPTY;

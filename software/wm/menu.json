@@ -2,7 +2,7 @@
 	"window": {
 		"width": 122,
 		"height": 145,
-		"name": "Foton v0.445"
+		"name": "Foton v0.449"
 	},
 	"menu": {
 		"id": 0,
@@ -15,7 +15,7 @@
 		"icon": "/system/var/gfx/icons/console.tga"
 	},
 	"menu": {
-		"id": 1,
+		"id": 0,
 		"x": 1,
 		"y": 48,
 		"width": 120,
@@ -25,7 +25,7 @@
 		"icon": "/system/var/gfx/icons/notepad.tga"
 	},
 	"menu": {
-		"id": 2,
+		"id": 0,
 		"x": 1,
 		"y": 72,
 		"width": 120,
@@ -35,7 +35,7 @@
 		"icon": "/system/var/gfx/icons/taris.tga"
 	},
 	"menu": {
-		"id": 3,
+		"id": 0,
 		"x": 1,
 		"y": 96,
 		"width": 120,
@@ -45,7 +45,7 @@
 		"icon": "/system/var/gfx/icons/3d.tga"
 	},
 	"menu": {
-		"id": 4,
+		"id": 0,
 		"x": 1,
 		"y": 120,
 		"width": 120,

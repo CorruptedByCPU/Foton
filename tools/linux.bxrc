@@ -9,7 +9,7 @@ ata0: enabled=true, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 ata0-master: type=cdrom, path="build/foton.iso", status=inserted, model="Generic 1234", biosdetect=auto
 pci: enabled=1, chipset=i440fx, slot1=pcivga, slot2=e1000, slot3=voodoo #, slot4=usb_xhci, slot5=none
 vga: extension=vbe, update_freq=30, realtime=0, ddc=builtin
-cpu: count=1:SMP:1, ips=64000000, model=corei7_sandy_bridge_2600k, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
+cpu: count=1:SMP:1, ips=64000000, model=ryzen, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
 magic_break: enabled=1
 clock: sync=realtime, time0=local, rtc_sync=1
 keyboard: type=mf, serial_delay=250, paste_delay=100000, user_shortcut=none
@@ -21,6 +21,6 @@ usb_uhci: enabled=1, port1=keyboard, options1="speed:low", port2=mouse, options2
 #sound: waveoutdrv=alsa, waveout=none, waveindrv=alsa, wavein=none, midioutdrv=alsa, midiout=none
 #voodoo: enabled=true, model=voodoo1
 com1: enabled=true, mode=file, dev="serial.log"
-#e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=vnet
+e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=vnet
 #es1370: enabled=true, wavedev=alsa
 #sb16: enabled=true, midimode=0, wavemode=1
