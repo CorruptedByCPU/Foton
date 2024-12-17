@@ -111,9 +111,9 @@
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	label_or_button;
-		void		(*event)( void );
 		uint16_t	name_length;
 		uint8_t		*name;
+		void		(*event)( void );
 	};
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX {
@@ -130,15 +130,17 @@
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	input;
-		uint16_t	limit;
-		uint8_t		*string;
+		uint16_t	name_length;
+		uint8_t		*name;
+		uint8_t		*pointer;
+		uint8_t		*indicator;
 	};
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	menu;
-		void		(*event)( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu );
 		uint16_t	name_length;
 		uint8_t		*name;
+		void		(*event)( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu );
 		uint8_t		*command;
 		uint32_t	*icon;
 	};

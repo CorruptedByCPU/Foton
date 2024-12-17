@@ -14,11 +14,11 @@
 		"type": "minimize"
 	},
 	"label": {
-		"x": 13,
+		"x": 9,
 		"y": 30,
 		"width": 314,
 		"height": 16,
-		"name": "Use `TAB` key to move between elements."
+		"name": "Use TAB/[SHIFT] key to move around."
 	},
 	"input": {
 		"id": 1,

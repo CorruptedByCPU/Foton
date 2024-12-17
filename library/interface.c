@@ -389,23 +389,23 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				// height
 				if( lib_json_key( input, (uint8_t *) &lib_interface_string_height ) ) element -> input.height = input.value;
 		
-				// limit
-				if( lib_json_key( input, (uint8_t *) &lib_interface_string_limit ) ) element -> limit = input.value;
+				// length
+				if( lib_json_key( input, (uint8_t *) &lib_interface_string_limit ) ) element -> name_length = input.value;
 
-				// string
+				// name
 				if( lib_json_key( input, (uint8_t *) &lib_interface_string_string ) ) {
 					// alloc area for element content
-					uint8_t *string = (uint8_t *) calloc( element -> limit + 1 );
+					uint8_t *name = (uint8_t *) calloc( element -> name_length + 1 );
 
 					// set element content
 					uint8_t *source = (uint8_t *) input.value;
-					for( uint64_t i = 0; i < input.length; i++ ) string[ i ] = source[ i ];
+					for( uint64_t i = 0; i < input.length; i++ ) name[ i ] = source[ i ];
 
-					// limit update
-					element -> limit -= input.length;
+					// name length update
+					element -> name_length -= input.length;
 
 					// set element content pointer
-					element -> string = string;
+					element -> name = name;
 				}
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &input ) );
@@ -568,6 +568,7 @@ void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 void lib_interface_draw_select( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT *element ) {			// redraw element inside object
 	// select redraw function
 	switch( element -> type ) {
+		case LIB_INTERFACE_ELEMENT_TYPE_label: { lib_interface_element_label( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_control_close: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
@@ -731,7 +732,7 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 	if( element -> input.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> input.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> string, lib_string_length( element -> string ), LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, lib_string_length( element -> name ), LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4, interface -> width, LIB_FONT_ALIGN_left );
 }
 
 void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
