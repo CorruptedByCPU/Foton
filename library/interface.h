@@ -132,7 +132,7 @@
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	input;
 		uint16_t	name_length;
 		uint8_t		*name;
-		uint8_t		*pointer;
+		uint8_t		*cursor;
 		uint8_t		*indicator;
 	};
 

@@ -26,8 +26,8 @@
 		"y": 54,
 		"width": 160,
 		"height": 22,
-		"limit": 8,
-		"string": "input.0"
+		"limit": 254,
+		"name": "input.0 abcdefghijklmnopqrtsuvwxyz"
 	},
 	"checkbox": {
 		"id": 2,
