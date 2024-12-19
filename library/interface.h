@@ -51,7 +51,8 @@
 	#define	LIB_INTERFACE_COLOR_background_button_default		0xFF202020
 	#define	LIB_INTERFACE_COLOR_background_menu_default		LIB_INTERFACE_COLOR_background
 	#define	LIB_INTERFACE_COLOR_background_menu_selected		LIB_INTERFACE_COLOR_background + 0x00002000;
-	#define	LIB_INTERFACE_COLOR_background_input_default		0xFF000000
+	#define	LIB_INTERFACE_COLOR_background_input_default		LIB_INTERFACE_COLOR_background_button_default
+	#define	LIB_INTERFACE_COLOR_background_input_selected		0xFF002000
 	#define	LIB_INTERFACE_COLOR_background_radio_default		LIB_INTERFACE_COLOR_background + 0x00101010;
 	#define	LIB_INTERFACE_COLOR_background_radio_selected		0xFF202080
 	#define	LIB_INTERFACE_COLOR_background_checkbox_default		LIB_INTERFACE_COLOR_background + 0x00101010;
@@ -79,7 +80,7 @@
 		//--------------------------------------------------
 		uint8_t		controls;
 		uint8_t		active_semaphore;
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*active_element;
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*element_select;
 		uint32_t	background_color;	// if set (alpha channel set), choose as background color
 		//--------------------------------------------------
 		uint8_t		key_alt_semaphore;
