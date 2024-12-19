@@ -405,8 +405,8 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 					// set element content properties
 					element -> name		= name;
-					element -> cursor	= name;
 					element -> indicator	= name;
+					element -> cursor	= EMPTY;
 				}
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &input ) );
@@ -685,18 +685,18 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 	switch( element -> control.type ) {	
 		case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
 			// display minimize window button
-			for( uint64_t x = 6; x <= 18; x++ ) pixel[ (18 * interface -> width) + x ] = 0xFFC0C0C0;
+			for( uint64_t x = 8; x <= 16; x++ ) pixel[ (16 * interface -> width) + x ] = 0xFFC0C0C0;
 
 			// done
 			break;
 		}
 		case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: {
 			// display window maximize button
-			for( uint64_t y = 6; y <= 18; y++ ) {
-				pixel[ (6 * interface -> width) + y ] = 0xFFC0C0C0;
-				pixel[ (y * interface -> width) + 6 ] = 0xFFC0C0C0;
-				pixel[ (y * interface -> width) + 18 ] = 0xFFC0C0C0;
-				pixel[ (18 * interface -> width) + y ] = 0xFFC0C0C0;
+			for( uint64_t y = 8; y <= 16; y++ ) {
+				pixel[ (8 * interface -> width) + y ] = 0xFFC0C0C0;
+				pixel[ (y * interface -> width) + 8 ] = 0xFFC0C0C0;
+				pixel[ (y * interface -> width) + 16 ] = 0xFFC0C0C0;
+				pixel[ (16 * interface -> width) + y ] = 0xFFC0C0C0;
 			}
 
 			// done
@@ -704,7 +704,7 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 		}
 		case LIB_INTERFACE_ELEMENT_TYPE_control_close: {
 			// display close window button
-			for( uint64_t y = 6; y <= 18; y++ ) {
+			for( uint64_t y = 8; y <= 16; y++ ) {
 				pixel[ (y * interface -> width) + y ] = 0xFFF0F0F0;
 				pixel[ (LIB_INTERFACE_HEADER_HEIGHT_pixel - y) + (y * interface -> width) ] = 0xFFF0F0F0;
 			}
@@ -734,10 +734,16 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 			pixel[ (y * interface -> width) + x ] = color;
 
 	// vertical align of element content
-	if( element -> input.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> input.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
+	uint32_t *pixel_string = pixel;
+	if( element -> input.height > LIB_FONT_HEIGHT_pixel ) pixel_string += ((element -> input.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> indicator, name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> indicator, name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel_string + 4, interface -> width, LIB_FONT_ALIGN_left );
+
+	// show cursor position
+	uint64_t x = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> indicator, element -> cursor );
+	for( uint64_t y = 2; y < element -> input.height - 2; y++ )
+		pixel[ (y * interface -> width) + x + 4 ] = 0xFF00FF00;
 }
 
 void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
