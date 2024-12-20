@@ -84,6 +84,7 @@
 		uint32_t	background_color;	// if set (alpha channel set), choose as background color
 		//--------------------------------------------------
 		uint8_t		key_alt_semaphore;
+		uint8_t		key_ctrl_semaphore;
 		uint8_t		key_shift_semaphore;
 		//--------------------------------------------------
 		uint8_t		name_length;

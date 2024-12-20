@@ -1139,6 +1139,10 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 	if( keyboard -> key == STD_KEY_ALT_LEFT ) interface -> key_alt_semaphore = TRUE;
 	if( keyboard -> key == (STD_KEY_ALT_LEFT | STD_KEY_RELEASE) ) interface -> key_alt_semaphore = FALSE;
 
+	// pressed LEFT CTRL key?
+	if( keyboard -> key == STD_KEY_CTRL_LEFT ) interface -> key_ctrl_semaphore = TRUE;
+	if( keyboard -> key == (STD_KEY_CTRL_LEFT | STD_KEY_RELEASE) ) interface -> key_ctrl_semaphore = FALSE;
+
 	// pressed SHIFT key?
 	if( keyboard -> key == STD_KEY_SHIFT_LEFT ) interface -> key_shift_semaphore = TRUE;
 	if( keyboard -> key == (STD_KEY_SHIFT_LEFT | STD_KEY_RELEASE) ) interface -> key_shift_semaphore = FALSE;
@@ -1358,6 +1362,22 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 				if( input -> indicator > input -> name ) input -> indicator--;
 				else
 					if( input -> cursor ) input -> cursor--;
+
+				// update content of element
+				lib_interface_draw_select( interface, interface -> element_select );
+
+				// redraw window content
+				interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			}
+		}
+
+		// special key
+		if( keyboard -> key == STD_KEY_DELETE ) {
+			// we are at end of content?
+			if( (input -> indicator - input -> name + input -> cursor) < lib_string_length( input -> name ) ) {	// no
+				// move all content after cursor. one position before
+				uint64_t limit = lib_string_length( input -> name );
+				for( uint64_t i = (input -> indicator - input -> name) + input -> cursor; i < input -> name_length; i++ ) input -> name[ i ] = input -> name[ i + 1 ];
 
 				// update content of element
 				lib_interface_draw_select( interface, interface -> element_select );

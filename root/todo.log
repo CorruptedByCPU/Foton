@@ -3,19 +3,18 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
 started:
-- vfs - change file/directory data blocks structure
+- UI of libinterface.so
 
 yet to be done:
-- window selected change coloristic
-  top, left - light,
-  right, bottom - dark
+- element input of libinterface.so connect with libinput.so
+- unused library, remove from memory
 - audio controller SB16
 - hexedit software, show content of files in binary mode (with ASCII overview)
 - kernels internal debugger
 - libinput.so library (alike libreadline from GNU/Linux)
-  history, replenishment, inline edit
+  replenishment
 - software: cal, cp, cut, date, df, du, echo, find, grep, halt, head, kill,
-  less/more, ln, mkdir, mv, ps, reboot, rm, sleep, tail, time,
+  less/more, ln, mv, ps, reboot, rm, sleep, tail, time,
   uname, uptime, wc
 - one instance of application code in memory (data per running task)
 - lock screen (gaussian blur), something like sway is doing
