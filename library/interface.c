@@ -35,7 +35,6 @@ const uint8_t lib_interface_string_command[] = "command";
 const uint8_t lib_interface_string_icon[] = "icon";
 const uint8_t lib_interface_string_input[] = "input";
 const uint8_t lib_interface_string_limit[] = "limit";
-const uint8_t lib_interface_string_string[] = "string";
 const uint8_t lib_interface_string_checkbox[] = "checkbox";
 const uint8_t lib_interface_string_group[] = "group";
 const uint8_t lib_interface_string_radio[] = "radio";
@@ -389,23 +388,22 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				// height
 				if( lib_json_key( input, (uint8_t *) &lib_interface_string_height ) ) element -> input.height = input.value;
 		
-				// limit
-				if( lib_json_key( input, (uint8_t *) &lib_interface_string_limit ) ) element -> limit = input.value;
+				// length
+				if( lib_json_key( input, (uint8_t *) &lib_interface_string_limit ) ) element -> name_length = input.value;
 
-				// string
-				if( lib_json_key( input, (uint8_t *) &lib_interface_string_string ) ) {
+				// name
+				if( lib_json_key( input, (uint8_t *) &lib_interface_string_name ) ) {
 					// alloc area for element content
-					uint8_t *string = (uint8_t *) calloc( element -> limit + 1 );
-
+					uint8_t *name = (uint8_t *) calloc( element -> name_length + 1 );
+					
 					// set element content
 					uint8_t *source = (uint8_t *) input.value;
-					for( uint64_t i = 0; i < input.length; i++ ) string[ i ] = source[ i ];
+					for( uint64_t i = 0; i < input.length; i++ ) name[ i ] = source[ i ];
 
-					// limit update
-					element -> limit -= input.length;
-
-					// set element content pointer
-					element -> string = string;
+					// set element content properties
+					element -> name		= name;
+					element -> offset	= EMPTY;
+					element -> index	= EMPTY;
 				}
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &input ) );
@@ -568,6 +566,7 @@ void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 void lib_interface_draw_select( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT *element ) {			// redraw element inside object
 	// select redraw function
 	switch( element -> type ) {
+		case LIB_INTERFACE_ELEMENT_TYPE_label: { lib_interface_element_label( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_button: { lib_interface_element_button( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_control_close: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: { lib_interface_element_control( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) element ); break; }
@@ -683,18 +682,18 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 	switch( element -> control.type ) {	
 		case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
 			// display minimize window button
-			for( uint64_t x = 6; x <= 18; x++ ) pixel[ (18 * interface -> width) + x ] = 0xFFC0C0C0;
+			for( uint64_t x = 8; x <= 16; x++ ) pixel[ (16 * interface -> width) + x ] = 0xFFC0C0C0;
 
 			// done
 			break;
 		}
 		case LIB_INTERFACE_ELEMENT_TYPE_control_maximize: {
 			// display window maximize button
-			for( uint64_t y = 6; y <= 18; y++ ) {
-				pixel[ (6 * interface -> width) + y ] = 0xFFC0C0C0;
-				pixel[ (y * interface -> width) + 6 ] = 0xFFC0C0C0;
-				pixel[ (y * interface -> width) + 18 ] = 0xFFC0C0C0;
-				pixel[ (18 * interface -> width) + y ] = 0xFFC0C0C0;
+			for( uint64_t y = 8; y <= 16; y++ ) {
+				pixel[ (8 * interface -> width) + y ] = 0xFFC0C0C0;
+				pixel[ (y * interface -> width) + 8 ] = 0xFFC0C0C0;
+				pixel[ (y * interface -> width) + 16 ] = 0xFFC0C0C0;
+				pixel[ (16 * interface -> width) + y ] = 0xFFC0C0C0;
 			}
 
 			// done
@@ -702,7 +701,7 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 		}
 		case LIB_INTERFACE_ELEMENT_TYPE_control_close: {
 			// display close window button
-			for( uint64_t y = 6; y <= 18; y++ ) {
+			for( uint64_t y = 8; y <= 16; y++ ) {
 				pixel[ (y * interface -> width) + y ] = 0xFFF0F0F0;
 				pixel[ (LIB_INTERFACE_HEADER_HEIGHT_pixel - y) + (y * interface -> width) ] = 0xFFF0F0F0;
 			}
@@ -714,6 +713,10 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 }
 
 void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *element ) {
+	// limit string length to element width
+	uint64_t name_length = lib_string_length( element -> name ) - element -> offset;
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, element -> name + element -> offset, name_length ) > element -> input.width - 4 ) if( ! --name_length ) return;
+
 	// compute absolute address of first pixel of element space
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> input.y * interface -> width) + element -> input.x;
 
@@ -728,10 +731,19 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 			pixel[ (y * interface -> width) + x ] = color;
 
 	// vertical align of element content
-	if( element -> input.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> input.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
+	uint32_t *pixel_string = pixel;
+	if( element -> input.height > LIB_FONT_HEIGHT_pixel ) pixel_string += ((element -> input.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> string, lib_string_length( element -> string ), LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, element -> name + element -> offset, name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel_string + 4, interface -> width, LIB_FONT_ALIGN_left );
+
+	// if element is active
+	if( interface -> element_select != (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) element ) return;	// nope
+
+	// show cursor position 
+	uint64_t x = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, element -> name + element -> offset, element -> index - element -> offset );
+	for( uint64_t y = 2; y < element -> input.height - 2; y++ )
+		pixel[ (y * interface -> width) + x + 4 ] = STD_COLOR_WHITE;
 }
 
 void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
@@ -1030,6 +1042,9 @@ void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
 					// properties of checkbox
 					struct LIB_INTERFACE_STRUCTURE_ELEMENT *checkbox = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) properties;
 
+					// active element
+					interface -> element_select = checkbox;
+
 					// set selected semaphore
 					if( checkbox -> selected ) checkbox -> selected = FALSE;
 					else checkbox -> selected = TRUE;
@@ -1051,6 +1066,9 @@ void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
 					// first element properties
 					struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
 
+					// active element
+					interface -> element_select = radio;
+
 					// disable selection for any other element of that group
 					while( element -> type != LIB_INTERFACE_ELEMENT_TYPE_null ) {
 						// part of group?
@@ -1063,6 +1081,32 @@ void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
 						// next element properties
 						element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uint64_t) element + element -> size_byte);
 					}
+
+					// redraw window content
+					interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+					// done
+					break;
+				}
+
+				case LIB_INTERFACE_ELEMENT_TYPE_input: {
+					// properties of checkbox
+					struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) properties;
+
+					// selected element
+					if( interface -> element_select && interface -> element_select != element && interface -> element_select -> type == LIB_INTERFACE_ELEMENT_TYPE_input ) {
+						struct LIB_INTERFACE_STRUCTURE_ELEMENT *release = interface -> element_select;
+						interface -> element_select -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_active;
+						interface -> element_select = EMPTY;
+						lib_interface_draw_select( interface, release );	
+					}
+					interface -> element_select = element;
+
+					// set selected semaphore
+					element -> selected = TRUE;
+
+					// mark is on interface
+					lib_interface_draw_select( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) element );
 
 					// redraw window content
 					interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
@@ -1089,58 +1133,24 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 	struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_data;
 
 	// pressed LEFT ALT key?
-	if( keyboard -> key == STD_KEY_ALT_LEFT ) interface -> key_alt_semaphore = TRUE;
+	if( keyboard -> key == STD_KEY_ALT_LEFT ) { interface -> key_alt_semaphore = TRUE; return keyboard -> key; }
 	if( keyboard -> key == (STD_KEY_ALT_LEFT | STD_KEY_RELEASE) ) interface -> key_alt_semaphore = FALSE;
 
+	// pressed LEFT CTRL key?
+	if( keyboard -> key == STD_KEY_CTRL_LEFT ) { interface -> key_ctrl_semaphore = TRUE; return keyboard -> key; }
+	if( keyboard -> key == (STD_KEY_CTRL_LEFT | STD_KEY_RELEASE) ) interface -> key_ctrl_semaphore = FALSE;
+
 	// pressed SHIFT key?
-	if( keyboard -> key == STD_KEY_SHIFT_LEFT ) interface -> key_shift_semaphore = TRUE;
+	if( keyboard -> key == STD_KEY_SHIFT_LEFT ) { interface -> key_shift_semaphore = TRUE; return keyboard -> key; }
 	if( keyboard -> key == (STD_KEY_SHIFT_LEFT | STD_KEY_RELEASE) ) interface -> key_shift_semaphore = FALSE;
+
+	// key releaase?
+	if( keyboard -> key & STD_KEY_RELEASE ) return keyboard -> key;
 
 	// ignore any key, when ALT key is on hold
 	if( interface -> key_alt_semaphore ) return keyboard -> key;
 
-	// SPACE key pressed, and active element selected?
-	if( keyboard -> key == STD_KEY_SPACE && interface -> active_element ) {
-		// element type of
-		if( interface -> active_element -> flags & LIB_INTERFACE_ELEMENT_TYPE_menu ) {
-			// properties of menu element
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) interface -> active_element;
-
-			// if event function exist, do it
-			if( menu -> event ) menu -> event( menu );
-		} else
-
-		// element belongs to a group?
-		if( interface -> active_element -> group ) {
-			// first element properties
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
-
-			// disable selection for any other element of that group
-			while( element -> type != LIB_INTERFACE_ELEMENT_TYPE_null ) {
-				// part of group?
-				if( element == interface -> active_element ) element -> selected = TRUE;
-				else if( element -> group == interface -> active_element -> group ) element -> selected = FALSE;
-			
-				// mark is on interface
-				lib_interface_draw_select( interface, element );
-
-				// next element properties
-				element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uint64_t) element + element -> size_byte);
-			}
-		} else {
-			// set selected semaphore
-			if( interface -> active_element -> selected ) interface -> active_element -> selected = FALSE;
-			else interface -> active_element -> selected = TRUE;
-
-			// mark is on interface
-			lib_interface_draw_select( interface, interface -> active_element );
-		}
-		
-		// redraw window content
-		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-	}
-
-	// TAB key pressed?
+	// TAB key?
 	if( keyboard -> key == STD_KEY_TAB ) {
 		// start from first element
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
@@ -1152,7 +1162,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		// search for previous
 		while( element -> type ) {
 			// previos already selected?
-			if( element == interface -> active_element && previous ) break;	// yes
+			if( element == interface -> element_select && previous ) break;	// yes
 
 			// allowed element type?
 			if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input || element -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) previous = element;	// yes
@@ -1162,7 +1172,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		}
 
 		// start search from next of current active or beginning
-		if( interface -> active_element ) next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) interface -> active_element + interface -> active_element -> size_byte);
+		if( interface -> element_select ) next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) interface -> element_select + interface -> element_select -> size_byte);
 		else next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
 
 		// search for next
@@ -1182,13 +1192,36 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		if( interface -> key_shift_semaphore ) selected = previous;
 
 		// update interface only if selected and current are different
-		if( interface -> active_element != selected ) {
+		if( interface -> element_select != selected ) {
+			// selected element
+			if( interface -> element_select && interface -> element_select -> type == LIB_INTERFACE_ELEMENT_TYPE_input ) {
+				// preserve element pointer
+				struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *deselected = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) interface -> element_select;
+		
+				// clear element state
+				deselected -> input.flags &= ~LIB_INTERFACE_ELEMENT_FLAG_active;
+				deselected -> offset = EMPTY;
+				deselected -> index = EMPTY;
+
+				// not any more
+				interface -> element_select = EMPTY;
+
+				// update element state inside window
+				lib_interface_draw_select( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) deselected );
+			}
+			
 			// unmark current element if active
-			if( interface -> active_element ) { interface -> active_element -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_active; lib_interface_draw_select( interface, interface -> active_element ); }
+			if( interface -> element_select ) {
+				// clear element state
+				interface -> element_select -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_active;
+
+				// update element state inside window
+				lib_interface_draw_select( interface, interface -> element_select );
+			}
 
 			// setup selected element
-			interface -> active_element = selected;
-			interface -> active_element -> flags |= LIB_INTERFACE_ELEMENT_FLAG_active;
+			interface -> element_select = selected;
+			interface -> element_select -> flags |= LIB_INTERFACE_ELEMENT_FLAG_active;
 
 			// mark is on interface
 			lib_interface_draw_select( interface, selected );
@@ -1196,6 +1229,88 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 			// redraw window content
 			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
+
+		// done
+		return keyboard -> key;
+	}
+
+	// ignore below functions if no element is selected
+	if( ! interface -> element_select ) return keyboard -> key;
+
+	// SPACE key?
+	if( keyboard -> key == STD_KEY_SPACE ) {
+		// element type of
+		switch( interface -> element_select -> type ) {
+			case LIB_INTERFACE_ELEMENT_TYPE_menu: {
+				// properties of element
+				struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) interface -> element_select;
+
+				// if event function exist, do it
+				if( menu -> event ) menu -> event( menu );
+
+				// done
+				break;
+			}
+
+			case LIB_INTERFACE_ELEMENT_TYPE_checkbox: {
+				// set selected semaphore
+				if( interface -> element_select -> selected ) interface -> element_select -> selected = FALSE;
+				else interface -> element_select -> selected = TRUE;
+
+				// mark is on interface
+				lib_interface_draw_select( interface, interface -> element_select );
+
+				// redraw window content
+				interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+				// done
+				break;
+			}
+
+			case LIB_INTERFACE_ELEMENT_TYPE_radio: {
+				// first element properties
+				struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
+
+				// disable selection for any other element of that group
+				while( element -> type != LIB_INTERFACE_ELEMENT_TYPE_null ) {
+					// part of group?
+					if( element == interface -> element_select ) element -> selected = TRUE;
+					else if( element -> group == interface -> element_select -> group ) element -> selected = FALSE;
+				
+					// mark it on interface
+					lib_interface_draw_select( interface, element );
+
+					// next element properties
+					element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uint64_t) element + element -> size_byte);
+				}
+
+				// redraw window content
+				interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+				// done
+				break;
+			}
+		}
+	}
+
+	// element type of
+	if( interface -> element_select -> type == LIB_INTERFACE_ELEMENT_TYPE_input ) {
+		// properties of element
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *input = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) interface -> element_select;
+
+		// parse provided key
+		input -> index = lib_input_not_interactive( input -> name, input -> name_length, input -> index, keyboard -> key, interface -> key_ctrl_semaphore );
+
+		// calcualte offset, if required
+		while( input -> offset > input -> index ) input -> offset--;
+		uint64_t length = input -> index - input -> offset;
+		while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> name + input -> offset, length-- ) > (input -> input.width - 4) ) input -> offset++;
+
+		// update content of element
+		lib_interface_draw_select( interface, interface -> element_select );
+
+		// redraw window content
+		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 	}
 
 	// return parsed key

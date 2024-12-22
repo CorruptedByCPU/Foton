@@ -164,7 +164,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// show "Game Over" and options
 			lib_interface_element_label( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, taris_game_over );
 			lib_interface_element_label( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, taris_options );
-			
+
+			// update window content on screen
+			taris_interface.descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
 			// wait for restart of game
 			while( TRUE ) {
 				// get key from user

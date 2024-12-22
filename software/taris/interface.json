@@ -69,16 +69,16 @@
 		"x": 1,
 		"y": 184,
 		"width": 169,
-		"height": 16,
+		"height": 24,
 		"align": "center",
 		"name": "Game Over"
 	},
 	"label": {
 		"id": 98,
 		"x": 1,
-		"y": 201,
+		"y": 208,
 		"width": 169,
-		"height": 16,
+		"height": 24,
 		"align": "center",
 		"name": "Press SPACE or ESC."
 	}

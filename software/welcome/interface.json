@@ -3,7 +3,7 @@
 		"x": -1,
 		"y": -1,
 		"width": 336,
-		"height": 216,
+		"height": 242,
 		"name": "GUI Debug Window"
 	},
 	"control": {
@@ -14,11 +14,11 @@
 		"type": "minimize"
 	},
 	"label": {
-		"x": 13,
+		"x": 9,
 		"y": 30,
 		"width": 314,
 		"height": 16,
-		"name": "Use `TAB` key to move between elements."
+		"name": "Use TAB/[SHIFT] key to move around."
 	},
 	"input": {
 		"id": 1,
@@ -26,8 +26,17 @@
 		"y": 54,
 		"width": 160,
 		"height": 22,
-		"limit": 8,
-		"string": "input.0"
+		"limit": 254,
+		"name": "input.0"
+	},
+	"input": {
+		"id": 13,
+		"x": 175,
+		"y": 54,
+		"width": 154,
+		"height": 22,
+		"limit": 254,
+		"name": "input.1"
 	},
 	"checkbox": {
 		"id": 2,
@@ -74,8 +83,8 @@
 	"radio": {
 		"id": 7,
 		"x": 175,
-		"y": 54,
-		"width": 160,
+		"y": 80,
+		"width": 154,
 		"height": 22,
 		"group": 1,
 		"selected": 1,
@@ -84,8 +93,8 @@
 	"radio": {
 		"id": 8,
 		"x": 175,
-		"y": 80,
-		"width": 160,
+		"y": 106,
+		"width": 154,
 		"height": 22,
 		"group": 1,
 		"selected": 0,
@@ -94,8 +103,8 @@
 	"radio": {
 		"id": 9,
 		"x": 175,
-		"y": 106,
-		"width": 160,
+		"y": 132,
+		"width": 154,
 		"height": 22,
 		"group": 1,
 		"selected": 0,
@@ -104,8 +113,8 @@
 	"radio": {
 		"id": 10,
 		"x": 175,
-		"y": 132,
-		"width": 160,
+		"y": 158,
+		"width": 154,
 		"height": 22,
 		"group": 1,
 		"selected": 0,
@@ -114,8 +123,8 @@
 	"radio": {
 		"id": 11,
 		"x": 175,
-		"y": 158,
-		"width": 160,
+		"y": 184,
+		"width": 154,
 		"height": 22,
 		"group": 2,
 		"selected": 1,
@@ -124,8 +133,8 @@
 	"radio": {
 		"id": 12,
 		"x": 175,
-		"y": 184,
-		"width": 160,
+		"y": 210,
+		"width": 154,
 		"height": 22,
 		"group": 2,
 		"selected": 0,
