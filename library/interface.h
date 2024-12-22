@@ -11,6 +11,9 @@
 	#ifndef	LIB_IMAGE
 		#include	"./image.h"
 	#endif
+	#ifndef	LIB_INPUT
+		#include	"./input.h"
+	#endif
 	#ifndef	LIB_JSON
 		#include	"./json.h"
 	#endif
@@ -134,8 +137,8 @@
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	input;
 		uint16_t	name_length;
 		uint8_t		*name;
-		uint8_t		*indicator;
-		uint8_t		cursor;
+		uint64_t	offset;
+		uint64_t	index;
 	};
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU {
