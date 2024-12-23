@@ -26,7 +26,7 @@ void init( void ) {
 
 		// initialize interface library
 		d3_interface -> properties = (uint8_t *) &file_interface_start;
-		lib_interface( d3_interface );
+		if( ! lib_interface( d3_interface ) ) { log( "Cannot create window.\n" ); exit(); }
 
 		// allow window to be resiable
 		d3_interface -> descriptor -> flags |= STD_WINDOW_FLAG_resizable;

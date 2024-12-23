@@ -20,7 +20,7 @@ void close( void ) {
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize interface library
 	fm_interface.properties = (uint8_t *) &file_interface_start;
-	lib_interface( (struct LIB_INTERFACE_STRUCTURE *) &fm_interface );
+	if( ! lib_interface( (struct LIB_INTERFACE_STRUCTURE *) &fm_interface ) ) { log( "Cannot create window.\n" ); exit(); }
 
 	// find control element of type: close
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( (struct LIB_INTERFACE_STRUCTURE *) &fm_interface, 0 );

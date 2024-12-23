@@ -413,22 +413,23 @@
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
 
-	#define	STD_WINDOW_FLAG_active		0b0000000000000001
-	#define	STD_WINDOW_FLAG_visible		0b0000000000000010
-	#define	STD_WINDOW_FLAG_fixed_xy	0b0000000000000100
-	#define	STD_WINDOW_FLAG_fixed_z		0b0000000000001000
-	#define	STD_WINDOW_FLAG_release		0b0000000000010000	// window marked as ready to be removed
-	#define	STD_WINDOW_FLAG_name		0b0000000000100000
-	#define	STD_WINDOW_FLAG_minimize	0b0000000001000000
-	#define	STD_WINDOW_FLAG_unstable	0b0000000010000000	// hide window on any mouse button press
-	#define	STD_WINDOW_FLAG_resizable	0b0000000100000000
-	#define	STD_WINDOW_FLAG_properties	0b0000001000000000	// Window Manager proposed new window properties
-	#define	STD_WINDOW_FLAG_maximize	0b0000010000000000
-	#define	STD_WINDOW_FLAG_icon		0b0000100000000000
-	#define	STD_WINDOW_FLAG_workbench	0b0001000000000000
-	#define	STD_WINDOW_FLAG_flush		0b0010000000000000
-	#define	STD_WINDOW_FLAG_taskbar		0b0100000000000000
-	#define	STD_WINDOW_FLAG_cursor		0b1000000000000000
+	#define	STD_WINDOW_FLAG_active		(1 << 0)
+	#define	STD_WINDOW_FLAG_visible		(1 << 1)
+	#define	STD_WINDOW_FLAG_fixed_xy	(1 << 2)
+	#define	STD_WINDOW_FLAG_fixed_z		(1 << 3)
+	#define	STD_WINDOW_FLAG_release		(1 << 4)	// window marked as ready to be removed
+	#define	STD_WINDOW_FLAG_name		(1 << 5)
+	#define	STD_WINDOW_FLAG_minimize	(1 << 6)
+	#define	STD_WINDOW_FLAG_unstable	(1 << 7)	// hide window on any mouse button press
+	#define	STD_WINDOW_FLAG_resizable	(1 << 8)
+	#define	STD_WINDOW_FLAG_properties	(1 << 9)	// Window Manager proposed new window properties
+	#define	STD_WINDOW_FLAG_maximize	(1 << 10)
+	#define	STD_WINDOW_FLAG_icon		(1 << 11)
+	#define	STD_WINDOW_FLAG_workbench	(1 << 12)
+	#define	STD_WINDOW_FLAG_flush		(1 << 13)
+	#define	STD_WINDOW_FLAG_taskbar		(1 << 14)
+	#define	STD_WINDOW_FLAG_cursor		(1 << 15)
+	#define	STD_WINDOW_FLAG_lock		(1 << 16)
 
 	#define	STD_WINDOW_REQUEST_create	0b00000001
 	#define	STD_WINDOW_REQUEST_active	0b00000010
@@ -437,7 +438,7 @@
 	#define	STD_WINDOW_ANSWER_active	0b10000000 | STD_WINDOW_REQUEST_active
 
 	struct	STD_STRUCTURE_WINDOW_DESCRIPTOR {
-		uint16_t	flags;
+		uint32_t	flags;
 		// pointer position inside window
 		uint16_t	x;
 		uint16_t	y;

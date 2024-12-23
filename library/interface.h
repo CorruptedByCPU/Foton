@@ -151,7 +151,7 @@
 	};
 
 	// properties of Interface assigned to Window
-	void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface );
+	uint8_t lib_interface( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	// fill interface background with default colors
 	void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface );

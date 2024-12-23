@@ -28,6 +28,7 @@ struct WM_STRUCTURE_OBJECT *wm_object_taskbar = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_cursor = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_menu = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_hover = EMPTY;
+struct WM_STRUCTURE_OBJECT *wm_object_lock = EMPTY;
 
 struct WM_STRUCTURE_OBJECT *wm_object_selected = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_active = EMPTY;

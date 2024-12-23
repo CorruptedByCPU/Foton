@@ -37,7 +37,7 @@ void console_init( void ) {
 		// initialize interface library
 		console_interface -> properties = (uint8_t *) &file_interface_start;
 		console_interface -> background_color = lib_color( 232 );
-		lib_interface( console_interface );
+		if( ! lib_interface( console_interface ) ) { log( "Cannot create window.\n" ); exit(); }
 
 		// allow window to be resiable
 		console_interface -> descriptor -> flags |= STD_WINDOW_FLAG_resizable;

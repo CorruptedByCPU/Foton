@@ -319,14 +319,14 @@ uint64_t lib_input_not_interactive( uint8_t *cache, uint64_t limit, uint64_t ind
 			// if cache is empty or has void properties
 			if( ! length || ! index ) break;	// yes
 
+			// move cursor backward
+			index--;
+
 			// move all content after cursor. one position before
 			for( uint64_t i = index; i < length; i++ ) cache[ i ] = cache[ i + 1 ];
 
 			// terminate cache in new position
 			cache[ --length ] = STD_ASCII_TERMINATOR;
-
-			// move cursor backward
-			index--;
 
 			// done
 			break;
@@ -409,7 +409,7 @@ uint64_t lib_input_not_interactive( uint8_t *cache, uint64_t limit, uint64_t ind
 			if( key < STD_ASCII_SPACE || key > STD_ASCII_TILDE ) break;	// no
 
 			// move all cache content behind cursor, one position further
-			for( uint64_t i = length; i > index; i-- ) cache[ i ] = cache[ i - i ];
+			for( uint64_t i = length; i > index; i-- ) cache[ i ] = cache[ i - 1 ];
 
 			// insert character into cache
 			cache[ index++ ] = key;

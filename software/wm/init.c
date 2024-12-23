@@ -95,8 +95,8 @@ uint8_t wm_init( void ) {
 				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = 0xFF101010;
 
 	// show debug information
-	uint8_t build_version[] = "System build on "__DATE__" "__TIME__;
-	lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, build_version, sizeof( build_version ) - 1, STD_COLOR_GRAY, workbench_pixel, wm_object_workbench -> width, LIB_FONT_ALIGN_right );
+	// uint8_t build_version[] = "Foton v"KERNEL_version"."KERNEL_revision" build on "__DATE__" "__TIME__;
+	// lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, build_version, sizeof( build_version ) - 1, STD_COLOR_GRAY, workbench_pixel, wm_object_workbench -> width, LIB_FONT_ALIGN_right );
 
 	// object content ready for display
 	wm_object_workbench -> descriptor -> flags |= STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
@@ -143,6 +143,28 @@ uint8_t wm_init( void ) {
 	// execute clock function as thread
 	uint8_t wm_string_clock[] = "wm clock";
 	std_thread( (uintptr_t) &wm_clock, (uint8_t *) &wm_string_clock, sizeof( wm_string_clock ) );
+
+	//----------------------------------------------------------------------
+
+	// create lock object
+	wm_object_lock = wm_object_create( 0, 0, wm_object_cache.width, wm_object_cache.height );
+
+	// mark it as our
+	wm_object_lock -> pid = wm_pid;
+
+	// object content ready for display
+	wm_object_lock -> descriptor -> flags |= STD_WINDOW_FLAG_lock | STD_WINDOW_FLAG_fixed_xy;
+
+	// move object above taskbar
+	wm_object_move_up( wm_object_lock );
+
+	// properties of workbench area content
+	uint32_t *lock_pixel = (uint32_t *) ((uintptr_t) wm_object_lock -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+
+	// fill lock with default shadow
+	for( uint16_t y = 0; y < wm_object_lock -> height; y++ )
+		for( uint16_t x = 0; x < wm_object_lock -> width; x++ )
+			lock_pixel[ (y * wm_object_lock -> width) + x ] = WM_LOCK_BACKGROUND_color;
 
 	//----------------------------------------------------------------------
 
@@ -205,7 +227,7 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// debug
-	std_exec( (uint8_t *) "welcome", 7, EMPTY );
+	// std_exec( (uint8_t *) "welcome", 7, EMPTY );
 
 	// Window Manager initialized.
 	return TRUE;

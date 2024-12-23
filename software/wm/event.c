@@ -46,6 +46,9 @@ void wm_event( void ) {
 
 	// incomming mouse event
 	while( (source = std_ipc_receive_by_type( (uint8_t *) &data, STD_IPC_TYPE_mouse )) ) {
+		// ignore if workbench locked
+		if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
+
 		// properties of mouse event
 		struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
 
@@ -102,13 +105,51 @@ void wm_event( void ) {
 			case STD_KEY_CTRL_LEFT | 0x80: { wm_keyboard_status_ctrl_left = FALSE; break; }
 
 			// menu pressed
-			case STD_KEY_MENU: { wm_menu_switch( wm_keyboard_status_menu ); wm_keyboard_status_menu = TRUE; break; }
+			case STD_KEY_MENU: {
+				// remember menu state
+				wm_keyboard_status_menu = TRUE;
+
+				// ignore key
+				send = FALSE;
+
+				// done
+				break;
+			}
+
+			case STD_ASCII_LETTER_l: {
+				// menu key on hold?
+				if( wm_keyboard_status_menu ) {
+					// lock workbench
+					wm_object_lock -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+
+					// ignore key
+					send = FALSE;
+				}
+			}
 
 			// menu released
-			case STD_KEY_MENU | 0x80: { wm_keyboard_status_menu = FALSE; break; }
+			case STD_KEY_MENU | 0x80: {
+				// ignore if workbench locked
+				if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
+
+				// show/hide menu
+				wm_menu_switch( FALSE );
+				
+				// remember menu state
+				wm_keyboard_status_menu = FALSE;
+				
+				// ignore key
+				send = FALSE;
+
+				// done
+				break;
+			}
 
 			// tab pressed
 			case STD_KEY_TAB: {
+				// ignore if workbench locked
+				if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
+
 				// if left alt key is holded
 				if( ! wm_keyboard_status_alt_left ) break;	// nope
 
@@ -133,13 +174,19 @@ void wm_event( void ) {
 					wm_taskbar_modified = TRUE;
 				}
 
+				// ignore key
+				send = FALSE;
+
 				// done
 				break;
 			}
 
 			// return pressed
 			case STD_ASCII_RETURN: {
-				// menu key is on hold
+				// ignore if workbench locked
+				if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
+
+				// alt key is on hold
 				if( wm_keyboard_status_alt_left ) {
 					// execute console application
 					std_exec( (uint8_t *) "console", 7, EMPTY );
@@ -256,8 +303,10 @@ void wm_event( void ) {
 
 				// menu button click?
 				if( mouse_syscall.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse_syscall.y >= wm_object_taskbar -> y )
-					// show/hide menu window
-					wm_menu_switch( FALSE );
+					// ignore if workbench locked
+					if( ! (wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible) )
+						// show/hide menu window
+						wm_menu_switch( FALSE );
 			}
 		}
 	} else {

@@ -7,5 +7,5 @@
 
 	#define	KERNEL_IPC_limit	512
 	// #define	KERNEL_IPC_ttl		(DRIVER_RTC_Hz >> STD_SHIFT_8)	// about 1/8 of second
-	#define	KERNEL_IPC_ttl		DRIVER_RTC_Hz	// Bochs Emulator is too slow...
+	#define	KERNEL_IPC_ttl		32768	// Bochs Emulator is too slow...
 #endif

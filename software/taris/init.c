@@ -5,7 +5,7 @@
 void taris_init( void ) {
 	// initialize interface library
 	taris_interface.properties = (uint8_t *) &file_interface_start;
-	lib_interface( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface );
+	if( ! lib_interface( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface ) ) { log( "Cannot create window.\n" ); exit(); }
 
 	// find control element of type: close
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( (struct LIB_INTERFACE_STRUCTURE *) &taris_interface, 0 );

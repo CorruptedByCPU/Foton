@@ -8,6 +8,11 @@
 	#define	WM_DEBUG_STARVATION_limit	1
 
 	//----------------------------------------------------------------------
+	// for debugging
+	//----------------------------------------------------------------------
+	#include	"../../kernel/config.h"
+
+	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
 	#include	"../../library/integer.h"
@@ -34,8 +39,7 @@
 	#define	WM_TASKBAR_BG_invisible		0xFF000000
 	#define	WM_TASKBAR_BG_active		0xFF181818
 
-	#define	WM_LOGO_width			320
-	#define	WM_LOGO_height			WM_LOGO_width
+	#define	WM_LOCK_BACKGROUND_color	0xCC111111
 
 	struct	WM_STRUCTURE_OBJECT {
 		int16_t		x;
@@ -71,3 +75,4 @@
 	int64_t wm_workbench( void );
 	void wm_menu_switch( uint8_t menu_semaphore );
 	void wm_menu_exec( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu );
+	void wm_lock( void );
