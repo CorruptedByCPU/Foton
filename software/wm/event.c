@@ -122,9 +122,15 @@ void wm_event( void ) {
 					// lock workbench
 					wm_object_lock -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
+					// set new active object
+					wm_object_active = wm_object_lock;
+
 					// ignore key
 					send = FALSE;
 				}
+
+				// done
+				break;
 			}
 
 			// menu released
@@ -133,13 +139,13 @@ void wm_event( void ) {
 				if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
 
 				// show/hide menu
-				wm_menu_switch( FALSE );
+				if( wm_keyboard_status_menu ) wm_menu_switch( FALSE );
 				
 				// remember menu state
 				wm_keyboard_status_menu = FALSE;
 				
 				// ignore key
-				send = FALSE;
+				// send = FALSE;
 
 				// done
 				break;
