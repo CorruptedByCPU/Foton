@@ -49,6 +49,10 @@ int64_t wm_menu( void ) {
 	// clear window content
 	lib_interface_clear( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 
+	// set window name
+	uint8_t system_release[] = "Foton v"KERNEL_version"."KERNEL_revision;
+	for( uint64_t i = 0; i < lib_string_length( system_release ); i++ ) menu_interface.name[ menu_interface.name_length++ ] = system_release[ i ];
+
 	// show window name in header if set
 	lib_interface_name( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 

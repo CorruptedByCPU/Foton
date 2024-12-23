@@ -40,7 +40,7 @@ const uint8_t lib_interface_string_group[] = "group";
 const uint8_t lib_interface_string_radio[] = "radio";
 const uint8_t lib_interface_string_selected[] = "selected";
 
-void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
+uint8_t lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// prepare JSON structure for parsing
 	lib_json_squeeze( interface -> properties );
 
@@ -50,11 +50,15 @@ void lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// if dimensions aquired from JSON structure
 	if( interface -> width && interface -> height ) {
 		// create window
-		lib_interface_window( interface );
+		if( ! lib_interface_window( interface ) ) return FALSE;
 
 		// show interface elements
 		lib_interface_draw( interface );
-	}
+	// no
+	} else return FALSE;
+
+	// done
+	return TRUE;
 }
 
 void lib_interface_border( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -1409,11 +1413,13 @@ uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	int64_t wm_pid = kernel_framebuffer.pid;
 
 	// allocate gui data container
-	uint8_t wm_data[ STD_IPC_SIZE_byte ] = { EMPTY };
+	uint8_t wm_data_request[ STD_IPC_SIZE_byte ] = { EMPTY };
+		// allocate gui data container
+	uint8_t wm_data_answer[ STD_IPC_SIZE_byte ] = { EMPTY };
 
 	// prepeare new window request
-	struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &wm_data;
-	struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &wm_data;
+	struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &wm_data_request;
+	struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &wm_data_answer;
 
 	//----------------------------------------------------------------------
 
@@ -1437,8 +1443,8 @@ uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	std_ipc_send( wm_pid, (uint8_t *) request );
 
 	// wait for answer
-	uint64_t timeout = std_microtime() + 1024;	// TODO, HPET, RTC...
-	while( (! std_ipc_receive( (uint8_t *) wm_data ) || answer -> ipc.type != STD_IPC_TYPE_event) && timeout > std_microtime() );
+	uint64_t timeout = std_microtime() + 32768;	// TODO, HPET, RTC...
+	while( (! std_ipc_receive( (uint8_t *) answer ) || answer -> ipc.type != STD_IPC_TYPE_event) && timeout > std_microtime() );
 
 	// window assigned?
 	if( ! answer -> descriptor ) {

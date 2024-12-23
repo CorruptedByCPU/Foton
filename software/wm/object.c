@@ -15,7 +15,7 @@ void wm_object( void ) {
 		if( wm_list_base_address[ i ] == wm_object_active ) wm_object_active -> descriptor -> flags |= STD_WINDOW_FLAG_active;
 		else wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_active;
 
-		// object minimized or visible and requested flush?
+		// object maximized, minimized or requested flush?
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_maximize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse whole object area
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
@@ -249,14 +249,14 @@ uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object ) {
 	MACRO_LOCK( wm_list_semaphore );
 
 	// find object on list
-	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
+	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
 		// object located?
 		if( wm_list_base_address[ i ] != object ) continue;	// no
 
 		// move all objects in place of selected
-		for( uint16_t j = i; j < wm_list_limit - 1; j++ ) {
-			// next object will be a taskbar?
-			if( wm_list_base_address[ j + 1 ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) break;
+		for( uint64_t j = i; j < wm_list_limit - 1; j++ ) {
+			// next object will be a taskbar or move on?
+			if( wm_list_base_address[ j + 1 ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar && ! (object -> descriptor -> flags & STD_WINDOW_FLAG_lock) ) break;
 
 			// no, move next object to current position
 			wm_list_base_address[ i++ ] = wm_list_base_address[ j + 1 ];
