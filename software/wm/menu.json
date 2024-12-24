@@ -1,7 +1,7 @@
 {
 	"window": {
 		"width": 122,
-		"height": 145
+		"height": 169
 	},
 	"menu": {
 		"id": 0,
@@ -11,7 +11,7 @@
 		"height": 24,
 		"name": "Console",
 		"command": "console",
-		"icon": "/system/var/gfx/icons/console.tga"
+		"icon": "/system/var/gfx/icons/terminal.tga"
 	},
 	"menu": {
 		"id": 0,
@@ -19,14 +19,24 @@
 		"y": 48,
 		"width": 120,
 		"height": 24,
-		"name": "Moko",
-		"command": "console moko",
-		"icon": "/system/var/gfx/icons/notepad.tga"
+		"name": "File Manager",
+		"command": "fm",
+		"icon": "/system/var/gfx/icons/system-file-manager.tga"
 	},
 	"menu": {
 		"id": 0,
 		"x": 1,
 		"y": 72,
+		"width": 120,
+		"height": 24,
+		"name": "Moko",
+		"command": "console moko",
+		"icon": "/system/var/gfx/icons/accessories-text-editor.tga"
+	},
+	"menu": {
+		"id": 0,
+		"x": 1,
+		"y": 96,
 		"width": 120,
 		"height": 24,
 		"name": "Taris",
@@ -36,7 +46,7 @@
 	"menu": {
 		"id": 0,
 		"x": 1,
-		"y": 96,
+		"y": 120,
 		"width": 120,
 		"height": 24,
 		"name": "3D Viewer",
@@ -46,11 +56,11 @@
 	"menu": {
 		"id": 0,
 		"x": 1,
-		"y": 120,
+		"y": 144,
 		"width": 120,
 		"height": 24,
 		"name": "Task Manager",
 		"command": "console tm",
-		"icon": "/system/var/gfx/icons/tm.tga"
+		"icon": "/system/var/gfx/icons/utilities-system-monitor.tga"
 	}
 }

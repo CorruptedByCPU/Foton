@@ -722,6 +722,8 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, element -> name + element -> offset, name_length ) > element -> input.width - 4 ) if( ! --name_length ) return;
 
 	// compute absolute address of first pixel of element space
+	if( element -> input.x == STD_MAX_unsigned ) element -> input.x = (interface -> width >> STD_SHIFT_2) - (element -> input.x >> STD_SHIFT_2);
+	if( element -> input.y == STD_MAX_unsigned ) element -> input.y = (interface -> height >> STD_SHIFT_2) - (element -> input.y >> STD_SHIFT_2);
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> input.y * interface -> width) + element -> input.x;
 
 	// select background color
