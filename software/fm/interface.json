@@ -11,6 +11,16 @@
 		"type": "close"
 	},
 	"control": {
+		"type": "maximize"
+	},
+	"control": {
 		"type": "minimize"
+	},
+	"file": {
+		"id": 1,
+		"x": 1,
+		"y": 25,
+		"width": -1,
+		"height": -1
 	}
 }

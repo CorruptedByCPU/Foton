@@ -36,6 +36,9 @@ void lib_terminal_reload( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 
 	// set proper terminal pointer
 	terminal -> pointer = terminal -> base_address + ((terminal -> cursor_y * (terminal -> scanline_pixel * LIB_FONT_HEIGHT_pixel)) + (terminal -> cursor_x * terminal -> scanline_char));
+
+	// dump whole terminal content
+	lib_terminal_drain( terminal );
 }
 
 void lib_terminal( struct LIB_TERMINAL_STRUCTURE *terminal ) {
