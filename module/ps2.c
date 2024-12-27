@@ -138,6 +138,22 @@ void module_ps2_mouse( void ) {
 				else kernel -> device_mouse_y += ry;
 
 				// package handled from given interrupt
+				if( module_ps2_mouse_type == 0 ) module_ps2_mouse_package_id = EMPTY;
+				else module_ps2_mouse_package_id++;
+
+				// package parsed
+				break;
+			}
+
+			case 3: {
+				// retrieve value
+				int8_t rz = package & STD_MASK_byte_half;
+				
+				// update Z axis
+				if( rz < 8 ) kernel -> device_mouse_z += rz;
+				else kernel -> device_mouse_z += (rz - 16); 
+
+				// package handled from given interrupt
 				module_ps2_mouse_package_id = EMPTY;
 
 				// package parsed
@@ -219,6 +235,25 @@ void module_ps2_keyboard( void ) {
 	kernel -> lapic_base_address -> eoi = EMPTY;
 }
 
+uint8_t module_ps2_rate_set( uint8_t value ) {
+	// send command of SAMPLE RATE SET
+	module_ps2_command( MODULE_PS2_COMMAND_PORT_SECOND );
+	module_ps2_data_write( MODULE_PS2_DEVICE_SAMPLE_RATE_SET );
+
+	// accepted?
+	if( module_ps2_data_read() != MODULE_PS2_ANSWER_ACKNOWLEDGED ) return FALSE;	// no
+
+	// send rate value
+	module_ps2_command( MODULE_PS2_COMMAND_PORT_SECOND );
+	module_ps2_data_write( value );
+
+	// confirmed?
+	if( module_ps2_data_read() != MODULE_PS2_ANSWER_ACKNOWLEDGED ) return FALSE;	// no
+
+	// done
+	return TRUE;
+}
+
 void module_ps2_init( void ) {
 	// drain PS2 controller buffer
 	module_ps2_drain();
@@ -236,37 +271,48 @@ void module_ps2_init( void ) {
 	module_ps2_data_write( MODULE_PS2_DEVICE_RESET );
 
 	// command accepted?
-	if( module_ps2_data_read() == MODULE_PS2_ANSWER_ACKNOWLEDGED ) {
-		// device is working properly?
-		if( module_ps2_data_read() == MODULE_PS2_ANSWER_SELF_TEST_SUCCESS ) {
-			// get device ID
-			module_ps2_mouse_type = module_ps2_data_read();
+	if( module_ps2_data_read() != MODULE_PS2_ANSWER_ACKNOWLEDGED ) return;	// nope
 
-			// send SET DEFAULT command to device: mouse
-			module_ps2_command( MODULE_PS2_COMMAND_PORT_SECOND );
-			module_ps2_data_write( MODULE_PS2_DEVICE_SET_DEFAULT );
+	// device is working properly?
+	if( module_ps2_data_read() != MODULE_PS2_ANSWER_SELF_TEST_SUCCESS ) return;	// nope
 
-			// command accepted?
-			if( module_ps2_data_read() == MODULE_PS2_ANSWER_ACKNOWLEDGED ) {
-				// send PACKETS ENABLE command to device: mouse
-				module_ps2_command( MODULE_PS2_COMMAND_PORT_SECOND );
-				module_ps2_data_write( MODULE_PS2_DEVICE_PACKETS_ENABLE );
+	// get device ID
+	module_ps2_mouse_type = module_ps2_data_read();
 
-				// command accepted?
-				if( module_ps2_data_read() == MODULE_PS2_ANSWER_ACKNOWLEDGED ) {
-					// connect PS2 controller interrupt handler for device: mouse
-					kernel -> idt_mount( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, KERNEL_IDT_TYPE_irq, (uintptr_t) module_ps2_mouse_entry );
+	// send SET DEFAULT command to device: mouse
+	module_ps2_command( MODULE_PS2_COMMAND_PORT_SECOND );
+	module_ps2_data_write( MODULE_PS2_DEVICE_SET_DEFAULT );
 
-					// connect interrupt vector from IDT table in IOAPIC controller
-					kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, MODULE_PS2_MOUSE_IO_APIC_register );
+	// command accepted?
+	if( module_ps2_data_read() != MODULE_PS2_ANSWER_ACKNOWLEDGED ) return;	// nope
 
-					// set default position of pointer
-					kernel -> device_mouse_x = kernel -> framebuffer_width_pixel >> STD_SHIFT_2;
-					kernel -> device_mouse_y = kernel -> framebuffer_height_pixel >> STD_SHIFT_2;
-				}
-			}
-		}
-	}
+	// enable Z axis
+	module_ps2_rate_set( 200 );
+	module_ps2_rate_set( 100 );
+	module_ps2_rate_set( 80 );
+
+	// retrieve new device ID
+	module_ps2_command( MODULE_PS2_COMMAND_PORT_SECOND );
+	module_ps2_data_write( MODULE_PS2_DEVICE_ID_GET );
+	if( module_ps2_data_read() == MODULE_PS2_ANSWER_ACKNOWLEDGED ) module_ps2_mouse_type = module_ps2_data_read();
+
+	// send PACKETS ENABLE command to device: mouse
+	module_ps2_command( MODULE_PS2_COMMAND_PORT_SECOND );
+	module_ps2_data_write( MODULE_PS2_DEVICE_PACKETS_ENABLE );
+
+	// command accepted?
+	if( module_ps2_data_read() != MODULE_PS2_ANSWER_ACKNOWLEDGED ) return;	// nope
+
+	// connect PS2 controller interrupt handler for device: mouse
+	kernel -> idt_mount( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, KERNEL_IDT_TYPE_irq, (uintptr_t) module_ps2_mouse_entry );
+
+	// connect interrupt vector from IDT table in IOAPIC controller
+	kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, MODULE_PS2_MOUSE_IO_APIC_register );
+
+	// set default position of pointer
+	kernel -> device_mouse_x = kernel -> framebuffer_width_pixel >> STD_SHIFT_2;
+	kernel -> device_mouse_y = kernel -> framebuffer_height_pixel >> STD_SHIFT_2;
+	kernel -> device_mouse_z = EMPTY;
 
 	// connect PS2 controller interrupt handler for device: keyboard
 	kernel -> idt_mount( KERNEL_IDT_IRQ_offset + MODULE_PS2_KEYBOARD_IRQ_number, KERNEL_IDT_TYPE_irq, (uint64_t) module_ps2_keyboard_entry );

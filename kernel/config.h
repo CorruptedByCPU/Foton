@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"456"
+#define	KERNEL_revision		"459"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -38,6 +38,7 @@ struct KERNEL {
 	uint8_t							device_mouse_status;
 	uint16_t						device_mouse_x;
 	uint16_t						device_mouse_y;
+	uint16_t						device_mouse_z;
 	uint16_t						device_keyboard[ 8 ];	// cache size of 8 keys
 
 	// variables of Framebuffer functions

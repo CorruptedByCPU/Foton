@@ -13,8 +13,8 @@ cpu: count=1:SMP:1, ips=64000000, model=ryzen, reset_on_triple_fault=1, cpuid_li
 magic_break: enabled=1
 clock: sync=realtime, time0=local, rtc_sync=1
 keyboard: type=mf, serial_delay=250, paste_delay=100000, user_shortcut=none
-mouse: type=ps2, enabled=false, toggle=ctrl+mbutton
-usb_uhci: enabled=1, port1=keyboard, options1="speed:low", port2=mouse, options2="speed:low"
+mouse: type=imps2, enabled=false, toggle=ctrl+mbutton
+#usb_uhci: enabled=1, port1=keyboard, options1="speed:low", port2=mouse, options2="speed:low"
 #usb_ehci: enabled=1, companion=uhci, port1=keyboard, options1="speed:low", port2=mouse, options2="speed:low"
 #usb_xhci: port3=keyboard, options3="speed:low", port4=mouse, options4="speed:low"
 #usb_xhci: port1="speed:super, disk:build/foton.iso"

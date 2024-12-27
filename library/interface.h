@@ -42,7 +42,6 @@
 
 	#define	LIB_INTERFACE_ELEMENT_FLAG_hover			0b00000001
 	#define	LIB_INTERFACE_ELEMENT_FLAG_active			0b00000010
-	#define	LIB_INTERFACE_ELEMENT_FLAG_file				0b00000100
 
 	#define	LIB_INTERFACE_BORDER_pixel				1
 	#define	LIB_INTERFACE_BORDER_COLOR_default			0xFF181818
@@ -153,15 +152,10 @@
 		uint32_t	*icon;
 	};
 
-	struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY {
-		uint8_t		name_length;
-		uint8_t		*name;
-	};
-
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	file;
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry;
-		uint64_t	limit;
+		uint16_t	name_length;
+		uint8_t		*name;
 	};
 
 	// properties of Interface assigned to Window

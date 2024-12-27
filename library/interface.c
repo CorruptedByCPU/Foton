@@ -40,6 +40,7 @@ const uint8_t lib_interface_string_group[] = "group";
 const uint8_t lib_interface_string_radio[] = "radio";
 const uint8_t lib_interface_string_selected[] = "selected";
 const uint8_t lib_interface_string_file[] = "file";
+const uint8_t lib_interface_string_path[] = "path";
 
 uint8_t lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// prepare JSON structure for parsing
@@ -576,6 +577,22 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 				// height
 				if( lib_json_key( file, (uint8_t *) &lib_interface_string_height ) ) element -> file.height = file.value;		
+
+				// path?
+				if( lib_json_key( file, (uint8_t *) &lib_interface_string_path ) ) {
+					// length if proper
+					element -> name_length = file.length;
+
+					// alloc area for element name
+					uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
+
+					// copy element name
+					uint8_t *name_source = (uint8_t *) file.value;
+					for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = name_source[ i ];
+
+					// update element name pointer
+					element -> name = name_target;
+				}
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &file ) );
 
