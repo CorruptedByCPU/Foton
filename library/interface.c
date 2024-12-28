@@ -934,7 +934,80 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	// clean background
 	for( uint16_t y = 0; y < height; y++ )
 		for( uint16_t x = 0; x < width; x++ )
-			pixel[ (y * interface -> width) + x ] = color;
+			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background_file_default;
+
+	// if not open yet
+	if( ! element -> socket ) {
+		// open file
+		element -> socket = fopen( element -> name );
+
+		// alloc area for file content
+		element -> content = (uint8_t *) malloc( element -> socket -> byte );
+
+		// load file content
+		fread( element -> socket, element -> content, element -> socket -> byte );
+
+		// redraw of element content is required
+		element -> file.flags |= LIB_INTERFACE_ELEMENT_FLAG_flush;
+	}
+
+	// flush requested?
+	if( ! (element -> file.flags & LIB_INTERFACE_ELEMENT_FLAG_flush) ) return;	// no
+
+	// amount of files to show
+	element -> limit = EMPTY;
+	for( uint64_t b = 0; b < (element -> socket -> byte >> STD_SHIFT_PAGE); b++ ) {
+		// properties of directory entry
+		struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) &element -> content[ b * STD_PAGE_byte ];
+
+		// file exist?
+		for( uint64_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
+			if( entry[ e ].name_length ) element -> limit++;
+	}
+
+	// expand/shrink previous area to meet actual requirements
+	if( element -> area ) element -> area = realloc( element -> area, (element -> limit * ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width)) << STD_VIDEO_DEPTH_shift );
+	else element -> area = malloc( (element -> limit * ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width)) << STD_VIDEO_DEPTH_shift );
+
+	// clean background
+	color = LIB_INTERFACE_COLOR_background_file_default;
+	uint64_t change = 0;
+	for( uint64_t y = 0; y < (element -> limit * (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)); y++ ) {
+		for( uint64_t x = 0; x < width; x++ ) {
+			element -> area[ (y * width) + x ] = color;
+		}
+
+		if( ! (y % LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ) change++;
+		if( change % 2 ) color = LIB_INTERFACE_COLOR_background_file_odd;
+		else color = LIB_INTERFACE_COLOR_background_file_default;
+	}
+
+	// display the content of element
+	uint32_t *pixel_entry = element -> area + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * width);
+	uint64_t entry_count = EMPTY;
+	for( uint64_t b = 0; b < (element -> socket -> byte >> STD_SHIFT_PAGE); b++ ) {
+		// properties of directory entry
+		struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) &element -> content[ b * STD_PAGE_byte ];
+
+		// file exist?
+		for( uint64_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( entry[ e ].name_length ) {
+			// display the content of element
+			lib_font( LIB_FONT_FAMILY_ROBOTO, entry[ e ].name, entry[ e ].name_length, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
+
+			// move pixel pointer to next entry
+			pixel_entry += ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width);
+		}
+	}
+
+	// sync entries
+	for( size_t y = 0; y < (element -> limit * (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) && y < height; y++ )
+		for( size_t x = 0; x < width; x++ )
+			pixel[ (y * interface -> width) + x ] = element -> area[ (y * width) + x ];
+
+	interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+	// done
+	// element -> file.flags &= ~LIB_INTERFACE_ELEMENT_FLAG_flush;
 }
 
 struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {

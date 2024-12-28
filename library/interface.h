@@ -20,6 +20,9 @@
 	#ifndef	LIB_STRING
 		#include	"./string.h"
 	#endif
+	#ifndef	LIB_VFS
+		#include	"./vfs.h"
+	#endif
 
 	#define	LIB_INTERFACE_GLOBAL_NAME_limit				64
 
@@ -42,6 +45,7 @@
 
 	#define	LIB_INTERFACE_ELEMENT_FLAG_hover			0b00000001
 	#define	LIB_INTERFACE_ELEMENT_FLAG_active			0b00000010
+	#define	LIB_INTERFACE_ELEMENT_FLAG_flush			0b00000100
 
 	#define	LIB_INTERFACE_BORDER_pixel				1
 	#define	LIB_INTERFACE_BORDER_COLOR_default			0xFF181818
@@ -62,7 +66,8 @@
 	#define	LIB_INTERFACE_COLOR_background_checkbox_default		LIB_INTERFACE_COLOR_background + 0x00101010;
 	#define	LIB_INTERFACE_COLOR_background_checkbox_selected	0xFF208020
 	#define	LIB_INTERFACE_COLOR_background_control_close_hover	0xFF208020
-	#define	LIB_INTERFACE_COLOR_background_file_default		0xFF101010
+	#define	LIB_INTERFACE_COLOR_background_file_default		0xFF121212
+	#define	LIB_INTERFACE_COLOR_background_file_odd			0xFF161616
 
 	#define	LIB_INTERFACE_NAME_limit				LIB_INTERFACE_GLOBAL_NAME_limit
 
@@ -154,8 +159,13 @@
 
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	file;
-		uint16_t	name_length;
-		uint8_t		*name;
+		uint16_t				name_length;
+		uint8_t					*name;
+		FILE					*socket;
+		uint8_t					*content;
+		uint64_t				limit;
+		uint64_t				selected;
+		uint32_t				*area;
 	};
 
 	// properties of Interface assigned to Window

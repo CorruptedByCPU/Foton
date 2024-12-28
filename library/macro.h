@@ -6,7 +6,7 @@
 	#define MACRO
 
 	// Bochs Enchanced Debugger: line break
-	#define	MACRO_DEBUF( void ) __asm__ volatile( "xchg %bx, %bx" );
+	#define	MACRO_DEBUF( void ) __asm__ volatile( "xchg %bx, %bx\nxchg %bx, %bx" );
 	// support for while( TRUE );
 	#define	MACRO_NOP( void ) __asm__ volatile( "nop" );
 
