@@ -68,6 +68,7 @@
 	#define	LIB_INTERFACE_COLOR_background_control_close_hover	0xFF208020
 	#define	LIB_INTERFACE_COLOR_background_file_default		0xFF121212
 	#define	LIB_INTERFACE_COLOR_background_file_odd			0xFF161616
+	#define	LIB_INTERFACE_COLOR_background_file_selected		0xFF162616
 
 	#define	LIB_INTERFACE_NAME_limit				LIB_INTERFACE_GLOBAL_NAME_limit
 
@@ -218,6 +219,8 @@
 	void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface );
 
 	void lib_interface_draw_select( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT *element );
+
+	uint64_t lib_interface_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t pixel );
 
 	// create window space accoring to JSON specification
 	uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );

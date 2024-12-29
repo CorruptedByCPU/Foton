@@ -596,6 +596,8 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &file ) );
 
+			element -> selected = TRUE;
+
 			// change interface structure index
 			i += element -> file.size_byte;
 		}
@@ -642,7 +644,7 @@ void lib_interface_draw_select( struct LIB_INTERFACE_STRUCTURE *interface, struc
 
 void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
 	// limit string length to element width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> label_or_button.width ) if( ! --element -> name_length ) return;
+	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, element -> label_or_button.width );
 
 	// compute absolute address of first pixel of element space
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
@@ -664,7 +666,7 @@ void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, st
 	pixel += element -> label_or_button.width >> STD_SHIFT_2;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, LIB_FONT_ALIGN_center );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, LIB_FONT_ALIGN_center );
 }
 
 uintptr_t lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface, uint64_t id ) {
@@ -687,7 +689,7 @@ uintptr_t lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface
 
 void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *element ) {
 	// limit string length to element width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > (element -> checkbox.width - element -> checkbox.height) ) if( ! --element -> name_length ) return;
+	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, (element -> checkbox.width - element -> checkbox.height) );
 
 	// compute absolute address of first pixel of element space
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> checkbox.y * interface -> width) + element -> checkbox.x;
@@ -721,7 +723,7 @@ void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, 
 	if( element -> checkbox.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> checkbox.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + element -> checkbox.height + 4, interface -> width, EMPTY );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + element -> checkbox.height + 4, interface -> width, EMPTY );
 }
 
 void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *element ) {
@@ -812,7 +814,7 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 
 void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element ) {
 	// limit string length to element width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> label_or_button.width ) if( ! --element -> name_length ) return;
+	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, element -> label_or_button.width );
 
 	// compute absolute address of first pixel of element space
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
@@ -830,12 +832,12 @@ void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, str
 	if( element -> label_or_button.flags & LIB_FONT_ALIGN_right ) pixel += element -> label_or_button.width;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, element -> label_or_button.flags );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, element -> label_or_button.flags );
 }
 
 void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element ) {
 	// limit string length to element width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > element -> menu.width ) if( ! --element -> name_length ) return;
+	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, element -> menu.width );
 
 	// compute absolute address of first pixel of element space
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> menu.y * interface -> width) + element -> menu.x;
@@ -851,7 +853,7 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			pixel[ (y * interface -> width) + x ] = color;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4 + 16 + 2 + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width), interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4 + 16 + 2 + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width), interface -> width, LIB_FONT_ALIGN_left );
 
 	// icon provided?
 	if( element -> icon ) {
@@ -870,8 +872,8 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 }
 
 void lib_interface_element_radio( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *element ) {
-	// limit string length to element width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length ) > (element -> radio.width - element -> radio.height) ) if( ! --element -> name_length ) return;
+	// limit name length to header width
+	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, (element -> radio.width - element -> radio.height) );
 
 	// compute absolute address of first pixel of element space
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> radio.y * interface -> width) + element -> radio.x;
@@ -915,7 +917,7 @@ void lib_interface_element_radio( struct LIB_INTERFACE_STRUCTURE *interface, str
 	if( element -> radio.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> radio.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + element -> radio.height + 4, interface -> width, EMPTY );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + element -> radio.height + 4, interface -> width, EMPTY );
 }
 
 void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element ) {
@@ -955,7 +957,7 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	if( ! (element -> file.flags & LIB_INTERFACE_ELEMENT_FLAG_flush) ) return;	// no
 
 	// amount of files to show
-	element -> limit = EMPTY;
+	element -> limit = -LIB_VFS_default;
 	for( uint64_t b = 0; b < (element -> socket -> byte >> STD_SHIFT_PAGE); b++ ) {
 		// properties of directory entry
 		struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) &element -> content[ b * STD_PAGE_byte ];
@@ -969,17 +971,18 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	if( element -> area ) element -> area = realloc( element -> area, (element -> limit * ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width)) << STD_VIDEO_DEPTH_shift );
 	else element -> area = malloc( (element -> limit * ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width)) << STD_VIDEO_DEPTH_shift );
 
-	// clean background
+	// set background color for each entry
 	color = LIB_INTERFACE_COLOR_background_file_default;
-	uint64_t change = 0;
+	uint64_t change = -1;
 	for( uint64_t y = 0; y < (element -> limit * (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)); y++ ) {
-		for( uint64_t x = 0; x < width; x++ ) {
-			element -> area[ (y * width) + x ] = color;
-		}
-
 		if( ! (y % LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ) change++;
 		if( change % 2 ) color = LIB_INTERFACE_COLOR_background_file_odd;
 		else color = LIB_INTERFACE_COLOR_background_file_default;
+		if( change == element -> selected ) color = LIB_INTERFACE_COLOR_background_file_selected;
+
+		for( uint64_t x = 0; x < width; x++ ) {
+			element -> area[ (y * width) + x ] = color;
+		}
 	}
 
 	// display the content of element
@@ -991,8 +994,14 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 
 		// file exist?
 		for( uint64_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( entry[ e ].name_length ) {
+			// movement links?
+			if( (entry[ e ].name_length == TRUE && *entry[ e ].name == STD_ASCII_DOT) || (entry[ e ].name_length == 2 && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2 )) ) continue;	// ignore
+
+			// limit name length to header width
+			uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, entry[ e ].name, entry[ e ].name_length, width );
+
 			// display the content of element
-			lib_font( LIB_FONT_FAMILY_ROBOTO, entry[ e ].name, entry[ e ].name_length, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
+			lib_font( LIB_FONT_FAMILY_ROBOTO, entry[ e ].name, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
 
 			// move pixel pointer to next entry
 			pixel_entry += ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width);
@@ -1528,12 +1537,12 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = TRUE; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
-		for( uint16_t x = TRUE; x < interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) - 1; x++ )
+		for( uint16_t x = TRUE; x < lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> name_length ); x++ )
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 
 	// limit name length to header width
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> name_length ) > interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) ) if( ! --interface -> name_length ) return;
+	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> name_length, interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) );
 
 	// default border color
 	uint32_t color = 0xFFFFFFFF;
@@ -1542,7 +1551,21 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = 0xFF808080;
 
 	// print new header
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, interface -> name_length, color, pixel + (5 * interface -> width) + 5, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, limit, color, pixel + (5 * interface -> width) + 5, interface -> width, LIB_FONT_ALIGN_left );
+}
+
+uint64_t lib_interface_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t pixel ) {
+	// remember original value
+	uint64_t new_limit = limit;
+
+	// set max length of string
+	while( lib_font_length_string( font_family, string, new_limit ) > pixel ) if( ! --new_limit ) break;
+
+	// replace last 3 chars with triplet (if shrinked)
+	if( new_limit != limit ) for( uint64_t i = new_limit; new_limit && i > new_limit - 3; --i ) string[ i ] = STD_ASCII_DOT;
+
+	// new string limit
+	return new_limit;
 }
 
 uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
