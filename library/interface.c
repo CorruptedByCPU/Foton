@@ -998,10 +998,13 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			if( (entry[ e ].name_length == TRUE && *entry[ e ].name == STD_ASCII_DOT) || (entry[ e ].name_length == 2 && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2 )) ) continue;	// ignore
 
 			// limit name length to header width
-			uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, entry[ e ].name, entry[ e ].name_length, width );
+			uint8_t *string = (uint8_t *) calloc( entry[ e ].name_length + 1);
+			for( uint64_t i = 0; i < entry[ e ].name_length; i++ ) string[ i ] = entry[ e ].name[ i ];
+			uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, string, entry[ e ].name_length, width - (4 + 16 + 2) );
 
 			// display the content of element
-			lib_font( LIB_FONT_FAMILY_ROBOTO, entry[ e ].name, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
+			lib_font( LIB_FONT_FAMILY_ROBOTO, string, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
+			free( string );
 
 			// move pixel pointer to next entry
 			pixel_entry += ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width);
@@ -1522,12 +1525,12 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// window name set?
 	if( ! interface -> name_length ) return;	// no
 
-	// draw new header name
-	lib_interface_name_rewrite( interface );
-
 	// synchronize header name with window
 	interface -> descriptor -> name_length = interface -> name_length;
 	for( uint8_t i = 0; i < interface -> name_length; i++ ) interface -> descriptor -> name[ i ] = interface -> name[ i ];
+
+	// draw new header name
+	lib_interface_name_rewrite( interface );
 
 	// inform Window Manager about new window name
 	interface -> descriptor -> flags |= STD_WINDOW_FLAG_name;
@@ -1537,12 +1540,14 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = TRUE; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
-		for( uint16_t x = TRUE; x < lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> name_length ); x++ )
+		for( uint16_t x = TRUE; x < interface -> width - (1 + (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel)); x++ )
 			// draw pixel
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 
 	// limit name length to header width
-	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, interface -> name, interface -> name_length, interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) );
+	uint8_t *string = (uint8_t *) calloc( interface -> name_length + 1);
+	for( uint64_t i = 0; i < interface -> name_length; i++ ) string[ i ] = interface -> name[ i ];
+	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, string, interface -> name_length, interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) );
 
 	// default border color
 	uint32_t color = 0xFFFFFFFF;
@@ -1551,7 +1556,8 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = 0xFF808080;
 
 	// print new header
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &interface -> name, limit, color, pixel + (5 * interface -> width) + 5, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, string, limit, color, pixel + (5 * interface -> width) + 5, interface -> width, LIB_FONT_ALIGN_left );
+	free( string );
 }
 
 uint64_t lib_interface_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t pixel ) {
@@ -1562,7 +1568,7 @@ uint64_t lib_interface_string( uint8_t font_family, uint8_t *string, uint64_t li
 	while( lib_font_length_string( font_family, string, new_limit ) > pixel ) if( ! --new_limit ) break;
 
 	// replace last 3 chars with triplet (if shrinked)
-	if( new_limit != limit ) for( uint64_t i = new_limit; new_limit && i > new_limit - 3; --i ) string[ i ] = STD_ASCII_DOT;
+	if( new_limit < limit ) for( uint64_t i = new_limit; i && i > (new_limit - 3); i-- ) string[ i - 1 ] = STD_ASCII_DOT;
 
 	// new string limit
 	return new_limit;
