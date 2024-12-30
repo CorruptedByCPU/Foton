@@ -985,6 +985,15 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		}
 	}
 
+	// load default icons
+
+	// default
+	uint8_t local_file_path_default[] = "/system/var/gfx/icons/text-plain.tga";
+	uint32_t *local_icon_default = lib_interface_icon( (uint8_t *) &local_file_path_default, sizeof( local_file_path_default ) - 1 );
+	// directory
+	uint8_t local_file_path_directory[] = "/system/var/gfx/icons/folder-green.tga";
+	uint32_t *local_icon_directory = lib_interface_icon( (uint8_t *) &local_file_path_directory, sizeof( local_file_path_directory ) - 1 );
+
 	// display the content of element
 	uint32_t *pixel_entry = element -> area + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * width);
 	uint64_t entry_count = EMPTY;
@@ -996,6 +1005,23 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		for( uint64_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( entry[ e ].name_length ) {
 			// movement links?
 			if( (entry[ e ].name_length == TRUE && *entry[ e ].name == STD_ASCII_DOT) || (entry[ e ].name_length == 2 && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2 )) ) continue;	// ignore
+
+			// select icon
+			uint32_t *icon_source = local_icon_default;
+			if( entry[ e ].type == STD_FILE_TYPE_directory ) icon_source = local_icon_directory;
+
+			// compute absolute address of first pixel of icon
+			uint32_t *pixel_icon = (uint32_t *) pixel_entry + 4 - width;
+
+			// copy scaled image content to element area
+			double x_scale_factor = (double) (48.0f / 16.0f);
+			double y_scale_factor = (double) (48.0f / 16.0f);
+
+			// load icon to element area
+			for( uint16_t y = 0; y < 16; y++ ) {
+				for( uint16_t x = 0; x < 16; x++ )
+					pixel_icon[ (y * width) + x ] = lib_color_blend( pixel_icon[ (y * width) + x ], icon_source[ (uint64_t) (((uint64_t) (y_scale_factor * y) * 48) + (uint64_t) (x * x_scale_factor)) ] );
+			}
 
 			// limit name length to header width
 			uint8_t *string = (uint8_t *) calloc( entry[ e ].name_length + 1);
@@ -1519,6 +1545,38 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface ) 
 		// next element from list
 		e += properties -> size_byte;
 	}
+}
+
+uint32_t *lib_interface_icon( uint8_t *path, uint64_t length ) {
+	// properties of file
+	struct STD_STRUCTURE_FILE file = { EMPTY };
+
+	if( (file.socket = std_file_open( path, length )) ) {
+		// retrieve properties of file
+		std_file( (struct STD_STRUCTURE_FILE *) &file );
+
+		// assign area for file
+		struct LIB_IMAGE_STRUCTURE_TGA *image = (struct LIB_IMAGE_STRUCTURE_TGA *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( file.byte ) >> STD_SHIFT_PAGE );
+
+		// load file content
+		std_file_read( (struct STD_STRUCTURE_FILE *) &file, (uint8_t *) image, file.byte );
+
+		// copy image content to cursor object
+		uint32_t *icon = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( image -> width * image -> height * STD_VIDEO_DEPTH_byte ) >> STD_SHIFT_PAGE );
+		lib_image_tga_parse( (uint8_t *) image, icon, file.byte );
+
+		// release file content
+		std_memory_release( (uintptr_t) image, MACRO_PAGE_ALIGN_UP( file.byte ) >> STD_SHIFT_PAGE );
+
+		// close file
+		std_file_close( file.socket );
+
+		// done
+		return icon;
+	}
+
+	// cannot locate specified file
+	return EMPTY;
 }
 
 void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
