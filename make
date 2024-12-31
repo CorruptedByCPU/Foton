@@ -114,7 +114,7 @@ done
 lib=""	# include list of libraries
 
 # keep parsing libraries by. dependencies and alphabetically
-for library in path color elf integer string network input math json font std image interface random rgl terminal; do
+for library in type path color elf integer float string network input math json font std image interface random rgl terminal; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 

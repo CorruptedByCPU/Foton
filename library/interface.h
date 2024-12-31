@@ -5,6 +5,9 @@
 #ifndef	LIB_INTERFACE
 	#define	LIB_INTERFACE
 
+	#ifndef	LIB_FLOAT
+		#include	"./float.h"
+	#endif
 	#ifndef	LIB_FONT
 		#include	"./font.h"
 	#endif
@@ -14,11 +17,17 @@
 	#ifndef	LIB_INPUT
 		#include	"./input.h"
 	#endif
+	#ifndef	LIB_INTEGER
+		#include	"./integer.h"
+	#endif
 	#ifndef	LIB_JSON
 		#include	"./json.h"
 	#endif
 	#ifndef	LIB_STRING
 		#include	"./string.h"
+	#endif
+	#ifndef	LIB_TYPE
+		#include	"./type.h"
 	#endif
 	#ifndef	LIB_VFS
 		#include	"./vfs.h"

@@ -978,7 +978,7 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		if( ! (y % LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ) change++;
 		if( change % 2 ) color = LIB_INTERFACE_COLOR_background_file_odd;
 		else color = LIB_INTERFACE_COLOR_background_file_default;
-		if( change == element -> selected ) color = LIB_INTERFACE_COLOR_background_file_selected;
+		// if( change == element -> selected ) color = LIB_INTERFACE_COLOR_background_file_selected;
 
 		for( uint64_t x = 0; x < width; x++ ) {
 			element -> area[ (y * width) + x ] = color;
@@ -1026,16 +1026,40 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			// limit name length to header width
 			uint8_t *string = (uint8_t *) calloc( entry[ e ].name_length + 1);
 			for( uint64_t i = 0; i < entry[ e ].name_length; i++ ) string[ i ] = entry[ e ].name[ i ];
-			uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, string, entry[ e ].name_length, width - (4 + 16 + 2) );
+			uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, string, entry[ e ].name_length, width - (4 + 16 + 2 + LIB_FONT_WIDTH_pixel + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "0000.0 X", 8 ) + 4) );
 
 			// display the content of element
 			lib_font( LIB_FONT_FAMILY_ROBOTO, string, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
 			free( string );
 
+			// unity type
+			uint8_t unit = 0;	// bytes by default
+			while( pow( 1024, unit ) < entry[ e ].byte ) unit++;
+			uint8_t *test;
+			uint64_t test_limit;
+			if( unit > 1 )
+				test = lib_float_to_string( (double) entry[ e ].byte / (double) pow( 1024, unit - 1 ), 1 );
+			else {
+				test = calloc( 4 + 1 );
+				test_limit = lib_integer_to_string( entry[ e ].byte, STD_NUMBER_SYSTEM_decimal, test );
+			}
+
+			test_limit = lib_string_length( test );
+			test = realloc( test, test_limit + 2 );
+			test[ test_limit     ] = STD_ASCII_SPACE;
+			test[ test_limit + 1 ] = lib_type_byte( entry[ e ].byte );
+
+			lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, test, lib_string_length( test ), LIB_INTERFACE_COLOR_foreground, pixel_entry + width - 4, width, LIB_FONT_ALIGN_right );
+
+			free( test );
+
 			// move pixel pointer to next entry
 			pixel_entry += ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width);
 		}
 	}
+
+	free( local_icon_default );
+	free( local_icon_directory );
 
 	// sync entries
 	for( size_t y = 0; y < (element -> limit * (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) && y < height; y++ )
@@ -1562,7 +1586,7 @@ uint32_t *lib_interface_icon( uint8_t *path, uint64_t length ) {
 		std_file_read( (struct STD_STRUCTURE_FILE *) &file, (uint8_t *) image, file.byte );
 
 		// copy image content to cursor object
-		uint32_t *icon = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( image -> width * image -> height * STD_VIDEO_DEPTH_byte ) >> STD_SHIFT_PAGE );
+		uint32_t *icon = (uint32_t *) malloc( image -> width * image -> height * STD_VIDEO_DEPTH_byte );
 		lib_image_tga_parse( (uint8_t *) image, icon, file.byte );
 
 		// release file content
