@@ -56,6 +56,10 @@ uint8_t lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 		// show interface elements
 		lib_interface_draw( interface );
+
+		// select default element
+		struct LIB_INTERFACE_STRUCTURE_SELECT select = lib_interface_select( interface );
+		interface -> element_select = select.next;
 	// no
 	} else return FALSE;
 
@@ -596,8 +600,6 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &file ) );
 
-			element -> selected = TRUE;
-
 			// change interface structure index
 			i += element -> file.size_byte;
 		}
@@ -924,9 +926,6 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	// compute absolute address of first pixel of element space
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> file.y * interface -> width) + element -> file.x;
 
-	// select background color
-	uint32_t color = LIB_INTERFACE_COLOR_background_file_default;
-
 	// dimensions of element
 	uint16_t width = element -> file.width;
 	uint16_t height = element -> file.height;
@@ -934,9 +933,10 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
 
 	// clean background
+	uint32_t color = LIB_INTERFACE_COLOR_background_file_default;
 	for( uint16_t y = 0; y < height; y++ )
 		for( uint16_t x = 0; x < width; x++ )
-			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background_file_default;
+			pixel[ (y * interface -> width) + x ] = color;
 
 	// if not open yet
 	if( ! element -> socket ) {
@@ -978,7 +978,7 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		if( ! (y % LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ) change++;
 		if( change % 2 ) color = LIB_INTERFACE_COLOR_background_file_odd;
 		else color = LIB_INTERFACE_COLOR_background_file_default;
-		// if( change == element -> selected ) color = LIB_INTERFACE_COLOR_background_file_selected;
+		if( change == element -> selected ) color = LIB_INTERFACE_COLOR_background_file_selected;
 
 		for( uint64_t x = 0; x < width; x++ ) {
 			element -> area[ (y * width) + x ] = color;
@@ -1061,10 +1061,15 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	free( local_icon_default );
 	free( local_icon_directory );
 
+	// which part of area should we see
+	if( (element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel >= element -> offset + height ) element -> offset = ((element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
+	else if( element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel < element -> offset ) element -> offset = element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
+
 	// sync entries
+	uint32_t *area_offset = element -> area + (element -> offset * width);
 	for( size_t y = 0; y < (element -> limit * (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) && y < height; y++ )
 		for( size_t x = 0; x < width; x++ )
-			pixel[ (y * interface -> width) + x ] = element -> area[ (y * width) + x ];
+			pixel[ (y * interface -> width) + x ] = area_offset[ (y * width) + x ];
 
 	interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
@@ -1115,6 +1120,7 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		new_interface -> min_height		= interface -> min_height;
 		//----------------------------------------------------------------------
 		new_interface -> controls		= interface -> controls;
+		new_interface -> element_select		= interface -> element_select;
 		new_interface -> background_color	= interface -> background_color;
 		//----------------------------------------------------------------------
 
@@ -1355,48 +1361,16 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 	if( keyboard -> key & STD_KEY_RELEASE ) return keyboard -> key;
 
 	// ignore any key, when ALT key is on hold
-	if( interface -> key_alt_semaphore ) return keyboard -> key;
+	if( interface -> key_alt_semaphore ) { log( "ALT on hold.\n" ); return keyboard -> key; }
 
 	// TAB key?
 	if( keyboard -> key == STD_KEY_TAB ) {
-		// start from first element
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
-
-		// init pointers
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT *previous	= EMPTY;
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT *next		= EMPTY;
-
-		// search for previous
-		while( element -> type ) {
-			// previos already selected?
-			if( element == interface -> element_select && previous ) break;	// yes
-
-			// allowed element type?
-			if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input || element -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) previous = element;	// yes
-
-			// check next element from list
-			element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) element + element -> size_byte);
-		}
-
-		// start search from next of current active or beginning
-		if( interface -> element_select ) next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) interface -> element_select + interface -> element_select -> size_byte);
-		else next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
-
-		// search for next
-		while( TRUE ) {
-			// end of list?
-			if( ! next -> type ) next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;	// start from beginning
-
-			// allowed element type?
-			if( next -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || next -> type == LIB_INTERFACE_ELEMENT_TYPE_button || next -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || next -> type == LIB_INTERFACE_ELEMENT_TYPE_input || next -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) break;	// found
-
-			// check next element from list
-			next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) next + next -> size_byte);
-		}
+		// find previous and next element of interface
+		struct LIB_INTERFACE_STRUCTURE_SELECT select = lib_interface_select( interface );
 
 		// by default next will be selected
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT *selected = next;
-		if( interface -> key_shift_semaphore ) selected = previous;
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT *selected = select.next;
+		if( interface -> key_shift_semaphore ) selected = select.previous;
 
 		// update interface only if selected and current are different
 		if( interface -> element_select != selected ) {
@@ -1518,6 +1492,31 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 
 		// redraw window content
 		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+	}
+
+	// element type of
+	if( interface -> element_select -> type == LIB_INTERFACE_ELEMENT_TYPE_file ) {
+		// updated
+		uint8_t update = FALSE;
+
+		// properties of element
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) interface -> element_select;
+
+		// key: Arrow Down
+		if( keyboard -> key == STD_KEY_ARROW_DOWN ) if( element -> selected < element -> limit - 1 ) { element -> selected++; update = TRUE; }
+
+		// key: Arrow Up
+		if( keyboard -> key == STD_KEY_ARROW_UP ) if( element -> selected ) { element -> selected--; update = TRUE; }
+
+		// redraw window content (if required)
+		if( update ) {
+			element -> file.flags |= LIB_INTERFACE_ELEMENT_FLAG_flush;
+	
+			// update content of element
+			lib_interface_draw_select( interface, interface -> element_select );
+	
+			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		}
 	}
 
 	// return parsed key
@@ -1718,4 +1717,53 @@ uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// done
 	return TRUE;
+}
+
+struct LIB_INTERFACE_STRUCTURE_SELECT lib_interface_select( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// start from first element
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
+
+	// init pointers
+	struct LIB_INTERFACE_STRUCTURE_SELECT	select = { EMPTY };
+
+	// search for previous
+	while( element -> type ) {
+		// previos already selected?
+		if( element == interface -> element_select && select.previous ) break;	// yes
+
+		// allowed element type?
+		if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input || element -> type == LIB_INTERFACE_ELEMENT_TYPE_radio || element -> type == LIB_INTERFACE_ELEMENT_TYPE_file ) select.previous = element;	// yes
+
+		// check next element from list
+		element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) element + element -> size_byte);
+	}
+
+	// start search from next of current active or beginning
+	if( interface -> element_select ) select.next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) interface -> element_select + interface -> element_select -> size_byte);
+	else select.next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
+
+	// search for next, allow only one round loop
+	uint8_t loop = TRUE;
+	while( TRUE ) {
+		// end of list?
+		if( ! select.next -> type ) {
+			// last round loop?
+			if( ! loop ) break;	// yes
+
+			// start from beginning
+			select.next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
+
+			// end
+			loop = FALSE;
+		}
+
+		// allowed element type?
+		if( select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_button || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_input || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_radio || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_file ) break;	// found
+
+		// check next element from list
+		select.next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) select.next + select.next -> size_byte);
+	}
+	
+	// return found element pointers
+	return select;
 }

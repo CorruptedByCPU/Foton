@@ -176,6 +176,12 @@
 		uint64_t				limit;
 		uint64_t				selected;
 		uint32_t				*area;
+		uint64_t				offset;
+	};
+
+	struct LIB_INTERFACE_STRUCTURE_SELECT {
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*previous;
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*next;
 	};
 
 	// properties of Interface assigned to Window
@@ -235,4 +241,6 @@
 
 	// create window space accoring to JSON specification
 	uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );
+
+	struct LIB_INTERFACE_STRUCTURE_SELECT lib_interface_select( struct LIB_INTERFACE_STRUCTURE *interface );
 #endif
