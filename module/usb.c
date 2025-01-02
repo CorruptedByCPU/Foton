@@ -171,6 +171,9 @@ void module_usb_hid_keyboard( void ) {
 			// update local key cache
 			for( uint8_t i = 2; i < 8; i++ ) module_usb_keyboard_cache[ i ] = cache[ i ];
 		}
+
+		// release CPU time
+		kernel -> time_sleep( TRUE );
 	}
 }
 
@@ -216,6 +219,9 @@ void module_usb_hid_mouse( void ) {
 			// compound new position
 			else kernel -> device_mouse_y += cache[ 2 ];
 		}
+
+		// release CPU time
+		kernel -> time_sleep( TRUE );
 	}
 }
 

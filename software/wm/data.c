@@ -38,6 +38,7 @@ struct WM_STRUCTURE_ZONE wm_zone_modify = { EMPTY };
 
 int64_t wm_mouse_x = EMPTY;
 int64_t wm_mouse_y = EMPTY;
+int64_t wm_mouse_z = EMPTY;
 uint8_t	wm_mouse_button_left_semaphore		= FALSE;
 uint8_t	wm_mouse_button_right_semaphore		= FALSE;
 uint8_t	wm_mouse_button_middle_semaphore	= FALSE;

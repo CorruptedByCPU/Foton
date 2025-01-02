@@ -57,10 +57,10 @@
 	#define	LIB_INTERFACE_ELEMENT_FLAG_flush			0b00000100
 
 	#define	LIB_INTERFACE_BORDER_pixel				1
-	#define	LIB_INTERFACE_BORDER_COLOR_default			0xFF181818
-	#define	LIB_INTERFACE_BORDER_COLOR_default_shadow		0xFF141414
-	#define	LIB_INTERFACE_BORDER_COLOR_inactive			0xFF141414
-	#define	LIB_INTERFACE_BORDER_COLOR_inactive_shadow		0xFF121212
+	#define	LIB_INTERFACE_BORDER_COLOR_default			0xFF282828
+	#define	LIB_INTERFACE_BORDER_COLOR_default_shadow		0xFF202020
+	#define	LIB_INTERFACE_BORDER_COLOR_inactive			LIB_INTERFACE_BORDER_COLOR_default_shadow
+	#define	LIB_INTERFACE_BORDER_COLOR_inactive_shadow		0xFF181818
 
 	#define	LIB_INTERFACE_COLOR_background				0xFF101010
 	#define	LIB_INTERFACE_COLOR_foreground				0xFFF0F0F0
@@ -175,8 +175,10 @@
 		uint8_t					*content;
 		uint64_t				limit;
 		uint64_t				selected;
+		uint64_t				hover;
 		uint32_t				*area;
 		uint64_t				offset;
+		uint64_t				microtime;
 	};
 
 	struct LIB_INTERFACE_STRUCTURE_SELECT {
@@ -221,11 +223,13 @@
 	// check incomming events
 	struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface );
 	// support function of lib_interface_event, performed exclusively by WM
-	void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface );
+	void lib_interface_event_handler_release( struct LIB_INTERFACE_STRUCTURE *interface );
 	uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface );
 
+	void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interface );
+
 	// change status of elements of interface
-	void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface );
+	void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, int16_t scroll );
 
 	// rename window header
 	void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface );

@@ -948,13 +948,7 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 
 		// load file content
 		fread( element -> socket, element -> content, element -> socket -> byte );
-
-		// redraw of element content is required
-		element -> file.flags |= LIB_INTERFACE_ELEMENT_FLAG_flush;
 	}
-
-	// flush requested?
-	if( ! (element -> file.flags & LIB_INTERFACE_ELEMENT_FLAG_flush) ) return;	// no
 
 	// amount of files to show
 	element -> limit = -LIB_VFS_default;
@@ -1061,10 +1055,6 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	free( local_icon_default );
 	free( local_icon_directory );
 
-	// which part of area should we see
-	if( (element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel >= element -> offset + height ) element -> offset = ((element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
-	else if( element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel < element -> offset ) element -> offset = element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
-
 	// sync entries
 	uint32_t *area_offset = element -> area + (element -> offset * width);
 	for( size_t y = 0; y < (element -> limit * (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) && y < height; y++ )
@@ -1072,28 +1062,28 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			pixel[ (y * interface -> width) + x ] = area_offset[ (y * width) + x ];
 
 	interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-
-	// done
-	// element -> file.flags &= ~LIB_INTERFACE_ELEMENT_FLAG_flush;
 }
 
 struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// incomming message
-	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
+	uint8_t ipc_data[ STD_IPC_SIZE_byte ] = { EMPTY };
+
+	// message properties
+	struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
 
 	// receive pending messages
 	if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
-		// message properties
-		struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
+		// pressed left mouse button?
+		if( mouse -> button == (uint8_t) STD_IPC_MOUSE_BUTTON_left ) lib_interface_event_handler_press( interface );
 
 		// released left mouse button?
-		if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) lib_interface_event_handler( interface );
+		if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) lib_interface_event_handler_release( interface );
 	}
 
 	//--------------------------------------------------------------------------------
 	// "hover over elements"
 	//--------------------------------------------------------------------------------
-	lib_interface_active_or_hover( interface );
+	lib_interface_active_or_hover( interface, mouse -> scroll );
 
 	// acquired new window properties?
 	if( interface -> descriptor -> flags & STD_WINDOW_FLAG_properties ) {
@@ -1178,7 +1168,53 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 	return EMPTY;
 }
 
-void lib_interface_event_handler( struct LIB_INTERFACE_STRUCTURE *interface ) {
+void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// check which element is under cursor position
+	uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
+	while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
+		// element properties
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT *properties = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) &element[ e ];
+
+		// cursor overlaps this element? (check only if object is located under cursor)
+		if( ((properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_close || properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_maximize || properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_minimize) && (interface -> descriptor -> x >= interface -> width - (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel + (properties -> x * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) && interface -> descriptor -> x < ((interface -> width - (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel + (properties -> x * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)))) + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height)) || interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height ) {
+			// execute event of element
+			switch( properties -> type ) {
+				case LIB_INTERFACE_ELEMENT_TYPE_file: {
+					// properties of element
+					struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) properties;
+
+					// choose new selected entry
+					element -> selected = (element -> offset + (interface -> descriptor -> y - properties -> y)) / LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
+
+					// dimensions of element
+					uint16_t height = element -> file.height;
+					if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
+
+					// which part of area should we see
+					if( (element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel >= element -> offset + height ) element -> offset = ((element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
+					else if( element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel < element -> offset ) element -> offset = element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
+
+					// remember for double-click
+					// element -> microtime = std_microtime();
+
+					// mark is on interface
+					lib_interface_draw_select( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) properties );
+
+					// redraw window content
+					interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+					// done
+					break;
+				}
+			}
+		}
+
+		// next element from list
+		e += properties -> size_byte;
+	}
+}
+
+void lib_interface_event_handler_release( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// check which element is under cursor position
 	uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
 	while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
@@ -1361,7 +1397,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 	if( keyboard -> key & STD_KEY_RELEASE ) return keyboard -> key;
 
 	// ignore any key, when ALT key is on hold
-	if( interface -> key_alt_semaphore ) { log( "ALT on hold.\n" ); return keyboard -> key; }
+	if( interface -> key_alt_semaphore ) return keyboard -> key;
 
 	// TAB key?
 	if( keyboard -> key == STD_KEY_TAB ) {
@@ -1508,6 +1544,14 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		// key: Arrow Up
 		if( keyboard -> key == STD_KEY_ARROW_UP ) if( element -> selected ) { element -> selected--; update = TRUE; }
 
+		// dimensions of element
+		uint16_t height = element -> file.height;
+		if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
+
+		// which part of area should we see
+		if( (element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel >= element -> offset + height ) element -> offset = ((element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
+		else if( element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel < element -> offset ) element -> offset = element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
+
 		// redraw window content (if required)
 		if( update ) {
 			element -> file.flags |= LIB_INTERFACE_ELEMENT_FLAG_flush;
@@ -1523,7 +1567,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 	return keyboard -> key;
 }
 
-void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface ) {
+void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, int16_t scroll ) {
 	// check every element of interface
 	uint8_t *element = (uint8_t *) interface -> properties; uint64_t e = 0;
 
@@ -1549,15 +1593,39 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface ) 
 				properties -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_hover;
 		} else
 			// cursor overlaps this element? (check only if object is located under cursor)
-			if( interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height )
+			if( interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height ) {
+				// scroll movement?
+				if( scroll ) {
+					// element type of
+					switch( properties -> type ) {
+						case LIB_INTERFACE_ELEMENT_TYPE_file: {
+							// properties of element
+							struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) properties;
+
+							// dimensions of element
+							uint16_t height = element -> file.height;
+							if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
+
+							// down
+							if( scroll > 0 ) { if( (element -> offset + height + (scroll * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) < (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ) element -> offset += scroll * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel; else element -> offset = (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height; }
+
+							// up
+							if( scroll < 0 ) { if( element -> offset >= ((~scroll + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ) element -> offset -= (~scroll + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel; else element -> offset = EMPTY; }
+
+							// done
+							break;
+						}
+					}
+				}
+
 				// mark as hovered
 				properties -> flags |= LIB_INTERFACE_ELEMENT_FLAG_hover;
-			else
+			} else
 				// mark as not hovered
 				properties -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_hover;
 
-		// if "event" changed
-		if( properties -> flags != previous ) {
+		// if "event" changed or "scroll" movement
+		if( scroll || properties -> flags != previous ) {
 			// redraw element inside object
 			lib_interface_draw_select( interface, properties );
 

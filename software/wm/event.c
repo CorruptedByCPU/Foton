@@ -217,6 +217,7 @@ void wm_event( void ) {
 	// calculate delta of cursor new position
 	int16_t delta_x = mouse_syscall.x - wm_object_cursor -> x;
 	int16_t delta_y = mouse_syscall.y - wm_object_cursor -> y;
+	int16_t delta_z = mouse_syscall.z - wm_mouse_z; wm_mouse_z = mouse_syscall.z;
 
 	//--------------------------------------------------------------------------
 
@@ -271,7 +272,7 @@ void wm_event( void ) {
 				// selected object is menu?
 				if( wm_object_selected == wm_object_menu )
 					// check incomming interface events
-					lib_interface_event_handler( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
+					lib_interface_event_handler_release( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 
 				// make object as active if not a taskbar or icon
 				if( ! (wm_object_selected -> descriptor -> flags & (STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_icon)) ) wm_object_active = wm_object_selected;
@@ -411,6 +412,22 @@ void wm_event( void ) {
 			// relese pointer
 			wm_object_hover = EMPTY;
 		}
+	}
+
+	// scroll movement?
+	if( delta_z ) {
+		// properties of mouse message
+		struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
+
+		// default values
+		mouse -> ipc.type = STD_IPC_TYPE_mouse;
+		mouse -> scroll = delta_z;
+
+		// select object under cursor position
+		struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse_syscall.x, mouse_syscall.y, FALSE );
+
+		// send event to selected object process
+		std_ipc_send( object -> pid, (uint8_t *) mouse );
 	}
 
 	//--------------------------------------------------------------------------
