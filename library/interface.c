@@ -596,6 +596,9 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 					// update element name pointer
 					element -> name = name_target;
+
+					// change home directory
+					std_cd( element -> name, element -> name_length );
 				}
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &file ) );
@@ -941,17 +944,18 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	// if not open yet
 	if( ! element -> socket ) {
 		// open file
-		element -> socket = fopen( element -> name );
+		element -> socket = fopen( (uint8_t *) "." );
 
 		// alloc area for file content
-		element -> content = (uint8_t *) malloc( element -> socket -> byte );
+		if( ! element -> content ) element -> content = (uint8_t *) malloc( element -> socket -> byte );
+		else element -> content = (uint8_t *) realloc( element -> content, element -> socket -> byte );
 
 		// load file content
 		fread( element -> socket, element -> content, element -> socket -> byte );
 	}
 
 	// amount of files to show
-	element -> limit = -LIB_VFS_default;
+	element -> limit = -1;
 	for( uint64_t b = 0; b < (element -> socket -> byte >> STD_SHIFT_PAGE); b++ ) {
 		// properties of directory entry
 		struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) &element -> content[ b * STD_PAGE_byte ];
@@ -984,6 +988,9 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	// default
 	uint8_t local_file_path_default[] = "/system/var/gfx/icons/text-plain.tga";
 	uint32_t *local_icon_default = lib_interface_icon( (uint8_t *) &local_file_path_default, sizeof( local_file_path_default ) - 1 );
+	// back
+	uint8_t local_file_path_back[] = "/system/var/gfx/icons/go-up.tga";
+	uint32_t *local_icon_back = lib_interface_icon( (uint8_t *) &local_file_path_back, sizeof( local_file_path_back ) - 1 );
 	// directory
 	uint8_t local_file_path_directory[] = "/system/var/gfx/icons/folder-green.tga";
 	uint32_t *local_icon_directory = lib_interface_icon( (uint8_t *) &local_file_path_directory, sizeof( local_file_path_directory ) - 1 );
@@ -998,11 +1005,12 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		// file exist?
 		for( uint64_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( entry[ e ].name_length ) {
 			// movement links?
-			if( (entry[ e ].name_length == TRUE && *entry[ e ].name == STD_ASCII_DOT) || (entry[ e ].name_length == 2 && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2 )) ) continue;	// ignore
+			if( entry[ e ].name_length == TRUE && *entry[ e ].name == STD_ASCII_DOT ) continue;	// ignore
 
 			// select icon
 			uint32_t *icon_source = local_icon_default;
 			if( entry[ e ].type == STD_FILE_TYPE_directory ) icon_source = local_icon_directory;
+			if( entry[ e ].type == STD_FILE_TYPE_link && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2 ) ) icon_source = local_icon_back;
 
 			// compute absolute address of first pixel of icon
 			uint32_t *pixel_icon = (uint32_t *) pixel_entry + 4 - width;
@@ -1023,29 +1031,32 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, string, entry[ e ].name_length, width - (4 + 16 + 2 + LIB_FONT_WIDTH_pixel + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "0000.0 X", 8 ) + 4) );
 
 			// display the content of element
-			lib_font( LIB_FONT_FAMILY_ROBOTO, string, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
-			free( string );
+			if( ! lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2 ) ) {
+				lib_font( LIB_FONT_FAMILY_ROBOTO, string, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
 
-			// unity type
-			uint8_t unit = 0;	// bytes by default
-			while( pow( 1024, unit ) < entry[ e ].byte ) unit++;
-			uint8_t *test;
-			uint64_t test_limit;
-			if( unit > 1 )
-				test = lib_float_to_string( (double) entry[ e ].byte / (double) pow( 1024, unit - 1 ), 1 );
-			else {
-				test = calloc( 4 + 1 );
-				test_limit = lib_integer_to_string( entry[ e ].byte, STD_NUMBER_SYSTEM_decimal, test );
+				// unity type
+				uint8_t unit = 0;	// bytes by default
+				while( pow( 1024, unit ) < entry[ e ].byte ) unit++;
+				uint8_t *test;
+				uint64_t test_limit;
+				if( unit > 1 )
+					test = lib_float_to_string( (double) entry[ e ].byte / (double) pow( 1024, unit - 1 ), 1 );
+				else {
+					test = calloc( 4 + 1 );
+					test_limit = lib_integer_to_string( entry[ e ].byte, STD_NUMBER_SYSTEM_decimal, test );
+				}
+
+				test_limit = lib_string_length( test );
+				test = realloc( test, test_limit + 2 );
+				test[ test_limit     ] = STD_ASCII_SPACE;
+				test[ test_limit + 1 ] = lib_type_byte( entry[ e ].byte );
+
+				lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, test, lib_string_length( test ), LIB_INTERFACE_COLOR_foreground, pixel_entry + width - 4, width, LIB_FONT_ALIGN_right );
+
+				free( test );
 			}
 
-			test_limit = lib_string_length( test );
-			test = realloc( test, test_limit + 2 );
-			test[ test_limit     ] = STD_ASCII_SPACE;
-			test[ test_limit + 1 ] = lib_type_byte( entry[ e ].byte );
-
-			lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, test, lib_string_length( test ), LIB_INTERFACE_COLOR_foreground, pixel_entry + width - 4, width, LIB_FONT_ALIGN_right );
-
-			free( test );
+			free( string );
 
 			// move pixel pointer to next entry
 			pixel_entry += ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width);
@@ -1053,11 +1064,19 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	}
 
 	free( local_icon_default );
+	free( local_icon_back );
 	free( local_icon_directory );
+
+	if( element -> offset + height > element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel ) {
+		if( element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel > height )
+			element -> offset = (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
+		else
+			element -> offset = EMPTY;
+	}
 
 	// sync entries
 	uint32_t *area_offset = element -> area + (element -> offset * width);
-	for( size_t y = 0; y < (element -> limit * (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) && y < height; y++ )
+	for( size_t y = 0; y < (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) && y < height; y++ )
 		for( size_t x = 0; x < width; x++ )
 			pixel[ (y * interface -> width) + x ] = area_offset[ (y * width) + x ];
 
@@ -1194,8 +1213,44 @@ void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interfac
 					if( (element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel >= element -> offset + height ) element -> offset = ((element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
 					else if( element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel < element -> offset ) element -> offset = element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
 
-					// remember for double-click
-					// element -> microtime = std_microtime();
+					// double-click?
+					if( std_microtime() - element -> microtime < LIB_INTERFACE_LATENCY_microtime ) {
+						// current file ID
+						uint64_t entry_id = EMPTY;
+						for( uint64_t b = 0; b < (element -> socket -> byte >> STD_SHIFT_PAGE); b++ ) {
+							// properties of directory entry
+							struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) &element -> content[ b * STD_PAGE_byte ];
+
+							// file exist?
+							for( uint64_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( entry[ e ].name_length ) {
+								// movement links?
+								if( entry[ e ].name_length == TRUE && *entry[ e ].name == STD_ASCII_DOT ) continue;	// ignore
+
+								// file located?
+								if( entry_id++ != element -> selected ) continue;
+
+								// file type: directory?
+								if( entry[ e ].type == STD_FILE_TYPE_directory || entry[ e ].name_length == 2 && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2) ) {
+									// deselect entry
+									element -> selected = EMPTY;
+									element -> offset = EMPTY;
+
+									// change home directory
+									std_cd( entry[ e ].name, entry[ e ].name_length );
+
+									// close old directory pointer
+									fclose( element -> socket ); element -> socket = EMPTY;
+
+									// TODO: remove me
+									goto done;
+								}
+							}
+						}
+					}
+
+done:
+					// preserve current mouse button microtime
+					element -> microtime = std_microtime();
 
 					// mark is on interface
 					lib_interface_draw_select( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) properties );
@@ -1544,6 +1599,56 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		// key: Arrow Up
 		if( keyboard -> key == STD_KEY_ARROW_UP ) if( element -> selected ) { element -> selected--; update = TRUE; }
 
+		if( keyboard -> key == STD_KEY_BACKSPACE ) {
+			// deselect entry
+			element -> selected = EMPTY;
+			element -> offset = EMPTY;
+
+			// change home directory
+			std_cd( (uint8_t *) "..", 2 );
+
+			// close old directory pointer
+			fclose( element -> socket ); element -> socket = EMPTY;
+
+			// TODO: remove me
+			goto done;
+		}
+
+		// key: ENTER
+		if( keyboard -> key == STD_KEY_ENTER ) {
+			// current file ID
+			uint64_t entry_id = EMPTY;
+			for( uint64_t b = 0; b < (element -> socket -> byte >> STD_SHIFT_PAGE); b++ ) {
+				// properties of directory entry
+				struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) &element -> content[ b * STD_PAGE_byte ];
+
+				// file exist?
+				for( uint64_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( entry[ e ].name_length ) {
+					// movement links?
+					if( entry[ e ].name_length == TRUE && *entry[ e ].name == STD_ASCII_DOT ) continue;	// ignore
+
+					// file located?
+					if( entry_id++ != element -> selected ) continue;
+
+					// file type: directory?
+					if( entry[ e ].type == STD_FILE_TYPE_directory || entry[ e ].name_length == 2 && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2) ) {
+						// deselect entry
+						element -> selected = EMPTY;
+						element -> offset = EMPTY;
+
+						// change home directory
+						std_cd( entry[ e ].name, entry[ e ].name_length );
+
+						// close old directory pointer
+						fclose( element -> socket ); element -> socket = EMPTY;
+
+						// TODO: remove me
+						goto done;
+					}
+				}
+			}
+		}
+
 		// dimensions of element
 		uint16_t height = element -> file.height;
 		if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
@@ -1554,6 +1659,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 
 		// redraw window content (if required)
 		if( update ) {
+done:
 			element -> file.flags |= LIB_INTERFACE_ELEMENT_FLAG_flush;
 	
 			// update content of element
@@ -1607,10 +1713,20 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, i
 							if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
 
 							// down
-							if( scroll > 0 ) { if( (element -> offset + height + (scroll * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) < (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ) element -> offset += scroll * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel; else element -> offset = (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height; }
+							if( scroll > 0 ) {
+								if( (element -> offset + height + (scroll * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) < (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) )
+									element -> offset += scroll * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
+								else if( (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) > height )
+									element -> offset = (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
+							}
 
 							// up
-							if( scroll < 0 ) { if( element -> offset >= ((~scroll + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ) element -> offset -= (~scroll + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel; else element -> offset = EMPTY; }
+							if( scroll < 0 ) {
+								scroll = ~scroll + 1;
+								if( element -> offset > (scroll * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) )
+									element -> offset -= scroll * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
+								else element -> offset = EMPTY;
+							}
 
 							// done
 							break;

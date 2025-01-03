@@ -35,6 +35,8 @@
 
 	#define	LIB_INTERFACE_GLOBAL_NAME_limit				64
 
+	#define	LIB_INTERFACE_LATENCY_microtime				384
+
 	#define	LIB_INTERFACE_HEADER_HEIGHT_pixel			(LIB_FONT_HEIGHT_pixel + 8)	// 4 pixels from above and under
 
 	#define	LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel			LIB_INTERFACE_HEADER_HEIGHT_pixel
@@ -177,7 +179,7 @@
 		uint64_t				selected;
 		uint64_t				hover;
 		uint32_t				*area;
-		uint64_t				offset;
+		int64_t					offset;
 		uint64_t				microtime;
 	};
 

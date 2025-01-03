@@ -2,8 +2,8 @@
 	"window": {
 		"x": -1,
 		"y": -1,
-		"width": 192,
-		"height": 132,
+		"width": 256,
+		"height": 217,
 		"name": "File Manager"
 	},
 	"control": {
@@ -22,6 +22,6 @@
 		"y": 25,
 		"width": -1,
 		"height": -1,
-		"path": "/system/lib"
+		"path": "/"
 	}
 }
