@@ -564,6 +564,8 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			element -> file.type = LIB_INTERFACE_ELEMENT_TYPE_file;
 			element -> file.flags = EMPTY;
 			element -> file.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE );
+			element -> selected	= STD_MAX_unsigned;
+			element -> hover	= STD_MAX_unsigned;
 
 			// parse all keys
 			do {
@@ -977,6 +979,7 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		if( change % 2 ) color = LIB_INTERFACE_COLOR_background_file_odd;
 		else color = LIB_INTERFACE_COLOR_background_file_default;
 		if( change == element -> selected ) color = LIB_INTERFACE_COLOR_background_file_selected;
+		if( change == element -> hover ) color += 0x00080808;
 
 		for( uint64_t x = 0; x < width; x++ ) {
 			element -> area[ (y * width) + x ] = color;
@@ -994,6 +997,15 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	// directory
 	uint8_t local_file_path_directory[] = "/system/var/gfx/icons/folder-green.tga";
 	uint32_t *local_icon_directory = lib_interface_icon( (uint8_t *) &local_file_path_directory, sizeof( local_file_path_directory ) - 1 );
+	// image
+	uint8_t local_file_path_image[] = "/system/var/gfx/icons/image-x-tga.tga";
+	uint32_t *local_icon_image = lib_interface_icon( (uint8_t *) &local_file_path_image, sizeof( local_file_path_image ) - 1 );
+	// library
+	uint8_t local_file_path_library[] = "/system/var/gfx/icons/application-x-sharedlib.tga";
+	uint32_t *local_icon_library = lib_interface_icon( (uint8_t *) &local_file_path_library, sizeof( local_file_path_library ) - 1 );
+	// module
+	uint8_t local_file_path_module[] = "/system/var/gfx/icons/application-octet-stream.tga";
+	uint32_t *local_icon_module= lib_interface_icon( (uint8_t *) &local_file_path_module, sizeof( local_file_path_module ) - 1 );
 
 	// display the content of element
 	uint32_t *pixel_entry = element -> area + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * width);
@@ -1011,6 +1023,9 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			uint32_t *icon_source = local_icon_default;
 			if( entry[ e ].type == STD_FILE_TYPE_directory ) icon_source = local_icon_directory;
 			if( entry[ e ].type == STD_FILE_TYPE_link && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2 ) ) icon_source = local_icon_back;
+			if( entry[ e ].name_length >= 4 ) if( lib_string_compare( (uint8_t *) &entry[ e ].name[ entry[ e ].name_length - 4 ], (uint8_t *) ".tga", 4 ) ) icon_source = local_icon_image;
+			if( entry[ e ].name_length >= 3 ) if( lib_string_compare( (uint8_t *) &entry[ e ].name[ entry[ e ].name_length - 3 ], (uint8_t *) ".ko", 3 ) ) icon_source = local_icon_module;
+			if( entry[ e ].name_length >= 3 ) if( lib_string_compare( (uint8_t *) &entry[ e ].name[ entry[ e ].name_length - 3 ], (uint8_t *) ".so", 3 ) ) icon_source = local_icon_library;
 
 			// compute absolute address of first pixel of icon
 			uint32_t *pixel_icon = (uint32_t *) pixel_entry + 4 - width;
@@ -1066,6 +1081,9 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	free( local_icon_default );
 	free( local_icon_back );
 	free( local_icon_directory );
+	free( local_icon_image );
+	free( local_icon_library );
+	free( local_icon_module );
 
 	if( element -> offset + height > element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel ) {
 		if( element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel > height )
@@ -1232,7 +1250,8 @@ void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interfac
 								// file type: directory?
 								if( entry[ e ].type == STD_FILE_TYPE_directory || entry[ e ].name_length == 2 && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2) ) {
 									// deselect entry
-									element -> selected = EMPTY;
+									element -> selected = STD_MAX_unsigned;
+									element -> hover = STD_MAX_unsigned;
 									element -> offset = EMPTY;
 
 									// change home directory
@@ -1687,6 +1706,7 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, i
 
 		// last event
 		uint8_t previous = properties -> flags;
+		uint8_t update = FALSE;
 
 		// control element?
 		if( properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_close || properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_maximize || properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_minimize ) {
@@ -1697,21 +1717,23 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, i
 			else
 				// mark as not hovered
 				properties -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_hover;
-		} else
+		} else {
+			// dimensions of element
+			uint16_t width = properties -> width;
+			uint16_t height = properties -> height;
+			if( width == (uint16_t) STD_MAX_unsigned ) width = interface -> width - (properties -> x + LIB_INTERFACE_BORDER_pixel);
+			if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (properties -> y + LIB_INTERFACE_BORDER_pixel);
+			
 			// cursor overlaps this element? (check only if object is located under cursor)
-			if( interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height ) {
-				// scroll movement?
-				if( scroll ) {
-					// element type of
-					switch( properties -> type ) {
-						case LIB_INTERFACE_ELEMENT_TYPE_file: {
-							// properties of element
-							struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) properties;
+			if( interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + height ) {
+				// element type of
+				switch( properties -> type ) {
+					case LIB_INTERFACE_ELEMENT_TYPE_file: {
+						// properties of element
+						struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) properties;
 
-							// dimensions of element
-							uint16_t height = element -> file.height;
-							if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
-
+						// scroll movement?
+						if( scroll ) {
 							// down
 							if( scroll > 0 ) {
 								if( (element -> offset + height + (scroll * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) < (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) )
@@ -1727,21 +1749,38 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, i
 									element -> offset -= scroll * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
 								else element -> offset = EMPTY;
 							}
+							
+							// refresh
+							update = TRUE;
 
 							// done
 							break;
 						}
+
+						// choose new selected entry
+						if( element -> hover != ((element -> offset + (interface -> descriptor -> y - properties -> y)) / LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ) {
+							element -> hover = (element -> offset + (interface -> descriptor -> y - properties -> y)) / LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
+
+							// refresh
+							update = TRUE;
+						}
+
+						// done
+						break;
+					}
+
+					default: {
+						// mark as hovered
+						properties -> flags |= LIB_INTERFACE_ELEMENT_FLAG_hover;
 					}
 				}
-
-				// mark as hovered
-				properties -> flags |= LIB_INTERFACE_ELEMENT_FLAG_hover;
 			} else
 				// mark as not hovered
 				properties -> flags &= ~LIB_INTERFACE_ELEMENT_FLAG_hover;
+		}
 
-		// if "event" changed or "scroll" movement
-		if( scroll || properties -> flags != previous ) {
+		// if "event" changed or requested update
+		if( update || properties -> flags != previous ) {
 			// redraw element inside object
 			lib_interface_draw_select( interface, properties );
 
