@@ -56,10 +56,6 @@ uint8_t lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 		// show interface elements
 		lib_interface_draw( interface );
-
-		// select default element
-		struct LIB_INTERFACE_STRUCTURE_SELECT select = lib_interface_select( interface );
-		interface -> element_select = select.next;
 	// no
 	} else return FALSE;
 
@@ -1006,6 +1002,9 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	// module
 	uint8_t local_file_path_module[] = "/system/var/gfx/icons/application-octet-stream.tga";
 	uint32_t *local_icon_module= lib_interface_icon( (uint8_t *) &local_file_path_module, sizeof( local_file_path_module ) - 1 );
+	// executable
+	uint8_t local_file_path_executable[] = "/system/var/gfx/icons/application-x-executable.tga";
+	uint32_t *local_icon_executable= lib_interface_icon( (uint8_t *) &local_file_path_executable, sizeof( local_file_path_executable ) - 1 );
 
 	// display the content of element
 	uint32_t *pixel_entry = element -> area + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * width);
@@ -1024,8 +1023,20 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			if( entry[ e ].type == STD_FILE_TYPE_directory ) icon_source = local_icon_directory;
 			if( entry[ e ].type == STD_FILE_TYPE_link && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2 ) ) icon_source = local_icon_back;
 			if( entry[ e ].name_length >= 4 ) if( lib_string_compare( (uint8_t *) &entry[ e ].name[ entry[ e ].name_length - 4 ], (uint8_t *) ".tga", 4 ) ) icon_source = local_icon_image;
-			if( entry[ e ].name_length >= 3 ) if( lib_string_compare( (uint8_t *) &entry[ e ].name[ entry[ e ].name_length - 3 ], (uint8_t *) ".ko", 3 ) ) icon_source = local_icon_module;
-			if( entry[ e ].name_length >= 3 ) if( lib_string_compare( (uint8_t *) &entry[ e ].name[ entry[ e ].name_length - 3 ], (uint8_t *) ".so", 3 ) ) icon_source = local_icon_library;
+			if( entry[ e ].type == STD_FILE_TYPE_file ) {
+				FILE *file_elf = fopen( entry[ e ].name );
+				struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) malloc( sizeof( struct LIB_ELF_STRUCTURE ) );
+				fread( file_elf, (uint8_t *) elf, sizeof( struct LIB_ELF_STRUCTURE ) );
+				fclose( file_elf );
+
+				if( lib_elf_identify( (uintptr_t) elf ) ) {
+					if( elf -> type == LIB_ELF_TYPE_shared_object ) icon_source = local_icon_library;
+					else if( entry[ e ].name_length >= 3 && lib_string_compare( (uint8_t *) &entry[ e ].name[ entry[ e ].name_length - 3 ], (uint8_t *) ".ko", 3 ) ) icon_source = local_icon_module;
+					else icon_source = local_icon_executable;
+				}
+
+				free( elf );
+			}
 
 			// compute absolute address of first pixel of icon
 			uint32_t *pixel_icon = (uint32_t *) pixel_entry + 4 - width;
@@ -1084,6 +1095,7 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	free( local_icon_image );
 	free( local_icon_library );
 	free( local_icon_module );
+	free( local_icon_executable );
 
 	if( element -> offset + height > element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel ) {
 		if( element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel > height )
@@ -1513,6 +1525,15 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 			// setup selected element
 			interface -> element_select = selected;
 			interface -> element_select -> flags |= LIB_INTERFACE_ELEMENT_FLAG_active;
+
+			// element type of
+			if( interface -> element_select -> type == LIB_INTERFACE_ELEMENT_TYPE_file ) {
+				// properties of element
+				struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) interface -> element_select;
+
+				// set first file from list as seleted (if not already)
+				if( element -> selected == STD_MAX_unsigned ) element -> selected = EMPTY;
+			}
 
 			// mark is on interface
 			lib_interface_draw_select( interface, selected );

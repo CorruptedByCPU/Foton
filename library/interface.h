@@ -5,6 +5,9 @@
 #ifndef	LIB_INTERFACE
 	#define	LIB_INTERFACE
 
+	#ifndef	LIB_ELF
+		#include	"./elf.h"
+	#endif
 	#ifndef	LIB_FLOAT
 		#include	"./float.h"
 	#endif

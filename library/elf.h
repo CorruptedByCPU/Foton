@@ -99,4 +99,6 @@
 		uint32_t	index;
 		uint64_t	symbol_value;
 	} __attribute__( (packed) );
+
+	uint8_t lib_elf_identify( uintptr_t address );
 #endif
