@@ -98,7 +98,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// wait before update
 		while( std_uptime() < top_update_next ) {
 			// recieve key
-			uint16_t key = getkey(); if( ! key ) continue;	// nothing
+			uint16_t key = getkey(); if( ! key ) { sleep( TRUE ); continue; }
 
 			// exit Task Manager?
 			if( key == STD_KEY_ESC ) return 0;	// yes
@@ -111,9 +111,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// kill selected process?
 			if( key == 'k' ) { std_kill( task[ entry_selected ].pid ); if( top_line_selected ) top_line_selected--; break; }
-
-			// release rest of CPU time
-			sleep( TRUE );
 		}
 
 		// release list
@@ -121,6 +118,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// set next update
 		top_update_next = std_uptime() + top_update_limit;
+
+		// release rest of CPU time
+		sleep( TRUE );
 	}
 
 	// end of Task Manager
