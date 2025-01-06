@@ -186,6 +186,13 @@
 		uint64_t				microtime;
 	};
 
+	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY {
+		uint8_t		flags;
+		uint8_t		type;
+		uint8_t		name_length;
+		uint8_t		*name;
+	};
+
 	struct LIB_INTERFACE_STRUCTURE_SELECT {
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*previous;
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT	*next;
