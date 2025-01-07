@@ -55,7 +55,6 @@
 	#define	LIB_INTERFACE_ELEMENT_TYPE_checkbox			0x08
 	#define	LIB_INTERFACE_ELEMENT_TYPE_radio			0x09
 	#define	LIB_INTERFACE_ELEMENT_TYPE_scroll			0x0A
-	#define	LIB_INTERFACE_ELEMENT_TYPE_file				0x0B
 	#define	LIB_INTERFACE_ELEMENT_TYPE_list				0x0C
 
 	#define	LIB_INTERFACE_ELEMENT_FLAG_hover			0b00000001
@@ -64,6 +63,7 @@
 
 	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_hover			0b00000001
 	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_active			0b00000010
+	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_run			0b00000100
 
 	#define	LIB_INTERFACE_BORDER_pixel				1
 	#define	LIB_INTERFACE_BORDER_COLOR_default			0xFF282828
@@ -84,9 +84,6 @@
 	#define	LIB_INTERFACE_COLOR_background_checkbox_default		LIB_INTERFACE_COLOR_background + 0x00101010;
 	#define	LIB_INTERFACE_COLOR_background_checkbox_selected	0xFF208020
 	#define	LIB_INTERFACE_COLOR_background_control_close_hover	0xFF208020
-	#define	LIB_INTERFACE_COLOR_background_file_default		0xFF121212
-	#define	LIB_INTERFACE_COLOR_background_file_odd			0xFF161616
-	#define	LIB_INTERFACE_COLOR_background_file_selected		0xFF164616
 	#define	LIB_INTERFACE_COLOR_background_list_default		0xFF121212
 	#define	LIB_INTERFACE_COLOR_background_list_odd			0xFF161616
 	#define	LIB_INTERFACE_COLOR_background_list_selected		0xFF208020
@@ -179,26 +176,13 @@
 		uint32_t	*icon;
 	};
 
-	struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE {
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT	file;
-		uint16_t				name_length;
-		uint8_t					*name;
-		FILE					*socket;
-		uint8_t					*content;
-		uint64_t				limit;
-		uint64_t				selected;
-		uint64_t				hover;
-		uint32_t				*area;
-		int64_t					offset;
-		uint64_t				microtime;
-	};
-
 	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST {
 		struct	LIB_INTERFACE_STRUCTURE_ELEMENT			list;
 		struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY	*entry;
 		uint32_t	*pixel;
 		uint64_t	limit;
 		uint64_t	offset;
+		uint64_t	microtime;
 	};
 
 	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY {
@@ -246,8 +230,6 @@
 	void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element );
 
 	void lib_interface_element_radio( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *element );
-
-	void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element );
 
 	// check incomming events
 	struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface );

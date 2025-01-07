@@ -19,8 +19,8 @@
 		"y": 48,
 		"width": 120,
 		"height": 24,
-		"name": "File Manager",
-		"command": "fm",
+		"name": "Kuro",
+		"command": "kuro",
 		"icon": "/system/var/gfx/icons/system-file-manager.tga"
 	},
 	"menu": {

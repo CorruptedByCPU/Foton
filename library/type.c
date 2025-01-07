@@ -9,7 +9,7 @@
 		#include	"./type.h"
 	#endif
 
-uint8_t lib_type_byte_units[ 5 ] = { ' ', 'K', 'M', 'G', 'T' };
+uint8_t lib_type_byte_units[ 5 ] = { 'B', 'K', 'M', 'G', 'T' };
 
 uint8_t lib_type_byte( uint64_t bytes ) {
 	// unit type
