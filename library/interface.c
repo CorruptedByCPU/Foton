@@ -41,6 +41,7 @@ const uint8_t lib_interface_string_radio[] = "radio";
 const uint8_t lib_interface_string_selected[] = "selected";
 const uint8_t lib_interface_string_file[] = "file";
 const uint8_t lib_interface_string_path[] = "path";
+const uint8_t lib_interface_string_list[] = "list";
 
 uint8_t lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// prepare JSON structure for parsing
@@ -604,6 +605,45 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			// change interface structure index
 			i += element -> file.size_byte;
 		}
+
+		// list?
+		if( lib_json_key( json, (uint8_t *) &lib_interface_string_list ) ) {
+			// alloc space for element
+			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST ) );
+
+			// element structure position
+			struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *) &properties[ i ];
+	
+			// list properties
+			struct LIB_JSON_STRUCTURE list = lib_json( (uint8_t *) json.value );
+
+			// default properties of list
+			element -> list.type = LIB_INTERFACE_ELEMENT_TYPE_list;
+			element -> list.flags = EMPTY;
+			element -> list.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST );
+
+			// parse all keys
+			do {
+				// id
+				if( lib_json_key( list, (uint8_t *) &lib_interface_string_id ) ) element -> list.id = list.value;
+
+				// x
+				if( lib_json_key( list, (uint8_t *) &lib_interface_string_x ) ) element -> list.x = list.value;
+
+				// y
+				if( lib_json_key( list, (uint8_t *) &lib_interface_string_y ) ) element -> list.y = list.value;
+
+				// width
+				if( lib_json_key( list, (uint8_t *) &lib_interface_string_width ) ) element -> list.width = list.value;
+
+				// height
+				if( lib_json_key( list, (uint8_t *) &lib_interface_string_height ) ) element -> list.height = list.value;		
+			// next key
+			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &list ) );
+
+			// change interface structure index
+			i += element -> list.size_byte;
+		}
 	// until no more elements
 	} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &json ) );
 
@@ -642,6 +682,7 @@ void lib_interface_draw_select( struct LIB_INTERFACE_STRUCTURE *interface, struc
 		case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_radio: { lib_interface_element_radio( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_file: { lib_interface_element_file( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) element ); break; }
+		case LIB_INTERFACE_ELEMENT_TYPE_list: { lib_interface_element_list( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *) element ); break; }
 	}
 }
 
@@ -1113,6 +1154,120 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 }
 
+void lib_interface_element_list( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element ) {
+	// compute absolute address of first pixel of element space
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> list.y * interface -> width) + element -> list.x;
+
+	// dimensions of element
+	uint16_t width = element -> list.width;
+	uint16_t height = element -> list.height;
+	if( width == (uint16_t) STD_MAX_unsigned ) width = interface -> width - (element -> list.x + LIB_INTERFACE_BORDER_pixel);
+	if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> list.y + LIB_INTERFACE_BORDER_pixel);
+
+	// clean background
+	uint32_t color = LIB_INTERFACE_COLOR_background_list_default;
+	for( uint16_t y = 0; y < height; y++ )
+		for( uint16_t x = 0; x < width; x++ )
+			pixel[ (y * interface -> width) + x ] = color;
+
+	// expand/shrink previous area to meet actual requirements
+	if( element -> pixel ) element -> pixel = realloc( element -> pixel, (element -> limit * ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width)) << STD_VIDEO_DEPTH_shift );
+	else element -> pixel = malloc( (element -> limit * ((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) * width)) << STD_VIDEO_DEPTH_shift );
+
+	// draw all entries
+	for( uint64_t e = 0; e < element -> limit; e++ ) {
+		//--------------------------------------------------------------
+
+		// set background color
+		uint32_t color = LIB_INTERFACE_COLOR_background_list_default;
+
+		// modify background color for odd entries (strips)
+		if( e % 2 ) color = LIB_INTERFACE_COLOR_background_list_odd;
+
+		// modify background color if
+		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_active ) color = LIB_INTERFACE_COLOR_background_list_selected;
+		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_hover ) color += 0x00080808;
+
+		// fill
+		uint32_t *pixel_entry = (uint32_t *) element -> pixel + (e * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel * width);
+		for( uint64_t y = 0; y < LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel; y++ )
+			for( uint64_t x = 0; x < width; x++ )
+				pixel_entry[ (y * width) + x ] = color;
+
+		//--------------------------------------------------------------
+
+		// vertical align
+		pixel_entry += (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * width);
+
+		// if icon provided
+		if( element -> entry[ e ].icon )
+			// load icon to element area
+			for( uint16_t y = 0; y < 16; y++ )
+				for( uint16_t x = 0; x < 16; x++ )
+					pixel_entry[ (y * width) + x ] = lib_color_blend( pixel_entry[ (y * width) + x ], element -> entry[ e ].icon[ (y * 16) + x ] );
+
+		//--------------------------------------------------------------
+
+		// first entry doesn't shows its name
+		if( ! e ) continue;
+
+		//--------------------------------------------------------------
+
+		// limit name length to entry width
+		uint8_t *string = (uint8_t *) calloc( element -> entry[ e ].name_length + 1); for( uint64_t i = 0; i < element -> entry[ e ].name_length; i++ ) string[ i ] = element -> entry[ e ].name[ i ];
+		uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, string, element -> entry[ e ].name_length, width - (4 + 16 + 2 + LIB_FONT_WIDTH_pixel + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "0000.0 X", 8 ) + 4) );
+
+		// name
+		lib_font( LIB_FONT_FAMILY_ROBOTO, string, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
+
+		//--------------------------------------------------------------
+
+		// convert Bytes to human readable string
+
+		// calculate unit type
+		uint8_t unit = 0;	// Bytes by default
+		while( pow( 1024, unit ) < element -> entry[ e ].byte ) unit++;
+
+		// size string properties
+		uint8_t *byte_string;
+		uint64_t byte_limit;
+
+		// convert Bytes to string (based on unit)
+		if( unit > 1 ) {
+			// float
+			byte_string = lib_float_to_string( (double) element -> entry[ e ].byte / (double) pow( 1024, unit - 1 ), 1 );
+			byte_limit = lib_string_length( byte_string );
+		} else {
+			// integer
+			byte_string = calloc( 4 + 1 );
+			byte_limit = lib_integer_to_string( element -> entry[ e ].byte, STD_NUMBER_SYSTEM_decimal, byte_string );
+		}
+
+		// add unit type
+		byte_string = realloc( byte_string, byte_limit + 2 );
+		byte_string[ byte_limit     ] = STD_ASCII_SPACE;
+		byte_string[ byte_limit + 1 ] = lib_type_byte( element -> entry[ e ].byte );
+
+		// size
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, byte_string, byte_limit + 2, LIB_INTERFACE_COLOR_foreground, pixel_entry + width - 4, width, LIB_FONT_ALIGN_right );
+
+		// release prepared size string
+		free( byte_string );
+
+		// release prepared name string
+		free( string );
+	}
+
+	// sync entries
+	uint32_t *pixel_offset = (uint32_t *) element -> pixel + (element -> offset * width);
+	for( uint64_t y = 0; y < (element -> limit * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) && y < height; y++ )
+		for( size_t x = 0; x < width; x++ )
+			pixel[ (y * interface -> width) + x ] = pixel_offset[ (y * width) + x ];
+
+	// reload window content
+	interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+}
+
 struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// incomming message
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ] = { EMPTY };
@@ -1187,6 +1342,11 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 
 		// show interface elements
 		lib_interface_draw( new_interface );
+
+		// copy required interface properties from old one
+		//----------------------------------------------------------------------
+		new_interface -> descriptor -> flags = interface -> descriptor -> flags;
+		//----------------------------------------------------------------------
 
 		// release old interface window
 		interface -> descriptor -> flags |= STD_WINDOW_FLAG_release;

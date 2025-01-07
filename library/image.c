@@ -52,6 +52,24 @@ void lib_image_blur( uint32_t *image, uint8_t level, uint64_t width, uint64_t he
 	std_memory_release( (uintptr_t) tmp, MACRO_PAGE_ALIGN_UP( ( width * height ) << STD_VIDEO_DEPTH_shift ) >> STD_SHIFT_PAGE );
 }
 
+uint32_t *lib_image_scale( uint32_t *source, uint64_t source_width, uint64_t source_height, uint64_t target_width, uint64_t target_height ) {
+	// allocate new image area
+	uint32_t *target = (uint32_t *) calloc( (target_width * target_height) << STD_VIDEO_DEPTH_shift );
+
+	// calculate scale factors
+	double x_scale_factor = (double) ((double) source_width / (double) target_width);
+	double y_scale_factor = (double) ((double) source_height / (double) target_height);
+
+	// convert image
+	for( uint16_t y = 0; y < target_height; y++ ) for( uint16_t x = 0; x < target_width; x++ ) target[ (y * target_height) + x ] = source[ (uint64_t) (((uint64_t) (y_scale_factor * y) * source_height) + (uint64_t) (x * x_scale_factor)) ];
+
+	// release source
+	free( source );
+
+	// done
+	return target;
+}
+
 uint8_t lib_image_tga_parse( uint8_t *source, uint32_t *target, uint64_t bytes ) {
 	int i, j, k, x, y, w = (source[ 13 ] << 8) + source[ 12 ], h = (source[ 15 ] << 8) + source[ 14 ], o = (source[ 11 ] << 8) + source[ 10 ];
 	int m = ( (source[ 1 ] ? (source[ 7 ] >> 3) * source[ 5 ] : 0) + 18 );

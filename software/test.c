@@ -5,14 +5,40 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
+	#include	"../library/elf.h"
+	#include	"../library/image.h"
 	#include	"../library/interface.h"
 	#include	"../library/string.h"
+	#include	"../library/type.h"
 	#include	"../library/vfs.h"
 	//----------------------------------------------------------------------
+
+MACRO_IMPORT_FILE_AS_ARRAY( interface, "./software/test/interface.json" );
+
+struct LIB_INTERFACE_STRUCTURE	*test_interface;
 
 FILE *dir = EMPTY;
 uint8_t *dir_content = EMPTY;
 size_t list_entry_count = FALSE;
+
+	#define	LIB_ICON_TYPE_up		0x01
+	#define	LIB_ICON_TYPE_default		0x02
+	#define	LIB_ICON_TYPE_directory		0x03
+	#define	LIB_ICON_TYPE_link		0x04
+	#define	LIB_ICON_TYPE_executable	0x05
+	#define	LIB_ICON_TYPE_library		0x06
+	#define	LIB_ICON_TYPE_module		0x07
+
+	struct LIB_STRUCTURE_ICON {
+		uint32_t	*pixel;
+	};
+
+uint32_t **icon = EMPTY;
+
+void close( void ) {
+	// end of program
+	exit();
+}
 
 size_t reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry ) {
 	// get directory properties
@@ -42,14 +68,30 @@ size_t reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry ) {
 				// prepare area for entry
 				entry = realloc( entry, (local_list_entry_count + 1) * sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY ) );
 
-				// new create list entry
+				// create new list entry
 				entry[ local_list_entry_count ].flags = EMPTY;
+				entry[ local_list_entry_count ].byte = vfs[ e ].byte;
+
+				// define entry type
 				entry[ local_list_entry_count ].type = vfs[ e ].type;
-				entry[ local_list_entry_count ].name_length = vfs[ e ].name_length;
 
 				// copy entry name
+				entry[ local_list_entry_count ].name_length = vfs[ e ].name_length;
 				entry[ local_list_entry_count ].name = calloc( entry[ local_list_entry_count ].name_length + 1 );
 				for( size_t i = 0; i < entry[ local_list_entry_count ].name_length; i++ ) entry[ local_list_entry_count ].name[ i ] = vfs[ e ].name[ i ];
+
+				// set icon
+				switch( vfs[ e ].type ) {
+					case STD_FILE_TYPE_link: {
+						// special purpose?
+						if( e == TRUE ) entry[ local_list_entry_count ].icon = icon[ LIB_ICON_TYPE_up ];
+						
+						// done
+						break;
+					}
+					case STD_FILE_TYPE_directory: { entry[ local_list_entry_count ].icon = icon[ LIB_ICON_TYPE_directory ]; break; }
+					default: { entry[ local_list_entry_count ].icon = icon[ LIB_ICON_TYPE_default ]; }
+				}
 
 				// entry registered
 				local_list_entry_count++;
@@ -149,18 +191,87 @@ void dir_sort( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry, uint64_
 	for( uint64_t i = 0; i < file; i++ ) entry[ i + 1 + directory ] = files[ i ];
 }
 
+void icons( void ) {
+	// initialize icon list
+	icon = (uint32_t **) malloc( TRUE );
+
+	// insert up icon
+	uint8_t path_up[] = "/system/var/gfx/icons/go-up.tga";
+	icon = (uint32_t **) realloc( icon, LIB_ICON_TYPE_up * sizeof( uint32_t * ) );
+	icon[ LIB_ICON_TYPE_up ] = lib_image_scale( lib_interface_icon( (uint8_t *) &path_up, sizeof( path_up ) - 1 ), 48, 48, 16, 16 );
+
+	// insert default icon
+	uint8_t path_default[] = "/system/var/gfx/icons/application-octet-stream.tga";
+	icon = (uint32_t **) realloc( icon, LIB_ICON_TYPE_default * sizeof( uint32_t * ) );
+	icon[ LIB_ICON_TYPE_default ] = lib_image_scale( lib_interface_icon( (uint8_t *) &path_default, sizeof( path_default ) - 1 ), 48, 48, 16, 16 );
+
+	// insert directory icon
+	uint8_t path_directory[] = "/system/var/gfx/icons/folder-green.tga";
+	icon = (uint32_t **) realloc( icon, LIB_ICON_TYPE_directory * sizeof( uint32_t * ) );
+	icon[ LIB_ICON_TYPE_directory ] = lib_image_scale( lib_interface_icon( (uint8_t *) &path_directory, sizeof( path_directory ) - 1 ), 48, 48, 16, 16 );
+}
+
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	// parse directory content
-	struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry = malloc( TRUE );
+	// alloc area for interface properties
+	test_interface = (struct LIB_INTERFACE_STRUCTURE *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
 
-	// create list of entries
-	list_entry_count = reload( entry );
+	// initialize interface library
+	test_interface -> properties = (uint8_t *) &file_interface_start;
+	if( ! lib_interface( test_interface ) ) { log( "Cannot create window.\n" ); exit(); }
 
-	// set order of files, by name and directories first
-	dir_sort( entry, list_entry_count );
+	// set minimal window size as current
+	test_interface -> min_width = test_interface -> width;
+	test_interface -> min_height = test_interface -> height;
 
-	// debug
-	for( size_t i = 0; i < list_entry_count; i++ ) printf( "%s\n", entry[ i ].name );
+	// find element of ID: 0
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( test_interface, 0 );
+	control -> event = (void *) close;	// assign executable function to element
+
+	// initialize icons library
+	icons();
+
+		// find element of ID: 1
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *) lib_interface_element_by_id( test_interface, 1 );
+
+		// alloc initial area for list entries
+		element -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( TRUE );
+
+		// create list of entries
+		element -> limit = reload( element -> entry );
+
+		// show content from beginning
+		element -> offset = EMPTY;
+
+		// set order of files, by name and directories first
+		// dir_sort( element -> entry, element -> limit );
+
+		// update content of list
+		lib_interface_element_list( test_interface, element );
+
+	// update window content on screen
+	test_interface -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
+
+	// main loop
+	while( TRUE ) {
+		// free up AP time
+		sleep( TRUE );
+
+		// check events from interface
+		struct LIB_INTERFACE_STRUCTURE *new = EMPTY;
+		if( (new = lib_interface_event( test_interface )) ) {
+			// update interface pointer
+			test_interface = new;
+
+			// update window content on screen
+			test_interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		}
+
+		// check events from keyboard
+		uint16_t key = lib_interface_event_keyboard( test_interface );
+
+		// exit?
+		if( key == STD_ASCII_ESC ) break;	// yes
+	}
 
 	// exit
 	return 0;

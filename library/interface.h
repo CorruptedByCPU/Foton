@@ -56,10 +56,14 @@
 	#define	LIB_INTERFACE_ELEMENT_TYPE_radio			0x09
 	#define	LIB_INTERFACE_ELEMENT_TYPE_scroll			0x0A
 	#define	LIB_INTERFACE_ELEMENT_TYPE_file				0x0B
+	#define	LIB_INTERFACE_ELEMENT_TYPE_list				0x0C
 
 	#define	LIB_INTERFACE_ELEMENT_FLAG_hover			0b00000001
 	#define	LIB_INTERFACE_ELEMENT_FLAG_active			0b00000010
 	#define	LIB_INTERFACE_ELEMENT_FLAG_flush			0b00000100
+
+	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_hover			0b00000001
+	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_active			0b00000010
 
 	#define	LIB_INTERFACE_BORDER_pixel				1
 	#define	LIB_INTERFACE_BORDER_COLOR_default			0xFF282828
@@ -82,7 +86,10 @@
 	#define	LIB_INTERFACE_COLOR_background_control_close_hover	0xFF208020
 	#define	LIB_INTERFACE_COLOR_background_file_default		0xFF121212
 	#define	LIB_INTERFACE_COLOR_background_file_odd			0xFF161616
-	#define	LIB_INTERFACE_COLOR_background_file_selected		0xFF162616
+	#define	LIB_INTERFACE_COLOR_background_file_selected		0xFF164616
+	#define	LIB_INTERFACE_COLOR_background_list_default		0xFF121212
+	#define	LIB_INTERFACE_COLOR_background_list_odd			0xFF161616
+	#define	LIB_INTERFACE_COLOR_background_list_selected		0xFF208020
 
 	#define	LIB_INTERFACE_NAME_limit				LIB_INTERFACE_GLOBAL_NAME_limit
 
@@ -186,11 +193,21 @@
 		uint64_t				microtime;
 	};
 
+	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST {
+		struct	LIB_INTERFACE_STRUCTURE_ELEMENT			list;
+		struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY	*entry;
+		uint32_t	*pixel;
+		uint64_t	limit;
+		uint64_t	offset;
+	};
+
 	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY {
 		uint8_t		flags;
 		uint8_t		type;
+		uint64_t	byte;
 		uint8_t		name_length;
 		uint8_t		*name;
+		uint32_t	*icon;
 	};
 
 	struct LIB_INTERFACE_STRUCTURE_SELECT {
@@ -242,6 +259,8 @@
 
 	// change status of elements of interface
 	void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, int16_t scroll );
+
+	void lib_interface_element_list( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element );
 
 	// rename window header
 	void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface );
