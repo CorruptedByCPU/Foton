@@ -202,12 +202,12 @@ void kuro_dir_sort( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry, ui
 	uint8_t loop;
 
 	// sort directories
-	loop = TRUE; while( loop ) {
+	loop = FALSE; while( directory && ! loop ) {
 		// until raedy
-		loop = FALSE;
+		loop = TRUE;
 
 		// compare all entries
-		for( uint64_t i = 0; i < directory - 1; i++ ) {
+		for( uint64_t i = 0; i < directory; i++ ) {
 			// if first entry name is higher alphabetically than second
 			if( kuro_compare_names( (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &directories[ i ], (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &directories[ i + 1 ] ) ) {
 				// replace them
@@ -220,12 +220,12 @@ void kuro_dir_sort( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry, ui
 	}
 
 	// sort other files
-	loop = TRUE; while( loop ) {
+	loop = FALSE; while( file && ! loop ) {
 		// until raedy
-		loop = FALSE;
+		loop = TRUE;
 
 		// compare all entries
-		for( uint64_t i = 1; i < file - 1; i++ ) {
+		for( uint64_t i = 0; i < file; i++ ) {
 			// if first entry name is higher alphabetically than second
 			if( kuro_compare_names( (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &files[ i ], (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &files[ i + 1 ] ) ) {
 				// replace them
@@ -301,7 +301,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	kuro_files -> offset = EMPTY;
 
 	// set order of files, by name and directories first
-	// kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
+	kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
 
 	// update content of list
 	lib_interface_element_list( kuro_interface, kuro_files );
@@ -350,7 +350,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					kuro_files -> offset = EMPTY;
 
 					// set order of files, by name and directories first
-					// kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
+					kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
 
 					// update content of list
 					lib_interface_element_list( kuro_interface, kuro_files );
