@@ -75,7 +75,7 @@ int64_t wm_menu( void ) {
 
 void wm_menu_exec( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu ) {
 	// execute command provieded with menu entry
-	std_exec( menu -> command, lib_string_length( menu -> command ), EMPTY );
+	std_exec( menu -> command, lib_string_length( menu -> command ), EMPTY, TRUE );
 
 	// hide menu window
 	wm_menu_switch( FALSE );

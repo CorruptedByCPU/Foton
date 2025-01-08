@@ -948,7 +948,7 @@ void lib_interface_element_list( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		//--------------------------------------------------------------
 
 		// vertical align
-		pixel_entry += (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * width);
+		pixel_entry += (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * width) + 4;
 
 		// if icon provided
 		if( element -> entry[ e ].icon )
@@ -966,7 +966,7 @@ void lib_interface_element_list( struct LIB_INTERFACE_STRUCTURE *interface, stru
 
 		// limit name length to entry width
 		uint8_t *string = (uint8_t *) calloc( element -> entry[ e ].name_length + 1); for( uint64_t i = 0; i < element -> entry[ e ].name_length; i++ ) string[ i ] = element -> entry[ e ].name[ i ];
-		uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, string, element -> entry[ e ].name_length, width - (4 + 16 + 2 + LIB_FONT_WIDTH_pixel + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "0000.0 X", 8 ) + 4) );
+		uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, string, element -> entry[ e ].name_length, width - (16 + 2 + LIB_FONT_WIDTH_pixel + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "0000.0 X", 8 ) + 4) );
 
 		// name
 		lib_font( LIB_FONT_FAMILY_ROBOTO, string, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
@@ -1000,7 +1000,7 @@ void lib_interface_element_list( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		byte_string[ byte_limit + 1 ] = lib_type_byte( element -> entry[ e ].byte );
 
 		// size
-		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, byte_string, byte_limit + 2, LIB_INTERFACE_COLOR_foreground, pixel_entry + width - 4, width, LIB_FONT_ALIGN_right );
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, byte_string, byte_limit + 2, LIB_INTERFACE_COLOR_foreground, pixel_entry + width - 8, width, LIB_FONT_ALIGN_right );
 
 		// release prepared size string
 		free( byte_string );

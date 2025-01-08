@@ -109,9 +109,9 @@ int64_t std_pid( void ) {
 	return std_syscall_value();
 }
 
-int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow ) {
+int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow, uint8_t detach ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_EXEC), "D" (string), "S" (length), "d" (stream_flow) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_EXEC), "D" (string), "S" (length), "d" (stream_flow), "c" (detach) );
 
 	// return value
 	return std_syscall_value();

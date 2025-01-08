@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
+int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow, uint8_t detach ) {
 	// prepare temporary execution area
 	struct KERNEL_STRUCTURE_EXEC_TMP exec = { EMPTY };
 
@@ -200,7 +200,17 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
 	exec.level++;
 
 	// properties of parent task
-	struct KERNEL_STRUCTURE_TASK *parent = (struct KERNEL_STRUCTURE_TASK *) kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *parent;
+
+	// deatch process from its parent?
+	if( detach ) {	// yes
+		// select parent as initial task
+		parent = kernel_task_by_id( kernel -> init_pid );
+
+		// correction
+		exec.task -> pid_parent = kernel -> init_pid;
+	// no
+	} else parent = (struct KERNEL_STRUCTURE_TASK *) kernel_task_active();
 
 	// set default output stream based on flag
 	switch( stream_flow ) {

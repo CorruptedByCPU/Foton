@@ -477,7 +477,7 @@
 	void std_memory_release( uintptr_t target, uint64_t page );
 
 	// returns ID of newly executed process
-	int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow );
+	int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow, uint8_t detach );
 
 	// returns TRUE/FALSE, task exist?
 	uint8_t std_pid_check( int64_t pid );

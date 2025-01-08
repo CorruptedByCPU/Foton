@@ -3,6 +3,10 @@
 ===============================================================================*/
 
 void wm_event( void ) {
+	// retrieve current mouse status and position
+	struct STD_STRUCTURE_MOUSE_SYSCALL mouse_syscall;
+	std_mouse( (struct STD_STRUCTURE_MOUSE_SYSCALL *) &mouse_syscall );
+
 	// incomming message
 	uint8_t data[ STD_IPC_SIZE_byte ]; int64_t source = EMPTY;
 	while( (source = std_ipc_receive_by_type( (uint8_t *) &data, STD_IPC_TYPE_event )) ) {
@@ -55,18 +59,13 @@ void wm_event( void ) {
 		// different button than required?
 		if( ! wm_mouse_button_left_semaphore || ! (mouse -> button & STD_IPC_MOUSE_BUTTON_left) ) continue;	// yes
 
-		// search whole list for icon objects
-		for( uint16_t i = 0; i < wm_list_limit; i++ ) {
-			// not an icon object?
-			if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_icon) ) continue;	// yes
+		// select object under cursor position
+		struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse_syscall.x, mouse_syscall.y, FALSE );
 
-			// cursor within icon area?
-			if( wm_list_base_address[ i ] -> descriptor -> x > wm_list_base_address[ i ] -> width ) continue;	// no
-			if( wm_list_base_address[ i ] -> descriptor -> y > wm_list_base_address[ i ] -> height ) continue;	// no
-
+		// thats an icon object?
+		if( object -> descriptor -> flags & STD_WINDOW_FLAG_icon )
 			// execute command inside object name
-			std_exec( (uint8_t *) wm_list_base_address[ i ] -> descriptor -> name, wm_list_base_address[ i ] -> descriptor -> name_length, EMPTY );
-		}
+			std_exec( (uint8_t *) object -> descriptor -> name, object -> descriptor -> name_length, EMPTY, TRUE );
 	}
 
 	// check keyboard cache
@@ -124,6 +123,9 @@ void wm_event( void ) {
 
 					// set new active object
 					wm_object_active = wm_object_lock;
+
+					// update taskbar status
+					wm_taskbar_modified = TRUE;
 
 					// ignore key
 					send = FALSE;
@@ -195,7 +197,7 @@ void wm_event( void ) {
 				// alt key is on hold
 				if( wm_keyboard_status_alt_left ) {
 					// execute console application
-					std_exec( (uint8_t *) "console", 7, EMPTY );
+					std_exec( (uint8_t *) "console", 7, EMPTY, TRUE );
 
 					// do not send this key to current process
 					send = FALSE;
@@ -210,10 +212,6 @@ void wm_event( void ) {
 		if( send ) std_ipc_send( wm_object_active -> pid, (uint8_t *) keyboard );
 	}
 
-	// retrieve current mouse status and position
-	struct STD_STRUCTURE_MOUSE_SYSCALL mouse_syscall;
-	std_mouse( (struct STD_STRUCTURE_MOUSE_SYSCALL *) &mouse_syscall );
-
 	// calculate delta of cursor new position
 	int16_t delta_x = mouse_syscall.x - wm_object_cursor -> x;
 	int16_t delta_y = mouse_syscall.y - wm_object_cursor -> y;
@@ -221,24 +219,12 @@ void wm_event( void ) {
 
 	//--------------------------------------------------------------------------
 
-	// block access to object list
-	MACRO_LOCK( wm_list_semaphore );
+	// select object under cursor position
+	struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse_syscall.x, mouse_syscall.y, FALSE );
 
-	// update cursor position over object (active only)
-	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
-		// ignore hidden objects
-		if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) ) continue;
-
-		// ignore cursor object
-		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
-
-		// update pointer position
-		wm_list_base_address[ i ] -> descriptor -> x = (wm_object_cursor -> x + delta_x) - wm_list_base_address[ i ] -> x;
-		wm_list_base_address[ i ] -> descriptor -> y = (wm_object_cursor -> y + delta_y) - wm_list_base_address[ i ] -> y;
-	}
-
-	// release access to object list
-	MACRO_UNLOCK( wm_list_semaphore );
+	// update pointer position
+	object -> descriptor -> x = (wm_object_cursor -> x + delta_x) - object -> x;
+	object -> descriptor -> y = (wm_object_cursor -> y + delta_y) - object -> y;
 
 	//--------------------------------------------------------------------------
 

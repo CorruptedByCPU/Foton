@@ -57,10 +57,10 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry ) {
 				// create new list entry
 				if( ! local_list_entry_count ) entry[ local_list_entry_count ].flags = LIB_INTERFACE_ELEMENT_LIST_FLAG_select;
 				else entry[ local_list_entry_count ].flags = EMPTY;
-				entry[ local_list_entry_count ].byte = vfs[ e ].byte;
 
-				// define entry type
+				// define entry type and size
 				entry[ local_list_entry_count ].type = vfs[ e ].type;
+				entry[ local_list_entry_count ].byte = vfs[ e ].byte;
 
 				// copy entry name
 				entry[ local_list_entry_count ].name_length = vfs[ e ].name_length;
@@ -71,17 +71,22 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry ) {
 				switch( vfs[ e ].type ) {
 					case STD_FILE_TYPE_link: {
 						// special purpose?
-						if( e == TRUE ) entry[ local_list_entry_count ].icon = kuro_icon[ KURO_ICON_TYPE_up ];
+						if( e == TRUE ) {
+							// yes
+							entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_up;
+							entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_up ];
+						}
 						
 						// done
 						break;
 					}
 					case STD_FILE_TYPE_directory: {
 						// load directory icon, if not present
-						if( ! kuro_icon[ KURO_ICON_TYPE_directory ] ) kuro_icon_register( KURO_ICON_TYPE_directory, (uint8_t *) "/system/var/gfx/icons/folder-green.tga" );
+						if( ! kuro_icon[ KURO_MIMETYPE_directory ] ) kuro_icon_register( KURO_MIMETYPE_directory, (uint8_t *) "/system/var/gfx/icons/folder-green.tga" );
 
 						// set directory icon
-						entry[ local_list_entry_count ].icon = kuro_icon[ KURO_ICON_TYPE_directory ];
+						entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_directory;
+						entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_directory ];
 						
 						// done
 						break;
@@ -89,10 +94,11 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry ) {
 
 					default: {
 						// load default icon, if not present
-						if( ! kuro_icon[ KURO_ICON_TYPE_default ] ) kuro_icon_register( KURO_ICON_TYPE_default, (uint8_t *) "/system/var/gfx/icons/text-plain.tga" );
+						if( ! kuro_icon[ KURO_MIMETYPE_unknown ] ) kuro_icon_register( KURO_MIMETYPE_unknown, (uint8_t *) "/system/var/gfx/icons/unknown.tga" );
 
 						// set default icon
-						entry[ local_list_entry_count ].icon = kuro_icon[ KURO_ICON_TYPE_default ];
+						entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_unknown;
+						entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_unknown ];
 						
 						// properties of file
 						struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) malloc( sizeof( struct LIB_ELF_STRUCTURE ) );
@@ -105,38 +111,59 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry ) {
 							// library?
 							if( elf -> type == LIB_ELF_TYPE_shared_object ) {
 								// load library icon, if not present
-								if( ! kuro_icon[ KURO_ICON_TYPE_library ] ) kuro_icon_register( KURO_ICON_TYPE_library, (uint8_t *) "/system/var/gfx/icons/application-x-sharedlib.tga" );
+								if( ! kuro_icon[ KURO_MIMETYPE_library ] ) kuro_icon_register( KURO_MIMETYPE_library, (uint8_t *) "/system/var/gfx/icons/application-x-sharedlib.tga" );
 
 								// set library icon
-								entry[ local_list_entry_count ].icon = kuro_icon[ KURO_ICON_TYPE_library ];
+								entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_library;
+								entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_library ];
 							}
 							
 							// module?
 							else if( entry[ local_list_entry_count ].name_length > 3 && lib_string_compare( (uint8_t *) &entry[ local_list_entry_count ].name[ entry[ local_list_entry_count ].name_length - 3 ], (uint8_t *) ".ko", 3 ) ) {
 								// load module icon, if not present
-								if( ! kuro_icon[ KURO_ICON_TYPE_module ] ) kuro_icon_register( KURO_ICON_TYPE_module, (uint8_t *) "/system/var/gfx/icons/application-octet-stream.tga" );
+								if( ! kuro_icon[ KURO_MIMETYPE_module ] ) kuro_icon_register( KURO_MIMETYPE_module, (uint8_t *) "/system/var/gfx/icons/application-octet-stream.tga" );
 
 								// set module icon
-								entry[ local_list_entry_count ].icon = kuro_icon[ KURO_ICON_TYPE_module ];
+								entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_module;
+								entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_module ];
 							}
 							
 							// executable
 							else {
 								// load module icon, if not present
-								if( ! kuro_icon[ KURO_ICON_TYPE_executable ] ) kuro_icon_register( KURO_ICON_TYPE_executable, (uint8_t *) "/system/var/gfx/icons/application-x-executable.tga" );
+								if( ! kuro_icon[ KURO_MIMETYPE_executable ] ) kuro_icon_register( KURO_MIMETYPE_executable, (uint8_t *) "/system/var/gfx/icons/application-x-executable.tga" );
 
 								// set executable icon
-								entry[ local_list_entry_count ].icon = kuro_icon[ KURO_ICON_TYPE_executable ];
+								entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_executable;
+								entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_executable ];
 							}
 						}
 
 						// image extension?
 						if( entry[ local_list_entry_count ].name_length > 4 && lib_string_compare( (uint8_t *) &entry[ local_list_entry_count ].name[ entry[ local_list_entry_count ].name_length - 4 ], (uint8_t *) ".tga", 4 ) ) {
 							// load image icon, if not present
-							if( ! kuro_icon[ KURO_ICON_TYPE_image ] ) kuro_icon_register( KURO_ICON_TYPE_image, (uint8_t *) "/system/var/gfx/icons/image.tga" );
+							if( ! kuro_icon[ KURO_MIMETYPE_image ] ) kuro_icon_register( KURO_MIMETYPE_image, (uint8_t *) "/system/var/gfx/icons/image.tga" );
 
 							// set image icon
-							entry[ local_list_entry_count ].icon = kuro_icon[ KURO_ICON_TYPE_image ];
+							entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_image;
+							entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_image ];
+						}
+
+						// plain text?
+						if(
+							// .txt
+							entry[ local_list_entry_count ].name_length > 4 && lib_string_compare( (uint8_t *) &entry[ local_list_entry_count ].name[ entry[ local_list_entry_count ].name_length - 4 ], (uint8_t *) ".txt", 4 ) ||
+							// .log
+							entry[ local_list_entry_count ].name_length > 4 && lib_string_compare( (uint8_t *) &entry[ local_list_entry_count ].name[ entry[ local_list_entry_count ].name_length - 4 ], (uint8_t *) ".log", 4 ) ||
+							// .cfg
+							entry[ local_list_entry_count ].name_length > 4 && lib_string_compare( (uint8_t *) &entry[ local_list_entry_count ].name[ entry[ local_list_entry_count ].name_length - 4 ], (uint8_t *) ".cfg", 4 )
+						) {
+							// load text icon, if not present
+							if( ! kuro_icon[ KURO_MIMETYPE_plain_text ] ) kuro_icon_register( KURO_MIMETYPE_plain_text, (uint8_t *) "/system/var/gfx/icons/text-plain.tga" );
+
+							// set image icon
+							entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_plain_text;
+							entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_plain_text ];
 						}
 
 						// release file properties
@@ -284,7 +311,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	kuro_icon = (uint32_t **) malloc( TRUE );
 
 	// register initial icon (directory change)
-	kuro_icon_register( KURO_ICON_TYPE_up, (uint8_t *) "/system/var/gfx/icons/go-up.tga" );
+	kuro_icon_register( KURO_MIMETYPE_up, (uint8_t *) "/system/var/gfx/icons/go-up.tga" );
 
 	//----------------------------------------------------------------------
 
@@ -332,35 +359,61 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// check if there is any action required with entry
 		for( uint64_t i = 0; i < kuro_files -> limit; i++ )
 			if( kuro_files -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_run ) {
-				// directory of directory symlink?
-				if( kuro_files -> entry[ i ].type == STD_FILE_TYPE_directory || kuro_files -> entry[ i ].name_length == 2 && lib_string_compare( kuro_files -> entry[ i ].name, (uint8_t *) "..", 2 ) ) {
-					// change home directory
-					std_cd( kuro_files -> entry[ i ].name, kuro_files -> entry[ i ].name_length );
+				// based on mimetype
+				switch( kuro_files -> entry[ i ].mimetype ) {
+					case KURO_MIMETYPE_executable: {
+						// try to execute file
+						std_exec( kuro_files -> entry[ i ].name, kuro_files -> entry[ i ].name_length, EMPTY, TRUE );
 
-					// release current entry list
-					kuro_release();
+						// done
+						break;
+					}
 
-					// alloc initial area for list entries
-					kuro_files -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( TRUE );
+					case KURO_MIMETYPE_up:
+					case KURO_MIMETYPE_directory: {
+						// change home directory
+						std_cd( kuro_files -> entry[ i ].name, kuro_files -> entry[ i ].name_length );
 
-					// create list of entries
-					kuro_files -> limit = kuro_reload( kuro_files -> entry );
+						// release current entry list
+						kuro_release();
 
-					// show content from beginning
-					kuro_files -> offset = EMPTY;
+						// alloc initial area for list entries
+						kuro_files -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( TRUE );
 
-					// set order of files, by name and directories first
-					kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
+						// create list of entries
+						kuro_files -> limit = kuro_reload( kuro_files -> entry );
 
-					// update content of list
-					lib_interface_element_list( kuro_interface, kuro_files );
+						// show content from beginning
+						kuro_files -> offset = EMPTY;
 
-					// update window content on screen
-					kuro_interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+						// set order of files, by name and directories first
+						kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
 
-					// done
-					break;
+						// update content of list
+						lib_interface_element_list( kuro_interface, kuro_files );
+
+						// update window content on screen
+						kuro_interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+						// done
+						break;
+					}
+
+					case KURO_MIMETYPE_plain_text: {
+						// combine command with file name
+						uint8_t *command = malloc( TRUE );
+						sprintf( "console moko %s", command, kuro_files -> entry[ i ].name );
+
+						// open text file in Moko editor
+						std_exec( command, lib_string_length( command ), EMPTY, TRUE );
+
+						// done
+						break;
+					}
 				}
+
+				// remove flag
+				kuro_files -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_FLAG_run;
 			}
 
 		// exit?

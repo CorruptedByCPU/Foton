@@ -9,7 +9,7 @@
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// open file for read
-	FILE *file = fopen( (uint8_t *) "/system/etc/hostname" );
+	FILE *file = fopen( (uint8_t *) "/system/etc/hostname.txt" );
 	if( ! file ) return STD_ERROR_file_not_found;
 
 	// some arguments provided?

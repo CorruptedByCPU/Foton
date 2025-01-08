@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"475"
+#define	KERNEL_revision		"483"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -55,6 +55,9 @@ struct KERNEL {
 	struct KERNEL_STRUCTURE_IDT_HEADER			idt_header;
 	// functions of IDT management
 	void							(*idt_mount)( uint8_t id, uint16_t type, uintptr_t address );
+
+	// variables of Init
+	int64_t							init_pid;
 
 	// variables of I/O APIC management functions
 	volatile struct KERNEL_STRUCTURE_IO_APIC_REGISTER	*io_apic_base_address;

@@ -46,7 +46,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// open hostname file
 		struct STD_STRUCTURE_FILE file = { EMPTY };
-		uint8_t hostname_path[] = "/system/etc/hostname";
+		uint8_t hostname_path[] = "/system/etc/hostname.txt";
 		if( (file.socket = std_file_open( (uint8_t *) &hostname_path, sizeof( hostname_path ) - 1 )) ) {
 			// load file content
 			std_file_read( (struct STD_STRUCTURE_FILE *) &file, hostname, 63 );
@@ -108,7 +108,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			return 0;
 
 		// try to run program with given name and parameters
-		int64_t shell_exec_pid = std_exec( shell_command, shell_command_length, EMPTY );
+		uint8_t detach = FALSE;
+		if( shell_command[ shell_command_length - 1 ] != '&' ) detach = TRUE;
+		int64_t shell_exec_pid = std_exec( shell_command, shell_command_length, EMPTY, detach );
 
 		// something went wrong?
 		if( shell_exec_pid < 0 ) {

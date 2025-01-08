@@ -187,9 +187,9 @@ int64_t kernel_syscall_pid( void ) {
 	return task -> pid;
 }
 
-int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length, uint8_t stream_flow ) {
+int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length, uint8_t stream_flow, uint8_t detach ) {
 	// return new process ID
-	return kernel_exec( name, length, stream_flow );
+	return kernel_exec( name, length, stream_flow, detach );
 }
 
 uint8_t kernel_syscall_pid_check( int64_t pid ) {

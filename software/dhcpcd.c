@@ -30,7 +30,7 @@ void dhcp_default( struct DHCP_STRUCTURE *dhcp ) {
 
 uint16_t dhcp_hostname( struct DHCP_STRUCTURE *dhcp, uint16_t length ) {
 	// open file for read
-	FILE *file = fopen( (uint8_t *) "/system/etc/hostname" );
+	FILE *file = fopen( (uint8_t *) "/system/etc/hostname.txt" );
 
 	// if file exist, why not?
 	if( file ) {

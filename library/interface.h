@@ -189,6 +189,7 @@
 	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY {
 		uint8_t		flags;
 		uint8_t		type;
+		uint8_t		mimetype;
 		uint64_t	byte;
 		uint8_t		name_length;
 		uint8_t		*name;
