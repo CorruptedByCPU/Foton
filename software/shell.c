@@ -109,7 +109,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// try to run program with given name and parameters
 		uint8_t detach = FALSE;
-		if( shell_command[ shell_command_length - 1 ] != '&' ) detach = TRUE;
+		if( shell_command[ shell_command_length - 1 ] == '&' ) detach = TRUE;
 		int64_t shell_exec_pid = std_exec( shell_command, shell_command_length, EMPTY, detach );
 
 		// something went wrong?
