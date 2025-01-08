@@ -241,8 +241,8 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow, uint8_
 
 	//----------------------------------------------------------------------
 
-	// exec inherites root directory of parent
-	exec.task -> directory = parent -> directory;
+	// exec inherites root directory of parent, regardles of detach semaphore
+	exec.task -> directory = kernel_task_active() -> directory;
 
 	//----------------------------------------------------------------------
 
