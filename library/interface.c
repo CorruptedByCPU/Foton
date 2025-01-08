@@ -581,6 +581,9 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 			// change interface structure index
 			i += element -> list.size_byte;
+
+			// list type is always selected by default
+			interface -> element_select = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) element;
 		}
 	// until no more elements
 	} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &json ) );
@@ -934,6 +937,7 @@ void lib_interface_element_list( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		// modify background color if
 		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_active ) color = LIB_INTERFACE_COLOR_background_list_selected;
 		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_hover ) color += 0x00080808;
+		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_select ) color -= 0x00101010;
 
 		// fill
 		uint32_t *pixel_entry = (uint32_t *) element -> pixel + (e * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel * width);
@@ -1423,15 +1427,6 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 			interface -> element_select = selected;
 			interface -> element_select -> flags |= LIB_INTERFACE_ELEMENT_FLAG_active;
 
-			// // element type of
-			// if( interface -> element_select -> type == LIB_INTERFACE_ELEMENT_TYPE_file ) {
-			// 	// properties of element
-			// 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) interface -> element_select;
-
-			// 	// set first file from list as seleted (if not already)
-			// 	if( element -> selected == STD_MAX_unsigned ) element -> selected = EMPTY;
-			// }
-
 			// mark is on interface
 			lib_interface_draw_select( interface, selected );
 
@@ -1522,89 +1517,77 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 	}
 
-// 	// element type of
-// 	if( interface -> element_select -> type == LIB_INTERFACE_ELEMENT_TYPE_file ) {
-// 		// updated
-// 		uint8_t update = FALSE;
+	// element type of
+	if( interface -> element_select -> type == LIB_INTERFACE_ELEMENT_TYPE_list ) {
+		// apply modifications?
+		uint8_t sync = FALSE;
 
-// 		// properties of element
-// 		struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) interface -> element_select;
+		// properties of element
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *) interface -> element_select;
 
-// 		// key: Arrow Down
-// 		if( keyboard -> key == STD_KEY_ARROW_DOWN ) if( element -> selected < element -> limit - 1 ) { element -> selected++; update = TRUE; }
+		// find select flag
+		uint64_t i = 0;
+		for( ; i < element -> limit; i++ ) if( element -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_select ) break;
 
-// 		// key: Arrow Up
-// 		if( keyboard -> key == STD_KEY_ARROW_UP ) if( element -> selected ) { element -> selected--; update = TRUE; }
+		// key: Arrow Up/Down
+		if( keyboard -> key == STD_KEY_ARROW_DOWN || keyboard ->key == STD_KEY_ARROW_UP ) {
+			// remove hover flag from current entry
+			element -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_FLAG_select;
 
-// 		if( keyboard -> key == STD_KEY_BACKSPACE ) {
-// 			// deselect entry
-// 			element -> selected = EMPTY;
-// 			element -> offset = EMPTY;
+			// next entry
+			if( keyboard -> key == STD_KEY_ARROW_UP && i ) i--;
 
-// 			// change home directory
-// 			std_cd( (uint8_t *) "..", 2 );
+			// previous entry
+			if( keyboard -> key == STD_KEY_ARROW_DOWN && i < element -> limit - 1 ) i++;
 
-// 			// close old directory pointer
-// 			fclose( element -> socket ); element -> socket = EMPTY;
+			// set hover flag strictly for this entry
+			element -> entry[ i ].flags |= LIB_INTERFACE_ELEMENT_LIST_FLAG_select;
 
-// 			// TODO: remove me
-// 			goto done;
-// 		}
+			// refresh
+			sync = TRUE;
+		}
 
-// 		// key: ENTER
-// 		if( keyboard -> key == STD_KEY_ENTER ) {
-// 			// current file ID
-// 			uint64_t entry_id = EMPTY;
-// 			for( uint64_t b = 0; b < (element -> socket -> byte >> STD_SHIFT_PAGE); b++ ) {
-// 				// properties of directory entry
-// 				struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) &element -> content[ b * STD_PAGE_byte ];
+		// key: BACKSPACE
+		if( keyboard -> key == STD_KEY_BACKSPACE ) {
+			// deselect entry
+			element -> offset = EMPTY;
 
-// 				// file exist?
-// 				for( uint64_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( entry[ e ].name_length ) {
-// 					// movement links?
-// 					if( entry[ e ].name_length == TRUE && *entry[ e ].name == STD_ASCII_DOT ) continue;	// ignore
+			// add run flag to first entry
+			element -> entry[ FALSE ].flags |= LIB_INTERFACE_ELEMENT_LIST_FLAG_run;
+		}
 
-// 					// file located?
-// 					if( entry_id++ != element -> selected ) continue;
+		// key: ENTER
+		if( keyboard -> key == STD_KEY_ENTER ) {
+			// set run flag on currently selected entry
+			element -> entry[ i ].flags |= LIB_INTERFACE_ELEMENT_LIST_FLAG_run;
+		}
 
-// 					// file type: directory?
-// 					if( entry[ e ].type == STD_FILE_TYPE_directory || entry[ e ].name_length == 2 && lib_string_compare( entry[ e ].name, (uint8_t *) "..", 2) ) {
-// 						// deselect entry
-// 						element -> selected = EMPTY;
-// 						element -> offset = EMPTY;
+		// key: SPACE
+		if( keyboard -> key == STD_KEY_SPACE ) {
+			// change active flag on currently selected entry
+			element -> entry[ i ].flags ^= LIB_INTERFACE_ELEMENT_LIST_FLAG_active;
 
-// 						// change home directory
-// 						std_cd( entry[ e ].name, entry[ e ].name_length );
+			// refresh
+			sync = TRUE;
+		}
 
-// 						// close old directory pointer
-// 						fclose( element -> socket ); element -> socket = EMPTY;
+		// dimensions of element
+		uint16_t height = element -> list.height;
+		if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> list.y + LIB_INTERFACE_BORDER_pixel);
 
-// 						// TODO: remove me
-// 						goto done;
-// 					}
-// 				}
-// 			}
-// 		}
+		// which part of area should we see
+		if( (i + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel >= element -> offset + height ) element -> offset = ((i + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
+		else if( i * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel < element -> offset ) element -> offset = i * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
 
-// 		// dimensions of element
-// 		uint16_t height = element -> file.height;
-// 		if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
+		// redraw window content (if required)
+		if( sync ) {
+			// update content of element
+			lib_interface_draw_select( interface, interface -> element_select );
 
-// 		// which part of area should we see
-// 		if( (element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel >= element -> offset + height ) element -> offset = ((element -> selected + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
-// 		else if( element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel < element -> offset ) element -> offset = element -> selected * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
-
-// 		// redraw window content (if required)
-// 		if( update ) {
-// done:
-// 			element -> file.flags |= LIB_INTERFACE_ELEMENT_FLAG_flush;
-	
-// 			// update content of element
-// 			lib_interface_draw_select( interface, interface -> element_select );
-	
-// 			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-// 		}
-// 	}
+			// synchronize window content
+			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		}
+	}
 
 	// return parsed key
 	return keyboard -> key;
@@ -1870,7 +1853,7 @@ struct LIB_INTERFACE_STRUCTURE_SELECT lib_interface_select( struct LIB_INTERFACE
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) interface -> properties;
 
 	// init pointers
-	struct LIB_INTERFACE_STRUCTURE_SELECT	select = { EMPTY };
+	struct LIB_INTERFACE_STRUCTURE_SELECT select = { EMPTY };
 
 	// search for previous
 	while( element -> type ) {
@@ -1878,7 +1861,7 @@ struct LIB_INTERFACE_STRUCTURE_SELECT lib_interface_select( struct LIB_INTERFACE
 		if( element == interface -> element_select && select.previous ) break;	// yes
 
 		// allowed element type?
-		if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input || element -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) select.previous = element;	// yes
+		if( element -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || element -> type == LIB_INTERFACE_ELEMENT_TYPE_button || element -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || element -> type == LIB_INTERFACE_ELEMENT_TYPE_input || element -> type == LIB_INTERFACE_ELEMENT_TYPE_radio || element -> type == LIB_INTERFACE_ELEMENT_TYPE_list ) select.previous = element;	// yes
 
 		// check next element from list
 		element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) element + element -> size_byte);
@@ -1904,7 +1887,7 @@ struct LIB_INTERFACE_STRUCTURE_SELECT lib_interface_select( struct LIB_INTERFACE
 		}
 
 		// allowed element type?
-		if( select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_button || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_input || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_radio ) break;	// found
+		if( select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_menu || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_button || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_checkbox || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_input || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_radio || select.next -> type == LIB_INTERFACE_ELEMENT_TYPE_list ) break;	// found
 
 		// check next element from list
 		select.next = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) ((uintptr_t) select.next + select.next -> size_byte);

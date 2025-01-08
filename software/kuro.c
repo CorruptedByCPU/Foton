@@ -55,7 +55,8 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry ) {
 				entry = realloc( entry, (local_list_entry_count + 1) * sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY ) );
 
 				// create new list entry
-				entry[ local_list_entry_count ].flags = EMPTY;
+				if( ! local_list_entry_count ) entry[ local_list_entry_count ].flags = LIB_INTERFACE_ELEMENT_LIST_FLAG_select;
+				else entry[ local_list_entry_count ].flags = EMPTY;
 				entry[ local_list_entry_count ].byte = vfs[ e ].byte;
 
 				// define entry type
@@ -158,7 +159,7 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry ) {
 	return local_list_entry_count;
 }
 
-uint8_t compare_names( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *first, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *second ) {
+uint8_t kuro_compare_names( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *first, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *second ) {
 	// minimal length
 	size_t length = first -> name_length;
 	if( second -> name_length < length ) length = second -> name_length;
@@ -179,7 +180,7 @@ uint8_t compare_names( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *first,
 }
 
 // bubble sort, thats only for pre-alpha release, so why not?
-void dir_sort( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry, uint64_t local_list_entry_count ) {
+void kuro_dir_sort( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry, uint64_t local_list_entry_count ) {
 	// prepare area for separated directories and files
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *directories = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( (local_list_entry_count + 1) * sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY ) );
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *files = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( (local_list_entry_count + 1) * sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY ) );
@@ -208,7 +209,7 @@ void dir_sort( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry, uint64_
 		// compare all entries
 		for( uint64_t i = 0; i < directory - 1; i++ ) {
 			// if first entry name is higher alphabetically than second
-			if( compare_names( (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &directories[ i ], (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &directories[ i + 1 ] ) ) {
+			if( kuro_compare_names( (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &directories[ i ], (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &directories[ i + 1 ] ) ) {
 				// replace them
 				struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY tmp = directories[ i ]; directories[ i ] = directories[ i + 1 ]; directories[ i + 1 ] = tmp;
 
@@ -226,7 +227,7 @@ void dir_sort( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry, uint64_
 		// compare all entries
 		for( uint64_t i = 1; i < file - 1; i++ ) {
 			// if first entry name is higher alphabetically than second
-			if( compare_names( (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &files[ i ], (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &files[ i + 1 ] ) ) {
+			if( kuro_compare_names( (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &files[ i ], (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) &files[ i + 1 ] ) ) {
 				// replace them
 				struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY tmp = files[ i ]; files[ i ] = files[ i + 1 ]; files[ i + 1 ] = tmp;
 
@@ -247,7 +248,7 @@ void kuro_icon_register( uint8_t type, uint8_t *path ) {
 	kuro_icon[ type ] = lib_image_scale( lib_interface_icon( path, lib_string_length( path ) ), 48, 48, 16, 16 );
 }
 
-void release( void ) {
+void kuro_release( void ) {
 	// check if there is any action required with entry
 	for( uint64_t i = 0; i < kuro_files -> limit; i++ )
 		// release entry name area
@@ -300,7 +301,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	kuro_files -> offset = EMPTY;
 
 	// set order of files, by name and directories first
-	// dir_sort( kuro_files -> entry, kuro_files -> limit );
+	// kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
 
 	// update content of list
 	lib_interface_element_list( kuro_interface, kuro_files );
@@ -337,7 +338,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					std_cd( kuro_files -> entry[ i ].name, kuro_files -> entry[ i ].name_length );
 
 					// release current entry list
-					release();
+					kuro_release();
 
 					// alloc initial area for list entries
 					kuro_files -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( TRUE );
@@ -349,7 +350,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					kuro_files -> offset = EMPTY;
 
 					// set order of files, by name and directories first
-					// dir_sort( kuro_files -> entry, kuro_files -> limit );
+					// kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
 
 					// update content of list
 					lib_interface_element_list( kuro_interface, kuro_files );
