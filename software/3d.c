@@ -29,11 +29,16 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	//----------------------------------------------------------------------
 
+	// parse object properties
+	object_load( argc, argv );
+
+	//----------------------------------------------------------------------
+
 	// array of parsed faces
-	struct LIB_RGL_STRUCTURE_TRIANGLE *parse = (struct LIB_RGL_STRUCTURE_TRIANGLE *) malloc( sizeof( struct LIB_RGL_STRUCTURE_TRIANGLE ) * fc );
+	struct LIB_RGL_STRUCTURE_TRIANGLE *parse = (struct LIB_RGL_STRUCTURE_TRIANGLE *) malloc( sizeof( struct LIB_RGL_STRUCTURE_TRIANGLE ) * face_limit );
 
 	// array of faces sorted by Z axis
-	struct LIB_RGL_STRUCTURE_TRIANGLE **sort = (struct LIB_RGL_STRUCTURE_TRIANGLE **) malloc( sizeof( struct LIB_RGL_STRUCTURE_TRIANGLE **) * fc );
+	struct LIB_RGL_STRUCTURE_TRIANGLE **sort = (struct LIB_RGL_STRUCTURE_TRIANGLE **) malloc( sizeof( struct LIB_RGL_STRUCTURE_TRIANGLE **) * face_limit );
 
 	// array of perspective
 	struct LIB_RGL_STRUCTURE_MATRIX p_matrix = lib_rgl_return_matrix_perspective( rgl, 90.0f, (double) rgl -> width_pixel / (double) rgl -> height_pixel, 0.01f, 1.0f );
@@ -47,10 +52,14 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// rotation angle
 	double a = 0.0f;
 
+	// alloc area for modified vectors
+	vector3f *vector_transformed = (vector3f *) malloc( sizeof( vector3f ) * vector_limit );
+	vector3f *vector_ready = (vector3f *) malloc( sizeof( vector3f ) * vector_limit );
+
 	// main loop
 	while( TRUE ) {
 		// check events from interface
-		if( ! d3_the_master_of_puppets ) {
+		if( ! the_master_of_puppets ) {
 			// check incomming events
 			struct LIB_INTERFACE_STRUCTURE *new = EMPTY;
 			if( (new = lib_interface_event( d3_interface )) ) {
@@ -72,7 +81,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( key == STD_ASCII_ESC ) return 0;	// yes
 
 		// next angle
-		a += 0.05f;
+		a += 0.005f;
 
 		// clean workbench with default background color
 		lib_rgl_clean( rgl );
@@ -82,28 +91,28 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		struct LIB_RGL_STRUCTURE_MATRIX y_matrix = lib_rgl_return_matrix_rotate_y( a );
 		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( a / 3.0f );
 
-		// calculate movement matrix
+		// calculate translate matrix
 		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 0.0f );
 
 		// convert each vector
-		for( uint64_t i = 1; i < vc; i++ ) {
+		for( uint64_t i = 1; i < vector_limit; i++ ) {
 			// converted vector
-			vr[ i ] = vector[ i ];
+			vector_transformed[ i ] = vector[ i ];
 
 			// by Q matrix
-			lib_rgl_multiply_vector( &vr[ i ], &x_matrix );
-			lib_rgl_multiply_vector( &vr[ i ], &y_matrix );
-			lib_rgl_multiply_vector( &vr[ i ], &z_matrix );
-			lib_rgl_multiply_vector( &vr[ i ], &t_matrix );
+			lib_rgl_multiply_vector( &vector_transformed[ i ], &x_matrix );
+			lib_rgl_multiply_vector( &vector_transformed[ i ], &y_matrix );
+			lib_rgl_multiply_vector( &vector_transformed[ i ], &z_matrix );
+			lib_rgl_multiply_vector( &vector_transformed[ i ], &t_matrix );
 		}
 
 		// amount of faces to sort
 		uint64_t sc = 0;
 
 		// for each face
-		for( uint64_t i = 1; i <= fc; i++ ) {
+		for( uint64_t i = 1; i <= face_limit; i++ ) {
 			// check face visibility
-			if( lib_rgl_projection( rgl, vr, &face[ i ] ) ) {
+			if( lib_rgl_projection( rgl, vector_transformed, &face[ i ] ) ) {
 				// face to parse
 				parse[ i ] = face[ i ];
 
@@ -113,17 +122,17 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 					uint64_t v = parse[ i ].v[ p ];
 
 					// parsed vector
-					vp[ v ] = vr[ v ];
+					vector_ready[ v ] = vector_transformed[ v ];
 
 					// by W matrix
-					lib_rgl_multiply_vector( &vp[ v ], &w_matrix );
+					lib_rgl_multiply_vector( &vector_ready[ v ], &w_matrix );
 				}
 
 				// put parsed face into sorting list
 				sort[ sc ] = &parse[ i ];
 
 				// for sorting list, calculate average value of depth for 3 points of face
-				sort[ sc ] -> z_depth = (vp[ parse[ i ].v[ 0 ] ].z + vp[ parse[ i ].v[ 1 ] ].z + vp[ parse[ i ].v[ 2 ] ].z) / 3.0f;
+				sort[ sc ] -> z_depth = (vector_ready[ parse[ i ].v[ 0 ] ].z + vector_ready[ parse[ i ].v[ 1 ] ].z + vector_ready[ parse[ i ].v[ 2 ] ].z) / 3.0f;
 
 				// sort list incremented
 				sc++;
@@ -134,16 +143,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( sc > 1 ) lib_rgl_sort_quick( sort, sc - 1, 1 );
 
 		// draw every triangle on workbench
-		for( uint64_t i = 0; i < sc; i++ ) lib_rgl_fill( rgl, sort[ i ], vp, material );
+		for( uint64_t i = 0; i < sc; i++ ) lib_rgl_fill( rgl, sort[ i ], vector_ready, material );
 
 		// synchronize workbench with window
 		lib_rgl_flush( rgl );
 
 		// tell window manager to flush window
-		if( ! d3_the_master_of_puppets ) d3_interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-
-		// next frame ready
-		fps++;
+		if( ! the_master_of_puppets ) d3_interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 	}
 
 	// should not happen

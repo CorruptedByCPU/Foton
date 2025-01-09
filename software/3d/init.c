@@ -15,7 +15,7 @@ void init( void ) {
 	// framebuffer belongs to us?
 	if( d3_pid == kernel_framebuffer.pid ) {
 		// look at me, i'm the captain now
-		d3_the_master_of_puppets = TRUE;
+		the_master_of_puppets = TRUE;
 
 		// initialize RGL library
 		rgl = lib_rgl( kernel_framebuffer.width_pixel, kernel_framebuffer.height_pixel, kernel_framebuffer.width_pixel, kernel_framebuffer.base_address );
@@ -43,9 +43,4 @@ void init( void ) {
 		// window content ready for display
 		d3_interface -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 	}
-
-	//----------------------------------------------------------------------
-
-	// parse object properties
-	object_load();
 }

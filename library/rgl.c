@@ -52,8 +52,8 @@ struct LIB_RGL_STRUCTURE *lib_rgl( uint16_t width_pixel, uint16_t height_pixel, 
 
 	// camera position
 	rgl -> camera.x = 0.0f;
-	rgl -> camera.y = -1.0f;
-	rgl -> camera.z = -2.0f;
+	rgl -> camera.y = 0.0f;
+	rgl -> camera.z = -2.5f;
 
 	// and its target
 	rgl -> target.x = 0.0f;
