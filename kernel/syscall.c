@@ -631,8 +631,36 @@ void kernel_syscall_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target,
 	// invalid socket value?
 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
-	// pass file content to process memory
-	kernel_vfs_file_read( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ], target, file -> seek, byte );
+	// properties of file
+	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ];
+	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) socket -> knot;
+
+	// read directory content?
+	if( vfs -> type == STD_FILE_TYPE_directory ) {
+		// index
+		uint64_t t = 0;
+
+		// read file content into preallocated area
+		struct LIB_VFS_STRUCTURE *directory = (struct LIB_VFS_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( byte ) >> STD_SHIFT_PAGE );
+		kernel_vfs_file_read( socket, (uint8_t *) directory, file -> seek, byte );
+
+		// parse block by block
+		for( size_t b = 0; b < (byte >> STD_SHIFT_PAGE); b++ ) {
+			// properties of directory entries
+			vfs = (struct LIB_VFS_STRUCTURE *) ((uintptr_t) directory + (b << STD_SHIFT_PAGE));
+
+			// for every possible entry
+			for( size_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
+				// if file exist
+				if( vfs[ e ].name_length ) ((struct LIB_VFS_STRUCTURE *) target)[ t++ ] = vfs[ e ];
+		}
+
+		// release temporray area
+		kernel_memory_release( (uintptr_t) directory, MACRO_PAGE_ALIGN_UP( byte ) >> STD_SHIFT_PAGE );
+	}
+
+	// no, pass file content to process memory
+	else kernel_vfs_file_read( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ], target, file -> seek, byte );
 
 	// next file Bytes content
 	file -> seek += byte;
