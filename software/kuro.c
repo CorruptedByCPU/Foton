@@ -156,6 +156,19 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY *entry ) {
 					entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_plain_text ];
 				}
 
+				// 3D object?
+				if(
+					// .obj
+					entry[ local_list_entry_count ].name_length > 4 && lib_string_compare( (uint8_t *) &entry[ local_list_entry_count ].name[ entry[ local_list_entry_count ].name_length - 4 ], (uint8_t *) ".obj", 4 )
+				) {
+					// load text icon, if not present
+					if( ! kuro_icon[ KURO_MIMETYPE_3d_object ] ) kuro_icon_register( KURO_MIMETYPE_3d_object, (uint8_t *) "/system/var/gfx/icons/3d.tga" );
+
+					// set image icon
+					entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_3d_object;
+					entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_3d_object ];
+				}
+
 				// release file properties
 				free( elf );
 			}
@@ -393,6 +406,18 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 						sprintf( "console moko %s", command, kuro_files -> entry[ i ].name );
 
 						// open text file in Moko editor
+						std_exec( command, lib_string_length( command ), EMPTY, TRUE );
+
+						// done
+						break;
+					}
+
+					case KURO_MIMETYPE_3d_object: {
+						// combine command with file name
+						uint8_t *command = malloc( TRUE );
+						sprintf( "3d %s", command, kuro_files -> entry[ i ].name );
+
+						// open object file in 3D Viewer
 						std_exec( command, lib_string_length( command ), EMPTY, TRUE );
 
 						// done

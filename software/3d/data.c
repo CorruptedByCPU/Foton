@@ -21,6 +21,6 @@ uint64_t vector_limit	= TRUE;
 uint64_t face_limit	= TRUE;
 
 // list of materials, vectors and faces
-struct LIB_RGL_STRUCTURE_MATERIAL	*material;
-vector3f				*vector;
-struct LIB_RGL_STRUCTURE_TRIANGLE	*face;
+struct LIB_RGL_STRUCTURE_MATERIAL	*material = EMPTY;
+vector3f				*vector = EMPTY;
+struct LIB_RGL_STRUCTURE_TRIANGLE	*face = EMPTY;

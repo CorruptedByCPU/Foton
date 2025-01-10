@@ -227,7 +227,7 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// debug
-	std_exec( (uint8_t *) "3d /system/var/cube.obj", 23, EMPTY, TRUE );
+	// std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
 
 	// Window Manager initialized.
 	return TRUE;

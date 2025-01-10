@@ -81,7 +81,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( key == STD_ASCII_ESC ) return 0;	// yes
 
 		// next angle
-		a += 0.005f;
+		a += 0.02f;
 
 		// clean workbench with default background color
 		lib_rgl_clean( rgl );

@@ -42,100 +42,100 @@ void object_load( uint64_t argc, uint8_t *argv[] ) {
 	uint8_t *path = malloc( TRUE );
 	sprintf( "%s.mtl", path, argv[ TRUE ] );
 
-	// open material file
-	if( ! (file = fopen( path )) ) { log( "Material file not found!\n" ); exit(); }
-
-	// assign area for material content
-	if( ! (material_content = (uint8_t *) malloc( file -> byte )) ) { log( "No enough memory!" ); exit(); }
-
-	// read directory content
-	fread( file, material_content, file -> byte );
-
-	// preserve object size in Bytes
-	material_byte = file -> byte;
-
-	// close file, no more needed
-	fclose( file );
-
 	//----------------------------------------------------------------------
-
-	// count materials
-	for( uint64_t i = 0; i < material_byte; i += lib_string_length_line( (uint8_t *) &material_content[ i ] ) + 1 )
-		// material definition?
-		if( lib_string_compare( (uint8_t *) &material_content[ i ], (uint8_t *) "newmtl", 6 ) ) material_limit++;
 
 	// alloc area for materials
 	material = (struct LIB_RGL_STRUCTURE_MATERIAL *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_RGL_STRUCTURE_MATERIAL ) * material_limit ) >> STD_SHIFT_PAGE );
 
-	// register materials
-	uint64_t m = EMPTY; for( uint64_t i = 0; i < material_byte; i += lib_string_length_line( (uint8_t *) &material_content[ i ] ) + 1 ) {
-		// material definition?
-		if( lib_string_compare( (uint8_t *) &material_content[ i ], (uint8_t *) "newmtl", 6 ) ) {
-			// set point at material name
-			uint8_t *ms = (uint8_t *) &material_content[ i + 6 + 1 ];
+	// open material file
+	if( (file = fopen( path )) ) {
+		// assign area for material content
+		if( ! (material_content = (uint8_t *) malloc( file -> byte )) ) { log( "No enough memory!" ); exit(); }
 
-			// retrieve material name and length
-			material[ m ].length = lib_string_word( ms, lib_string_length_line( ms ) );
-			for( uint64_t j = 0; j < material[ m ].length; j++ ) material[ m ].name[ j ] = ms[ j ];
+		// read directory content
+		fread( file, material_content, file -> byte );
 
-			// parse until end of material properties
-			for( ; lib_string_length_line( (uint8_t *) &material_content[ i ] ); i += lib_string_length_line( (uint8_t *) &material_content[ i ] ) + 1 ) {
-				// diffusion?
-				if( lib_string_compare( (uint8_t *) &material_content[ i ], (uint8_t *) "Kd", 2 ) ) {
-					// set string pointer to first value
-					uint8_t *ms = (uint8_t *) &material_content[ i ] + 2 + 1;
-					uint64_t ml = lib_string_word( ms, lib_string_length_line( ms ) );
+		// preserve object size in Bytes
+		material_byte = file -> byte;
 
-					// Red
-					material[ m ].Kd.x = strtof( ms, ml ) * 255.0f;
+		// close file, no more needed
+		fclose( file );
 
-					// set pointer at second value
-					ms += ml + 1;
-					ml = lib_string_word( ms, lib_string_length_line( ms ) );
+		// count materials
+		for( uint64_t i = 0; i < material_byte; i += lib_string_length_line( (uint8_t *) &material_content[ i ] ) + 1 )
+			// material definition?
+			if( lib_string_compare( (uint8_t *) &material_content[ i ], (uint8_t *) "newmtl", 6 ) ) material_limit++;
 
-					// Green
-					material[ m ].Kd.y = strtof( ms, ml ) * 255.0f;
+		// register materials
+		uint64_t m = EMPTY; for( uint64_t i = 0; i < material_byte; i += lib_string_length_line( (uint8_t *) &material_content[ i ] ) + 1 ) {
+			// material definition?
+			if( lib_string_compare( (uint8_t *) &material_content[ i ], (uint8_t *) "newmtl", 6 ) ) {
+				// set point at material name
+				uint8_t *ms = (uint8_t *) &material_content[ i + 6 + 1 ];
 
-					// set pointer at third value
-					ms += ml + 1;
-					ml = lib_string_word( ms, lib_string_length_line( ms ) );
+				// retrieve material name and length
+				material[ m ].length = lib_string_word( ms, lib_string_length_line( ms ) );
+				for( uint64_t j = 0; j < material[ m ].length; j++ ) material[ m ].name[ j ] = ms[ j ];
 
-					// Blue
-					material[ m ].Kd.z = strtof( ms, ml ) * 255.0f;
+				// parse until end of material properties
+				for( ; lib_string_length_line( (uint8_t *) &material_content[ i ] ); i += lib_string_length_line( (uint8_t *) &material_content[ i ] ) + 1 ) {
+					// diffusion?
+					if( lib_string_compare( (uint8_t *) &material_content[ i ], (uint8_t *) "Kd", 2 ) ) {
+						// set string pointer to first value
+						uint8_t *ms = (uint8_t *) &material_content[ i ] + 2 + 1;
+						uint64_t ml = lib_string_word( ms, lib_string_length_line( ms ) );
+
+						// Red
+						material[ m ].Kd.x = strtof( ms, ml ) * 255.0f;
+
+						// set pointer at second value
+						ms += ml + 1;
+						ml = lib_string_word( ms, lib_string_length_line( ms ) );
+
+						// Green
+						material[ m ].Kd.y = strtof( ms, ml ) * 255.0f;
+
+						// set pointer at third value
+						ms += ml + 1;
+						ml = lib_string_word( ms, lib_string_length_line( ms ) );
+
+						// Blue
+						material[ m ].Kd.z = strtof( ms, ml ) * 255.0f;
+					}
+
+					// ambient?
+					if( lib_string_compare( (uint8_t *) &material_content[ i ], (uint8_t *) "Ka", 2 ) ) {
+						// set string pointer to first value
+						uint8_t *ms = (uint8_t *) &material_content[ i ] + 2 + 1;
+						uint64_t ml = lib_string_word( ms, lib_string_length_line( ms ) );
+
+						// Red
+						material[ m ].Ka.x = strtof( ms, ml );
+
+						// set pointer at second value
+						ms += ml + 1;
+						ml = lib_string_word( ms, lib_string_length_line( ms ) );
+
+						// Green
+						material[ m ].Ka.y = strtof( ms, ml );
+
+						// set pointer at third value
+						ms += ml + 1;
+						ml = lib_string_word( ms, lib_string_length_line( ms ) );
+
+						// Blue
+						material[ m ].Ka.z = strtof( ms, ml );
+					}
 				}
 
-				// ambient?
-				if( lib_string_compare( (uint8_t *) &material_content[ i ], (uint8_t *) "Ka", 2 ) ) {
-					// set string pointer to first value
-					uint8_t *ms = (uint8_t *) &material_content[ i ] + 2 + 1;
-					uint64_t ml = lib_string_word( ms, lib_string_length_line( ms ) );
-
-					// Red
-					material[ m ].Ka.x = strtof( ms, ml );
-
-					// set pointer at second value
-					ms += ml + 1;
-					ml = lib_string_word( ms, lib_string_length_line( ms ) );
-
-					// Green
-					material[ m ].Ka.y = strtof( ms, ml );
-
-					// set pointer at third value
-					ms += ml + 1;
-					ml = lib_string_word( ms, lib_string_length_line( ms ) );
-
-					// Blue
-					material[ m ].Ka.z = strtof( ms, ml );
-				}
+				// material registered
+				m++;
 			}
-
-			// material registered
-			m++;
 		}
-	}
 
-	// release file content
-	free( material_content );
+		// release file content
+		free( material_content );
+	}
 
 	//----------------------------------------------------------------------
 
