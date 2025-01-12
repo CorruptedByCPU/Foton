@@ -42,6 +42,10 @@ void *realloc( void *source, size_t byte ) {
 	// move pointer to metadata area
 	uint64_t *ptr = (uint64_t *) MACRO_PAGE_ALIGN_DOWN( (uintptr_t) source );
 
+	// calculate length of areas in Pages
+	uint64_t offset = MACRO_PAGE_ALIGN_UP( *ptr + STD_ALLOC_METADATA_byte );
+	uint64_t limit = MACRO_PAGE_ALIGN_UP( byte + STD_ALLOC_METADATA_byte );
+
 	// do we need wider area?
 	if( byte > *ptr ) {	// yes
 		// alloc new area
@@ -59,7 +63,10 @@ void *realloc( void *source, size_t byte ) {
 		// return pointer to new allocated area
 		return target;
 	}
-	
+
+	// shrink area if possible
+	if( offset > limit ) { std_memory_release( (uintptr_t) source + limit, (offset - limit) >> STD_SHIFT_PAGE ); *ptr = MACRO_PAGE_ALIGN_UP( byte + STD_ALLOC_METADATA_byte ) - STD_ALLOC_METADATA_byte; }
+
 	// no
 	return source;
 }
