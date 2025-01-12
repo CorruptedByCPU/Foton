@@ -20,4 +20,3 @@ yet to be done:
 - lock screen (gaussian blur), something like sway is doing
 - if you open file only for read, connect original content via paging,
   if for write retrieve copy of it,
-- realloc, should shrink current area is not required
