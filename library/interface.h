@@ -85,9 +85,9 @@
 	#define	LIB_INTERFACE_COLOR_background_checkbox_default		LIB_INTERFACE_COLOR_background + 0x00101010;
 	#define	LIB_INTERFACE_COLOR_background_checkbox_selected	0xFF208020
 	#define	LIB_INTERFACE_COLOR_background_control_close_hover	0xFF208020
-	#define	LIB_INTERFACE_COLOR_background_list_default		0xFF121212
-	#define	LIB_INTERFACE_COLOR_background_list_odd			0xFF161616
-	#define	LIB_INTERFACE_COLOR_background_list_selected		0xFF208020
+	#define	LIB_INTERFACE_COLOR_background_file_default		0xFF121212
+	#define	LIB_INTERFACE_COLOR_background_file_odd			0xFF161616
+	#define	LIB_INTERFACE_COLOR_background_file_selected		0xFF208020
 
 	#define	LIB_INTERFACE_NAME_limit				LIB_INTERFACE_GLOBAL_NAME_limit
 
@@ -177,16 +177,16 @@
 		uint32_t	*icon;
 	};
 
-	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST {
-		struct	LIB_INTERFACE_STRUCTURE_ELEMENT			list;
-		struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY	*entry;
+	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_FILE {
+		struct	LIB_INTERFACE_STRUCTURE_ELEMENT			file;
+		struct	LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY	*entry;
 		uint32_t	*pixel;
 		uint64_t	limit;
 		uint64_t	offset;
 		uint64_t	microtime;
 	};
 
-	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_LIST_ENTRY {
+	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY {
 		uint8_t		flags;
 		uint8_t		type;
 		uint8_t		mimetype;
@@ -244,7 +244,7 @@
 	// change status of elements of interface
 	void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, int16_t scroll );
 
-	void lib_interface_element_list( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element );
+	void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element );
 
 	// rename window header
 	void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface );

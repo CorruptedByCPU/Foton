@@ -1,7 +1,7 @@
 {
 	"window": {
 		"width": 122,
-		"height": 145
+		"height": 169
 	},
 	"menu": {
 		"id": 0,
@@ -52,5 +52,15 @@
 		"name": "Task Manager",
 		"command": "console tm",
 		"icon": "/system/var/gfx/icons/utilities-system-monitor.tga"
+	},
+	"menu": {
+		"id": 0,
+		"x": 1,
+		"y": 144,
+		"width": 120,
+		"height": 24,
+		"name": "3D Viewer",
+		"command": "3d /system/var/cube.obj",
+		"icon": "/system/var/gfx/icons/3d.tga"
 	}
 }

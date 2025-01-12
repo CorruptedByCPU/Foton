@@ -36,10 +36,11 @@ You will be able to create your own system profiles, and build your own compilat
 |Kernel Modules|Description|
 |-|-|
 |e1000.ko|Network Controller - Intel 82540EM driver.|
+|idle.ko|Lower power consumption.|
 |network.ko|Network management functions [protcols: ARP, ICMP, IP, UDP]|
 |ps2.ko|Failover keyboard & mouse management.|
 |shredder.ko|Garbage Collector|
-|usb.ko|Device management connected via USB controller (UHCI in work)|
+|usb.ko|Device management connected via USB controller (UHCI, OHCI in work)|
 
 |Software|Description|
 |-|-|
@@ -48,7 +49,7 @@ You will be able to create your own system profiles, and build your own compilat
 |cd|change current root directory, *internal command of shell*|
 |colors|shows available color palette for Console/Shell program.|
 |console|build-in terminal.|
-|fm|**File Manager** *{work in progress}*|
+|kuro|File Manager|
 |free|usage of all abailable devices in system.|
 |hostname|show or set host name.|
 |ip|Network Interface IPv4 show/change tool.|
@@ -69,6 +70,7 @@ You will be able to create your own system profiles, and build your own compilat
 |-|-|
 |libcolor.so|Contains color palette for various applications.|
 |libelf.so|A little bit of check functions.|
+|libfloat.so|Convert string to float.|
 |libfont.so|Bitmap font display.|
 |libimage.so|Privdes support for image files (*tga*)|
 |libinput.so|Receives characters from user, and passing them to application.|
@@ -83,3 +85,4 @@ You will be able to create your own system profiles, and build your own compilat
 |libstd.so|Standard library of Foton OS.|
 |libstring.so|String manipulation library *(compare, length, trim etc.)*|
 |libterminal.so|Text mode display management.|
+|libtype.so|Converts Bytes to higher units.|

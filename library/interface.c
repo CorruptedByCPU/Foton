@@ -547,40 +547,40 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 		// list?
 		if( lib_json_key( json, (uint8_t *) &lib_interface_string_list ) ) {
 			// alloc space for element
-			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST ) );
+			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE ) );
 
 			// element structure position
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *) &properties[ i ];
+			struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) &properties[ i ];
 	
 			// list properties
 			struct LIB_JSON_STRUCTURE list = lib_json( (uint8_t *) json.value );
 
 			// default properties of list
-			element -> list.type = LIB_INTERFACE_ELEMENT_TYPE_list;
-			element -> list.flags = EMPTY;
-			element -> list.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST );
+			element -> file.type = LIB_INTERFACE_ELEMENT_TYPE_list;
+			element -> file.flags = EMPTY;
+			element -> file.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE );
 
 			// parse all keys
 			do {
 				// id
-				if( lib_json_key( list, (uint8_t *) &lib_interface_string_id ) ) element -> list.id = list.value;
+				if( lib_json_key( list, (uint8_t *) &lib_interface_string_id ) ) element -> file.id = list.value;
 
 				// x
-				if( lib_json_key( list, (uint8_t *) &lib_interface_string_x ) ) element -> list.x = list.value;
+				if( lib_json_key( list, (uint8_t *) &lib_interface_string_x ) ) element -> file.x = list.value;
 
 				// y
-				if( lib_json_key( list, (uint8_t *) &lib_interface_string_y ) ) element -> list.y = list.value;
+				if( lib_json_key( list, (uint8_t *) &lib_interface_string_y ) ) element -> file.y = list.value;
 
 				// width
-				if( lib_json_key( list, (uint8_t *) &lib_interface_string_width ) ) element -> list.width = list.value;
+				if( lib_json_key( list, (uint8_t *) &lib_interface_string_width ) ) element -> file.width = list.value;
 
 				// height
-				if( lib_json_key( list, (uint8_t *) &lib_interface_string_height ) ) element -> list.height = list.value;		
+				if( lib_json_key( list, (uint8_t *) &lib_interface_string_height ) ) element -> file.height = list.value;		
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &list ) );
 
 			// change interface structure index
-			i += element -> list.size_byte;
+			i += element -> file.size_byte;
 
 			// list type is always selected by default
 			interface -> element_select = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) element;
@@ -622,7 +622,7 @@ void lib_interface_draw_select( struct LIB_INTERFACE_STRUCTURE *interface, struc
 		case LIB_INTERFACE_ELEMENT_TYPE_input: { lib_interface_element_input( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_checkbox: { lib_interface_element_checkbox( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) element ); break; }
 		case LIB_INTERFACE_ELEMENT_TYPE_radio: { lib_interface_element_radio( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *) element ); break; }
-		case LIB_INTERFACE_ELEMENT_TYPE_list: { lib_interface_element_list( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *) element ); break; }
+		case LIB_INTERFACE_ELEMENT_TYPE_list: { lib_interface_element_file( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) element ); break; }
 	}
 }
 
@@ -904,18 +904,18 @@ void lib_interface_element_radio( struct LIB_INTERFACE_STRUCTURE *interface, str
 	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + element -> radio.height + 4, interface -> width, EMPTY );
 }
 
-void lib_interface_element_list( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element ) {
+void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element ) {
 	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> list.y * interface -> width) + element -> list.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> file.y * interface -> width) + element -> file.x;
 
 	// dimensions of element
-	uint16_t width = element -> list.width;
-	uint16_t height = element -> list.height;
-	if( width == (uint16_t) STD_MAX_unsigned ) width = interface -> width - (element -> list.x + LIB_INTERFACE_BORDER_pixel);
-	if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> list.y + LIB_INTERFACE_BORDER_pixel);
+	uint16_t width = element -> file.width;
+	uint16_t height = element -> file.height;
+	if( width == (uint16_t) STD_MAX_unsigned ) width = interface -> width - (element -> file.x + LIB_INTERFACE_BORDER_pixel);
+	if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
 
 	// clean background
-	uint32_t color = LIB_INTERFACE_COLOR_background_list_default;
+	uint32_t color = LIB_INTERFACE_COLOR_background_file_default;
 	for( uint16_t y = 0; y < height; y++ )
 		for( uint16_t x = 0; x < width; x++ )
 			pixel[ (y * interface -> width) + x ] = color;
@@ -929,13 +929,13 @@ void lib_interface_element_list( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		//--------------------------------------------------------------
 
 		// set background color
-		uint32_t color = LIB_INTERFACE_COLOR_background_list_default;
+		uint32_t color = LIB_INTERFACE_COLOR_background_file_default;
 
 		// modify background color for odd entries (strips)
-		if( e % 2 ) color = LIB_INTERFACE_COLOR_background_list_odd;
+		if( e % 2 ) color = LIB_INTERFACE_COLOR_background_file_odd;
 
 		// modify background color if
-		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_active ) color = LIB_INTERFACE_COLOR_background_list_selected;
+		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_active ) color = LIB_INTERFACE_COLOR_background_file_selected;
 		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_hover ) color += 0x00080808;
 		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_select ) color -= 0x00101010;
 
@@ -1149,7 +1149,7 @@ void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interfac
 			switch( properties -> type ) {
 				case LIB_INTERFACE_ELEMENT_TYPE_list: {
 					// properties of element
-					struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *) properties;
+					struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) properties;
 
 					// calculate entry id
 					uint64_t entry_id = ((element -> offset + (interface -> descriptor -> y - properties -> y)) / LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel);
@@ -1167,8 +1167,8 @@ void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interfac
 					}
 
 					// dimensions of element
-					uint16_t height = element -> list.height;
-					if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> list.y + LIB_INTERFACE_BORDER_pixel);
+					uint16_t height = element -> file.height;
+					if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
 
 					// if newly active element is only partly visible, scroll a little bit
 					if( (entry_id + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel >= element -> offset + height ) element -> offset = ((entry_id + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
@@ -1523,7 +1523,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		uint8_t sync = FALSE;
 
 		// properties of element
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *) interface -> element_select;
+		struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) interface -> element_select;
 
 		// find select flag
 		uint64_t i = 0;
@@ -1572,8 +1572,8 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		}
 
 		// dimensions of element
-		uint16_t height = element -> list.height;
-		if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> list.y + LIB_INTERFACE_BORDER_pixel);
+		uint16_t height = element -> file.height;
+		if( height == (uint16_t) STD_MAX_unsigned ) height = interface -> height - (element -> file.y + LIB_INTERFACE_BORDER_pixel);
 
 		// which part of area should we see
 		if( (i + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel >= element -> offset + height ) element -> offset = ((i + 1) * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) - height;
@@ -1631,7 +1631,7 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, i
 				switch( properties -> type ) {
 					case LIB_INTERFACE_ELEMENT_TYPE_list: {
 						// properties of element
-						struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LIST *) properties;
+						struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) properties;
 
 						// scroll movement?
 						if( scroll ) {
