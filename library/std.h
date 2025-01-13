@@ -127,10 +127,7 @@
 	#define	STD_FILE_TYPE_directory				0b00000010
 	#define	STD_FILE_TYPE_link				0b00000100
 
-	// #define	STD_FILE_MODE_reserved				0b00000001
-	// #define	STD_FILE_MODE_read				0b00000010
-	// #define	STD_FILE_MODE_write				0b00000100
-	// #define	STD_FILE_MODE_append				0b00001000
+	#define	STD_FILE_MODE_modify				0b00000001
 
 	#define	STD_FILE_NAME_limit				LIB_VFS_NAME_limit
 
@@ -534,7 +531,7 @@
 	uint64_t std_time( void );
 
 	// open connection to file
-	int64_t std_file_open( uint8_t *path, uint64_t path_length );
+	int64_t std_file_open( uint8_t *path, uint64_t path_length, uint8_t mode );
 
 	// close connection to file
 	void std_file_close( int64_t socket );
@@ -665,7 +662,7 @@
 	uint64_t pow( uint64_t base, uint64_t exponent );
 	uint16_t getkey( void );
 	void exit( void );
-	FILE *fopen( uint8_t *path );
+	FILE *fopen( uint8_t *path, uint8_t mode );
 	void fclose( FILE *file );
 	void fread( FILE *file, uint8_t *cache, uint64_t byte );
 	void fwrite( FILE *file, uint8_t *cache, uint64_t byte );

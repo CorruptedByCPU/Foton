@@ -256,7 +256,7 @@
 
 	uint64_t lib_interface_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t pixel );
 
-	uint32_t *lib_interface_icon( uint8_t *path, uint64_t length );
+	uint32_t *lib_interface_icon( uint8_t *path );
 
 	// create window space accoring to JSON specification
 	uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );

@@ -7,7 +7,7 @@ int64_t wm_workbench( void ) {
 	std_cd( (uint8_t *) "/home/root/workbench", 20 );
 
 	// open workbench directory
-	FILE *directory = fopen( (uint8_t *) "." );
+	FILE *directory = fopen( (uint8_t *) ".", EMPTY );
 
 	// load its content
 	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) malloc( directory -> byte );
@@ -23,12 +23,12 @@ int64_t wm_workbench( void ) {
 		if( vfs -> name[ 0 ] == '.' ) { vfs++; continue; }
 
 		// open icon properties and load its content
-		FILE *icon_file = fopen( vfs -> name );
+		FILE *icon_file = fopen( vfs -> name, EMPTY );
 		uint8_t *icon_content = (uint8_t *) malloc( icon_file -> byte );
 		fread( icon_file, icon_content, icon_file -> byte );
 	
 		// open image described inside icon properties
-		FILE *icon_path = fopen( icon_content );
+		FILE *icon_path = fopen( icon_content, EMPTY );
 		struct LIB_IMAGE_STRUCTURE_TGA *icon_image = (struct LIB_IMAGE_STRUCTURE_TGA *) malloc( icon_path -> byte );
 		fread( icon_path, (uint8_t *) icon_image, icon_path -> byte );
 

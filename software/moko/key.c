@@ -44,7 +44,7 @@ uint8_t moko_key_ctrl( uint16_t key ) {
 					FILE *file_save_as;
 
 					// if file name provided, retrieve it
-					if( save_as_length ) file_save_as = fopen( save_as );
+					if( save_as_length ) file_save_as = fopen( save_as, STD_FILE_MODE_modify );
 					else {
 						// restore cursor position
 						print( "\e[u" );

@@ -60,7 +60,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				dir = (struct LS_STRUCTURE *) realloc( dir, sizeof( struct LS_STRUCTURE ) * (i + 1) );
 
 				// get directory properties
-				if( (dir[ i ].file = fopen( argv[ j ] )) ) {
+				if( (dir[ i ].file = fopen( argv[ j ], EMPTY )) ) {
 					// assign argv entry to directory entry
 					dir[ i ].argv = j;
 
@@ -79,7 +79,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	}
 
 	// if no directoris selected inside arguments, open current directory
-	if( ! i ) dir[ i++ ].file = fopen( (uint8_t *) "." );
+	if( ! i ) dir[ i++ ].file = fopen( (uint8_t *) ".", EMPTY );
 
 	//----------------------------------------------------------------------
 

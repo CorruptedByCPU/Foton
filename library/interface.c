@@ -324,34 +324,9 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 				// icon
 				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_icon ) ) {
-					// properties of file
-					struct STD_STRUCTURE_FILE icon_file = { EMPTY };
-
-					// properties of image
-					struct LIB_IMAGE_STRUCTURE_TGA *icon_image = EMPTY;
-
-					// retrieve information about module file
+					// load icon
 					uint8_t *icon_file_string = (uint8_t *) menu.value; icon_file_string[ menu.length ] = STD_ASCII_TERMINATOR;
-					if( (icon_file.socket = std_file_open( (uint8_t *) menu.value, menu.length )) ) {
-						// retrieve properties of file
-						std_file( (struct STD_STRUCTURE_FILE *) &icon_file );
-
-						// assign area for file
-						icon_image = (struct LIB_IMAGE_STRUCTURE_TGA *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( icon_file.byte ) >> STD_SHIFT_PAGE );
-
-						// load file content
-						std_file_read( (struct STD_STRUCTURE_FILE *) &icon_file, (uint8_t *) icon_image, icon_file.byte );
-
-						// copy image content to cursor object
-						element -> icon = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( icon_image -> width * icon_image -> height * STD_VIDEO_DEPTH_byte ) >> STD_SHIFT_PAGE );
-						lib_image_tga_parse( (uint8_t *) icon_image, element -> icon, icon_file.byte );
-
-						// release file content
-						std_memory_release( (uintptr_t) icon_image, MACRO_PAGE_ALIGN_UP( icon_file.byte ) >> STD_SHIFT_PAGE );
-
-						// close file
-						std_file_close( icon_file.socket );
-					}
+					element -> icon = lib_interface_icon( icon_file_string );
 				}
 			// next key
 			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &menu ) );
@@ -1699,29 +1674,27 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, i
 	}
 }
 
-uint32_t *lib_interface_icon( uint8_t *path, uint64_t length ) {
-	// properties of file
-	struct STD_STRUCTURE_FILE file = { EMPTY };
+uint32_t *lib_interface_icon( uint8_t *path ) {
+	// file properties
+	FILE *file = EMPTY;
 
-	if( (file.socket = std_file_open( path, length )) ) {
-		// retrieve properties of file
-		std_file( (struct STD_STRUCTURE_FILE *) &file );
-
+	// file exist?
+	if( (file = fopen( path, EMPTY )) ) {
 		// assign area for file
-		struct LIB_IMAGE_STRUCTURE_TGA *image = (struct LIB_IMAGE_STRUCTURE_TGA *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( file.byte ) >> STD_SHIFT_PAGE );
+		struct LIB_IMAGE_STRUCTURE_TGA *image = (struct LIB_IMAGE_STRUCTURE_TGA *) malloc( MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
 
 		// load file content
-		std_file_read( (struct STD_STRUCTURE_FILE *) &file, (uint8_t *) image, file.byte );
+		fread( file, (uint8_t *) image, file -> byte );
 
 		// copy image content to cursor object
 		uint32_t *icon = (uint32_t *) malloc( image -> width * image -> height * STD_VIDEO_DEPTH_byte );
-		lib_image_tga_parse( (uint8_t *) image, icon, file.byte );
+		lib_image_tga_parse( (uint8_t *) image, icon, file -> byte );
 
 		// release file content
-		std_memory_release( (uintptr_t) image, MACRO_PAGE_ALIGN_UP( file.byte ) >> STD_SHIFT_PAGE );
+		free( image );
 
 		// close file
-		std_file_close( file.socket );
+		fclose( file );
 
 		// done
 		return icon;

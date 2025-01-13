@@ -653,12 +653,12 @@ void exit( void ) {
 	std_syscall_empty();
 }
 
-FILE *fopen( uint8_t *path ) {
+FILE *fopen( uint8_t *path, uint8_t mode ) {
 	// assign area for file structure
 	FILE *file = malloc( sizeof( FILE ) );
 
 	// open new socket for file
-	file -> socket = std_file_open( path, lib_string_trim( path, lib_string_length( path ) ) );
+	file -> socket = std_file_open( path, lib_string_trim( path, lib_string_length( path ) ), mode );
 
 	// if file doesn't exist
 	if( file -> socket < 0 ) {

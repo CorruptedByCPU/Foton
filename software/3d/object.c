@@ -15,7 +15,7 @@ void object_load( uint64_t argc, uint8_t *argv[] ) {
 		// object file?
 		if( lib_string_compare( (uint8_t *) &argv[ TRUE ][ lib_string_length( argv[ TRUE ] ) - 4 ], (uint8_t *) ".obj", 4 ) ) {	// yes
 			// open object file
-			if( ! (file = fopen( argv[ TRUE ] )) ) { log( "File not found!\n" ); exit(); }
+			if( ! (file = fopen( argv[ TRUE ], EMPTY )) ) { log( "File not found!\n" ); exit(); }
 
 			// assign area for object content
 			if( ! (object_content = (uint8_t *) malloc( file -> byte )) ) { log( "No enough memory!" ); exit(); }
@@ -48,7 +48,7 @@ void object_load( uint64_t argc, uint8_t *argv[] ) {
 	material = (struct LIB_RGL_STRUCTURE_MATERIAL *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_RGL_STRUCTURE_MATERIAL ) * material_limit ) >> STD_SHIFT_PAGE );
 
 	// open material file
-	if( (file = fopen( path )) ) {
+	if( (file = fopen( path, EMPTY )) ) {
 		// assign area for material content
 		if( ! (material_content = (uint8_t *) malloc( file -> byte )) ) { log( "No enough memory!" ); exit(); }
 

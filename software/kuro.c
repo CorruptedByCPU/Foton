@@ -28,7 +28,7 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 	struct LIB_VFS_STRUCTURE *vfs = EMPTY;
 
 	// get directory properties
-	if( ! (dir = fopen( (uint8_t *) "." )) ) { log( "Critical error!\n" ); return STD_ERROR_file_not_found; }
+	if( ! (dir = fopen( (uint8_t *) ".", EMPTY )) ) { log( "Critical error!\n" ); return STD_ERROR_file_not_found; }
 
 	// assign area for directory content
 	if( ! (vfs = (struct LIB_VFS_STRUCTURE *) malloc( dir -> byte )) ) { log( "No enough memory!" ); return STD_ERROR_memory_low; }
@@ -94,7 +94,7 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 				struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) malloc( sizeof( struct LIB_ELF_STRUCTURE ) );
 
 				// retrieve part of file content
-				FILE *file = fopen( entry[ local_list_entry_count ].name ); fread( file, (uint8_t *) elf, sizeof( struct LIB_ELF_STRUCTURE ) ); fclose( file );
+				FILE *file = fopen( entry[ local_list_entry_count ].name, EMPTY ); fread( file, (uint8_t *) elf, sizeof( struct LIB_ELF_STRUCTURE ) ); fclose( file );
 
 				// file type of ELF
 				if( lib_elf_identify( (uintptr_t) elf ) ) {	// yes
@@ -273,7 +273,7 @@ void kuro_dir_sort( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry, ui
 void kuro_icon_register( uint8_t type, uint8_t *path ) {
 	// register new icon
 	kuro_icon = (uint32_t **) realloc( kuro_icon, type * sizeof( uint32_t * ) );
-	kuro_icon[ type ] = lib_image_scale( lib_interface_icon( path, lib_string_length( path ) ), 48, 48, 16, 16 );
+	kuro_icon[ type ] = lib_image_scale( lib_interface_icon( path ), 48, 48, 16, 16 );
 }
 
 void kuro_release( void ) {
@@ -356,6 +356,15 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// check events from keyboard
 		uint16_t key = lib_interface_event_keyboard( kuro_interface );
+
+		// keep Left CTRL semaphore
+		if( key == STD_KEY_CTRL_LEFT ) kuro_key_ctrl_semaphore = TRUE;
+		if( key == (STD_KEY_CTRL_LEFT | STD_KEY_RELEASE) ) kuro_key_ctrl_semaphore = FALSE;
+
+		// special action?
+		if( key == 'c' && kuro_key_ctrl_semaphore ) {
+
+		}
 
 		// check if there is any action required with entry
 		for( uint64_t i = 0; i < kuro_files -> limit; i++ )

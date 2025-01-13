@@ -40,19 +40,16 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( stream_meta.x ) print( "\n" );	// no, move cursor to next line
 
 		// open current directory properties
-		struct STD_STRUCTURE_FILE dir = { EMPTY };
-		dir.socket = std_file_open( (uint8_t *) ".", TRUE );
-		std_file( (struct STD_STRUCTURE_FILE *) &dir );
+		FILE *dir = fopen( (uint8_t *) ".", EMPTY );
 
 		// open hostname file
-		struct STD_STRUCTURE_FILE file = { EMPTY };
-		uint8_t hostname_path[] = "/system/etc/hostname.txt";
-		if( (file.socket = std_file_open( (uint8_t *) &hostname_path, sizeof( hostname_path ) - 1 )) ) {
+		FILE *file = fopen( (uint8_t *) "/system/etc/hostname.txt", EMPTY );
+		if( file ) {
 			// load file content
-			std_file_read( (struct STD_STRUCTURE_FILE *) &file, hostname, 63 );
+			fread( file, hostname, 63 );
 
 			// close file
-			std_file_close( file.socket );
+			fclose( file );
 
 			// remove "white" characters from first line
 			lib_string_trim( hostname, lib_string_length( hostname ) );
@@ -62,10 +59,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// show prompt
-		printf( "\e[0m\e[P\e[38;5;47m%s \e[38;5;15m%s \e[38;5;47m%%\e[0m ", hostname, (uint8_t *) &dir.name );
+		printf( "\e[0m\e[P\e[38;5;47m%s \e[38;5;15m%s \e[38;5;47m%%\e[0m ", hostname, (uint8_t *) &dir -> name );
 
 		// close directory
-		std_file_close( dir.socket );
+		fclose( dir );
 
 		// receive command from user
 		uint64_t shell_command_length = lib_input( input, shell_command, SHELL_COMMAND_limit, EMPTY, (uint8_t *) &shell_key_ctrl_left_semaphore );
@@ -125,7 +122,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// if requested
-		if( shell_command[ shell_command_length - 1 ] != '&' ) {
+		if( ! detach ) {
 			// wait for child end
 			while( shell_exec_pid && std_pid_check( shell_exec_pid ) ) {
 				// pass all incomming messages to child

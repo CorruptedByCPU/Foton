@@ -11,8 +11,7 @@
 		uint64_t			storage;
 		struct LIB_VFS_STRUCTURE	*knot;
 		int64_t				pid;
-		uint64_t			lock;		// amount of opened instances
-		uint8_t				semaphore;	// set if someone is writing or reallocating file area
+		uint8_t				mode;
 	};
 
 	struct	KERNEL_STRUCTURE_VFS_PROPERTIES {
@@ -25,7 +24,7 @@
 
 	void kernel_vfs_file_close( struct KERNEL_STRUCTURE_VFS *socket );
 
-	struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t length );
+	struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t length, uint8_t mode );
 
 	void kernel_vfs_file_properties( struct KERNEL_STRUCTURE_VFS *socket, struct KERNEL_STRUCTURE_VFS_PROPERTIES *properties );
 

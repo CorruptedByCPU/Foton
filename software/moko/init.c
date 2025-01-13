@@ -31,7 +31,7 @@ void moko_init( uint64_t argc, uint8_t *argv[] ) {
 				sprintf( "%s", file_path, argv[ i ] );
 
 				// open provided file
-				file = fopen( file_path );
+				file = fopen( file_path, STD_FILE_MODE_modify );
 
 				// ignore other file names, no support yet
 				break;

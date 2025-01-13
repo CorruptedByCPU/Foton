@@ -22,7 +22,7 @@ uint8_t *lib_path( void ) {
 		dir = (FILE **) realloc( dir, sizeof( FILE ) * (i + 1) );
 
 		// get directory properties
-		dir[ i ] = fopen( (uint8_t *) "." );
+		dir[ i ] = fopen( (uint8_t *) ".", EMPTY );
 
 		// change directory to previous one
 		std_cd( (uint8_t *) "..", 2 );

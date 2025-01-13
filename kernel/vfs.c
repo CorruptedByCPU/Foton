@@ -86,13 +86,16 @@ void kernel_vfs_file_close( struct KERNEL_STRUCTURE_VFS *socket ) {
 	if( socket -> pid != kernel_task_pid() ) return;	// no! TODO: something nasty
 
 	// release socket
-	if( socket -> lock ) socket -> lock--;
+	socket -> pid = EMPTY;
 }
 
-struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t length ) {
+struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t length, uint8_t mode ) {
 	// properties of found file
 	struct LIB_VFS_STRUCTURE *vfs;
 	if( ! (vfs = kernel_vfs_path( path, length )) ) return EMPTY;	// file not found
+
+	// lock exclusive access
+	MACRO_LOCK( kernel -> vfs_semaphore );
 
 	// open socket
 	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add( vfs );
@@ -105,6 +108,18 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 
 	// socket opened by process with ID
 	socket -> pid = kernel_task_pid();
+
+	// protect file against any modifications?
+	if( mode == STD_FILE_MODE_modify ) {
+		// insert ID of process, locked by
+		socket -> knot -> lock = socket -> pid;
+
+		// return flag
+		socket -> mode = STD_FILE_MODE_modify;
+	}
+
+	// unlock access
+	MACRO_UNLOCK( kernel -> vfs_semaphore );
 
 	// file found
 	return socket;
@@ -275,9 +290,6 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 }
 
 void kernel_vfs_file_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source, uint64_t seek, uint64_t byte ) {
-	// lock exclusive access
-	MACRO_LOCK( socket -> semaphore );
-
 	// properties of file
 	struct LIB_VFS_STRUCTURE *file = socket -> knot;
 
@@ -329,9 +341,6 @@ void kernel_vfs_file_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source
 		kernel_memory_release( block, TRUE );
 	// until forever
 	} while( TRUE );
-	
-	// unlock access
-	MACRO_UNLOCK( socket -> semaphore );
 }
 
 uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte ) {
@@ -423,33 +432,21 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 }
 
 struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( struct LIB_VFS_STRUCTURE *knot ) {
-	// lock exclusive access
-	MACRO_LOCK( kernel -> vfs_semaphore );
-
 	// available entry, doesn't exist by default
-	struct KERNEL_STRUCTURE_VFS *available = EMPTY;
+	struct KERNEL_STRUCTURE_VFS *socket = EMPTY;
 
 	// search thru all sockets
 	for( uint64_t i = 0; i < KERNEL_VFS_limit; i++ ) {
-		// if available for use, remember it
-		if( ! kernel -> vfs_base_address[ i ].lock ) available = (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ i ];
-
-		// file already opened?
-		if( kernel -> vfs_base_address[ i ].knot == knot ) {
-			// set entry for use
-			available = (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ i ];
+		// if available for use
+		if( ! kernel -> vfs_base_address[ i ].pid ) {
+			// properties of socket
+			socket = (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ i ];
 
 			// done
 			break;
 		}
 	}
 
-	// increase lock level of socket
-	if( available ) available -> lock++;
-
-	// unlock access
-	MACRO_UNLOCK( kernel -> vfs_semaphore );
-
 	// all sockets reserved
-	return available;
+	return socket;
 }

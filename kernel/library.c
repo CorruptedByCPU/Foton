@@ -255,7 +255,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
 
 	// retrieve information about library file
-	library.socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length );
+	library.socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length, EMPTY );
 
 	// if library does not exist
 	if( ! library.socket ) { kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library ); return STD_ERROR_file_not_found; };
