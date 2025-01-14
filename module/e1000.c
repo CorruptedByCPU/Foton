@@ -200,7 +200,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		kernel -> memory_release_page( data );
 
 		// debug
-		// kernel -> log( (uint8_t *) "Out\n" );
+		kernel -> log( (uint8_t *) "Tx\n" );
 	}
 }
 
@@ -224,7 +224,7 @@ void driver_e1000( void ) {
 		module_e1000_mmio_base_address -> rdh = 0;	// identifier of first available descriptor on list
 
 		// debug
-		// kernel -> log( (uint8_t *) "In\n" );
+		kernel -> log( (uint8_t *) "Rx\n" );
 	}
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely

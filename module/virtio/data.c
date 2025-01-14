@@ -2,8 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#ifndef	MODULE_VIO
-	#define	MODULE_VIO
+struct KERNEL *kernel = EMPTY;
 
-	#define	MODULE_VIO_
-#endif
+struct MODULE_VIRTIO_STRUCTURE_NETWORK *module_virtio_network = EMPTY;
+uint64_t module_virtio_network_limit = EMPTY;

@@ -183,7 +183,7 @@
                 uint16_t	checksum;
                 uint8_t		status;
                 uint8_t		errors;
-                uint8_t		special;
+                uint16_t	special;
         } __attribute__( (packed) );
 
         struct MODULE_E1000_STRUCTURE_TDESC {

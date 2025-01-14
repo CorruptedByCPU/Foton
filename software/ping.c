@@ -27,13 +27,40 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// nothing to do?
 	if( argc < 2 ) return 0;	// yes
 
-	// retrieve IPv4 address
-	uint32_t ipv4 = lib_network_string_to_ipv4( (uint8_t *) argv[ 1 ] );
+	// properties of provided IPv4 address
+	uint32_t ipv4 = EMPTY;
+
+	// some arguments provided?
+	if( argc > 1 ) {	// yes
+		for( uint64_t j = 1; j < argc; j++ ) {	// change behavior
+			// option?
+			if( argv[ j ][ 0 ] == '-' ) {
+				// options
+				uint8_t o = EMPTY;
+				while( argv[ j ][ ++o ] ) {
+					// show hidden?
+					if( argv[ j ][ o ] == 't' ) count = STD_MAX_unsigned;	// almost infinite ping
+					else {
+						// show error message
+						printf( "Undefinied option: \e[38;5;250m%c", argv[ j ][ o ] );
+
+						// end
+						return 0;
+					}
+				}
+			// then it should be directory/path
+			} else {
+				// ocnvert string to IPv4
+				ipv4 = lib_network_string_to_ipv4( (uint8_t *) &argv[ j ][ 0 ] );
+			}
+		}
+	// done
+	} else return 0;
 
 	// IPv4 invalid?
 	if( ! ipv4 ) {
 		// show error message
-		printf( "Invalid IPv4 address: \e[38;5;250m%s", argv[ 1 ] );
+		print( "Invalid IPv4 address.\n" );
 
 		// end
 		return 0;
@@ -88,7 +115,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	while( count ) {
 		// start of timelapse
 		int64_t current_microtime = std_microtime();
-		int64_t end_microtime = current_microtime + 1000;	// at least 1 second
+		int64_t end_microtime = current_microtime + 1024;	// at least 1 second
 
 		// send request outside
 		std_network_send( socket, (uint8_t *) icmp, sizeof( struct PING_STRUCTURE_ICMP ) + PING_ICMP_DATA_length );
@@ -103,6 +130,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			// still no reply, update current time
 			current_microtime = std_microtime();
+
+			// recieve key
+			uint16_t key = getkey(); if( key == STD_KEY_ESC ) return 0;	// yes
 		}
 
 		// didn't receive anything?
@@ -115,7 +145,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		std_memory_release( (uintptr_t) packet.data, MACRO_PAGE_ALIGN_UP( packet.length ) >> STD_SHIFT_PAGE );
 
 		// no more replies required?
-		if( --count ) sleep( end_microtime - current_microtime );	// wait before sending next request
+		if( --count ) sleep( 1024 );	// wait before sending next request
 	}
 
 	// release ICMP request

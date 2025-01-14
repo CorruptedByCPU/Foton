@@ -17,6 +17,8 @@
         #define	DRIVER_PCI_REGISTER_bar3			0x1C
         #define	DRIVER_PCI_REGISTER_bar4			0x20
         #define	DRIVER_PCI_REGISTER_bar5			0x24
+	#define	DRIVER_PCI_REGISTER_subsystem_and_vendor_id	0x2C
+	#define	DRIVER_PCI_REGISTER_capabilities_pointer	0x34
         #define	DRIVER_PCI_REGISTER_irq				0x3C
 	#define	DRIVER_PCI_REGISTER_BAR0_FLAG_io		0b00000001
         #define	DRIVER_PCI_REGISTER_BAR0_FLAG_64bit		0b00000100
@@ -26,7 +28,7 @@
 	#define	DRIVER_PCI_REGISTER_CONTROL_BUS_MASTER		(1 << 2)
 	#define	DRIVER_PCI_REGISTER_CONTROL_IRQ_DISABLE		(1 << 10)
 
-        #define DRIVER_PCI_DEVICE_VENDOR                        0x1AF4
+        #define DRIVER_PCI_DEVICE_VENDOR_virtio			0x1AF4
 
         #define	DRIVER_PCI_CLASS_SUBCLASS_ide			0x0101
         #define	DRIVER_PCI_CLASS_SUBCLASS_ahci			0x0106
