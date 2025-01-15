@@ -26,6 +26,20 @@
 	#define	MODULE_VIRTIO_REGISTER_isr_status	0x13
 	#define	MODULE_VIRTIO_REGISTER_device_config	0x14
 
+	#define	MODULE_VIRTIO_DEVICE_STATUS_acknowledge		(1 << 0)
+	#define	MODULE_VIRTIO_DEVICE_STATUS_driver_available	(1 << 1)
+	#define	MODULE_VIRTIO_DEVICE_STATUS_driver_ok		(1 << 2)
+	#define	MODULE_VIRTIO_DEVICE_STATUS_features_ok		(1 << 3)
+	#define	MODULE_VIRTIO_DEVICE_STATUS_device_needs_reset	(1 << 6)
+	#define	MODULE_VIRTIO_DEVICE_STATUS_failed		(1 << 7)
+
+	#define	MODULE_VIRTIO_DEVICE_FEATURE_mac		(1 << 5)
+	#define	MODULE_VIRTIO_DEVICE_FEATURE_status		(1 << 16)
+
+	#define	MODULE_VIRTIO_NET_RING_DESCRIPTOR_FLAG_next	(1 << 0)
+	#define	MODULE_VIRTIO_NET_RING_DESCRIPTOR_FLAG_write	(1 << 1)
+	#define	MODULE_VIRTIO_NET_RING_DESCRIPTOR_FLAG_indirect	(1 << 3)
+
 	struct MODULE_VIRTIO_STRUCTURE_NETWORK {
 		uint16_t			subsystem_id;
 		struct DRIVER_PCI_STRUCTURE	pci;
@@ -33,12 +47,18 @@
 		uintptr_t			base_address;
 		uint8_t				limit;
 		uint8_t				mmio_semaphore;
+		uint8_t				mac[ 6 ];
 	};
 
 	struct MODULE_VIRTIO_STRUCTURE_NETWORK_DEVICE_CONFIG {
 		uint8_t		mac[ 6 ];
 		uint16_t	status;
-		uint16_t	max_virtqueue_pairs;
-		uint16_t	mtu;
+	} __attribute__( (packed) );
+
+	struct MODULE_VIRTIO_STRUCTURE_RING_DESCRIPTOR {
+		uint64_t	address;
+		uint32_t	limit;
+		uint16_t	flags;
+		uint16_t	next;
 	} __attribute__( (packed) );
 #endif
