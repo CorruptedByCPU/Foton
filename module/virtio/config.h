@@ -36,9 +36,17 @@
 	#define	MODULE_VIRTIO_DEVICE_FEATURE_mac		(1 << 5)
 	#define	MODULE_VIRTIO_DEVICE_FEATURE_status		(1 << 16)
 
-	#define	MODULE_VIRTIO_NET_RING_DESCRIPTOR_FLAG_next	(1 << 0)
-	#define	MODULE_VIRTIO_NET_RING_DESCRIPTOR_FLAG_write	(1 << 1)
-	#define	MODULE_VIRTIO_NET_RING_DESCRIPTOR_FLAG_indirect	(1 << 3)
+	#define	MODULE_VIRTIO_NET_CACHE_FLAG_next		(1 << 0)
+	#define	MODULE_VIRTIO_NET_CACHE_FLAG_write		(1 << 1)
+	#define	MODULE_VIRTIO_NET_CACHE_FLAG_indirect		(1 << 3)
+
+	#define	MODULE_VIRTIO_NET_AVAILABLE_FLAG_interrupt_no	(1 << 0)	// don't inform us about device borrowing the cache entry
+
+	struct MODULE_VIRTIO_STRUTURE_NETWORK_QUEUE {
+		struct MODULE_VIRTIO_STRUCTURE_CACHE		*cache_address;
+		struct MODULE_VIRTIO_STRUCTURE_AVAILABLE	*available_address;
+		struct MODULE_VIRTIO_STRUCTURE_USED		*used_address;
+	};
 
 	struct MODULE_VIRTIO_STRUCTURE_NETWORK {
 		uint16_t			subsystem_id;
@@ -47,7 +55,10 @@
 		uintptr_t			base_address;
 		uint8_t				limit;
 		uint8_t				mmio_semaphore;
+		uint8_t				irq;
 		uint8_t				mac[ 6 ];
+		struct MODULE_VIRTIO_STRUTURE_NETWORK_QUEUE	queue[ 2 ];
+		uint16_t			queue_limit[ 2 ];
 	};
 
 	struct MODULE_VIRTIO_STRUCTURE_NETWORK_DEVICE_CONFIG {
@@ -55,10 +66,32 @@
 		uint16_t	status;
 	} __attribute__( (packed) );
 
-	struct MODULE_VIRTIO_STRUCTURE_RING_DESCRIPTOR {
+	struct MODULE_VIRTIO_STRUCTURE_CACHE {
 		uint64_t	address;
 		uint32_t	limit;
 		uint16_t	flags;
 		uint16_t	next;
 	} __attribute__( (packed) );
+
+	struct MODULE_VIRTIO_STRUCTURE_AVAILABLE {
+		uint16_t	flags;
+		uint16_t	index;
+		uint16_t	*ring;
+		uint16_t	event_index;
+	} __attribute__( (packed) );
+
+	struct MODULE_VIRTIO_STRUCTURE_RING {
+		uint32_t	index;
+		uint32_t	length;
+	} __attribute__( (packed) );
+
+	struct MODULE_VIRTIO_STRUCTURE_USED {
+		uint16_t	flags;
+		uint16_t	index;
+		struct MODULE_VIRTIO_STRUCTURE_RING *ring;
+		uint16_t	available_event;
+	} __attribute__( (packed) );
+
+	// external routines (assembly language)
+	extern void module_virtio_net_entry( void );
 #endif

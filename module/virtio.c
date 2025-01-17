@@ -6,6 +6,9 @@
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
 	#include	"../kernel/config.h"
+	#include	"../kernel/idt.h"
+	#include	"../kernel/io_apic.h"
+	#include	"../kernel/lapic.h"
 	#include	"../kernel/page.h"
 	//----------------------------------------------------------------------
 	// drivers
@@ -22,6 +25,15 @@
 	// variables
 	//----------------------------------------------------------------------
 	#include	"./virtio/data.c"
+
+__attribute__(( preserve_most ))
+void module_virtio_net( void ) {
+	// debug
+	kernel -> log( (uint8_t *) "[VIRTIO] Interrupt!\n" );
+
+	// tell APIC of current logical processor that hardware interrupt was handled, propely
+	kernel -> lapic_base_address -> eoi = EMPTY;
+}
 
 void _entry( uintptr_t kernel_ptr ) {
 	// preserve kernel structure pointer
@@ -77,6 +89,9 @@ void _entry( uintptr_t kernel_ptr ) {
 					// debug
 					kernel -> log( (uint8_t *) "[VIRTIO].%u PCI %2X:%2X.%u - Network Controller I/O address 0x%X\n", module_virtio_network_limit, module_virtio_network[ module_virtio_network_limit ].pci.bus, module_virtio_network[ module_virtio_network_limit ].pci.device, module_virtio_network[ module_virtio_network_limit ].pci.function, module_virtio_network[ module_virtio_network_limit ].base_address &= ~0b00001111 );
 
+				// retrieve interrupt number of device
+				module_virtio_network[ module_virtio_network_limit ].irq = (uint8_t) driver_pci_read( module_virtio_network[ module_virtio_network_limit ].pci, DRIVER_PCI_REGISTER_irq );
+
 				// properties of device features and status
 				uint64_t device_features;
 				uint8_t device_status;
@@ -84,16 +99,13 @@ void _entry( uintptr_t kernel_ptr ) {
 				//----------------------------------------------
 
 				// reset device
-				device_status = MODULE_VIRTIO_DEVICE_STATUS_failed;
+				device_status = EMPTY;
 				driver_port_out_byte( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_device_status, device_status );
-
-				// wait for finish
-				while( driver_port_in_dword( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_device_features ) & MODULE_VIRTIO_DEVICE_STATUS_failed );
 
 				//----------------------------------------------
 
 				// device recognized
-				device_status = MODULE_VIRTIO_DEVICE_STATUS_acknowledge;
+				device_status |= MODULE_VIRTIO_DEVICE_STATUS_acknowledge;
 				driver_port_out_byte( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_device_status, device_status );
 
 				// driver available
@@ -106,7 +118,7 @@ void _entry( uintptr_t kernel_ptr ) {
 				device_features = driver_port_in_dword( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_device_features );
 
 				// debug
-				kernel -> log( (uint8_t *) "[VIRTIO].%u PCI %2X:%2X.%u - Features: %32b\n", module_virtio_network_limit, module_virtio_network[ module_virtio_network_limit ].pci.bus, module_virtio_network[ module_virtio_network_limit ].pci.device, module_virtio_network[ module_virtio_network_limit ].pci.function, device_features );
+				kernel -> log( (uint8_t *) "[VIRTIO].%u PCI %2X:%2X.%u - Features available: %32b\n", module_virtio_network_limit, module_virtio_network[ module_virtio_network_limit ].pci.bus, module_virtio_network[ module_virtio_network_limit ].pci.device, module_virtio_network[ module_virtio_network_limit ].pci.function, device_features );
 
 				// MAC field?
 				if( ! (device_features & MODULE_VIRTIO_DEVICE_FEATURE_mac) ) {
@@ -134,23 +146,60 @@ void _entry( uintptr_t kernel_ptr ) {
 				uint32_t quest_features = MODULE_VIRTIO_DEVICE_FEATURE_mac | MODULE_VIRTIO_DEVICE_FEATURE_status;
 				driver_port_out_dword( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_guest_features, device_features );
 
+				// debug
+				kernel -> log( (uint8_t *) "[VIRTIO].%u PCI %2X:%2X.%u - Features requested: %32b\n", module_virtio_network_limit, module_virtio_network[ module_virtio_network_limit ].pci.bus, module_virtio_network[ module_virtio_network_limit ].pci.device, module_virtio_network[ module_virtio_network_limit ].pci.function, quest_features );
+
+				// close negotiations
+				device_status |= MODULE_VIRTIO_DEVICE_STATUS_features_ok;
+				driver_port_out_byte( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_device_status, device_status );
+
+				// retrieve current device status
+				device_status = driver_port_in_byte( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_device_status );
+
+				// debug
+				kernel -> log( (uint8_t *) "[VIRTIO].%u PCI %2X:%2X.%u - Device status: %8b, ", module_virtio_network_limit, module_virtio_network[ module_virtio_network_limit ].pci.bus, module_virtio_network[ module_virtio_network_limit ].pci.device, module_virtio_network[ module_virtio_network_limit ].pci.function, device_status );
+
+				// requested features, accepted?
+				if( device_status & MODULE_VIRTIO_DEVICE_STATUS_features_ok ) kernel -> log( (uint8_t *) "features accepted.\n" );
+				else {
+					// debug
+					kernel -> log( (uint8_t *) ", ERROR.\n" );
+
+					// leave device
+					continue;
+				}
+
 				//----------------------------------------------
 
-				// select 0th queue
-				driver_port_out_word( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_select, FALSE );
+				// network adapter have 2 queues
+				for( uint16_t i = 0; i < 2; i++ ) {
+					// select queue
+					driver_port_out_word( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_select, i );
 
-				// register receive queue
-				uint64_t queue_receive_limit = driver_port_in_word( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_limit );
-				uintptr_t queue_receive_address = kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( queue_receive_limit * queue_receive_limit ) >> STD_SHIFT_PAGE );
-				driver_port_out_dword( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_address, queue_receive_address >> STD_SHIFT_PAGE );
+					// check if queue exist
+					module_virtio_network[ module_virtio_network_limit ].queue_limit[ i ] = driver_port_in_word( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_limit );
+					if( ! module_virtio_network[ module_virtio_network_limit ].queue_limit[ i ] ) continue;	// doesn't
 
-				// select 1st queue
-				driver_port_out_word( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_select, TRUE );
+					// rings sizes
+					uint64_t limit_cache = MACRO_PAGE_ALIGN_UP( sizeof( struct MODULE_VIRTIO_STRUCTURE_CACHE ) * module_virtio_network[ module_virtio_network_limit ].queue_limit[ i ] );
+					uint64_t limit_available = MACRO_PAGE_ALIGN_UP( (sizeof( uint16_t ) * module_virtio_network[ module_virtio_network_limit ].queue_limit[ i ]) + (3 * sizeof( uint16_t )) );
+					uint64_t limit_used = MACRO_PAGE_ALIGN_UP( (sizeof( struct MODULE_VIRTIO_STRUCTURE_RING ) * module_virtio_network[ module_virtio_network_limit ].queue_limit[ i ]) + (3 * sizeof( uint16_t )) );
 
-				// register transmit queue
-				uint64_t queue_transmit_limit = driver_port_in_word( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_limit );
-				uintptr_t queue_transmit_address = kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( queue_transmit_limit * queue_transmit_limit ) >> STD_SHIFT_PAGE );
-				driver_port_out_dword( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_address, queue_transmit_address >> STD_SHIFT_PAGE );
+					// acquire area for queue
+					module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address = (struct MODULE_VIRTIO_STRUCTURE_CACHE *) (kernel -> memory_alloc_low( (limit_cache + limit_available + limit_used) >> STD_SHIFT_PAGE ) | KERNEL_PAGE_mirror);
+					module_virtio_network[ module_virtio_network_limit ].queue[ i ].available_address = (struct MODULE_VIRTIO_STRUCTURE_AVAILABLE *) ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address + limit_cache);
+					module_virtio_network[ module_virtio_network_limit ].queue[ i ].used_address = (struct MODULE_VIRTIO_STRUCTURE_USED *) ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address + limit_cache + limit_available);
+
+					// register queue
+					driver_port_out_dword( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_address, ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address & ~KERNEL_PAGE_mirror) >> STD_SHIFT_PAGE );
+
+					// debug
+					kernel -> log( (uint8_t *) "[VIRTIO].%u PCI %2X:%2X.%u - Queue[ %u ] at 0x%16X-0x%16X (Cache: 0x%X, Available: 0x%X, Used: 0x%X)\n", module_virtio_network_limit, module_virtio_network[ module_virtio_network_limit ].pci.bus, module_virtio_network[ module_virtio_network_limit ].pci.device, module_virtio_network[ module_virtio_network_limit ].pci.function, i, (uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address, ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address + (limit_cache + limit_available + limit_used)) - 1, (uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address & ~KERNEL_PAGE_mirror, ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address + limit_cache) & ~KERNEL_PAGE_mirror, ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address + limit_cache + limit_available) & ~KERNEL_PAGE_mirror );
+				}
+
+				// driver configured
+				device_status |= MODULE_VIRTIO_DEVICE_STATUS_driver_ok;
+				driver_port_out_byte( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_device_status, device_status );
 
 				//----------------------------------------------
 
@@ -164,6 +213,24 @@ void _entry( uintptr_t kernel_ptr ) {
 
 				// debug
 				kernel -> log( (uint8_t *) "[VIRTIO].%u PCI %2X:%2X.%u - MAC address: %2X:%2X:%2X:%2X:%2X:%2X\n", module_virtio_network_limit, module_virtio_network[ module_virtio_network_limit ].pci.bus, module_virtio_network[ module_virtio_network_limit ].pci.device, module_virtio_network[ module_virtio_network_limit ].pci.function, module_virtio_network[ module_virtio_network_limit ].mac[ 0 ], module_virtio_network[ module_virtio_network_limit ].mac[ 1 ], module_virtio_network[ module_virtio_network_limit ].mac[ 2 ], module_virtio_network[ module_virtio_network_limit ].mac[ 3 ], module_virtio_network[ module_virtio_network_limit ].mac[ 4 ], module_virtio_network[ module_virtio_network_limit ].mac[ 5 ] );
+
+				//----------------------------------------------
+
+				// connect network controller interrupt handler
+				kernel -> idt_mount( KERNEL_IDT_IRQ_offset + module_virtio_network[ module_virtio_network_limit ].irq, KERNEL_IDT_TYPE_irq, (uintptr_t) module_virtio_net_entry );
+
+				// connect interrupt vector from IDT table to IOAPIC controller
+				kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + module_virtio_network[ module_virtio_network_limit ].irq, KERNEL_IO_APIC_iowin + (module_virtio_network[ module_virtio_network_limit ].irq * 0x02) );
+
+				//----------------------------------------------
+
+				// debug
+				module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ FALSE ].address = kernel -> memory_alloc_page();
+				module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ FALSE ].limit = STD_PAGE_byte;
+				module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ FALSE ].flags = MODULE_VIRTIO_NET_CACHE_FLAG_write;
+				kernel -> log( (uint8_t *) "[VIRTIO] DEBUG: 0x%X (%u) Write-Only\n", module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ FALSE ].address, module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ FALSE ].limit );
+				module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].available_address[ FALSE ].flags = MODULE_VIRTIO_NET_AVAILABLE_FLAG_interrupt_no;
+				module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].available_address[ FALSE ].index = 0;
 			}
 
 	// infinite loop :)
