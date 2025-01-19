@@ -187,7 +187,7 @@ void _entry( uintptr_t kernel_ptr ) {
 
 					// acquire area for queue
 					module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address = (struct MODULE_VIRTIO_STRUCTURE_CACHE *) (kernel -> memory_alloc_low( (limit_cache + limit_available + limit_used) >> STD_SHIFT_PAGE ) | KERNEL_PAGE_mirror);
-					module_virtio_network[ module_virtio_network_limit ].queue[ i ].available_address = (struct MODULE_VIRTIO_STRUCTURE_AVAILABLE *) ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address + limit_cache);
+					module_virtio_network[ module_virtio_network_limit ].queue[ i ].available_address = (struct MODULE_VIRTIO_STRUCTURE_AVAILABLE *) ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address + limit_cache); module_virtio_network[ module_virtio_network_limit ].queue[ i ].available_address -> ring = (uint16_t *) &module_virtio_network[ module_virtio_network_limit ].queue[ i ].available_address -> ring;
 					module_virtio_network[ module_virtio_network_limit ].queue[ i ].used_address = (struct MODULE_VIRTIO_STRUCTURE_USED *) ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ i ].cache_address + limit_cache + limit_available);
 
 					// register queue
@@ -223,14 +223,48 @@ void _entry( uintptr_t kernel_ptr ) {
 				kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + module_virtio_network[ module_virtio_network_limit ].irq, KERNEL_IO_APIC_iowin + (module_virtio_network[ module_virtio_network_limit ].irq * 0x02) );
 
 				//----------------------------------------------
+				// DEBUG
+				//----------------------------------------------
 
-				// debug
-				module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ FALSE ].address = kernel -> memory_alloc_page();
-				module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ FALSE ].limit = STD_PAGE_byte;
-				module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ FALSE ].flags = MODULE_VIRTIO_NET_CACHE_FLAG_write;
-				kernel -> log( (uint8_t *) "[VIRTIO] DEBUG: 0x%X (%u) Write-Only\n", module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ FALSE ].address, module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ FALSE ].limit );
-				module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].available_address[ FALSE ].flags = MODULE_VIRTIO_NET_AVAILABLE_FLAG_interrupt_no;
-				module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].available_address[ FALSE ].index = 0;
+				// transmit function ready?
+				while( ! kernel -> network_tx );
+
+				// hold the door
+				while( TRUE ) {
+					// properties of frame to send
+					// uintptr_t frame = EMPTY;
+
+					// acquire data for transmission
+					// while( ! (frame = kernel -> network_tx()) );
+
+					// resolve properties
+					// uint8_t *data = (uint8_t *) (frame & STD_PAGE_mask);
+					// uint64_t length = frame & ~STD_PAGE_mask;
+
+					uint64_t index = module_virtio_network[ module_virtio_network_limit ].queue[ TRUE ].available_address -> index % module_virtio_network[ module_virtio_network_limit ].queue_limit[ TRUE ];
+
+// kernel -> log( (uint8_t *) "[VIRTIO] DEBUG: 0x%X (%u) Write-Only (index: %u)\n", data, length, index );
+
+					// move packet content behind header
+					// for( uint64_t i = length - 1; i > sizeof( struct MODULE_VIRTIO_NET_STRUCTURE_HEADER ); i-- ) data[ i ] = data[ i - sizeof( struct MODULE_VIRTIO_NET_STRUCTURE_HEADER ) ];
+
+					// debug
+					module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ index ].address = (uintptr_t) kernel -> memory_alloc_page();
+					module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ index ].limit = STD_PAGE_byte;
+					module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ index ].flags = EMPTY;
+					__asm__ volatile( "mfence" );
+					module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].available_address -> ring[ index ] = index;
+					__asm__ volatile( "mfence" );
+					module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].available_address -> index++;
+					__asm__ volatile( "mfence" );
+
+					// release page
+					// kernel -> memory_release_page( data );
+
+					// debug
+					kernel -> log( (uint8_t *) "Rx\n" );
+					while( TRUE );
+				}
 			}
 
 	// infinite loop :)

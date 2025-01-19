@@ -77,7 +77,7 @@
 		uint16_t	flags;
 		uint16_t	index;
 		uint16_t	*ring;
-		uint16_t	event_index;
+		uint16_t	used_index;
 	} __attribute__( (packed) );
 
 	struct MODULE_VIRTIO_STRUCTURE_RING {
@@ -90,6 +90,15 @@
 		uint16_t	index;
 		struct MODULE_VIRTIO_STRUCTURE_RING *ring;
 		uint16_t	available_event;
+	} __attribute__( (packed) );
+
+	struct MODULE_VIRTIO_NET_STRUCTURE_HEADER {
+		uint8_t		flags;
+		uint8_t		gso_type;
+		uint16_t	header_length;
+		uint16_t	gso_size;
+		uint16_t	checksum_start;
+		uint16_t	checksum_offset;
 	} __attribute__( (packed) );
 
 	// external routines (assembly language)
