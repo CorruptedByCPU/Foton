@@ -59,6 +59,7 @@ void kernel_init_environment( void ) {
 	kernel -> idt_mount			= (void *) kernel_idt_mount;
 
 	// share I/O APIC management functions
+	kernel -> io_apic_line			= (void *) kernel_io_apic_line;
 	kernel -> io_apic_line_acquire		= (void *) kernel_io_apic_line_acquire;
 	kernel -> io_apic_connect		= (void *) kernel_io_apic_connect;
 

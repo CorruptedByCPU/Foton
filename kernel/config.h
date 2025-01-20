@@ -64,6 +64,7 @@ struct KERNEL {
 	uint32_t						io_apic_irq_lines;
 	uint8_t							io_apic_semaphore;
 	// functions of I/O APIC management
+	uint8_t							(*io_apic_line)( uint8_t irq );
 	uint8_t							(*io_apic_line_acquire)( void );
 	void							(*io_apic_connect)( uint8_t line, uint32_t io_apic_register );
 

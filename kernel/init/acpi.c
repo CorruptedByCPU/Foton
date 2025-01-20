@@ -86,7 +86,7 @@ void kernel_init_acpi( void ) {
 						kernel -> log( (uint8_t *) "I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
 
 						// register available IRQ lines
-						kernel -> io_apic_irq_lines = -1;	// all available
+						kernel -> io_apic_irq_lines = EMPTY;	// all available
 
 						// unlock access to lines
 						MACRO_UNLOCK( kernel -> io_apic_semaphore );

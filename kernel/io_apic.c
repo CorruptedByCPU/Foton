@@ -14,12 +14,15 @@ uint8_t kernel_io_apic_line_acquire( void ) {
 	// check every line
 	for( uint8_t i = 0; i < 24; i++ )
 		// available?
-		if( kernel_io_apic_line( i ) ) {
+		if( ! kernel_io_apic_line( i ) ) {
 			// change line status
-			kernel -> io_apic_irq_lines &= ~(1 << i);
+			kernel -> io_apic_irq_lines |= (1 << i);
 
 			// unlock
 			MACRO_UNLOCK( kernel -> io_apic_semaphore );
+
+			// debug
+			kernel -> log( (uint8_t *) "[IRQ line 0x%2X acquired.]\n", i );
 
 			// acquired
 			return i;
@@ -42,5 +45,8 @@ void kernel_io_apic_connect( uint8_t line, uint32_t io_apic_register ) {
 	kernel -> io_apic_base_address -> iowin = (uint32_t) EMPTY;
 
 	// lock used IRQ line
-	kernel -> io_apic_irq_lines &= ~(1 << line);
+	kernel -> io_apic_irq_lines |= (1 << (line - KERNEL_IDT_IRQ_offset));
+
+	// debug
+	kernel -> log( (uint8_t *) "[I/O APIC] Line 0x%2X set.]\n", line - KERNEL_IDT_IRQ_offset );
 }

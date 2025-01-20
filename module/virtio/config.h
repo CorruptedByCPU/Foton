@@ -35,6 +35,7 @@
 
 	#define	MODULE_VIRTIO_DEVICE_FEATURE_mac		(1 << 5)
 	#define	MODULE_VIRTIO_DEVICE_FEATURE_status		(1 << 16)
+	#define	MODULE_VIRTIO_DEVICE_FEATURE_empty		(1 << 24)
 
 	#define	MODULE_VIRTIO_NET_CACHE_FLAG_next		(1 << 0)
 	#define	MODULE_VIRTIO_NET_CACHE_FLAG_write		(1 << 1)
@@ -42,10 +43,16 @@
 
 	#define	MODULE_VIRTIO_NET_AVAILABLE_FLAG_interrupt_no	(1 << 0)	// don't inform us about device borrowing the cache entry
 
+	enum MODULE_VIRTIO_QUEUE {
+		MODULE_VIRTIO_QUEUE_RECEIVE,
+		MODULE_VIRTIO_QUEUE_TRANSMIT
+	};
+
 	struct MODULE_VIRTIO_STRUTURE_NETWORK_QUEUE {
 		struct MODULE_VIRTIO_STRUCTURE_CACHE		*cache_address;
 		struct MODULE_VIRTIO_STRUCTURE_AVAILABLE	*available_address;
 		struct MODULE_VIRTIO_STRUCTURE_USED		*used_address;
+		uint16_t					used_index;
 	};
 
 	struct MODULE_VIRTIO_STRUCTURE_NETWORK {
@@ -75,7 +82,7 @@
 
 	struct MODULE_VIRTIO_STRUCTURE_AVAILABLE {
 		uint16_t	flags;
-		uint16_t	index;
+		volatile uint16_t	index;
 		uint16_t	*ring;
 		uint16_t	used_index;
 	} __attribute__( (packed) );
