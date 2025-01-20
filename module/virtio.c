@@ -31,51 +31,62 @@ void module_virtio_net( void ) {
 	// retrieve virtio-net isr status
 	uint8_t isr_status = driver_port_in_byte( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_isr_status );
 
-	uint64_t index; uint16_t *available; struct MODULE_VIRTIO_STRUCTURE_RING *used;
-			// check incomming queue
-		uint64_t queue = MODULE_VIRTIO_QUEUE_RECEIVE;
+	// interrupt from queue? no
+	if( ! (isr_status & TRUE) ) { kernel -> lapic_base_address -> eoi = EMPTY; return; }
 
+	// synchronize memory with host
 	MACRO_SYNC();
 
-	// interrupt from queue?
-	if( isr_status & TRUE ) {
-		// rings properties
-		available = (uint16_t *) (module_virtio_network[ module_virtio_network_limit ].queue[ queue ].available_address + offsetof( struct MODULE_VIRTIO_STRUCTURE_AVAILABLE, ring ));
-		used = (struct MODULE_VIRTIO_STRUCTURE_RING *) ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ queue ].used_address + 0x04);
+	// rings properties
+	uint16_t *available = (uint16_t *) (module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].available_address + offsetof( struct MODULE_VIRTIO_STRUCTURE_AVAILABLE, ring ));
+	struct MODULE_VIRTIO_STRUCTURE_RING *used = (struct MODULE_VIRTIO_STRUCTURE_RING *) ((uintptr_t) module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].used_address + 0x04);
 
-		// kernel -> log( (uint8_t *) "/0x%X/\n", (uintptr_t) ring_used );
+	// parse all incomming packets
+	while( module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].used_index != module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].used_address -> index ) {
+		// calculate ring id
+		uint64_t index = module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].used_index % module_virtio_network[ module_virtio_network_limit ].queue_limit[ FALSE ];
 
-		// there are packets to parse?
-		if( module_virtio_network[ module_virtio_network_limit ].queue[ queue ].used_index != module_virtio_network[ module_virtio_network_limit ].queue[ queue ].used_address -> index ) {
-			// parse all incomming packets
-			while( module_virtio_network[ module_virtio_network_limit ].queue[ queue ].used_index != module_virtio_network[ module_virtio_network_limit ].queue[ queue ].used_address -> index ) {
-				// calculate ring id
-				index = module_virtio_network[ module_virtio_network_limit ].queue[ queue ].used_index % module_virtio_network[ module_virtio_network_limit ].queue_limit[ queue ];
+		// return cache back to pool
+		module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ index ].limit = STD_PAGE_byte;
+		module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].cache_address[ index ].flags = MODULE_VIRTIO_NET_CACHE_FLAG_write;
 
-				// debug
-				// kernel -> log( (uint8_t *) "Rx: Cache 0x%X, Length: 0x%X Bytes. ", module_virtio_network[ module_virtio_network_limit ].queue[ queue ].cache_address[ used[ index ].index ].address, used[ index ].length );
+		// debug
+		kernel -> log( (uint8_t *) "parsed -> idx %u\n", module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].used_index );
 
-				// next descriptor
-				module_virtio_network[ module_virtio_network_limit ].queue[ queue ].used_address -> flags = EMPTY;
-				MACRO_SYNC();
-				module_virtio_network[ module_virtio_network_limit ].queue[ queue ].used_index++;
-				MACRO_SYNC();
-			}
+		// next descriptor
+		module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].used_index++;
 
-			// debug
-			available[ module_virtio_network[ module_virtio_network_limit ].queue[ queue ].available_address -> index % module_virtio_network[ module_virtio_network_limit ].queue_limit[ queue ] ] = 0;
-			MACRO_SYNC();
-			module_virtio_network[ module_virtio_network_limit ].queue[ queue ].available_address -> index++;
-			MACRO_SYNC();
-
-
-		} else {
-			kernel -> log( (uint8_t *) "Hmmmmmm....\n" );
-			kernel -> log( (uint8_t *) "%8b / %8b / %8b / %8b\n", driver_port_in_byte( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_device_status ), isr_status, module_virtio_network[ module_virtio_network_limit ].queue[ queue ].available_address -> flags, module_virtio_network[ module_virtio_network_limit ].queue[ queue ].used_address -> flags );
-		}
-	} else {
-		kernel -> log( (uint8_t *) "Attencion!\n" );
+		// synchronize memory with host
+		MACRO_SYNC();
 	}
+
+	// ring defalted?
+	if( ! (module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].used_address -> index % module_virtio_network[ module_virtio_network_limit ].queue_limit[ FALSE ]) ) {
+		// synchronize memory with host
+		MACRO_SYNC();
+
+		// start counting from current id
+		uint16_t current = module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].used_index;
+
+		// populate new availaable caches
+		for( uint64_t i = 0; i < module_virtio_network[ module_virtio_network_limit ].queue_limit[ FALSE ]; i++ ) {
+			// add cache to available ring
+			available[ i ] = i;
+
+			// synchronize memory with host
+			MACRO_SYNC();
+
+			// set next available index
+			module_virtio_network[ module_virtio_network_limit ].queue[ FALSE ].available_address -> index++;
+				
+			// synchronize memory with host
+			MACRO_SYNC();
+
+			// inform about updated available shared caches
+			// driver_port_out_byte( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_notify, i );
+		}
+	}
+
 	// tell APIC of current logical processor that hardware interrupt was handled, propely
 	kernel -> lapic_base_address -> eoi = EMPTY;
 }
@@ -301,7 +312,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					// uint64_t length = frame & ~STD_PAGE_mask;
 
 					uint64_t queue = MODULE_VIRTIO_QUEUE_RECEIVE;
-					uint16_t *ring = (uint16_t *) (module_virtio_network[ module_virtio_network_limit ].queue[ queue ].available_address + offsetof( struct MODULE_VIRTIO_STRUCTURE_AVAILABLE, ring ));
+					uint16_t *ring_available = (uint16_t *) (module_virtio_network[ module_virtio_network_limit ].queue[ queue ].available_address + offsetof( struct MODULE_VIRTIO_STRUCTURE_AVAILABLE, ring ));
 
 					// move packet content behind header
 					// for( uint64_t i = length - 1; i > sizeof( struct MODULE_VIRTIO_NET_STRUCTURE_HEADER ); i-- ) data[ i ] = data[ i - sizeof( struct MODULE_VIRTIO_NET_STRUCTURE_HEADER ) ];
@@ -310,19 +321,26 @@ void _entry( uintptr_t kernel_ptr ) {
 
 					// debug
 					for( uint64_t i = 0; i < module_virtio_network[ module_virtio_network_limit ].queue_limit[ queue ]; i++ ) {
+						// allocate area for cache
 						module_virtio_network[ module_virtio_network_limit ].queue[ queue ].cache_address[ i ].address = (uintptr_t) kernel -> memory_alloc_page();
 						module_virtio_network[ module_virtio_network_limit ].queue[ queue ].cache_address[ i ].limit = STD_PAGE_byte;
 						module_virtio_network[ module_virtio_network_limit ].queue[ queue ].cache_address[ i ].flags = MODULE_VIRTIO_NET_CACHE_FLAG_write;
-						MACRO_SYNC();
-						ring[ module_virtio_network[ module_virtio_network_limit ].queue[ queue ].available_address -> index % module_virtio_network[ module_virtio_network_limit ].queue_limit[ queue ] ] = i;
-						module_virtio_network[ module_virtio_network_limit ].queue[ queue ].available_address -> index++;
+
+						// add cache to available ring
+						ring_available[ i ] = i;
+
+						// synchronize memory with host
 						MACRO_SYNC();
 
+						// set next available index
+						module_virtio_network[ module_virtio_network_limit ].queue[ queue ].available_address -> index++;
+						
+						// synchronize memory with host
+						MACRO_SYNC();
+
+						// inform about updated available  shared caches
 						// driver_port_out_byte( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_queue_notify, i );
 					}
-
-					// release page
-					// kernel -> memory_release_page( data );
 
 					// retrieve current device status
 					device_status = driver_port_in_byte( module_virtio_network[ module_virtio_network_limit ].base_address + MODULE_VIRTIO_REGISTER_device_status );
@@ -330,11 +348,9 @@ void _entry( uintptr_t kernel_ptr ) {
 						// debug
 						kernel -> log( (uint8_t *) "ERROR!\n" );
 					}
-
-					while( TRUE );
 				// }
 			}
 
 	// infinite loop :)
-	while( TRUE );// __asm__ volatile( "hlt" );
+	while( TRUE ) __asm__ volatile( "hlt" );
 }
