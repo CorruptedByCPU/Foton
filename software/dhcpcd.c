@@ -69,7 +69,7 @@ uint16_t dhcp_hostname( struct DHCP_STRUCTURE *dhcp, uint16_t length ) {
 void dhcp_receive( struct STD_STRUCTURE_NETWORK_DATA *packet ) {
 	// start of timelapse
 	int64_t current_microtime = std_microtime();
-	int64_t end_microtime = current_microtime + 1024;
+	int64_t end_microtime = current_microtime + 4096;
 
 	// wait for incomming reply
 	while( end_microtime > current_microtime && ! packet -> length ) {
