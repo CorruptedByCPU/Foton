@@ -41,7 +41,7 @@
 	#define	MODULE_VIRTIO_NET_CACHE_FLAG_write		(1 << 1)
 	#define	MODULE_VIRTIO_NET_CACHE_FLAG_indirect		(1 << 3)
 
-	#define	MODULE_VIRTIO_NET_AVAILABLE_FLAG_interrupt_no	(1 << 0)	// don't inform us about device borrowing the cache entry
+	#define	MODULE_VIRTIO_NET_QUEUE_FLAG_interrupt_no	(1 << 0)	// don't inform us about device borrowing the cache entry
 
 	enum MODULE_VIRTIO_QUEUE {
 		MODULE_VIRTIO_QUEUE_RECEIVE,
@@ -49,7 +49,8 @@
 	};
 
 	struct MODULE_VIRTIO_STRUTURE_NETWORK_QUEUE {
-		struct MODULE_VIRTIO_STRUCTURE_CACHE		*cache_address;
+		struct MODULE_VIRTIO_STRUCTURE_CACHE		*descriptor_address;
+		uint16_t					descriptor_index;
 		struct MODULE_VIRTIO_STRUCTURE_AVAILABLE	*available_address;
 		struct MODULE_VIRTIO_STRUCTURE_USED		*used_address;
 		uint16_t					used_index;
@@ -82,9 +83,8 @@
 
 	struct MODULE_VIRTIO_STRUCTURE_AVAILABLE {
 		uint16_t	flags;
-		volatile uint16_t	index;
+		uint16_t	index;
 		uint16_t	*ring;
-		uint16_t	used_index;
 	} __attribute__( (packed) );
 
 	struct MODULE_VIRTIO_STRUCTURE_RING {
@@ -96,7 +96,6 @@
 		uint16_t	flags;
 		uint16_t	index;
 		struct MODULE_VIRTIO_STRUCTURE_RING *ring;
-		uint16_t	available_event;
 	} __attribute__( (packed) );
 
 	struct MODULE_VIRTIO_NET_STRUCTURE_HEADER {
@@ -104,8 +103,8 @@
 		uint8_t		gso_type;
 		uint16_t	header_length;
 		uint16_t	gso_size;
-		uint16_t	checksum_start;
-		uint16_t	checksum_offset;
+		uint16_t	csum_start;
+		uint16_t	csum_limit;
 	} __attribute__( (packed) );
 
 	// external routines (assembly language)

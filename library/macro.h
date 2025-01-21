@@ -10,6 +10,7 @@
 	// support for while( TRUE );
 	#define	MACRO_NOP( void ) __asm__ volatile( "nop" );
 	#define	MACRO_SYNC( void ) __asm__ volatile( "lock addq $0, (%rsp)" );
+	// #define	MACRO_SYNC( void ) __asm__ volatile( "mfence" );
 
 	// exclusive access
 	#define	MACRO_LOCK( semaphore ) while( __sync_val_compare_and_swap( &semaphore, UNLOCK, LOCK ) ) {};
