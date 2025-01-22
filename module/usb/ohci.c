@@ -47,7 +47,7 @@ void module_usb_ohci_init( uint8_t c ) {
 	uintptr_t base_address = kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( bytes ) >> STD_SHIFT_PAGE ) | KERNEL_PAGE_mirror;
 
 	// debug
-	kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - HCCA memory block at 0x%X\n", c, module_usb_controller[ c ].pci.bus, module_usb_controller[ c ].pci.device, module_usb_controller[ c ].pci.function, base_address );
+	// kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - HCCA memory block at 0x%X\n", c, module_usb_controller[ c ].pci.bus, module_usb_controller[ c ].pci.device, module_usb_controller[ c ].pci.function, base_address );
 
 	// reset all ports
 	ohci -> control = EMPTY;
@@ -63,7 +63,7 @@ void module_usb_ohci_init( uint8_t c ) {
 	ohci -> periodic_start = MODULE_USB_OHCI_REGISTER_PERIODIC_START_default;
 
 	uint32_t rh_descriptor_a = ohci -> rh_descriptor_a & STD_MASK_byte;
-	kernel -> log( (uint8_t *) "%u ports available.\n", rh_descriptor_a & 0x011111111 );
+	// kernel -> log( (uint8_t *) "%u ports available.\n", rh_descriptor_a & 0x011111111 );
 	ohci -> rh_descriptor_a = (rh_descriptor_a & ~MODULE_USB_OHCI_REGISTER_RH_DESCRIPTOR_A_power_individual) | MODULE_USB_OHCI_REGISTER_RH_DESCRIPTOR_A_always_on;
 	uint32_t rh_descriptor_b = EMPTY;
 	for( uint8_t i = 0; i < (rh_descriptor_a & STD_MASK_byte); i++ )

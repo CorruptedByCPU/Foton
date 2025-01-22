@@ -22,7 +22,7 @@ uint8_t kernel_io_apic_line_acquire( void ) {
 			MACRO_UNLOCK( kernel -> io_apic_semaphore );
 
 			// debug
-			kernel -> log( (uint8_t *) "[IRQ line 0x%2X acquired.]\n", i );
+			// kernel -> log( (uint8_t *) "[IRQ line 0x%2X acquired.]\n", i );
 
 			// acquired
 			return i;
@@ -48,5 +48,5 @@ void kernel_io_apic_connect( uint8_t line, uint32_t io_apic_register ) {
 	kernel -> io_apic_irq_lines |= (1 << (line - KERNEL_IDT_IRQ_offset));
 
 	// debug
-	kernel -> log( (uint8_t *) "[I/O APIC] Line 0x%2X set.]\n", line - KERNEL_IDT_IRQ_offset );
+	// kernel -> log( (uint8_t *) "[I/O APIC] Line 0x%2X set.]\n", line - KERNEL_IDT_IRQ_offset );
 }

@@ -30,7 +30,7 @@ void driver_rtc_init( void ) {
 	kernel_io_apic_connect( KERNEL_IDT_IRQ_offset + DRIVER_RTC_IRQ_number, DRIVER_RTC_IO_APIC_register );
 
 	// debug
-	kernel -> log( (uint8_t *) "[RTC] IRQ 0x%2X, connected.\n", DRIVER_RTC_IRQ_number );
+	// kernel -> log( (uint8_t *) "[RTC] IRQ 0x%2X, connected.\n", DRIVER_RTC_IRQ_number );
 
 	// state of real-time controller register
 	uint8_t local_register_status = EMPTY;

@@ -37,6 +37,6 @@ void kernel_init_smp( void ) {
 		if( kernel -> cpu_count >= 6 || i >= 6 ) break;	// yes
 
 		// debug
-		if( kernel -> cpu_count ) kernel -> log( (uint8_t *) "+%u AP/s initialized.\n", kernel -> cpu_count );
+		// if( kernel -> cpu_count ) kernel -> log( (uint8_t *) "+%u AP/s initialized.\n", kernel -> cpu_count );
 	}
 }

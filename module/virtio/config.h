@@ -37,20 +37,20 @@
 	#define	MODULE_VIRTIO_DEVICE_FEATURE_status		(1 << 16)
 	#define	MODULE_VIRTIO_DEVICE_FEATURE_empty		(1 << 24)
 
+	#define	MODULE_VIRTIO_NET_CACHE_FLAG_read_only		EMPTY
 	#define	MODULE_VIRTIO_NET_CACHE_FLAG_next		(1 << 0)
-	#define	MODULE_VIRTIO_NET_CACHE_FLAG_write		(1 << 1)
+	#define	MODULE_VIRTIO_NET_CACHE_FLAG_write_only		(1 << 1)
 	#define	MODULE_VIRTIO_NET_CACHE_FLAG_indirect		(1 << 3)
 
 	#define	MODULE_VIRTIO_NET_QUEUE_FLAG_interrupt_no	(1 << 0)	// don't inform us about device borrowing the cache entry
 
-	enum MODULE_VIRTIO_QUEUE {
-		MODULE_VIRTIO_QUEUE_RECEIVE,
-		MODULE_VIRTIO_QUEUE_TRANSMIT
+	enum MODULE_VIRTIO_NET_QUEUE {
+		MODULE_VIRTIO_NET_QUEUE_RX,
+		MODULE_VIRTIO_NET_QUEUE_TX
 	};
 
 	struct MODULE_VIRTIO_STRUTURE_NETWORK_QUEUE {
-		struct MODULE_VIRTIO_STRUCTURE_CACHE		*descriptor_address;
-		uint16_t					descriptor_index;
+		struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR	*descriptor_address;
 		struct MODULE_VIRTIO_STRUCTURE_AVAILABLE	*available_address;
 		struct MODULE_VIRTIO_STRUCTURE_USED		*used_address;
 		uint16_t					used_index;
@@ -74,7 +74,7 @@
 		uint16_t	status;
 	} __attribute__( (packed) );
 
-	struct MODULE_VIRTIO_STRUCTURE_CACHE {
+	struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR {
 		uint64_t	address;
 		uint32_t	limit;
 		uint16_t	flags;

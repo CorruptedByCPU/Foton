@@ -13,7 +13,7 @@ void module_usb_ehci_init( uint8_t c ) {
 		driver_pci_write( module_usb_controller[ c ].pci, eecp -> extended_capabilities, 1 << 24 );
 
 		// debug
-		kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - BIOS Legacy Support, disabled.\n", c, module_usb_controller[ c ].pci.bus, module_usb_controller[ c ].pci.device, module_usb_controller[ c ].pci.function );
+		// kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - BIOS Legacy Support, disabled.\n", c, module_usb_controller[ c ].pci.bus, module_usb_controller[ c ].pci.device, module_usb_controller[ c ].pci.function );
 	}
 
 	// properties of EHCI Operational Registers

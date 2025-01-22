@@ -16,7 +16,7 @@ void kernel_init_acpi( void ) {
 	// check revision number of RSDP/XSDP header
 	if( local_rsdp_or_xsdp_header -> revision == EMPTY ) {
 		// debug
-		kernel -> log( (uint8_t *) "RSDT (Root System Description Pointer).\n" );
+		// kernel -> log( (uint8_t *) "RSDT (Root System Description Pointer).\n" );
 
 		// RSDT header properties
 		struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *local_rsdt = (struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address);
@@ -28,7 +28,7 @@ void kernel_init_acpi( void ) {
 		local_list_rsdt_address = (uint32_t *) ((uintptr_t) local_rsdp_or_xsdp_header -> rsdt_address + sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT ));
 	} else {
 		// debug
-		kernel -> log( (uint8_t *) "XSDT (eXtended System Descriptor Table).\n" );
+		// kernel -> log( (uint8_t *) "XSDT (eXtended System Descriptor Table).\n" );
 
 		// XSDT header properties
 		struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *local_xsdt = (struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *) ((uintptr_t) local_rsdp_or_xsdp_header -> xsdt_address);
@@ -60,7 +60,7 @@ void kernel_init_acpi( void ) {
 			kernel -> lapic_base_address = (struct KERNEL_STRUCTURE_LAPIC *) (uintptr_t) (local_madt -> lapic_address | KERNEL_PAGE_mirror);
 
 			// debug
-			kernel -> log( (uint8_t *) "LAPIC base address 0x%X\n", (uint64_t) kernel -> lapic_base_address );
+			// kernel -> log( (uint8_t *) "LAPIC base address 0x%X\n", (uint64_t) kernel -> lapic_base_address );
 
 			// length of MADT list
 			uint64_t local_size = (uint32_t) local_madt -> length - sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_MADT );
@@ -83,7 +83,7 @@ void kernel_init_acpi( void ) {
 						kernel -> io_apic_base_address = (struct KERNEL_STRUCTURE_IO_APIC_REGISTER *) (uintptr_t) (local_io_apic -> base_address | KERNEL_PAGE_mirror);
 
 						// debug
-						kernel -> log( (uint8_t *) "I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
+						// kernel -> log( (uint8_t *) "I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
 
 						// register available IRQ lines
 						kernel -> io_apic_irq_lines = EMPTY;	// all available

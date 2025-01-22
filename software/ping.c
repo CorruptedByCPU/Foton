@@ -139,7 +139,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( ! packet.length ) { print( "No answer.\n" ); count--; continue; }	// ignore request
 
 		// calculate waiting time
-		printf( "Reply from %u.%u.%u.%u in %ums\n", (uint8_t) (ipv4 >> 24), (uint8_t) (ipv4 >> 16), (uint8_t) (ipv4 >> 8), (uint8_t) ipv4, 1000 - (end_microtime - current_microtime) );
+		printf( "Reply from %u.%u.%u.%u in ~%ums\n", (uint8_t) (ipv4 >> 24), (uint8_t) (ipv4 >> 16), (uint8_t) (ipv4 >> 8), (uint8_t) ipv4, 1024 - (end_microtime - current_microtime) );
 
 		// release packet area
 		std_memory_release( (uintptr_t) packet.data, MACRO_PAGE_ALIGN_UP( packet.length ) >> STD_SHIFT_PAGE );

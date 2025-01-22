@@ -374,7 +374,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	kernel_vfs_file_close( library.socket );
 
 	// debug
-	kernel -> log( (uint8_t *) "%s at 0x%16X\n", name, library.base_address );
+	// kernel -> log( (uint8_t *) "%s at 0x%16X\n", name, library.base_address );
 
 	// library loaded
 	return EMPTY;

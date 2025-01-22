@@ -310,7 +310,7 @@ void module_ps2_init( void ) {
 	kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, MODULE_PS2_MOUSE_IO_APIC_register );
 
 	// debug
-	kernel -> log( (uint8_t *) "[PS2] IRQ 0x%2X, connected.\n", MODULE_PS2_MOUSE_IRQ_number );
+	// kernel -> log( (uint8_t *) "[PS2] IRQ 0x%2X, connected.\n", MODULE_PS2_MOUSE_IRQ_number );
 
 	// set default position of pointer
 	kernel -> device_mouse_x = kernel -> framebuffer_width_pixel >> STD_SHIFT_2;
@@ -324,7 +324,7 @@ void module_ps2_init( void ) {
 	kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + MODULE_PS2_KEYBOARD_IRQ_number, MODULE_PS2_KEYBOARD_IO_APIC_register );
 
 	// debug
-	kernel -> log( (uint8_t *) "[PS2] IRQ 0x%2X, connected.\n", MODULE_PS2_KEYBOARD_IRQ_number );
+	// kernel -> log( (uint8_t *) "[PS2] IRQ 0x%2X, connected.\n", MODULE_PS2_KEYBOARD_IRQ_number );
 }
 
 void _entry( uintptr_t kernel_ptr ) {

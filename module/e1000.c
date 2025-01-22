@@ -149,7 +149,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + module_e1000_irq_number, KERNEL_IO_APIC_iowin + (module_e1000_irq_number * 0x02) );
 
 		// debug
-		kernel -> log( (uint8_t *) "[E1000] IRQ 0x%2X, connected.\n", module_e1000_irq_number );
+		// kernel -> log( (uint8_t *) "[E1000] IRQ 0x%2X, connected.\n", module_e1000_irq_number );
 
 		// set: IPGT, IPGR1, IPGR2
 		module_e1000_mmio_base_address -> tipg = MODULE_E1000_TIPG_IPGT_DEFAULT | MODULE_E1000_TIPG_IPGR1_DEFAULT | MODULE_E1000_TIPG_IPGR2_DEFAULT;
@@ -203,7 +203,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		kernel -> memory_release_page( data );
 
 		// debug
-		kernel -> log( (uint8_t *) "Tx\n" );
+		// kernel -> log( (uint8_t *) "Tx\n" );
 	}
 }
 
@@ -227,7 +227,7 @@ void driver_e1000( void ) {
 		module_e1000_mmio_base_address -> rdh = 0;	// identifier of first available descriptor on list
 
 		// debug
-		kernel -> log( (uint8_t *) "Rx\n" );
+		// kernel -> log( (uint8_t *) "Rx\n" );
 	}
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely
