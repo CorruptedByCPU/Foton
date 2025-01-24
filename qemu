@@ -21,9 +21,9 @@ qemu-system-x86_64						\
 	-cdrom build/foton.iso					\
 	-rtc base=localtime					\
 	-audio driver=alsa,model=sb16,id=7			\
-	-netdev user,id=virtio-net-0				\
-	-device virtio-net-pci,netdev=virtio-net-0,mac=00:22:44:66:88:AA	\
-	-object filter-dump,id=virtio-net-0,netdev=virtio-net-0,file=network.dump	\
+	-netdev user,id=eth0					\
+	-device virtio-net,netdev=eth0,mac=00:22:44:66:88:AA	\
+	-object filter-dump,id=eth0,netdev=eth0,file=network.pcap	\
 	-serial stdio						\
 #	-readconfig tools/qemu-ehci-uhci.cfg			\
 #	-device usb-kbd,bus=ehci.0				\

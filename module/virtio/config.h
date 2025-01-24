@@ -5,6 +5,9 @@
 #ifndef	MODULE_VIRTIO
 	#define	MODULE_VIRTIO
 
+	#define	MODULE_VIRTIO_DEVICE_network		0x1000
+	#define	MODULE_VIRTIO_DEVICE_ID_network		0x0001
+
 	#define	MODULE_VIRTIO_SUBSYSTEM_ID_NETWORK	0x01
 	#define	MODULE_VIRTIO_SUBSYSTEM_ID_BLOCK	0x02
 	#define	MODULE_VIRTIO_SUBSYSTEM_ID_CONSOLE	0x03
@@ -44,15 +47,16 @@
 
 	#define	MODULE_VIRTIO_NET_QUEUE_FLAG_interrupt_no	(1 << 0)	// don't inform us about device borrowing the cache entry
 
-	enum MODULE_VIRTIO_NET_QUEUE {
+	enum MODULE_VIRTIO_QUEUE {
 		MODULE_VIRTIO_NET_QUEUE_RX,
 		MODULE_VIRTIO_NET_QUEUE_TX
 	};
 
 	struct MODULE_VIRTIO_STRUTURE_NETWORK_QUEUE {
 		struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR	*descriptor_address;
-		struct MODULE_VIRTIO_STRUCTURE_AVAILABLE	*available_address;
-		struct MODULE_VIRTIO_STRUCTURE_USED		*used_address;
+		uint16_t					descriptor_index;
+		struct MODULE_VIRTIO_STRUCTURE_DRIVER		*available_address;
+		struct MODULE_VIRTIO_STRUCTURE_DEVICE		*used_address;
 		uint16_t					used_index;
 	};
 
@@ -61,6 +65,7 @@
 		struct DRIVER_PCI_STRUCTURE	pci;
 
 		uintptr_t			base_address;
+		uintptr_t			mmio_address;
 		uint8_t				limit;
 		uint8_t				mmio_semaphore;
 		uint8_t				irq;
@@ -81,7 +86,7 @@
 		uint16_t	next;
 	} __attribute__( (packed) );
 
-	struct MODULE_VIRTIO_STRUCTURE_AVAILABLE {
+	struct MODULE_VIRTIO_STRUCTURE_DRIVER {
 		uint16_t	flags;
 		uint16_t	index;
 		uint16_t	*ring;
@@ -92,7 +97,7 @@
 		uint32_t	length;
 	} __attribute__( (packed) );
 
-	struct MODULE_VIRTIO_STRUCTURE_USED {
+	struct MODULE_VIRTIO_STRUCTURE_DEVICE {
 		uint16_t	flags;
 		uint16_t	index;
 		struct MODULE_VIRTIO_STRUCTURE_RING *ring;
