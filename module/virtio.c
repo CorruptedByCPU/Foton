@@ -62,6 +62,9 @@ void module_virtio_net( void ) {
 
 	// parse all incomming packets
 	while( module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_RX ].used_index != module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_RX ].used_address -> index ) {
+		// debug
+		// kernel -> log( (uint8_t *) "Rx\n" );
+
 		// calculate ring id
 		uint64_t index_used = module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_RX ].used_index % module_virtio_network -> queue_limit[ MODULE_VIRTIO_NET_QUEUE_RX ];
 
@@ -213,7 +216,7 @@ void _entry( uintptr_t kernel_ptr ) {
 				device_features = driver_port_in_dword( module_virtio_network -> base_address + MODULE_VIRTIO_REGISTER_device_features );
 
 				// MAC field?
-				if( ! (device_features & MODULE_VIRTIO_DEVICE_FEATURE_mac) ) {
+				if( ! (device_features & MODULE_VIRTIO_NET_FEATURE_MAC) ) {
 					// set own MAC address
 					module_virtio_network -> mac[ 0 ] = 0x00; driver_port_out_byte( module_virtio_network -> base_address + MODULE_VIRTIO_REGISTER_device_config + offsetof( struct MODULE_VIRTIO_STRUCTURE_NETWORK_DEVICE_CONFIG, mac[ 0 ] ), module_virtio_network -> mac[ 0 ] );
 					module_virtio_network -> mac[ 1 ] = 0x22; driver_port_out_byte( module_virtio_network -> base_address + MODULE_VIRTIO_REGISTER_device_config + offsetof( struct MODULE_VIRTIO_STRUCTURE_NETWORK_DEVICE_CONFIG, mac[ 1 ] ), module_virtio_network -> mac[ 1 ] );
@@ -224,12 +227,12 @@ void _entry( uintptr_t kernel_ptr ) {
 				}
 				
 				// Status field?
-				if( ! (device_features & MODULE_VIRTIO_DEVICE_FEATURE_status) ) continue;	// no
+				if( ! (device_features & MODULE_VIRTIO_NET_FEATURE_STATUS) ) continue;	// no
 
 				//----------------------------------------------
 
-				// inform about supported features by driver
-				uint32_t quest_features = MODULE_VIRTIO_DEVICE_FEATURE_mac | MODULE_VIRTIO_DEVICE_FEATURE_status;
+				// inform about supported/required features by driver
+				uint32_t quest_features = MODULE_VIRTIO_NET_FEATURE_MAC | MODULE_VIRTIO_NET_FEATURE_STATUS;	// do not touch MODULE_VIRTIO_NET_FEATURE_MRG_RXBUF, Qemu ignores it
 				driver_port_out_dword( module_virtio_network -> base_address + MODULE_VIRTIO_REGISTER_guest_features, device_features );
 
 				// close negotiations
@@ -300,7 +303,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					// allocate area in Descriptors Queue
 					module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_RX ].descriptor_address[ i ].address = (uintptr_t) kernel -> memory_alloc_page();
 					module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_RX ].descriptor_address[ i ].limit = STD_PAGE_byte;
-					module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_RX ].descriptor_address[ i ].flags = MODULE_VIRTIO_NET_CACHE_FLAG_write_only;
+					module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_RX ].descriptor_address[ i ].flags = MODULE_VIRTIO_NET_DESCRIPTOR_FLAG_WRITE;
 
 					// add cache to available ring
 					uint16_t *receive_ring_available = (uint16_t *) (module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_RX ].available_address + offsetof( struct MODULE_VIRTIO_STRUCTURE_DRIVER, ring ));
@@ -324,7 +327,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					// allocate area in Descriptors Queue
 					module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_TX ].descriptor_address[ i ].address = (uintptr_t) kernel -> memory_alloc_page();
 					module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_TX ].descriptor_address[ i ].limit = STD_PAGE_byte;
-					module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_TX ].descriptor_address[ i ].flags = MODULE_VIRTIO_NET_CACHE_FLAG_read_only;
+					module_virtio_network -> queue[ MODULE_VIRTIO_NET_QUEUE_TX ].descriptor_address[ i ].flags = MODULE_VIRTIO_NET_DESCRIPTOR_FLAG_READ;
 
 					// synchronize memory with host
 					MACRO_SYNC();
@@ -353,7 +356,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					while( ! (frame = kernel -> network_tx()) );
 
 					// debug
-					kernel -> log( (uint8_t *) "Tx\n" );
+					// kernel -> log( (uint8_t *) "Tx\n" );
 
 					// resolve properties
 					uint8_t *data = (uint8_t *) (frame & STD_PAGE_mask | KERNEL_PAGE_mirror);
@@ -390,10 +393,9 @@ void _entry( uintptr_t kernel_ptr ) {
 					header -> gso_size	= EMPTY;
 					header -> csum_start	= EMPTY;
 					header -> csum_limit	= EMPTY;
-					header -> num_buffers	= EMPTY;
 
 					// debug
-					kernel -> log( (uint8_t *) "\n" ); for( uint64_t i = 0; i < (descriptor -> limit % 0x10) + TRUE; i++ ) { kernel -> log( (uint8_t *) "0x%8X", (uintptr_t) target + (i * 0x10) ); for( uint64_t k = i * 0x10; k < ((i * 0x10) + 0x10); k++ ) kernel -> log( (uint8_t *) " %2X", target[ k ] ); kernel -> log( (uint8_t *) "\n" ); }
+					// kernel -> log( (uint8_t *) "\n" ); for( uint64_t i = 0; i < (descriptor -> limit % 0x10) + TRUE; i++ ) { kernel -> log( (uint8_t *) "0x%8X", (uintptr_t) target + (i * 0x10) ); for( uint64_t k = i * 0x10; k < ((i * 0x10) + 0x10); k++ ) kernel -> log( (uint8_t *) " %2X", target[ k ] ); kernel -> log( (uint8_t *) "\n" ); }
 
 					// add to available ring
 					available_ring[ index ] = index;

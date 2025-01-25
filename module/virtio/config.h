@@ -36,14 +36,14 @@
 	#define	MODULE_VIRTIO_DEVICE_STATUS_device_needs_reset	(1 << 6)
 	#define	MODULE_VIRTIO_DEVICE_STATUS_failed		(1 << 7)
 
-	#define	MODULE_VIRTIO_DEVICE_FEATURE_mac		(1 << 5)
-	#define	MODULE_VIRTIO_DEVICE_FEATURE_status		(1 << 16)
-	#define	MODULE_VIRTIO_DEVICE_FEATURE_empty		(1 << 24)
+	#define	MODULE_VIRTIO_NET_FEATURE_MAC			(1 << 5)
+	#define	MODULE_VIRTIO_NET_FEATURE_MRG_RXBUF		(1 << 15)
+	#define	MODULE_VIRTIO_NET_FEATURE_STATUS		(1 << 16)
 
-	#define	MODULE_VIRTIO_NET_CACHE_FLAG_read_only		EMPTY
-	#define	MODULE_VIRTIO_NET_CACHE_FLAG_next		(1 << 0)
-	#define	MODULE_VIRTIO_NET_CACHE_FLAG_write_only		(1 << 1)
-	#define	MODULE_VIRTIO_NET_CACHE_FLAG_indirect		(1 << 3)
+	#define	MODULE_VIRTIO_NET_DESCRIPTOR_FLAG_READ		EMPTY
+	#define	MODULE_VIRTIO_NET_DESCRIPTOR_FLAG_NEXT		(1 << 0)
+	#define	MODULE_VIRTIO_NET_DESCRIPTOR_FLAG_WRITE		(1 << 1)
+	#define	MODULE_VIRTIO_NET_DESCRIPTOR_FLAG_INDIRECT	(1 << 3)
 
 	#define	MODULE_VIRTIO_NET_QUEUE_FLAG_interrupt_no	(1 << 0)	// don't inform us about device borrowing the cache entry
 
@@ -110,7 +110,8 @@
 		uint16_t	gso_size;
 		uint16_t	csum_start;
 		uint16_t	csum_limit;
-		uint16_t	num_buffers;
+		// MODULE_VIRTIO_NET_FEATURE_MRG_RXBUF is ignored by Qemu
+		// uint16_t	num_buffers;	// so, no support
 	} __attribute__( (packed) );
 
 	// external routines (assembly language)

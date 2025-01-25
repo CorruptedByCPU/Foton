@@ -104,10 +104,7 @@ void kernel_network_rx( uintptr_t frame ) {
 
 	// frame designated for us?
 	struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *ethernet = (struct KERNEL_STRUCTURE_NETWORK_HEADER_ETHERNET *) (frame & STD_PAGE_mask);
-	if( ethernet -> target[ 0 ] == kernel -> network_interface.ethernet_address[ 0 ] && ethernet -> target[ 1 ] == kernel -> network_interface.ethernet_address[ 1 ] && ethernet -> target[ 2 ] == kernel -> network_interface.ethernet_address[ 2 ] && ethernet -> target[ 3 ] == kernel -> network_interface.ethernet_address[ 3 ] && ethernet -> target[ 4 ] == kernel -> network_interface.ethernet_address[ 4 ] && ethernet -> target[ 5 ] == kernel -> network_interface.ethernet_address[ 5 ] ) {
-		// debug
-		// kernel -> log( (uint8_t *) "\n" ); uint8_t *data = (uint8_t *) (frame & STD_PAGE_mask); for( uint64_t i = 0; i < ((frame & ~STD_PAGE_mask) % 0x10) + TRUE; i++ ) { kernel -> log( (uint8_t *) "0x%8X", (uintptr_t) data + (i * 0x10) ); for( uint64_t k = i * 0x10; k < ((i * 0x10) + 0x10); k++ ) kernel -> log( (uint8_t *) " %2X", data[ k ] ); kernel -> log( (uint8_t *) "\n" ); }
-
+	if( (ethernet -> target[ 0 ] == kernel -> network_interface.ethernet_address[ 0 ] && ethernet -> target[ 1 ] == kernel -> network_interface.ethernet_address[ 1 ] && ethernet -> target[ 2 ] == kernel -> network_interface.ethernet_address[ 2 ] && ethernet -> target[ 3 ] == kernel -> network_interface.ethernet_address[ 3 ] && ethernet -> target[ 4 ] == kernel -> network_interface.ethernet_address[ 4 ] && ethernet -> target[ 5 ] == kernel -> network_interface.ethernet_address[ 5 ]) || (ethernet -> target[ 0 ] == 0xFF && ethernet -> target[ 1 ] == 0xFF && ethernet -> target[ 2 ] == 0xFF && ethernet -> target[ 3 ] == 0xFF && ethernet -> target[ 4 ] == 0xFF && ethernet -> target[ 5 ] == 0xFF) ) {
 		// rx stack is full?
 		if( kernel -> network_rx_limit < KERNEL_NETWORK_YX_limit )	// no
 			// add frame to stack
