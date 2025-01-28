@@ -25,10 +25,13 @@ struct STD_STRUCTURE_WINDOW_DESCRIPTOR *lib_window_event( struct STD_STRUCTURE_W
 	if( ! new_descriptor ) return EMPTY;	// cannot create new descriptor
 
 	// spread descriptor name
-	new_descriptor -> name_length = EMPTY;
-	for( uint64_t i = 0; i < descriptor -> name_length; i++ ) new_descriptor -> name[ new_descriptor -> name_length++ ] = descriptor -> name[ i ];
+	new_descriptor -> name_length = descriptor -> name_length;
+	for( uint64_t i = 0; i < descriptor -> name_length; i++ ) new_descriptor -> name[ i ] = descriptor -> name[ i ];
 
 	// copy required descriptor properties from old one
+	//----------------------------------------------------------------------
+	new_descriptor -> width_limit = descriptor -> width_limit;
+	new_descriptor -> height_limit = descriptor -> height_limit;
 	//----------------------------------------------------------------------
 	new_descriptor -> flags = descriptor -> flags;
 	//----------------------------------------------------------------------

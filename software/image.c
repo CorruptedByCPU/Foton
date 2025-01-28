@@ -5,18 +5,14 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
+	#include	"../library/color.h"
 	#include	"../library/image.h"
-	#include	"../library/interface.h"
+	#include	"../library/window.h"
 	//----------------------------------------------------------------------
 	// variables, routines, procedures
 	//----------------------------------------------------------------------
 	#include	"./image/config.h"
 	#include	"./image/data.c"
-
-void image_close( void ) {
-	// end of program
-	exit();
-}
 
 uint8_t image_load( uint8_t *path ) {
 	// properties of file
@@ -32,8 +28,8 @@ uint8_t image_load( uint8_t *path ) {
 	fread( file, (uint8_t *) image, file -> byte );
 
 	// convert image to RGBA
-	image_pixel = (uint32_t *) malloc( (image -> width * image -> height) << STD_VIDEO_DEPTH_shift );
-	lib_image_tga_parse( (uint8_t *) image, image_pixel, file -> byte );
+	image_source = (uint32_t *) malloc( (image -> width * image -> height) << STD_VIDEO_DEPTH_shift );
+	lib_image_tga_parse( (uint8_t *) image, image_source, file -> byte );
 
 	// no more needed
 	fclose( file );
@@ -49,25 +45,31 @@ uint8_t image_load( uint8_t *path ) {
 	return TRUE;
 }
 
-void image_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
+void image_draw( struct STD_STRUCTURE_WINDOW_DESCRIPTOR *image_window ) {
+	// pointer of window content
+	uint32_t *image_target = (uint32_t *) ((uintptr_t) image_window + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+
+	// clean'up window area
+	for( uint64_t i = 0; i < image_window -> width * image_window -> height; i++ ) image_target[ i ] = STD_COLOR_BLACK;
+
 	// image viewer area
-	uint64_t view_width = interface -> width - (LIB_INTERFACE_BORDER_pixel + LIB_INTERFACE_BORDER_pixel);
-	uint64_t view_height = interface -> height - (LIB_INTERFACE_HEADER_HEIGHT_pixel + LIB_INTERFACE_BORDER_pixel);
+	image_view_width = image_window -> width;
+	image_view_height = image_window -> height;
 
 	// keep aspect ratio of image
 	double ratio = (double) image_width / (double) image_height;
 
 	// calculate new image width/height
-	uint64_t limit_width = view_width;
-	uint64_t limit_height = (uint64_t) ((double) view_width / ratio);
-	if( (uint64_t) ((double) view_width / ratio) > view_height ) { limit_width = (uint64_t) ((double) view_height * ratio); limit_height = view_height; }
+	uint64_t limit_width = image_view_width;
+	uint64_t limit_height = (uint64_t) ((double) image_view_width / ratio);
+	if( (uint64_t) ((double) image_view_width / ratio) > image_view_height ) { limit_width = (uint64_t) ((double) image_view_height * ratio); limit_height = image_view_height; }
 
 	// center image inside window
-	uint64_t newX = (view_width - limit_width) >> STD_SHIFT_2;
-	uint64_t newY = (view_height - limit_height) >> STD_SHIFT_2;
+	uint64_t newX = (image_view_width - limit_width) >> STD_SHIFT_2;
+	uint64_t newY = (image_view_height - limit_height) >> STD_SHIFT_2;
 
-	// properties of workbench area content
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ) + ((((LIB_INTERFACE_HEADER_HEIGHT_pixel + newY) * interface -> width) + newX + LIB_INTERFACE_BORDER_pixel) << STD_VIDEO_DEPTH_shift));
+	// pointer of image content
+	image_target += ((newY * image_window -> width) + newX);
 
 	// copy scaled image content to workbench object
 	for( uint16_t y = 0; y < limit_height; y++ ) {
@@ -79,7 +81,7 @@ void image_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			uint64_t nx = x * image_width / limit_width;
 
 			// copy
-			pixel[ (y * interface -> width) + x ] = image_pixel[ (ny * image_width) + nx ];
+			image_target[ (y * image_window -> width) + x ] = lib_color_blend( image_target[ (y * image_window -> width) + x ], image_source[ (ny * image_width) + nx ] );
 		}
 	}
 }
@@ -93,32 +95,31 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	//----------------------------------------------------------------------
 
-	// alloc area for interface properties
-	struct LIB_INTERFACE_STRUCTURE *image_interface = (struct LIB_INTERFACE_STRUCTURE *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
+	// obtain information about kernel framebuffer
+	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER framebuffer;
+	std_framebuffer( (struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *) &framebuffer );
 
-	// initialize interface library
-	image_interface -> properties = (uint8_t *) &file_interface_start;
-	if( ! lib_interface( image_interface ) ) { log( "Cannot create window.\n" ); exit(); }
+	// image dimension larger than 80% of framebuffer?
+	image_view_width = image_width; if( image_width > (uint64_t) ((double) framebuffer.width_pixel * (double) 0.8f) ) image_view_width = (uint64_t) ((double) framebuffer.width_pixel * (double) 0.8f);
+	image_view_height = image_height; if( image_height > (uint64_t) ((double) framebuffer.height_pixel * (double) 0.8f) ) image_view_height = (uint64_t) ((double) framebuffer.height_pixel * (double) 0.8f);
 
-	// set minimal window size as current (aspect ratio: 16:9)
-	image_interface -> descriptor -> width_limit = 300;
-	image_interface -> descriptor -> height_limit = 168;
+	// create window
+	image_window = (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) lib_window( -1, -1, image_view_width, image_view_height );
+	if( ! image_window ) return EMPTY;	// close
 
-	//----------------------------------------------------------------------
-
-	// find entry of ID: 0
-	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( image_interface, 0 );
-	control -> event = (void *) image_close;	// assign executable function to element
+	// set minimal window size with aspect ratio: 16:9
+	image_window -> width_limit = 300;
+	image_window -> height_limit = 168;
 
 	//----------------------------------------------------------------------
 
 	// insert image into window
-	image_draw( image_interface );
+	image_draw( image_window );
 
 	//----------------------------------------------------------------------
 
 	// update window content on screen
-	image_interface -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
+	image_window -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
 
 	//----------------------------------------------------------------------
 
@@ -128,34 +129,27 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		sleep( TRUE );
 
 		// check events from interface
-		struct LIB_INTERFACE_STRUCTURE *new = EMPTY;
-		if( (new = lib_interface_event( image_interface )) ) {
-			// update interface pointer
-			image_interface = new;
+		struct STD_STRUCTURE_WINDOW_DESCRIPTOR *new = (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) lib_window_event( image_window );
+		if( new ) {
+			// update window pointer
+			image_window = new;
 
-			// insert image into window
-			image_draw( image_interface );
+			// redraw image
+			image_draw( image_window );
 
 			// update window content on screen
-			image_interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			image_window -> flags |= STD_WINDOW_FLAG_flush;
 		}
 
-	// incomming message
-	uint8_t ipc_data[ STD_IPC_SIZE_byte ] = { EMPTY };
+		// incomming message
+		uint8_t ipc_keyboard[ STD_IPC_SIZE_byte ] = { EMPTY };
+		if( std_ipc_receive_by_type( (uint8_t *) &ipc_keyboard, STD_IPC_TYPE_keyboard ) ) {
+			// message properties
+			struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_keyboard;
 
-	// message properties
-	struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
-
-	// receive pending messages
-	if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
-		log( "%u\n", mouse -> scroll );
-	}
-
-		// check events from keyboard
-		uint16_t key = lib_interface_event_keyboard( image_interface );
-
-		// exit?
-		if( key == STD_ASCII_ESC ) break;	// yes
+			// exit?
+			if( keyboard -> key == STD_KEY_ESC ) break;	// yes
+		}
 	}
 
 	// exit

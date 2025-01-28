@@ -219,7 +219,7 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// debug
-	std_exec( (uint8_t *) "image /system/var/image.tga", 27, EMPTY, TRUE );
+	// std_exec( (uint8_t *) "image /system/var/image.tga", 27, EMPTY, TRUE );
 
 	// Window Manager initialized.
 	return TRUE;
