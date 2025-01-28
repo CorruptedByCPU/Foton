@@ -39,7 +39,7 @@ void wm_event( void ) {
 			object -> pid = source;
 
 			// and return object descriptor
-			answer -> descriptor = descriptor;		
+			answer -> descriptor = descriptor;
 		} else
 			// reject window creation
 			answer -> descriptor = EMPTY;

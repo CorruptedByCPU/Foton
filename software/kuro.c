@@ -432,6 +432,18 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 						// done
 						break;
 					}
+
+					case KURO_MIMETYPE_image: {
+						// combine command with file name
+						uint8_t *command = malloc( TRUE );
+						sprintf( "image %s", command, kuro_files -> entry[ i ].name );
+
+						// open object file in Image Viewer
+						std_exec( command, lib_string_length( command ), EMPTY, TRUE );
+
+						// done
+						break;
+					}
 				}
 
 				// remove flag

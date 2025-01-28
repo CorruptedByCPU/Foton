@@ -441,6 +441,12 @@
 		// pointer position inside window
 		uint16_t	x;
 		uint16_t	y;
+		// assigned window dimension
+		uint16_t	width;
+		uint16_t	height;
+		// minimal dimension of window allowed
+		uint16_t	width_limit;
+		uint16_t	height_limit;
 		// proposed window properties
 		int16_t		new_x;
 		int16_t		new_y;

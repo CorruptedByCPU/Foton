@@ -70,64 +70,19 @@ void image_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ) + ((((LIB_INTERFACE_HEADER_HEIGHT_pixel + newY) * interface -> width) + newX + LIB_INTERFACE_BORDER_pixel) << STD_VIDEO_DEPTH_shift));
 
 	// copy scaled image content to workbench object
-	for( uint16_t y = 0; y < limit_height; y++ )
+	for( uint16_t y = 0; y < limit_height; y++ ) {
+		// calculate pixel location inside image
+		uint64_t ny = y * image_height / limit_height;
+
 		for( uint16_t x = 0; x < limit_width; x++ ) {
 			// calculate pixel location inside image
 			uint64_t nx = x * image_width / limit_width;
-			uint64_t ny = y * image_height / limit_height;
 
 			// copy
 			pixel[ (y * interface -> width) + x ] = image_pixel[ (ny * image_width) + nx ];
 		}
+	}
 }
-
-// uint8_t image_window( void ) {
-// 	// obtain information about kernel framebuffer
-// 	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER tmp_framebuffer;
-// 	std_framebuffer( (struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *) &tmp_framebuffer );
-
-// 	// allocate gui data container
-// 	uint8_t tmp_request[ STD_IPC_SIZE_byte ] = { EMPTY };
-// 	// allocate gui data container
-// 	uint8_t tmp_answer[ STD_IPC_SIZE_byte ] = { EMPTY };
-
-// 	// prepeare new window request
-// 	struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &tmp_request;
-// 	struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &tmp_answer;
-
-// 	//----------------------------------------------------------------------
-
-// 	// default values
-// 	image_window_width = image_width;
-// 	image_window_height = image_height;
-
-// 	// window properties
-// 	request -> ipc.type = STD_IPC_TYPE_event;
-// 	if( image_width < (tmp_framebuffer.width_pixel >> STD_SHIFT_2) ) request -> width = image_width;
-// 	else { image_window_width = tmp_framebuffer.width_pixel >> STD_SHIFT_2; request -> width = image_window_width; }
-// 	if( image_height < (tmp_framebuffer.height_pixel >> STD_SHIFT_2) ) request -> height = image_height;
-// 	else { image_window_height = tmp_framebuffer.height_pixel >> STD_SHIFT_2; request -> height = image_window_height; }
-
-// 	// always center the window
-// 	request -> x = (tmp_framebuffer.width_pixel >> STD_SHIFT_2) - (image_window_width >> STD_SHIFT_2);
-// 	request -> y = (tmp_framebuffer.height_pixel >> STD_SHIFT_2) - (image_window_height >> STD_SHIFT_2);
-
-// 	// send request to Window Manager
-// 	std_ipc_send( tmp_framebuffer.pid, (uint8_t *) request );
-
-// 	// wait for answer
-// 	uint64_t tmp_timeout = std_microtime() + 32768;	// TODO, HPET, RTC...
-// 	while( (! std_ipc_receive( (uint8_t *) answer ) || answer -> ipc.type != STD_IPC_TYPE_event) && tmp_timeout > std_microtime() );
-
-// 	// window assigned?
-// 	if( ! answer -> descriptor ) return FALSE;	// nope
-
-// 	// preserve descriptor pointer
-// 	image_descriptor = (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) answer -> descriptor;
-
-// 	// done
-// 	return TRUE;
-// }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// nothing to do?
@@ -145,9 +100,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	image_interface -> properties = (uint8_t *) &file_interface_start;
 	if( ! lib_interface( image_interface ) ) { log( "Cannot create window.\n" ); exit(); }
 
-	// set minimal window size as current (ascpet ratio: 16:9)
-	image_interface -> min_width = 300;
-	image_interface -> min_height = 168;
+	// set minimal window size as current (aspect ratio: 16:9)
+	image_interface -> descriptor -> width_limit = 300;
+	image_interface -> descriptor -> height_limit = 168;
 
 	//----------------------------------------------------------------------
 
@@ -184,6 +139,17 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// update window content on screen
 			image_interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
+
+	// incomming message
+	uint8_t ipc_data[ STD_IPC_SIZE_byte ] = { EMPTY };
+
+	// message properties
+	struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
+
+	// receive pending messages
+	if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
+		log( "%u\n", mouse -> scroll );
+	}
 
 		// check events from keyboard
 		uint16_t key = lib_interface_event_keyboard( image_interface );

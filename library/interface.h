@@ -258,8 +258,5 @@
 
 	uint32_t *lib_interface_icon( uint8_t *path );
 
-	// create window space accoring to JSON specification
-	uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface );
-
 	struct LIB_INTERFACE_STRUCTURE_SELECT lib_interface_select( struct LIB_INTERFACE_STRUCTURE *interface );
 #endif

@@ -11,6 +11,9 @@
 	#ifndef	LIB_INTERFACE
 		#include	"./interface.h"
 	#endif
+	#ifndef	LIB_WINDOW
+		#include	"./window.h"
+	#endif
 
 const uint8_t lib_interface_string_window[] = "window";
 const uint8_t lib_interface_string_x[] = "x";
@@ -51,7 +54,13 @@ uint8_t lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// if dimensions aquired from JSON structure
 	if( interface -> width && interface -> height ) {
 		// create window
-		if( ! lib_interface_window( interface ) ) return FALSE;
+		if( ! (interface -> descriptor = lib_window( interface -> x, interface -> y, interface -> width, interface -> height )) ) return FALSE;
+
+		// clear window content
+		lib_interface_clear( interface );
+
+		// show window name in header if set
+		lib_interface_name( interface );
 
 		// show interface elements
 		lib_interface_draw( interface );
@@ -268,7 +277,7 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			// element structure position
 			struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) &properties[ i ];
 	
-			// control properties
+			// menu properties
 			struct LIB_JSON_STRUCTURE menu = lib_json( (uint8_t *) json.value );
 
 			// default properties of menu entry
@@ -1063,13 +1072,16 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		for( uint64_t i = 0; i < interface -> name_length; i++ ) new_interface -> name[ new_interface -> name_length++ ] = interface -> name[ i ];
 
 		// create new window
-		if( ! lib_interface_window( new_interface ) ) {
+		if( ! (new_interface -> descriptor = lib_window( new_interface -> x, new_interface -> y, new_interface -> width, new_interface -> height )) ) {
 			// release new interface area
 			free( new_interface );
 
 			// nothing to do
 			return EMPTY;
 		}
+
+		// clear window content
+		lib_interface_clear( new_interface );
 
 		// show window name in header if set
 		lib_interface_name( new_interface );
@@ -1712,6 +1724,9 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	interface -> descriptor -> name_length = interface -> name_length;
 	for( uint8_t i = 0; i < interface -> name_length; i++ ) interface -> descriptor -> name[ i ] = interface -> name[ i ];
 
+	// hide header?
+	if( ! interface -> controls ) return;	// yes
+
 	// draw new header name
 	lib_interface_name_rewrite( interface );
 
@@ -1720,6 +1735,12 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 }
 
 void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
+	// window name set?
+	if( ! interface -> name_length ) return;	// no
+
+	// hide header?
+	if( ! interface -> controls ) return;	// yes
+
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = TRUE; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
@@ -1755,70 +1776,6 @@ uint64_t lib_interface_string( uint8_t font_family, uint8_t *string, uint64_t li
 
 	// new string limit
 	return new_limit;
-}
-
-uint8_t lib_interface_window( struct LIB_INTERFACE_STRUCTURE *interface ) {
-	// obtain information about kernel framebuffer
-	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER kernel_framebuffer;
-	std_framebuffer( (struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *) &kernel_framebuffer );
-
-	// remember Window Manager PID
-	int64_t wm_pid = kernel_framebuffer.pid;
-
-	// allocate gui data container
-	uint8_t wm_data_request[ STD_IPC_SIZE_byte ] = { EMPTY };
-		// allocate gui data container
-	uint8_t wm_data_answer[ STD_IPC_SIZE_byte ] = { EMPTY };
-
-	// prepeare new window request
-	struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &wm_data_request;
-	struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &wm_data_answer;
-
-	//----------------------------------------------------------------------
-
-	// window properties
-	request -> ipc.type = STD_IPC_TYPE_event;
-	request -> width = interface -> width;
-	request -> height = interface -> height;
-
-	// center window?
-	if( interface -> x == STD_MAX_unsigned && interface -> y == STD_MAX_unsigned ) {
-		// yes
-		request -> x = (kernel_framebuffer.width_pixel >> STD_SHIFT_2) - (interface -> width >> STD_SHIFT_2);
-		request -> y = ((kernel_framebuffer.height_pixel - LIB_INTERFACE_HEADER_HEIGHT_pixel) >> STD_SHIFT_2) - (interface -> height >> STD_SHIFT_2);
-	} else {
-		// no
-		request -> x = interface -> x;
-		request -> y = interface -> y;
-	}
-
-	// send request to Window Manager
-	std_ipc_send( wm_pid, (uint8_t *) request );
-
-	// wait for answer
-	uint64_t timeout = std_microtime() + 32768;	// TODO, HPET, RTC...
-	while( (! std_ipc_receive( (uint8_t *) answer ) || answer -> ipc.type != STD_IPC_TYPE_event) && timeout > std_microtime() );
-
-	// window assigned?
-	if( ! answer -> descriptor ) {
-		// show error
-		print( "Window Manager denied request." );
-
-		// failed
-		return FALSE;
-	}
-
-	// properties of console window
-	interface -> descriptor = (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) answer -> descriptor;
-
-	// clear window content
-	lib_interface_clear( interface );
-
-	// show window name in header if set
-	lib_interface_name( interface );
-
-	// done
-	return TRUE;
 }
 
 struct LIB_INTERFACE_STRUCTURE_SELECT lib_interface_select( struct LIB_INTERFACE_STRUCTURE *interface ) {
