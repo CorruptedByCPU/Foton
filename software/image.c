@@ -7,6 +7,7 @@
 	//----------------------------------------------------------------------
 	#include	"../library/color.h"
 	#include	"../library/image.h"
+	#include	"../library/interface.h"
 	#include	"../library/window.h"
 	//----------------------------------------------------------------------
 	// variables, routines, procedures
@@ -45,16 +46,33 @@ uint8_t image_load( uint8_t *path ) {
 	return TRUE;
 }
 
+void image_border( struct STD_STRUCTURE_WINDOW_DESCRIPTOR *image_window, uint32_t color, uint32_t color_shadow ) {
+	// pointer of window content
+	uint32_t *image_target = (uint32_t *) ((uintptr_t) image_window + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+
+	// and point border
+	for( uint16_t y = 0; y < image_window -> height; y++ )
+		for( uint16_t x = 0; x < image_window -> width; x++ ) {
+			if( ! x || ! y ) image_target[ (y * image_window -> width) + x ] = color;
+			if( x == image_window -> width - 1 || y == image_window -> height - 1 ) image_target[ (y * image_window -> width) + x ] = color_shadow;
+		}
+
+}
+
 void image_draw( struct STD_STRUCTURE_WINDOW_DESCRIPTOR *image_window ) {
 	// pointer of window content
 	uint32_t *image_target = (uint32_t *) ((uintptr_t) image_window + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 
+	//----------------------------------------------------------------------
+
 	// clean'up window area
-	for( uint64_t i = 0; i < image_window -> width * image_window -> height; i++ ) image_target[ i ] = STD_COLOR_BLACK;
+	for( uint64_t i = 0; i < image_window -> width * image_window -> height; i++ ) image_target[ i ] = IMAGE_COLOR_BACKGROUND;
+
+	//----------------------------------------------------------------------
 
 	// image viewer area
-	image_view_width = image_window -> width;
-	image_view_height = image_window -> height;
+	image_view_width = image_window -> width - (IMAGE_BORDER_pixel << STD_SHIFT_2);
+	image_view_height = image_window -> height - (IMAGE_BORDER_pixel << STD_SHIFT_2);
 
 	// keep aspect ratio of image
 	double ratio = (double) image_width / (double) image_height;
@@ -69,7 +87,7 @@ void image_draw( struct STD_STRUCTURE_WINDOW_DESCRIPTOR *image_window ) {
 	uint64_t newY = (image_view_height - limit_height) >> STD_SHIFT_2;
 
 	// pointer of image content
-	image_target += ((newY * image_window -> width) + newX);
+	image_target += (((newY + IMAGE_BORDER_pixel) * image_window -> width) + newX + IMAGE_BORDER_pixel);
 
 	// copy scaled image content to workbench object
 	for( uint16_t y = 0; y < limit_height; y++ ) {
@@ -100,16 +118,20 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	std_framebuffer( (struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *) &framebuffer );
 
 	// image dimension larger than 80% of framebuffer?
-	image_view_width = image_width; if( image_width > (uint64_t) ((double) framebuffer.width_pixel * (double) 0.8f) ) image_view_width = (uint64_t) ((double) framebuffer.width_pixel * (double) 0.8f);
-	image_view_height = image_height; if( image_height > (uint64_t) ((double) framebuffer.height_pixel * (double) 0.8f) ) image_view_height = (uint64_t) ((double) framebuffer.height_pixel * (double) 0.8f);
+	image_view_width = image_width + (IMAGE_BORDER_pixel << STD_SHIFT_2); if( image_width > (uint64_t) ((double) framebuffer.width_pixel * (double) 0.8f) ) image_view_width = (uint64_t) ((double) framebuffer.width_pixel * (double) 0.8f);
+	image_view_height = image_height + (IMAGE_BORDER_pixel << STD_SHIFT_2); if( image_height > (uint64_t) ((double) framebuffer.height_pixel * (double) 0.8f) ) image_view_height = (uint64_t) ((double) framebuffer.height_pixel * (double) 0.8f);
 
 	// create window
 	image_window = (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) lib_window( -1, -1, image_view_width, image_view_height );
 	if( ! image_window ) return EMPTY;	// close
 
-	// set minimal window size with aspect ratio: 16:9
-	image_window -> width_limit = 300;
-	image_window -> height_limit = 168;
+	// set window name as opened file
+	image_window -> name_length = lib_string_length( lib_string_basename( argv[ 1 ] ) );
+	for( uint8_t i = 0; i < image_window -> name_length; i++ ) image_window -> name[ i ] = lib_string_basename( argv[ 1 ] )[ i ];
+
+	// set minimal window size
+	image_window -> width_limit = LIB_INTERFACE_HEADER_HEIGHT_pixel;
+	image_window -> height_limit = LIB_INTERFACE_HEADER_HEIGHT_pixel;
 
 	//----------------------------------------------------------------------
 
@@ -119,7 +141,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	//----------------------------------------------------------------------
 
 	// update window content on screen
-	image_window -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
+	image_window -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_name | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
 
 	//----------------------------------------------------------------------
 
@@ -127,6 +149,18 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	while( TRUE ) {
 		// free up AP time
 		sleep( TRUE );
+
+		// window state
+		if( (image_window -> flags & STD_WINDOW_FLAG_active) != image_window_semaphore ) {
+			if( image_window -> flags & STD_WINDOW_FLAG_active ) image_border( image_window, IMAGE_BORDER_COLOR_default, IMAGE_BORDER_COLOR_default_shadow );
+			else image_border( image_window, IMAGE_BORDER_COLOR_inactive_shadow, IMAGE_BORDER_COLOR_inactive_shadow );
+
+			// preserve current state
+			image_window_semaphore = image_window -> flags & STD_WINDOW_FLAG_active;
+
+			// update window content on screen
+			image_window -> flags |= STD_WINDOW_FLAG_flush;
+		}
 
 		// check events from interface
 		struct STD_STRUCTURE_WINDOW_DESCRIPTOR *new = (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) lib_window_event( image_window );

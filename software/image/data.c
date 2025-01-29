@@ -11,3 +11,5 @@ uint64_t image_view_height = EMPTY;
 uint32_t *image_source = EMPTY;
 
 struct STD_STRUCTURE_WINDOW_DESCRIPTOR *image_window = EMPTY;
+
+uint8_t image_window_semaphore = EMPTY;

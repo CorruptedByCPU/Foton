@@ -353,7 +353,7 @@ void _entry( uintptr_t kernel_ptr ) {
 					uintptr_t frame = EMPTY;
 
 					// acquire data for transmission
-					while( ! (frame = kernel -> network_tx()) );
+					while( ! (frame = kernel -> network_tx()) ) kernel -> time_sleep( TRUE );	// release AP time
 
 					// debug
 					// kernel -> log( (uint8_t *) "Tx\n" );

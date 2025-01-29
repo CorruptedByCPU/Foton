@@ -4,7 +4,7 @@
 
 struct STD_STRUCTURE_STREAM_META top_stream_meta;
 
-uint8_t top_string_interface[] = "\e[0m\e[2J\e[38;5;0m\e[48;5;34m\e[2K PID  Memory CPU% Application\e[E";
+uint8_t top_string_interface[] = "\e[0m\e[2J\e[38;5;250m\e[48;5;234m\e[2K PID  Memory CPU% Application\e[E";
 
 uint64_t top_line_selected = 0;
 
