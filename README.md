@@ -4,7 +4,7 @@ Welcome to
 
 This is a similar project as Cyjon/Fern-Night, but compatibility will no longer be fully supported.
 
-![Foton v0.508](https://blackdev.org/shot/foton-v0.508.png)
+![Foton v0.508](https://blackdev.org/shot/foton%20v0.508.png)
 
 Simple project of multitasking operating system for 64-bit processors from x86_64 family.
 
