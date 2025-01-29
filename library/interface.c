@@ -1724,9 +1724,6 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	interface -> descriptor -> name_length = interface -> name_length;
 	for( uint8_t i = 0; i < interface -> name_length; i++ ) interface -> descriptor -> name[ i ] = interface -> name[ i ];
 
-	// hide header?
-	if( ! interface -> controls ) return;	// yes
-
 	// draw new header name
 	lib_interface_name_rewrite( interface );
 
@@ -1737,9 +1734,6 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// window name set?
 	if( ! interface -> name_length ) return;	// no
-
-	// hide header?
-	if( ! interface -> controls ) return;	// yes
 
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));

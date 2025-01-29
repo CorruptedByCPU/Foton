@@ -13,18 +13,20 @@ if [ -z "${SMP}" ]; then SMP="2"; fi
 MEM="${2}"
 if [ -z "${MEM}" ]; then MEM="64"; fi
 
-qemu-system-x86_64						\
-	--enable-kvm						\
-	-cpu max						\
-	-smp ${SMP}						\
-	-m ${MEM}						\
-	-cdrom build/foton.iso					\
-	-rtc base=localtime					\
-	-audio driver=alsa,model=sb16,id=7			\
-	-netdev user,id=eth0					\
+qemu-system-x86_64								\
+	--enable-kvm								\
+	-cpu max								\
+	-smp ${SMP}								\
+	-m ${MEM}								\
+	-cdrom build/foton.iso							\
+	-rtc base=localtime							\
+	-audio driver=alsa,model=sb16,id=7					\
+	-netdev user,id=eth0							\
 	-device virtio-net-pci-transitional,netdev=eth0,mac=00:22:44:66:88:AA	\
-	-object filter-dump,id=eth0,netdev=eth0,file=network.pcap	\
-	-serial stdio						\
+	-object filter-dump,id=eth0,netdev=eth0,file=network.pcap		\
+	-device virtio-blk-pci-transitional,drive=raw0,id=raw0			\
+	-drive format=raw,file=build/storage.vfs,if=none,id=raw0		\
+	-serial stdio								\
 #	-readconfig tools/qemu-ehci-uhci.cfg			\
 #	-device usb-kbd,bus=ehci.0				\
 #	-device usb-mouse,bus=ehci.0				\
