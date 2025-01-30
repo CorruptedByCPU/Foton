@@ -4,7 +4,7 @@
 
 struct KERNEL *kernel = EMPTY;
 
-struct MODULE_VIRTIO_STRUCTURE_NETWORK *module_virtio_network;
+struct MODULE_VIRTIO_NET_STRUCTURE_NETWORK *module_virtio_net;
 
 uint8_t module_virtio_device_legacy = TRUE;
 uint8_t module_virtio_device_transitional = FALSE;

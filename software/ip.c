@@ -36,6 +36,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// show interface configuration
 		printf( "eth0:  Hardware Address %2X:%2X:%2X:%2X:%2X:%2X\n", eth0.ethernet_address[ 0 ], eth0.ethernet_address[ 1 ], eth0.ethernet_address[ 2 ], eth0.ethernet_address[ 3 ], eth0.ethernet_address[ 4 ], eth0.ethernet_address[ 5 ] );
 		printf( "       IPv4 %u.%u.%u.%u Subnet %u.%u.%u.%u Broadcast %u.%u.%u.%u\n", (uint8_t) (eth0.ipv4_address >> 0x18), (uint8_t) (eth0.ipv4_address >> 0x10), (uint8_t) (eth0.ipv4_address >> 0x08), (uint8_t) eth0.ipv4_address, (uint8_t) (eth0.ipv4_mask >> 0x18), (uint8_t) (eth0.ipv4_mask >> 0x10), (uint8_t) (eth0.ipv4_mask >> 0x08), (uint8_t) eth0.ipv4_mask, (uint8_t) (eth0.ipv4_broadcast >> 0x18), (uint8_t) (eth0.ipv4_broadcast >> 0x10), (uint8_t) (eth0.ipv4_broadcast >> 0x08), (uint8_t) eth0.ipv4_broadcast );
+		printf( "       Gateway %u.%u.%u.%u\n", (uint8_t) (eth0.ipv4_gateway >> 0x18), (uint8_t) (eth0.ipv4_gateway >> 0x10), (uint8_t) (eth0.ipv4_gateway >> 0x08), (uint8_t) eth0.ipv4_gateway );
 	}
 
 	// program closed properly

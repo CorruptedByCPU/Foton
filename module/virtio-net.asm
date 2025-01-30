@@ -3,7 +3,7 @@
 ;=================================================================================
 
 ; get pointer from driver handling function
-extern	module_virtio_net
+extern	module_virtio_net_rx
 
 ; 64 bit procedure code
 [BITS 64]
@@ -42,7 +42,7 @@ module_virtio_net_entry:
 	FXSAVE64	[rax]
 
 	; execute driver handler
-	call	module_virtio_net
+	call	module_virtio_net_rx
 
 	; restore "floating point" registers
 	mov	rax,	-0x1000
