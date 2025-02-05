@@ -49,6 +49,7 @@
 		uint8_t				semaphore_modern;
 		uintptr_t			base_address;
 		uint8_t				irq;
+		uintptr_t			device;
 	};
 
 	struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR {

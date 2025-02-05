@@ -49,7 +49,7 @@
 	};
 
 	// returns pointer to structure of currently executed task
-	struct KERNEL_STRUCTURE_TASK *kernel_task_active();
+	struct KERNEL_STRUCTURE_TASK *kernel_task_active( void );
 
 	// external routine (assembly language)
 	extern void kernel_task( void );

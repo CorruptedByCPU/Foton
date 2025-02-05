@@ -2,8 +2,8 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#ifndef	MODULE_VIRTIO_NET
-	#define	MODULE_VIRTIO_NET
+#ifndef	MODULE_VIRTIO_NETWORK
+	#define	MODULE_VIRTIO_NETWORK
 
 	#define	MODULE_VIRTIO_NETWORK_FEATURE_MAC			(1 << 5)
 	#define	MODULE_VIRTIO_NETWORK_FEATURE_MRG_RXBUF		(1 << 15)
@@ -29,13 +29,14 @@
 		uint16_t					device_index;
 	};
 
-	struct MODULE_VIRTIO_NETWORK_STRUCTURE_NETWORK {
-		uint8_t						mac[ 6 ];
+	struct MODULE_VIRTIO_NETWORK_STRUCTURE {
+		uint8_t							id;
+		uint8_t							mac[ 6 ];
 		struct MODULE_VIRTIO_NETWORK_STRUTURE_NETWORK_QUEUE	queue[ 2 ];
-		uint16_t					queue_limit[ 2 ];
+		uint16_t						queue_limit[ 2 ];
 	};
 
-	struct MODULE_VIRTIO_STRUCTURE_DEVICE_CONFIG {
+	struct MODULE_VIRTIO_NETWORK_STRUCTURE_DEVICE_CONFIG {
 		uint8_t		mac[ 6 ];
 		uint16_t	status;
 	} __attribute__( (packed) );

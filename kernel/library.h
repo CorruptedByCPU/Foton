@@ -40,5 +40,5 @@
 	int64_t kernel_library_load( uint8_t *name, uint64_t length );
 
 	// reserving entry for new library
-	struct KERNEL_STRUCTURE_LIBRARY *kernel_library_register();
+	struct KERNEL_STRUCTURE_LIBRARY *kernel_library_register( void );
 #endif

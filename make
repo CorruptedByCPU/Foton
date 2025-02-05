@@ -13,7 +13,7 @@ if [ -z "${OPT}" ]; then OPT="fast"; fi
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 CC="clang"
-C="${CC} -include ./library/std.h" # -g
+C="${CC} -std=c99 -include ./library/std.h" # -g -pedantic-errors 
 LD="ld.lld"
 ASM="nasm"
 ISO="xorriso"

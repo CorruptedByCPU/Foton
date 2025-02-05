@@ -16,4 +16,7 @@
 	
 	// get 32 bit value from selected port
 	inline uint32_t driver_port_in_dword( uint16_t port );
+
+	// get 64 bit value from selected port
+	inline uint64_t driver_port_in_qword( uint16_t port );
 #endif

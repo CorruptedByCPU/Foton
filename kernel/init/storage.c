@@ -21,6 +21,9 @@ void kernel_init_storage( void ) {
 		storage -> device_byte = STD_PAGE_byte;
 
 		// length of storage in Blocks
-		storage -> device_length = MACRO_PAGE_ALIGN_UP( limine_module_request.response -> modules[ i ] -> size ) >> STD_SHIFT_PAGE;
+		storage -> device_limit = MACRO_PAGE_ALIGN_UP( limine_module_request.response -> modules[ i ] -> size ) >> STD_SHIFT_PAGE;
+
+		// attach read/write functions
+		storage -> read = (void *) kernel_vfs_read;
 	}
 }

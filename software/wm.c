@@ -24,7 +24,7 @@
 	#include	"./wm/init.c"
 	#include	"./wm/cursor.c"
 	#include	"./wm/menu.c"
-	#include	"./wm/workbench.c"
+	// #include	"./wm/workbench.c"
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize environment

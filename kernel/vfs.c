@@ -450,3 +450,13 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( struct LIB_VFS_STRUCTURE *kn
 	// all sockets reserved
 	return socket;
 }
+
+void kernel_vfs_read( uint64_t reserved, uint64_t block, uint8_t *target, uint64_t length ) {
+	// read Bytes
+	while( length-- ) *(target++) = *((uint8_t *) block++);
+}
+
+void kernel_vfs_write( uint64_t reserved, uint64_t block, uint8_t *source, uint64_t length ) {
+	// write Bytes
+	while( length-- ) *((uint8_t *) block++) = *(source++);
+}

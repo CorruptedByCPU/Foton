@@ -49,7 +49,7 @@ uint8_t driver_serial_value( uint64_t value, uint8_t base, uint8_t prefix, uint8
 
 	// decoded value
 	uint8_t i = 0;
-	uint8_t array[ 64 ] = { [0 ... 63] = character };	// string for 8 byte value
+	uint8_t array[ 64 ] = { character };	// string for 8 byte value
 
 	// convert value to single digits
 	while( value ) {

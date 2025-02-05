@@ -53,3 +53,8 @@ inline uint32_t driver_port_in_dword( uint16_t port ) {
 	// return that value
 	return result;
 }
+
+inline uint64_t driver_port_in_qword( uint16_t port ) {
+	// return 64 bit value from selected port
+	return (uint64_t) driver_port_in_dword( port ) | ((uint64_t) driver_port_in_dword( port + STD_SIZE_DWORD_byte ) << STD_MOVE_DWORD);
+}

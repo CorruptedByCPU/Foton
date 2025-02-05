@@ -100,8 +100,8 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// execute workbench function as thread
-	uint8_t wm_string_workbench[] = "wm workbench";
-	std_thread( (uintptr_t) &wm_workbench, (uint8_t *) &wm_string_workbench, sizeof( wm_string_workbench ) );
+	// uint8_t wm_string_workbench[] = "wm workbench";
+	// std_thread( (uintptr_t) &wm_workbench, (uint8_t *) &wm_string_workbench, sizeof( wm_string_workbench ) );
 
 	//----------------------------------------------------------------------
 
