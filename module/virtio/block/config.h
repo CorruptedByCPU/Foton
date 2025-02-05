@@ -13,9 +13,9 @@
 	struct MODULE_VIRTIO_BLK_STRUTURE_QUEUE {
 		struct MODULE_VIRTIO_BLK_STRUCTURE_DESCRIPTOR	*descriptor_address;
 		uint16_t					descriptor_index;
-		struct MODULE_VIRTIO_BLK_STRUCTURE_DRIVER	*available_address;
-		struct MODULE_VIRTIO_BLK_STRUCTURE_DEVICE	*used_address;
-		uint16_t					used_index;
+		struct MODULE_VIRTIO_BLK_STRUCTURE_DRIVER	*driver_address;
+		struct MODULE_VIRTIO_BLK_STRUCTURE_DEVICE	*device_address;
+		uint16_t					device_index;
 	};
 	
 	struct MODULE_VIRTIO_BLK_STRUCTURE {

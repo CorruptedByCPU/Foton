@@ -5,6 +5,9 @@
 #ifndef	MODULE_VIRTIO
 	#define	MODULE_VIRTIO
 
+	#define	MODULE_VIRTIO_TYPE_network		1
+	#define	MODULE_VIRTIO_TYPE_block		2
+
 	#define	MODULE_VIRTIO_DEVICE_network		0x1000
 	#define	MODULE_VIRTIO_DEVICE_block		0x1001
 	#define	MODULE_VIRTIO_DEVICE_ID_network		0x0001
@@ -37,6 +40,16 @@
 	#define	MODULE_VIRTIO_DEVICE_STATUS_features_ok		(1 << 3)
 	#define	MODULE_VIRTIO_DEVICE_STATUS_device_needs_reset	(1 << 6)
 	#define	MODULE_VIRTIO_DEVICE_STATUS_failed		(1 << 7)
+
+	struct MODULE_VIRTIO_STRUCTURE {
+		struct DRIVER_PCI_STRUCTURE	pci;
+		uint8_t				type;
+		uint8_t				semaphore_legacy;
+		uint8_t				semaphore_transitional;
+		uint8_t				semaphore_modern;
+		uintptr_t			base_address;
+		uint8_t				irq;
+	};
 
 	struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR {
 		uint64_t	address;

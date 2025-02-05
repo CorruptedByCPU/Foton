@@ -70,12 +70,17 @@ strip -s build/kernel
 
 # information
 kernel_size=`ls -lh build/kernel | cut -d ' ' -f 5`
-echo -e "${green}\xE2\x9C\x94${default}|Kernel|${kernel_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+echo -e "${green}\xE2\x9C\x94${default}|Kernel|${kernel_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 
 # copy kernel file and limine files onto destined iso folder
 gzip -k build/kernel
 
 #===============================================================================
+
+# pre-submodules
+${ASM} -f elf64 module/virtio/network/network.asm -o build/virtio-net.ao
+submodule_size=`ls -lh build/virtio-net.ao | cut -d ' ' -f 5`
+echo -e "${green}\xE2\x9C\x94${default}|[pre-submodule of virtio-net.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 
 for submodules in `(cd module && ls *.asm)`; do
 	# module name
@@ -86,7 +91,7 @@ for submodules in `(cd module && ls *.asm)`; do
 
 	# information
 	submodule_size=`ls -lh build/${submodule}.ao | cut -d ' ' -f 5`
-	echo -e "${green}\xE2\x9C\x94${default}|[submodule of ${submodule}.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+	echo -e "${green}\xE2\x9C\x94${default}|[submodule of ${submodule}.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 done
 
 for modules in `(cd module && ls *.c)`; do
@@ -99,6 +104,7 @@ for modules in `(cd module && ls *.c)`; do
 	# connect with libraries (if necessery)
 	SUB=""
 	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
+	if [ "${module}" == "virtio" ]; then SUB="build/virtio-net.ao"; fi
 	${LD} ${SUB} build/${module}.o -o build/root/system/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
 
 	# we do not need any additional information
@@ -106,7 +112,7 @@ for modules in `(cd module && ls *.c)`; do
 
 	# information
 	module_size=`ls -lh build/root/system/lib/modules/${module}.ko | cut -d ' ' -f 5`
-	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 done
 
 #===============================================================================
@@ -129,7 +135,7 @@ for library in type path color elf integer float string network input math json 
 
 	# information
 	library_size=`ls -lh build/root/system/lib/lib${library}.so | cut -d ' ' -f 5`
-	echo -e "${green}\xE2\x9C\x94${default}|Library: lib${library}.so|${library_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+	echo -e "${green}\xE2\x9C\x94${default}|Library: lib${library}.so|${library_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 done
 
 #===============================================================================
@@ -149,7 +155,7 @@ for software in `(cd software && ls *.c)`; do
 
 	# information
 	software_size=`ls -lh build/root/system/bin/${name} | cut -d ' ' -f 5`
-	echo -e "${green}\xE2\x9C\x94${default}|Software: ${name}|${software_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+	echo -e "${green}\xE2\x9C\x94${default}|Software: ${name}|${software_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 done
 
 #===============================================================================
@@ -164,18 +170,18 @@ cp build/kernel build/root.vfs tools/limine.conf limine/limine-bios.sys limine/l
 # information
 echo -e "\nOverall ------------"
 kernel_size=`ls -lh build/kernel | cut -d ' ' -f 5`
-echo -e "|kernel|${kernel_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+echo -e "|kernel|${kernel_size}" | awk -F "|" '{printf "%s  %-33s %s\n", $1, $2, $3 }'
 root_size=`ls -lh build/root.vfs 2>&1 | cut -d ' ' -f 5`
-echo -e "|root.vfs|${root_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+echo -e "|root.vfs|${root_size}" | awk -F "|" '{printf "%s  %-33s %s\n", $1, $2, $3 }'
 storage_size=`ls -lh build/storage.vfs 2>&1 | cut -d ' ' -f 5`
-echo -e "|storage.vfs|${storage_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+echo -e "|storage.vfs|${storage_size}" | awk -F "|" '{printf "%s  %-33s %s\n", $1, $2, $3 }'
 echo -e "\nCompressed ---------"
 kernel_size=`ls -lh build/kernel.gz | cut -d ' ' -f 5`
-echo -e "|kernel.gz|${kernel_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+echo -e "|kernel.gz|${kernel_size}" | awk -F "|" '{printf "%s  %-33s %s\n", $1, $2, $3 }'
 root_size=`ls -lh build/root.vfs.gz 2>&1 | cut -d ' ' -f 5`
-echo -e "|root.vfs.gz|${root_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+echo -e "|root.vfs.gz|${root_size}" | awk -F "|" '{printf "%s  %-33s %s\n", $1, $2, $3 }'
 storage_size=`ls -lh build/storage.vfs.gz 2>&1 | cut -d ' ' -f 5`
-echo -e "|storage.vfs.gz|${storage_size}" | awk -F "|" '{printf "%s  %-30s %s\n", $1, $2, $3 }'
+echo -e "|storage.vfs.gz|${storage_size}" | awk -F "|" '{printf "%s  %-33s %s\n", $1, $2, $3 }'
 
 # convert iso directory to iso file
 xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label build/iso -o build/foton.iso > /dev/null 2>&1
