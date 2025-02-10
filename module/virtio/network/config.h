@@ -36,7 +36,4 @@
 		// MODULE_VIRTIO_NETWORK_FEATURE_MRG_RXBUF is ignored by Qemu
 		// uint16_t	num_buffers;	// so, no support
 	} __attribute__( (packed) );
-
-	// external routines (assembly language)
-	extern void module_virtio_network_entry( void );
 #endif

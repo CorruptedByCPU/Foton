@@ -2,114 +2,6 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-__attribute__(( preserve_most ))
-void module_virtio_network_rx( void ) {
-	// only first device
-	uint64_t i = 0; for( ; i < module_virtio_limit; i++ ) if( module_virtio[ i ].type == MODULE_VIRTIO_TYPE_network ) break;
-
-	// properties of network device
-	struct MODULE_VIRTIO_NETWORK_STRUCTURE *network = (struct MODULE_VIRTIO_NETWORK_STRUCTURE *) module_virtio[ i ].device;
-
-	// retrieve virtio-net isr status
-	uint8_t isr_status = driver_port_in_byte( module_virtio[ network -> id ].base_address + MODULE_VIRTIO_REGISTER_isr_status );
-
-	// interrupt from queue? no
-	if( ! (isr_status & TRUE) ) {
-		// // link change?
-		// if( TRUE & driver_port_in_word( module_virtio[ network -> id ].base_address + MODULE_VIRTIO_REGISTER_device_config + offsetof( struct MODULE_VIRTIO_NETWORK_STRUCTURE_DEVICE_CONFIG, status ) ) )
-		// 	// debug
-		// 	kernel -> log( (uint8_t *) "[VIRTIO] Link up.\n" );
-		// else
-		// 	// debug
-		// 	kernel -> log( (uint8_t *) "[VIRTIO] Link down.\n" );
-
-		// tell APIC of current logical processor that hardware interrupt was handled, propely
-		kernel -> lapic_base_address -> eoi = EMPTY;
-
-		// done
-		return;
-	}
-
-	//----------------------------------------------------------------------
-
-	// synchronize memory with host
-	MACRO_SYNC();
-
-	// rings properties
-	uint16_t *ring_available = (uint16_t *) (network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].driver_address + offsetof( struct MODULE_VIRTIO_STRUCTURE_DRIVER, ring ));
-	struct MODULE_VIRTIO_STRUCTURE_RING *ring_used = (struct MODULE_VIRTIO_STRUCTURE_RING *) ((uintptr_t) network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_address + 0x04);
-
-	// try to prevent interrupts
-	network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_address -> flags = MODULE_VIRTIO_QUEUE_FLAG_interrupt_no;
-
-	// parse all incomming packets
-	while( network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_index != network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_address -> index ) {
-		// debug
-		// kernel -> log( (uint8_t *) "Rx\n" );
-
-		// calculate ring id
-		uint64_t index_used = network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_index % network -> queue_limit[ MODULE_VIRTIO_NETWORK_QUEUE_RX ];
-
-		// alloc area for frame content
-		uint8_t *source = (uint8_t *) (network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].descriptor_address[ ring_used[ index_used ].index ].address | KERNEL_PAGE_mirror) + sizeof( struct MODULE_VIRTIO_NETWORK_STRUCTURE_HEADER );
-		uint8_t *target = (uint8_t *) kernel -> memory_alloc( TRUE );
-		for( uint64_t f = 0; f < ring_used[ index_used ].length - sizeof( struct MODULE_VIRTIO_NETWORK_STRUCTURE_HEADER ); f++ ) target[ f ] = source[ f ];
-
-		// store frame on network stack
-		kernel -> network_rx( (uintptr_t) target | ring_used[ index_used ].length | KERNEL_PAGE_mirror );
-
-		// reset entry
-		ring_used[ index_used ].length = EMPTY;
-
-		// next descriptor
-		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_index++;
-
-		// synchronize memory with host
-		MACRO_SYNC();
-
-		// add descriptor back to available queue ----------------------
-
-		// start counting from current id
-		uint64_t index_available = network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].driver_address -> index % network -> queue_limit[ MODULE_VIRTIO_NETWORK_QUEUE_RX ];
-
-		// add cache to available ring
-		ring_available[ index_available ] = ring_used[ index_used ].index;
-
-		// synchronize memory with host
-		MACRO_SYNC();
-
-		// set next available index
-		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].driver_address -> index++;
-				
-		// synchronize memory with host
-		MACRO_SYNC();
-
-		// inform about updated available queue
-		driver_port_out_word( module_virtio[ network -> id ].base_address + MODULE_VIRTIO_REGISTER_queue_notify, MODULE_VIRTIO_NETWORK_QUEUE_RX );
-	}
-
-	// enable interrupts
-	network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_address -> flags = EMPTY;
-
-	//----------------------------------------------------------------------
-
-	// try to prevent interrupts
-	network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].device_address -> flags = MODULE_VIRTIO_QUEUE_FLAG_interrupt_no;
-
-	// parse all outgoed packets
-	while( network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].device_index != network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].device_address -> index )
-		// next entry
-		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].device_index++;
-
-	// enable interrupts
-	network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].device_address -> flags = EMPTY;
-
-	//----------------------------------------------------------------------
-
-	// tell APIC of current logical processor that hardware interrupt was handled, propely
-	kernel -> lapic_base_address -> eoi = EMPTY;
-}
-
 void module_virtio_network( void ) {
 	// configure only first device
 	uint64_t i = 0; for( ; i < module_virtio_limit; i++ ) if( module_virtio[ i ].type == MODULE_VIRTIO_TYPE_network ) break;
@@ -196,7 +88,7 @@ void module_virtio_network( void ) {
 		uint64_t limit_used = MACRO_PAGE_ALIGN_UP( (sizeof( struct MODULE_VIRTIO_STRUCTURE_RING ) * network -> queue_limit[ i ]) + (3 * sizeof( uint16_t )) );
 
 		// acquire area for queue
-		network -> queue[ i ].descriptor_address = (struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR *) (kernel -> memory_alloc_low( (limit_cache + limit_available + limit_used) >> STD_SHIFT_PAGE ) | KERNEL_PAGE_mirror);
+		network -> queue[ i ].descriptor_address = (struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR *) (kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( limit_cache + limit_available + limit_used ) >> STD_SHIFT_PAGE ) | KERNEL_PAGE_mirror);
 		network -> queue[ i ].driver_address = (struct MODULE_VIRTIO_STRUCTURE_DRIVER *) ((uintptr_t) network -> queue[ i ].descriptor_address + limit_cache);
 		network -> queue[ i ].device_address = (struct MODULE_VIRTIO_STRUCTURE_DEVICE *) ((uintptr_t) network -> queue[ i ].descriptor_address + limit_cache + limit_available);
 
@@ -221,14 +113,6 @@ void module_virtio_network( void ) {
 	kernel -> network_interface.ethernet_address[ 3 ] = network -> mac[ 3 ];
 	kernel -> network_interface.ethernet_address[ 4 ] = network -> mac[ 4 ];
 	kernel -> network_interface.ethernet_address[ 5 ] = network -> mac[ 5 ];
-
-	//----------------------------------------------------------------------
-
-	// connect network controller interrupt handler
-	kernel -> idt_mount( KERNEL_IDT_IRQ_offset + module_virtio[ network -> id ].irq, KERNEL_IDT_TYPE_irq, (uintptr_t) module_virtio_network_entry );
-
-	// connect interrupt vector from IDT table to IOAPIC controller
-	kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + module_virtio[ network -> id ].irq, KERNEL_IO_APIC_iowin + (module_virtio[ network -> id ].irq * 0x02) );
 
 	//----------------------------------------------------------------------
 
@@ -308,8 +192,8 @@ void module_virtio_network( void ) {
 		// properties of
 		uint16_t index = network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].driver_address -> index % network -> queue_limit[ MODULE_VIRTIO_NETWORK_QUEUE_TX ];
 		struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR *descriptor	= (struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR *) &network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].descriptor_address[ index ];
-		struct MODULE_VIRTIO_STRUCTURE_DRIVER *available	= (struct MODULE_VIRTIO_STRUCTURE_DRIVER *) network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].driver_address;
-		uint16_t *available_ring				= (uint16_t *) ((uintptr_t) available + offsetof( struct MODULE_VIRTIO_STRUCTURE_DRIVER, ring ));
+		struct MODULE_VIRTIO_STRUCTURE_DRIVER *network_driver	= (struct MODULE_VIRTIO_STRUCTURE_DRIVER *) network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].driver_address;
+		uint16_t *network_driver_ring				= (uint16_t *) ((uintptr_t) network_driver + offsetof( struct MODULE_VIRTIO_STRUCTURE_DRIVER, ring ));
 
 		// copy packet content to descriptor
 		uint8_t *source = (uint8_t *) ((uintptr_t) data | KERNEL_PAGE_mirror);
@@ -328,14 +212,11 @@ void module_virtio_network( void ) {
 		header -> csum_start	= EMPTY;
 		header -> csum_limit	= EMPTY;
 
-		// debug
-		// kernel -> log( (uint8_t *) "\n" ); for( uint64_t i = 0; i < (descriptor -> limit % 0x10) + TRUE; i++ ) { kernel -> log( (uint8_t *) "0x%8X", (uintptr_t) target + (i * 0x10) ); for( uint64_t k = i * 0x10; k < ((i * 0x10) + 0x10); k++ ) kernel -> log( (uint8_t *) " %2X", target[ k ] ); kernel -> log( (uint8_t *) "\n" ); }
-
 		// add to available ring
-		available_ring[ index ] = index;
+		network_driver_ring[ index ] = index;
 
 		// set next available index
-		available -> index++;
+		network_driver -> index++;
 
 		// synchronize memory with host
 		MACRO_SYNC();

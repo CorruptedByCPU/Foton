@@ -77,11 +77,6 @@ gzip -k build/kernel
 
 #===============================================================================
 
-# pre-submodules
-${ASM} -f elf64 module/virtio/network/network.asm -o build/virtio-net.ao
-submodule_size=`ls -lh build/virtio-net.ao | cut -d ' ' -f 5`
-echo -e "${green}\xE2\x9C\x94${default}|[pre-submodule of virtio-net.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-
 for submodules in `(cd module && ls *.asm)`; do
 	# module name
 	submodule=${submodules%.*}
@@ -104,7 +99,6 @@ for modules in `(cd module && ls *.c)`; do
 	# connect with libraries (if necessery)
 	SUB=""
 	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
-	if [ "${module}" == "virtio" ]; then SUB="build/virtio-net.ao"; fi
 	${LD} ${SUB} build/${module}.o -o build/root/system/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
 
 	# we do not need any additional information

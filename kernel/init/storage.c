@@ -12,7 +12,10 @@ void kernel_init_storage( void ) {
 		if( ! kernel_vfs_identify( (uintptr_t) limine_module_request.response -> modules[ i ] -> address, limine_module_request.response -> modules[ i ] -> size ) ) continue;	// no
 
 		// register device of type VFS
-		struct KERNEL_STRUCTURE_STORAGE *storage = kernel_storage_register( KERNEL_STORAGE_TYPE_vfs );
+		struct KERNEL_STRUCTURE_STORAGE *storage = kernel_storage_register( KERNEL_STORAGE_CLASS_block );
+
+		// file system type: VFS
+		storage -> device_fs = KERNEL_STORAGE_FS_vfs;
 
 		// address of VFS main block location
 		storage -> device_block = (uintptr_t) limine_module_request.response -> modules[ i ] -> address;

@@ -126,7 +126,7 @@ void kernel_init_vfs( void ) {
 	// detect VFS storages
 	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) {
 		// entry marked as VFS?
-		if( kernel -> storage_base_address[ i ].device_type != KERNEL_STORAGE_TYPE_vfs ) continue;	// thats not it
+		if( kernel -> storage_base_address[ i ].device_fs != KERNEL_STORAGE_FS_vfs ) continue;	// thats not it
 
 		// create superblock for VFS
 		struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( LIB_VFS_block ) >> STD_SHIFT_PAGE );

@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"515"
+#define	KERNEL_revision		"518"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -136,6 +136,8 @@ struct KERNEL {
 	struct KERNEL_STRUCTURE_STORAGE				*storage_base_address;
 	uint64_t						storage_root;
 	uint8_t							storage_semaphore;
+	// functions of Storage management functions
+	struct KERNEL_STRUCTURE_STORAGE				*(*storage_register)( uint8_t class );
 
 	// variables of Stream management functions
 	struct KERNEL_STRUCTURE_STREAM				*stream_base_address;

@@ -3,7 +3,7 @@
 ;=================================================================================
 
 ; get pointer from driver handling function
-extern	module_virtio_network_rx
+extern	module_virtio_irq
 
 ; 64 bit procedure code
 [BITS 64]
@@ -12,11 +12,11 @@ extern	module_virtio_network_rx
 section	.text
 
 ; share routine
-global	module_virtio_network_entry
+global	module_virtio_irq_entry
 
 ; align routine to full address
 align	0x08,	db	0x00
-module_virtio_network_entry:
+module_virtio_irq_entry:
 	; turn off Direction Flag
 	cld
 
@@ -42,7 +42,7 @@ module_virtio_network_entry:
 	FXSAVE64	[rax]
 
 	; execute driver handler
-	call	module_virtio_network_rx
+	call	module_virtio_irq
 
 	; restore "floating point" registers
 	mov	rax,	-0x1000
