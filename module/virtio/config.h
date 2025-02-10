@@ -41,6 +41,13 @@
 	#define	MODULE_VIRTIO_DEVICE_STATUS_device_needs_reset	(1 << 6)
 	#define	MODULE_VIRTIO_DEVICE_STATUS_failed		(1 << 7)
 
+	#define	MODULE_VIRTIO_DESCRIPTOR_FLAG_READ		EMPTY
+	#define	MODULE_VIRTIO_DESCRIPTOR_FLAG_NEXT		(1 << 0)
+	#define	MODULE_VIRTIO_DESCRIPTOR_FLAG_WRITE		(1 << 1)
+	#define	MODULE_VIRTIO_DESCRIPTOR_FLAG_INDIRECT		(1 << 3)
+
+	#define	MODULE_VIRTIO_QUEUE_FLAG_interrupt_no		(1 << 0)	// don't inform us about device borrowing descriptor entry
+
 	struct MODULE_VIRTIO_STRUCTURE {
 		struct DRIVER_PCI_STRUCTURE	pci;
 		uint8_t				type;
@@ -75,4 +82,12 @@
 		uint16_t	index;
 		struct MODULE_VIRTIO_STRUCTURE_RING *ring;
 	} __attribute__( (packed) );
+
+	struct MODULE_VIRTIO_STRUTURE_QUEUE {
+		struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR	*descriptor_address;
+		uint16_t					descriptor_index;
+		struct MODULE_VIRTIO_STRUCTURE_DRIVER		*driver_address;
+		struct MODULE_VIRTIO_STRUCTURE_DEVICE		*device_address;
+		uint16_t					device_index;
+	};
 #endif

@@ -9,7 +9,7 @@ default=$(tput sgr0)
 
 # default optimization
 OPT="${1}"
-if [ -z "${OPT}" ]; then OPT="fast"; fi
+if [ -z "${OPT}" ]; then OPT="3 -ffast-math"; fi
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 CC="clang"

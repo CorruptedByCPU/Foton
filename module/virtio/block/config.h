@@ -13,7 +13,9 @@
 	#define MODULE_VIRTIO_BLOCK_REQUEST_STATUS_no_support	(1 << 2)
 
 	struct MODULE_VIRTIO_BLOCK_STRUCTURE {
-		uint8_t	id;
+		uint8_t					id;
+		struct MODULE_VIRTIO_STRUTURE_QUEUE	queue;
+		uint16_t				queue_limit;
 	};
 
 	struct MODULE_VIRTIO_BLOCK_STRUCTURE_DEVICE_CONFIG {
@@ -24,7 +26,7 @@
 		uint32_t	type;
 		uint32_t	reserved;
 		uint64_t	block;
-		uint8_t		*data;
+		uint8_t		data[ 512 ];
 		uint8_t		status;
 	} __attribute__( (packed) );
 #endif

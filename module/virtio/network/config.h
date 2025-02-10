@@ -9,31 +9,16 @@
 	#define	MODULE_VIRTIO_NETWORK_FEATURE_MRG_RXBUF		(1 << 15)
 	#define	MODULE_VIRTIO_NETWORK_FEATURE_STATUS		(1 << 16)
 
-	#define	MODULE_VIRTIO_NETWORK_DESCRIPTOR_FLAG_READ		EMPTY
-	#define	MODULE_VIRTIO_NETWORK_DESCRIPTOR_FLAG_NEXT		(1 << 0)
-	#define	MODULE_VIRTIO_NETWORK_DESCRIPTOR_FLAG_WRITE		(1 << 1)
-	#define	MODULE_VIRTIO_NETWORK_DESCRIPTOR_FLAG_INDIRECT	(1 << 3)
-
-	#define	MODULE_VIRTIO_NETWORK_QUEUE_FLAG_interrupt_no	(1 << 0)	// don't inform us about device borrowing descriptor entry
-
 	enum MODULE_VIRTIO_NETWORK_QUEUE {
 		MODULE_VIRTIO_NETWORK_QUEUE_RX,
 		MODULE_VIRTIO_NETWORK_QUEUE_TX
 	};
 
-	struct MODULE_VIRTIO_NETWORK_STRUTURE_NETWORK_QUEUE {
-		struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR	*descriptor_address;
-		uint16_t					descriptor_index;
-		struct MODULE_VIRTIO_STRUCTURE_DRIVER		*driver_address;
-		struct MODULE_VIRTIO_STRUCTURE_DEVICE		*device_address;
-		uint16_t					device_index;
-	};
-
 	struct MODULE_VIRTIO_NETWORK_STRUCTURE {
-		uint8_t							id;
-		uint8_t							mac[ 6 ];
-		struct MODULE_VIRTIO_NETWORK_STRUTURE_NETWORK_QUEUE	queue[ 2 ];
-		uint16_t						queue_limit[ 2 ];
+		uint8_t					id;
+		uint8_t					mac[ 6 ];
+		struct MODULE_VIRTIO_STRUTURE_QUEUE	queue[ 2 ];
+		uint16_t				queue_limit[ 2 ];
 	};
 
 	struct MODULE_VIRTIO_NETWORK_STRUCTURE_DEVICE_CONFIG {

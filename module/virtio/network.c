@@ -40,7 +40,7 @@ void module_virtio_network_rx( void ) {
 	struct MODULE_VIRTIO_STRUCTURE_RING *ring_used = (struct MODULE_VIRTIO_STRUCTURE_RING *) ((uintptr_t) network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_address + 0x04);
 
 	// try to prevent interrupts
-	network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_address -> flags = MODULE_VIRTIO_NETWORK_QUEUE_FLAG_interrupt_no;
+	network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_address -> flags = MODULE_VIRTIO_QUEUE_FLAG_interrupt_no;
 
 	// parse all incomming packets
 	while( network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_index != network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_address -> index ) {
@@ -94,7 +94,7 @@ void module_virtio_network_rx( void ) {
 	//----------------------------------------------------------------------
 
 	// try to prevent interrupts
-	network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].device_address -> flags = MODULE_VIRTIO_NETWORK_QUEUE_FLAG_interrupt_no;
+	network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].device_address -> flags = MODULE_VIRTIO_QUEUE_FLAG_interrupt_no;
 
 	// parse all outgoed packets
 	while( network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].device_index != network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].device_address -> index )
@@ -237,7 +237,7 @@ void module_virtio_network( void ) {
 		// allocate area in Descriptors Queue
 		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].descriptor_address[ i ].address = (uintptr_t) kernel -> memory_alloc_page();
 		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].descriptor_address[ i ].limit = STD_PAGE_byte;
-		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].descriptor_address[ i ].flags = MODULE_VIRTIO_NETWORK_DESCRIPTOR_FLAG_WRITE;
+		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].descriptor_address[ i ].flags = MODULE_VIRTIO_DESCRIPTOR_FLAG_WRITE;
 
 		// add cache to available ring
 		uint16_t *receive_ring_available = (uint16_t *) (network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].driver_address + offsetof( struct MODULE_VIRTIO_STRUCTURE_DRIVER, ring ));
@@ -261,7 +261,7 @@ void module_virtio_network( void ) {
 		// allocate area in Descriptors Queue
 		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].descriptor_address[ i ].address = (uintptr_t) kernel -> memory_alloc_page();
 		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].descriptor_address[ i ].limit = STD_PAGE_byte;
-		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].descriptor_address[ i ].flags = MODULE_VIRTIO_NETWORK_DESCRIPTOR_FLAG_READ;
+		network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_TX ].descriptor_address[ i ].flags = MODULE_VIRTIO_DESCRIPTOR_FLAG_READ;
 
 		// synchronize memory with host
 		MACRO_SYNC();
