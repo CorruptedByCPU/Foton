@@ -137,7 +137,7 @@ struct KERNEL {
 	uint64_t						storage_root;
 	uint8_t							storage_semaphore;
 	// functions of Storage management functions
-	struct KERNEL_STRUCTURE_STORAGE				*(*storage_register)( uint8_t class );
+	struct KERNEL_STRUCTURE_STORAGE				*(*storage_add)( uint8_t class );
 
 	// variables of Stream management functions
 	struct KERNEL_STRUCTURE_STREAM				*stream_base_address;

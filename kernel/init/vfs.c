@@ -164,8 +164,5 @@ void kernel_init_vfs( void ) {
 
 		// kernels current directory
 		kernel -> task_base_address -> directory = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ i ].device_block;
-
-		MACRO_DEBUF();
-		kernel -> storage_base_address[ 0 ].read( 0, (uintptr_t) superblock, (uint8_t *) -8, 8 );
 	}
 }

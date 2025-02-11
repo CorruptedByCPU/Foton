@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct KERNEL_STRUCTURE_STORAGE *kernel_storage_register( uint8_t class ) {
+struct KERNEL_STRUCTURE_STORAGE *kernel_storage_add( uint8_t class ) {
 	// lock exclusive access
 	MACRO_LOCK( kernel -> storage_semaphore );
 

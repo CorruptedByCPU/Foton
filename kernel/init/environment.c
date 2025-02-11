@@ -85,6 +85,9 @@ void kernel_init_environment( void ) {
 	kernel -> page_map			= (void *) kernel_page_map;
 	kernel -> page_release			= (void *) kernel_page_release;
 
+	// share Storage management function
+	kernel -> storage_add			= (void *) kernel_storage_add;
+
 	// share Stream management function
 	kernel -> stream_release		= (void *) kernel_stream_release;
 
