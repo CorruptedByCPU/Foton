@@ -31,6 +31,9 @@
 // #endif
 
 struct KERNEL {
+	// functions of BFS management
+	void							(*bfs_format)( uint64_t storage_id );
+
 	// variables of Kernel management functions
 	volatile uint64_t					cpu_count;
 
@@ -137,7 +140,7 @@ struct KERNEL {
 	uint64_t						storage_root;
 	uint8_t							storage_semaphore;
 	// functions of Storage management functions
-	struct KERNEL_STRUCTURE_STORAGE				*(*storage_add)( uint8_t class );
+	uint64_t						(*storage_add)( uint8_t class );
 
 	// variables of Stream management functions
 	struct KERNEL_STRUCTURE_STREAM				*stream_base_address;

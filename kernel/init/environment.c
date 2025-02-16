@@ -52,8 +52,8 @@ void kernel_init_environment( void ) {
 
 	//----------------------------------------------------------------------
 
-	// share HPET management functions
-	kernel -> time_sleep			= (void *) kernel_time_sleep;
+	// share BFS management functions
+	kernel -> bfs_format			= (void *) kernel_bfs_format;
 
 	// share IDT management functions
 	kernel -> idt_mount			= (void *) kernel_idt_mount;
@@ -95,4 +95,7 @@ void kernel_init_environment( void ) {
 	kernel -> task_active			= (void *) kernel_task_active;
 	kernel -> task_pid			= (void *) kernel_task_pid;
 	kernel -> task_by_id			= (void *) kernel_task_by_id;
+
+	// share HPET management functions
+	kernel -> time_sleep			= (void *) kernel_time_sleep;
 }

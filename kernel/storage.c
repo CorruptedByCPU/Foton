@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct KERNEL_STRUCTURE_STORAGE *kernel_storage_add( uint8_t class ) {
+uint64_t kernel_storage_add( uint8_t class ) {
 	// lock exclusive access
 	MACRO_LOCK( kernel -> storage_semaphore );
 
@@ -18,7 +18,7 @@ struct KERNEL_STRUCTURE_STORAGE *kernel_storage_add( uint8_t class ) {
 		MACRO_UNLOCK( kernel -> storage_semaphore );
 
 		// return pointer to device entry
-		return (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ i ];
+		return i;
 	}
 
 	// unlock access

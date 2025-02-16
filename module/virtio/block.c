@@ -85,23 +85,27 @@ void module_virtio_block( void ) {
 	//----------------------------------------------------------------------
 
 	// register as storage
-	struct KERNEL_STRUCTURE_STORAGE *storage = kernel -> storage_add( KERNEL_STORAGE_CLASS_block );
+	uint64_t storage_id = kernel -> storage_add( KERNEL_STORAGE_CLASS_block );
+	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
 
 	// file system type: unknown
 	storage -> device_fs = EMPTY;
 
-	// address of VFS main block location
+	// address of main block location
 	storage -> device_id = block -> id;
 
 	// length of storage in Blocks
 	storage -> device_limit = driver_port_in_qword( module_virtio[ block -> id ].base_address + MODULE_VIRTIO_REGISTER_device_config + offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_DEVICE_CONFIG, capacity ) );
 
 	// default block size in Bytes
-	storage -> device_byte = storage -> device_limit << STD_SHIFT_512;
+	storage -> device_byte = 512;
 
 	// attach read/write functions
 	storage -> read = (void *) module_virtio_block_request_read;
 	storage -> write = (void *) module_virtio_block_request_write;
+
+	// debug
+	kernel -> bfs_format( storage_id );
 
 	//----------------------------------------------------------------------
 
