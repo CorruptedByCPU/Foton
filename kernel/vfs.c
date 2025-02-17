@@ -110,13 +110,9 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 	socket -> pid = kernel_task_pid();
 
 	// protect file against any modifications?
-	if( mode == STD_FILE_MODE_modify ) {
-		// insert ID of process, locked by
-		socket -> knot -> lock = socket -> pid;
-
+	if( mode == STD_FILE_MODE_modify )
 		// return flag
 		socket -> mode = STD_FILE_MODE_modify;
-	}
 
 	// unlock access
 	MACRO_UNLOCK( kernel -> vfs_semaphore );

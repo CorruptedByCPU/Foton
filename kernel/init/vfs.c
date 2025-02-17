@@ -144,7 +144,7 @@ void kernel_init_vfs( void ) {
 		// realloc blocks of superblock
 		kernel_init_vfs_realloc( superblock, kernel -> storage_base_address[ i ].device_block );
 
-		// realloc VFS structures regarded of memory location
+		// realloc VFS structures based of memory location
 		kernel_init_vfs_setup( superblock, superblock );
 
 		// set new location of VFS main block

@@ -17,4 +17,6 @@
 
 	// length of objects in file system blocks
 	#define	LIB_BFS_SUPERBLOCK_block	(MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_BFS_STRUCTURE_INODE ) ) >> STD_SHIFT_PAGE)
+	#define	LIB_BFS_SUPERBLOCK_byte		MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_BFS_STRUCTURE_INODE ) )
 	#define	LIB_BFS_ROOT_DIRECTORY_block	TRUE
+	#define	LIB_BFS_ROOT_DIRECTORY_byte	MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_BFS_STRUCTURE_INODE ) )

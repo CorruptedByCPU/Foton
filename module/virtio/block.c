@@ -125,46 +125,54 @@ void module_virtio_block_transfer( uint8_t type, uint64_t id, uint64_t sector, u
 	uint16_t flag = MODULE_VIRTIO_DESCRIPTOR_FLAG_READ;	// by default
 	if( type == MODULE_VIRTIO_BLOCK_REQUEST_TYPE_in ) flag = MODULE_VIRTIO_DESCRIPTOR_FLAG_WRITE;
 
-	// properties of device
-	struct MODULE_VIRTIO_BLOCK_STRUCTURE *block = (struct MODULE_VIRTIO_BLOCK_STRUCTURE *) module_virtio[ id ].device;
+	while( length-- ) {
+		// properties of device
+		struct MODULE_VIRTIO_BLOCK_STRUCTURE *block = (struct MODULE_VIRTIO_BLOCK_STRUCTURE *) module_virtio[ id ].device;
 
-	// set first descriptor
-	block -> queue.descriptor_address[ 0 ].address = (uintptr_t) request & ~KERNEL_PAGE_mirror;
-	block -> queue.descriptor_address[ 0 ].limit = offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST, data );
-	block -> queue.descriptor_address[ 0 ].flags = MODULE_VIRTIO_DESCRIPTOR_FLAG_NEXT;
-	block -> queue.descriptor_address[ 0 ].next = 1;
+		// set first descriptor
+		block -> queue.descriptor_address[ 0 ].address = (uintptr_t) request & ~KERNEL_PAGE_mirror;
+		block -> queue.descriptor_address[ 0 ].limit = offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST, data );
+		block -> queue.descriptor_address[ 0 ].flags = MODULE_VIRTIO_DESCRIPTOR_FLAG_NEXT;
+		block -> queue.descriptor_address[ 0 ].next = 1;
 
-	// second descriptor
-	block -> queue.descriptor_address[ 1 ].address = ((uintptr_t) data & ~KERNEL_PAGE_mirror);
-	block -> queue.descriptor_address[ 1 ].limit = 512;	// Bytes
-	block -> queue.descriptor_address[ 1 ].flags = flag | MODULE_VIRTIO_DESCRIPTOR_FLAG_NEXT;
-	block -> queue.descriptor_address[ 1 ].next = 2;
+		// second descriptor
+		block -> queue.descriptor_address[ 1 ].address = ((uintptr_t) data & ~KERNEL_PAGE_mirror);
+		block -> queue.descriptor_address[ 1 ].limit = 512;	// Bytes
+		block -> queue.descriptor_address[ 1 ].flags = flag | MODULE_VIRTIO_DESCRIPTOR_FLAG_NEXT;
+		block -> queue.descriptor_address[ 1 ].next = 2;
 
-	// third descriptor
-	block -> queue.descriptor_address[ 2 ].address = ((uintptr_t) request & ~KERNEL_PAGE_mirror) + offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST, status );
-	block -> queue.descriptor_address[ 2 ].limit = MACRO_SIZEOF( struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST, status );
-	block -> queue.descriptor_address[ 2 ].flags = MODULE_VIRTIO_DESCRIPTOR_FLAG_WRITE;
+		// third descriptor
+		block -> queue.descriptor_address[ 2 ].address = ((uintptr_t) request & ~KERNEL_PAGE_mirror) + offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST, status );
+		block -> queue.descriptor_address[ 2 ].limit = MACRO_SIZEOF( struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST, status );
+		block -> queue.descriptor_address[ 2 ].flags = MODULE_VIRTIO_DESCRIPTOR_FLAG_WRITE;
 
-	struct MODULE_VIRTIO_STRUCTURE_DRIVER *block_driver	= (struct MODULE_VIRTIO_STRUCTURE_DRIVER *) block -> queue.driver_address;
-	uint16_t *block_driver_ring				= (uint16_t *) ((uintptr_t) block_driver + offsetof( struct MODULE_VIRTIO_STRUCTURE_DRIVER, ring ));
+		struct MODULE_VIRTIO_STRUCTURE_DRIVER *block_driver	= (struct MODULE_VIRTIO_STRUCTURE_DRIVER *) block -> queue.driver_address;
+		uint16_t *block_driver_ring				= (uint16_t *) ((uintptr_t) block_driver + offsetof( struct MODULE_VIRTIO_STRUCTURE_DRIVER, ring ));
 
-	// add to available ring
-	block_driver_ring[ block_driver -> index % block -> queue_limit ] = 0;
+		// add to available ring
+		block_driver_ring[ block_driver -> index % block -> queue_limit ] = 0;
 
-	// set next available index
-	block_driver -> index++;
+		// set next available index
+		block_driver -> index++;
 
-	// synchronize memory with host
-	MACRO_SYNC();
+		// synchronize memory with host
+		MACRO_SYNC();
 
-	// inform about updated available queue
-	driver_port_out_word( module_virtio[ id ].base_address + MODULE_VIRTIO_REGISTER_queue_notify, EMPTY );
+		// inform about updated available queue
+		driver_port_out_word( module_virtio[ id ].base_address + MODULE_VIRTIO_REGISTER_queue_notify, EMPTY );
 
-	// wait for block of data to be transferred
-	while( ! block -> semaphore ) kernel -> time_sleep( TRUE );
+		// wait for block of data to be transferred
+		while( ! block -> semaphore ) kernel -> time_sleep( TRUE );
 
-	// put down semaphore
-	block -> semaphore = FALSE;
+		// put down semaphore
+		block -> semaphore = FALSE;
+
+		// next part of data
+		data += 512;
+
+		// inside next sector
+		request -> block++;
+	}
 
 	// release request area
 	kernel -> memory_release( (uintptr_t) request, TRUE );
