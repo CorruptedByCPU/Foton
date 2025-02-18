@@ -17,7 +17,7 @@ uint64_t kernel_init_vfs_length( uintptr_t base_address ) {
 		// for every entry
 		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) {
 			// end of entries?
-			if( ! entry[ e ].name_length ) return bytes;	// return size of directory
+			if( ! entry[ e ].name_limit ) return bytes;	// return size of directory
 		}
 
 		// extend size by block
@@ -30,28 +30,24 @@ uint64_t kernel_init_vfs_length( uintptr_t base_address ) {
 
 void kernel_init_vfs_realloc( struct LIB_VFS_STRUCTURE *vfs, uint64_t offset ) {
 	// length of file in blocks
-	uint64_t blocks = MACRO_PAGE_ALIGN_UP( vfs -> byte ) >> STD_SHIFT_PAGE;
+	uint64_t blocks = MACRO_PAGE_ALIGN_UP( vfs -> limit ) >> STD_SHIFT_PAGE;
 
 	// remember file content pointer
-	offset += vfs -> offset[ FALSE ];
+	offset += vfs -> block[ FALSE ];
 
 	// parse direct blocks
-	for( uint8_t i = 0; i < 13; i++ ) {
-		// update block pointer
-		vfs -> offset[ i ] = offset;
 
-		// next block address
-		offset += STD_PAGE_byte;
+	// update block pointer
+	vfs -> block[ 0 ] = offset;
 
-		// no more blocks?
-		if( ! --blocks ) return;
-	}
+	// next block address
+	offset += STD_PAGE_byte;
 
 	// update file properties
-	vfs -> offset[ 13 ] = kernel -> memory_alloc( TRUE );
+	vfs -> block[ 1 ] = kernel -> memory_alloc( TRUE );
 
 	// properties of indirect block
-	uintptr_t *indirect = (uintptr_t *) vfs -> offset[ 13 ];
+	uintptr_t *indirect = (uintptr_t *) vfs -> block[ 1 ];
 
 	// parse indirect blocks
 	for( uint16_t i = 0; i < 512; i++ ) {
@@ -65,13 +61,13 @@ void kernel_init_vfs_realloc( struct LIB_VFS_STRUCTURE *vfs, uint64_t offset ) {
 		if( ! --blocks ) return;
 	}
 
-	// no support for double-indirect and triple-indirect, yet
+	// no support for double-indirect and so on, yet
 	// file of 2 MiB is enough for now
 }
 
 void kernel_init_vfs_setup( struct LIB_VFS_STRUCTURE *current, struct LIB_VFS_STRUCTURE *previous ) {
 	// for each data block of directory
-	for( uint64_t i = 0; i < MACRO_PAGE_ALIGN_UP( current -> byte ) >> STD_SHIFT_PAGE; i++ ) {
+	for( uint64_t i = 0; i < MACRO_PAGE_ALIGN_UP( current -> limit ) >> STD_SHIFT_PAGE; i++ ) {
 		// properties of directory entry
 		struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( current, i );
 
@@ -80,7 +76,7 @@ void kernel_init_vfs_setup( struct LIB_VFS_STRUCTURE *current, struct LIB_VFS_ST
 			// if regular file
 			if( entry[ j ].type == STD_FILE_TYPE_file ) {
 				// realloc blocks of file
-				kernel_init_vfs_realloc( (struct LIB_VFS_STRUCTURE *) &entry[ j ], current -> offset[ FALSE ] + current -> byte );
+				kernel_init_vfs_realloc( (struct LIB_VFS_STRUCTURE *) &entry[ j ], current -> block[ FALSE ] + current -> limit );
 
 				// next entry
 				continue;
@@ -89,10 +85,10 @@ void kernel_init_vfs_setup( struct LIB_VFS_STRUCTURE *current, struct LIB_VFS_ST
 			// if directory
 			if( entry[ j ].type == STD_FILE_TYPE_directory ) {
 				// calculate root directory size
-				entry[ j ].byte = kernel_init_vfs_length( current -> offset[ FALSE ] + current -> byte + entry[ j ].offset[ FALSE ] );
+				entry[ j ].limit = kernel_init_vfs_length( current -> block[ FALSE ] + current -> limit + entry[ j ].block[ FALSE ] );
 
 				// realloc blocks of superblock
-				kernel_init_vfs_realloc( (struct LIB_VFS_STRUCTURE *) &entry[ j ], current -> offset[ FALSE ] + current -> byte );
+				kernel_init_vfs_realloc( (struct LIB_VFS_STRUCTURE *) &entry[ j ], current -> block[ FALSE ] + current -> limit );
 
 				// realloc VFS structures regarded of memory location
 				kernel_init_vfs_setup( (struct LIB_VFS_STRUCTURE *) &entry[ j ], current );
@@ -104,13 +100,13 @@ void kernel_init_vfs_setup( struct LIB_VFS_STRUCTURE *current, struct LIB_VFS_ST
 			// if symbolic link
 			if( entry[ j ].type == STD_FILE_TYPE_link ) {
 				// remove size information
-				entry[ j ].byte = EMPTY;
+				entry[ j ].limit = EMPTY;
 
 				// current?
-				if( entry[ j ].name_length == 1 && entry[ j ].name[ 0 ] == STD_ASCII_DOT ) entry[ j ].offset[ FALSE ] = (uintptr_t) current;
+				if( entry[ j ].name_limit == 1 && entry[ j ].name[ 0 ] == STD_ASCII_DOT ) entry[ j ].block[ FALSE ] = (uintptr_t) current;
 
 				// previous?
-				if( entry[ j ].name_length == 2 && entry[ j ].name[ 0 ] == STD_ASCII_DOT && entry[ j ].name[ 1 ] == STD_ASCII_DOT ) entry[ j ].offset[ FALSE ] = (uintptr_t) previous;
+				if( entry[ j ].name_limit == 2 && entry[ j ].name[ 0 ] == STD_ASCII_DOT && entry[ j ].name[ 1 ] == STD_ASCII_DOT ) entry[ j ].block[ FALSE ] = (uintptr_t) previous;
 
 				// next entry
 				continue;
@@ -129,17 +125,17 @@ void kernel_init_vfs( void ) {
 		if( kernel -> storage_base_address[ i ].device_fs != KERNEL_STORAGE_FS_vfs ) continue;	// thats not it
 
 		// create superblock for VFS
-		struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( LIB_VFS_block ) >> STD_SHIFT_PAGE );
+		struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( LIB_VFS_BLOCK_byte ) >> STD_SHIFT_PAGE );
 
 		// superblock is of type: directory
 		superblock -> type = STD_FILE_TYPE_directory;
 
 		// root directory name
-		superblock -> name_length = 1;
+		superblock -> name_limit = 1;
 		*superblock -> name = STD_ASCII_SLASH;
 
 		// calculate root directory size
-		superblock -> byte = kernel_init_vfs_length( kernel -> storage_base_address[ i ].device_block );
+		superblock -> limit = kernel_init_vfs_length( kernel -> storage_base_address[ i ].device_block );
 
 		// realloc blocks of superblock
 		kernel_init_vfs_realloc( superblock, kernel -> storage_base_address[ i ].device_block );

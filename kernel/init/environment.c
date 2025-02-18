@@ -52,8 +52,8 @@ void kernel_init_environment( void ) {
 
 	//----------------------------------------------------------------------
 
-	// share BFS management functions
-	kernel -> bfs_format			= (void *) kernel_bfs_format;
+	// share FS management functions
+	kernel -> fs_format			= (void *) kernel_fs_format;
 
 	// share IDT management functions
 	kernel -> idt_mount			= (void *) kernel_idt_mount;

@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"522"
+#define	KERNEL_revision		"523"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -31,9 +31,6 @@
 // #endif
 
 struct KERNEL {
-	// functions of BFS management
-	void							(*bfs_format)( uint64_t storage_id );
-
 	// variables of Kernel management functions
 	volatile uint64_t					cpu_count;
 
@@ -50,6 +47,9 @@ struct KERNEL {
 	uint16_t						framebuffer_height_pixel;
 	uint32_t						framebuffer_pitch_byte;
 	int64_t							framebuffer_pid;
+
+	// functions of BFS management
+	void							(*fs_format)( uint64_t storage_id );
 
 	// variables of GDT management functions
 	struct KERNEL_STRUCTURE_GDT_HEADER			gdt_header;

@@ -108,18 +108,18 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		uint16_t column_width = LS_MARGIN;
 
 		// amount of files to show
-		uint64_t e = STD_MAX_unsigned; while( vfs[ ++e ].name_length )
+		uint64_t e = STD_MAX_unsigned; while( vfs[ ++e ].name_limit )
 			// set longest file name as column width
-			if( column_width <= vfs[ e ].name_length ) column_width = vfs[ e ].name_length + LS_MARGIN;
+			if( column_width <= vfs[ e ].name_limit ) column_width = vfs[ e ].name_limit + LS_MARGIN;
 
 		// prepare column movement sequence
 		uint8_t column_string[ 8 + 1 ] = { EMPTY };
 		sprintf( "\e[%uC", (uint8_t *) &column_string, column_width );
 
 		// parse each file
-		e = STD_MAX_unsigned; while( vfs[ ++e ].name_length ) {
+		e = STD_MAX_unsigned; while( vfs[ ++e ].name_limit ) {
 			// empty entry?
-			if( ! vfs[ e ].name_length ) continue;
+			if( ! vfs[ e ].name_limit ) continue;
 
 			// show hidden?
 			if( vfs[ e ].name[ 0 ] == '.' && ! show_hidden ) continue;	// no
@@ -127,10 +127,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// properties mode?
 			if( show_properties )
 				// size of file
-				ls_format( vfs[ e ].byte );
+				ls_format( vfs[ e ].limit );
 
 			// cannot fit name in this column?
-			if( column + vfs[ e ].name_length >= stream_meta.width ) {
+			if( column + vfs[ e ].name_limit >= stream_meta.width ) {
 				// start from new line
 				print( "\n" );
 

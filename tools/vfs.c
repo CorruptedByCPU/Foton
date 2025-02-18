@@ -41,12 +41,12 @@ DIR *isdir;
 
 void vfs_default( struct LIB_VFS_STRUCTURE *vfs ) {
 	// prepare default symlinks for root directory
-	vfs[ 0 ].offset[ FALSE ] = EMPTY;
-	vfs[ 0 ].name_length = 1;
+	vfs[ 0 ].block[ FALSE ] = EMPTY;
+	vfs[ 0 ].name_limit = 1;
 	vfs[ 0 ].type = STD_FILE_TYPE_link;
 	strncpy( (char *) &vfs[ 0 ].name, name_symlink, 1 );
-	vfs[ 1 ].offset[ FALSE ] = EMPTY;
-	vfs[ 1 ].name_length = 2;
+	vfs[ 1 ].block[ FALSE ] = EMPTY;
+	vfs[ 1 ].name_limit = 2;
 	vfs[ 1 ].type = STD_FILE_TYPE_link;
 	strncpy( (char *) &vfs[ 1 ].name, name_symlink, 2 );
 }
@@ -109,7 +109,7 @@ int main( int argc, char *argv[] ) {
 		for( uint16_t i = 0; i < sizeof( struct LIB_VFS_STRUCTURE ); i++ ) new[ i ] = EMPTY;
 
 		// insert: name, length
-		file -> name_length = strlen( entry -> d_name );
+		file -> name_limit = strlen( entry -> d_name );
 		strcpy( (char *) file -> name, entry -> d_name );
 
 		// combine path to file
@@ -121,7 +121,7 @@ int main( int argc, char *argv[] ) {
 		// size of file in Bytes
 		struct stat finfo;
 		stat( (char *) path_local, &finfo );	// get file specification
-		file -> byte = finfo.st_size;
+		file -> limit = finfo.st_size;
 
 		// type is directory?
 		if( (isdir = opendir( path_local )) != NULL ) {
@@ -139,7 +139,7 @@ int main( int argc, char *argv[] ) {
 			// size of file in Bytes
 			struct stat finfo;
 			stat( (char *) path_insert, &finfo );	// get file specification
-			file -> byte = finfo.st_size;
+			file -> limit = finfo.st_size;
 
 			// set file type as directory
 			file -> type = STD_FILE_TYPE_directory;
@@ -176,14 +176,14 @@ int main( int argc, char *argv[] ) {
 		file = (struct LIB_VFS_STRUCTURE *) ( (uintptr_t) vfs + ((vfs_blocks( i ) - 1) * STD_PAGE_byte) + ((i % block_limit) * sizeof( struct LIB_VFS_STRUCTURE )) );
 
 		// first file
-		file -> offset[ FALSE ] = offset;
+		file -> block[ FALSE ] = offset;
 
 		// next file (align file position)
-		offset += MACRO_PAGE_ALIGN_UP( file -> byte );
+		offset += MACRO_PAGE_ALIGN_UP( file -> limit );
 	}
 
 	// update size of root directory inside symlinks
-	for( uint8_t i = 0; i < LIB_VFS_default; i++ ) vfs[ i ].byte = MACRO_PAGE_ALIGN_UP( vfs_blocks( files_included ) * STD_PAGE_byte );
+	for( uint8_t i = 0; i < LIB_VFS_default; i++ ) vfs[ i ].limit = MACRO_PAGE_ALIGN_UP( vfs_blocks( files_included ) * STD_PAGE_byte );
 
 	/*--------------------------------------------------------------------*/
 
@@ -213,7 +213,7 @@ int main( int argc, char *argv[] ) {
 
 			// append file to package
 			FILE *append = fopen( path_insert, "r" );
-			for( uint64_t f = 0; f < file -> byte; f++ ) fputc( fgetc( append ), fvfs );
+			for( uint64_t f = 0; f < file -> limit; f++ ) fputc( fgetc( append ), fvfs );
 			fclose( append );
 		} else {
 			// combine path to file
@@ -222,12 +222,12 @@ int main( int argc, char *argv[] ) {
 
 			// append file to package
 			FILE *append = fopen( path_insert, "r" );
-			for( uint64_t f = 0; f < file -> byte; f++ ) fputc( fgetc( append ), fvfs );
+			for( uint64_t f = 0; f < file -> limit; f++ ) fputc( fgetc( append ), fvfs );
 			fclose( append );
 		}
 
 		// last data offset in Bytes
-		size = file -> offset[ FALSE ] + file -> byte;
+		size = file -> block[ FALSE ] + file -> limit;
 	}
 
 	// release header

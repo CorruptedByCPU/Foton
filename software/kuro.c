@@ -40,7 +40,7 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 	size_t local_list_entry_count = FALSE;
 
 	// file by file
-	uint64_t e = EMPTY; while( vfs[ ++e ].name_length ) {
+	uint64_t e = EMPTY; while( vfs[ ++e ].name_limit ) {
 		// prepare area for entry
 		entry = realloc( entry, (local_list_entry_count + 1) * sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY ) );
 
@@ -50,10 +50,10 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 
 		// define entry type and size
 		entry[ local_list_entry_count ].type = vfs[ e ].type;
-		entry[ local_list_entry_count ].byte = vfs[ e ].byte;
+		entry[ local_list_entry_count ].byte = vfs[ e ].limit;
 
 		// copy entry name
-		entry[ local_list_entry_count ].name_length = vfs[ e ].name_length;
+		entry[ local_list_entry_count ].name_length = vfs[ e ].name_limit;
 		entry[ local_list_entry_count ].name = calloc( entry[ local_list_entry_count ].name_length + 1 );
 		for( size_t i = 0; i < entry[ local_list_entry_count ].name_length; i++ ) entry[ local_list_entry_count ].name[ i ] = vfs[ e ].name[ i ];
 

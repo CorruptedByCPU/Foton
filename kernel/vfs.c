@@ -4,42 +4,41 @@
 
 uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	// direct block?
-	if( i <= 12 ) return vfs -> offset[ i ];	// return pointer
+	if( ! i ) return vfs -> block[ 0 ];	// return pointer
 
 	// indirect block?
-	if( i > 12 && i < 524 ) {
+	if( i > 0 && i < 513 ) {
 		// properties of indirect block
-		uintptr_t *indirect = (uintptr_t *) vfs -> offset[ 13 ];
+		uintptr_t *indirect = (uintptr_t *) vfs -> block[ 1 ];
 
 		// return pointer
-		return indirect[ i - 13 ];
+		return indirect[ i - 1 ];
 	}
 
-	// no support for block id, yet
+	// no support for double-indirect and so on, yet
 	return EMPTY;
 }
 
 uintptr_t kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	// direct blocks
-	for( uint64_t b = 0; b < 13; b++ ) {
-		// that was last block
-		if( ! i-- ) return vfs -> offset[ b ];
 
-		// block exist?
-		if( vfs -> offset[ b ] ) continue;	// yep
-
+	// block doesn't exist?
+	if( ! vfs -> block[ 0 ] ) {	// yep
 		// allocate block
-		vfs -> offset[ b ] = kernel_memory_alloc( TRUE );
+		vfs -> block[ 0 ] = kernel_memory_alloc( TRUE );
 	}
 
+	// that was last block
+	if( ! i-- ) return vfs -> block[ 0 ];
+
 	// indirect block exist?
-	if( ! vfs -> offset[ 13 ] ) kernel_memory_alloc( TRUE );	// no, add
+	if( ! vfs -> block[ 1 ] ) vfs -> block[ 1 ] = kernel_memory_alloc( TRUE );	// no, add
 
 	// indirect blocks
-	uintptr_t *indirect = (uintptr_t *) vfs -> offset[ 13 ];
+	uintptr_t *indirect = (uintptr_t *) vfs -> block[ 1 ];
 	for( uint64_t b = 0; b < 512; b++ ) {
 		// that was last block
-		if( ! i-- ) return vfs -> offset[ b ];
+		if( ! i-- ) return vfs -> block[ b ];
 
 		// block exist?
 		if( indirect[ b ] ) continue;	// yep
@@ -57,18 +56,18 @@ uintptr_t kernel_vfs_block_remove( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	uintptr_t block = EMPTY;
 
 	// direct block?
-	if( i <= 12 ) {
+	if( ! i ) {
 		// preserve block pointer
-		block = vfs -> offset[ i ];
+		block = vfs -> block[ 0 ];
 
 		// remove it
-		vfs -> offset[ i ] = EMPTY;
+		vfs -> block[ 0 ] = EMPTY;
 	}
 
 	// indirect block?
-	if( i > 12 && i < 524 ) {
+	if( i > 1 && i < 513 ) {
 		// properties of indirect block
-		uintptr_t *indirect = (uintptr_t *) vfs -> offset[ 13 ];
+		uintptr_t *indirect = (uintptr_t *) vfs -> block[ 1 ];
 
 		// preserve block pointer
 		block = indirect[ i ];
@@ -126,11 +125,11 @@ void kernel_vfs_file_properties( struct KERNEL_STRUCTURE_VFS *socket, struct KER
 	struct LIB_VFS_STRUCTURE *file = socket -> knot;
 
 	// retrun file size in Bytes
-	properties -> byte = file -> byte;
+	properties -> byte = file -> limit;
 
 	// return file name
-	properties -> name_length = file -> name_length;
-	for( uint64_t i = 0; i < file -> name_length; i++ ) properties -> name[ i ] = file -> name[ i ];
+	properties -> name_length = file -> name_limit;
+	for( uint64_t i = 0; i < file -> name_limit; i++ ) properties -> name[ i ] = file -> name[ i ];
 }
 
 void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target, uint64_t seek, uint64_t byte ) {
@@ -138,9 +137,9 @@ void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target,
 	struct LIB_VFS_STRUCTURE *file = socket -> knot;
 
 	// invalid read request?
-	if( seek + byte > file -> byte ) {
+	if( seek + byte > file -> limit ) {
 		// read up to end of file?
-		if( seek < file -> byte ) byte = file -> byte - seek;
+		if( seek < file -> limit ) byte = file -> limit - seek;
 		else return;	// no, ignore
 	}
 
@@ -173,10 +172,10 @@ void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target,
 
 struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_create( struct LIB_VFS_STRUCTURE *directory, struct LIB_VFS_STRUCTURE *vfs, uint8_t *name, uint64_t length, uint8_t type ) {
 	// new file?
-	if( ! vfs -> name_length ) {	// yes
+	if( ! vfs -> name_limit ) {	// yes
 		// set file name
-		vfs -> name_length = EMPTY;
-		for( uint8_t j = 0; j < length; j++ ) vfs -> name[ vfs -> name_length++ ] = name[ j ];
+		vfs -> name_limit = EMPTY;
+		for( uint8_t j = 0; j < length; j++ ) vfs -> name[ vfs -> name_limit++ ] = name[ j ];
 
 		// set file type
 		vfs -> type = type;
@@ -186,27 +185,27 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_create( struct LIB_VFS_STRUCTURE *d
 			// for file of type: directory
 			case STD_FILE_TYPE_directory: {
 				// assign first block for directory
-				vfs -> offset[ FALSE ] = kernel_memory_alloc( TRUE );
+				vfs -> block[ FALSE ] = kernel_memory_alloc( TRUE );
 
 				// directory default block properties
-				struct LIB_VFS_STRUCTURE *dir = (struct LIB_VFS_STRUCTURE *) vfs -> offset[ FALSE ];
+				struct LIB_VFS_STRUCTURE *dir = (struct LIB_VFS_STRUCTURE *) vfs -> block[ FALSE ];
 
 				// prepare default symlinks for root directory
 
 				// current location
-				dir[ FALSE ].offset[ FALSE ]	= (uintptr_t) vfs;
+				dir[ FALSE ].block[ FALSE ]	= (uintptr_t) vfs;
 				dir[ FALSE ].type		= STD_FILE_TYPE_link;
-				dir[ FALSE ].name_length	= 1;
+				dir[ FALSE ].name_limit	= 1;
 				dir[ FALSE ].name[ FALSE ]	= '.';
 				
 				// previous location
-				dir[ TRUE ].offset[ FALSE ]	= (uintptr_t) directory;
+				dir[ TRUE ].block[ FALSE ]	= (uintptr_t) directory;
 				dir[ TRUE ].type		= STD_FILE_TYPE_link;
-				dir[ TRUE ].name_length		= 2;
+				dir[ TRUE ].name_limit		= 2;
 				dir[ TRUE ].name[ FALSE ]	= '.'; dir[ TRUE ].name[ TRUE ] = '.';
 
 				// default directory size
-				vfs -> byte = STD_PAGE_byte;
+				vfs -> limit = STD_PAGE_byte;
 
 				// done
 				break;
@@ -215,10 +214,10 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_create( struct LIB_VFS_STRUCTURE *d
 			// for file
 			default: {
 				// clean data pointer
-				vfs -> offset[ FALSE ] = EMPTY;
+				vfs -> block[ FALSE ] = EMPTY;
 
 				// and file size
-				vfs -> byte = EMPTY;
+				vfs -> limit = EMPTY;
 			}
 		}
 	}
@@ -261,7 +260,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 	if( (file = kernel_vfs_path( path, length )) ) return kernel_vfs_file_create( directory, file, file_name, file_name_length, type );
 
 	// for each data block of directory
-	uint64_t blocks = directory -> byte >> STD_SHIFT_PAGE;
+	uint64_t blocks = directory -> limit >> STD_SHIFT_PAGE;
 	for( uint64_t b = 0; b < blocks; b++ ) {
 		// first directory block entries
 		struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( directory, b );
@@ -269,7 +268,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 		// for every possible entry
 		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
 			// if free entry, found
-			if( ! entry[ e ].name_length ) return kernel_vfs_file_create( directory, (struct LIB_VFS_STRUCTURE *) &entry[ e ], file_name, file_name_length, type );
+			if( ! entry[ e ].name_limit ) return kernel_vfs_file_create( directory, (struct LIB_VFS_STRUCTURE *) &entry[ e ], file_name, file_name_length, type );
 
 		// extend search?
 		if( ! kernel_vfs_block_by_id( directory, b + 1 ) ) {
@@ -277,7 +276,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type 
 			kernel_vfs_block_fill( directory, ++blocks );
 
 			// new directory size
-			directory -> byte += STD_PAGE_byte;
+			directory -> limit += STD_PAGE_byte;
 		}
 	}
 
@@ -290,13 +289,13 @@ void kernel_vfs_file_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source
 	struct LIB_VFS_STRUCTURE *file = socket -> knot;
 
 	// insufficient file length?
-	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> byte ) ) {
+	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> limit ) ) {
 		// assign required blocks
 		kernel_vfs_block_fill( file, MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
 	}
 
 	// set new file length
-	file -> byte = seek + byte;
+	file -> limit = seek + byte;
 
 	// INFO: writing to file from seek == EMPTY, means the same as create new content
 
@@ -352,14 +351,14 @@ uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte ) {
 
 struct LIB_VFS_STRUCTURE *kernel_vfs_search_file( struct LIB_VFS_STRUCTURE *directory, uint8_t *name, uint64_t name_length ) {
 	// for each data block of directory
-	for( uint64_t b = 0; b < (directory -> byte >> STD_SHIFT_PAGE); b++ ) {
+	for( uint64_t b = 0; b < (directory -> limit >> STD_SHIFT_PAGE); b++ ) {
 		// properties of directory entry
 		struct LIB_VFS_STRUCTURE *entry = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( directory, b );
 
 		// for every possible entry
 		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) {
 			// if 
-			if( entry[ e ].name_length == name_length && lib_string_compare( (uint8_t *) entry[ e ].name, name, name_length ) ) return (struct LIB_VFS_STRUCTURE *) &entry[ e ];
+			if( entry[ e ].name_limit == name_length && lib_string_compare( (uint8_t *) entry[ e ].name, name, name_length ) ) return (struct LIB_VFS_STRUCTURE *) &entry[ e ];
 		}
 	}
 
@@ -407,7 +406,7 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 		// last file from path and requested one?
 		if( length == name_length ) {
 			// follow symbolic links (if possible)
-			while( file -> type & STD_FILE_TYPE_link ) file = (struct LIB_VFS_STRUCTURE *) file -> offset[ FALSE ];
+			while( file -> type & STD_FILE_TYPE_link ) file = (struct LIB_VFS_STRUCTURE *) file -> block[ FALSE ];
 
 			// acquired file
 			return file;
@@ -417,7 +416,7 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 		directory = file;
 
 		// follow symbolic links (if possible)
-		while( file -> type & STD_FILE_TYPE_link ) { directory = file; file = (struct LIB_VFS_STRUCTURE *) file -> offset[ FALSE ]; }
+		while( file -> type & STD_FILE_TYPE_link ) { directory = file; file = (struct LIB_VFS_STRUCTURE *) file -> block[ FALSE ]; }
 
 		// remove parsed file from path
 		path += name_length; length -= name_length;

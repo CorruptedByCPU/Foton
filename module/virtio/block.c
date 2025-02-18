@@ -105,7 +105,7 @@ void module_virtio_block( void ) {
 	storage -> write = (void *) module_virtio_block_request_write;
 
 	// debug
-	kernel -> bfs_format( storage_id );
+	kernel -> fs_format( storage_id );
 
 	//----------------------------------------------------------------------
 

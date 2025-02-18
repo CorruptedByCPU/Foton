@@ -652,7 +652,7 @@ void kernel_syscall_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target,
 			// for every possible entry
 			for( size_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
 				// if file exist
-				if( vfs[ e ].name_length ) ((struct LIB_VFS_STRUCTURE *) target)[ t++ ] = vfs[ e ];
+				if( vfs[ e ].name_limit ) ((struct LIB_VFS_STRUCTURE *) target)[ t++ ] = vfs[ e ];
 		}
 
 		// release temporray area
