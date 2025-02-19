@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"523"
+#define	KERNEL_revision		"524"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -49,7 +49,7 @@ struct KERNEL {
 	int64_t							framebuffer_pid;
 
 	// functions of BFS management
-	void							(*fs_format)( uint64_t storage_id );
+	// void							(*fs_format)( uint64_t storage_id );
 
 	// variables of GDT management functions
 	struct KERNEL_STRUCTURE_GDT_HEADER			gdt_header;

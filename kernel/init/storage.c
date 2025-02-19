@@ -30,4 +30,8 @@ void kernel_init_storage( void ) {
 		storage -> read = (void *) kernel_vfs_read;
 		storage -> write = (void *) kernel_vfs_write;
 	}
+
+	// start Storage thread
+	uint8_t storage_string_thread_name[] = "storage";
+	kernel_module_thread( (uintptr_t) &kernel_storage, (uint8_t *) &storage_string_thread_name, sizeof( storage_string_thread_name ) );
 }

@@ -41,6 +41,7 @@
 	#include	"ipc.h"
 	#include	"stream.h"
 	#include	"network.h"
+	#include	"qfs.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -70,7 +71,7 @@
 	#include	"time.c"
 	#include	"stream.c"
 	#include	"network.c"
-	#include	"fs.c"
+	#include	"qfs.c"
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel environment initialization
 	//----------------------------------------------------------------------

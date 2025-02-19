@@ -104,9 +104,6 @@ void module_virtio_block( void ) {
 	storage -> read = (void *) module_virtio_block_request_read;
 	storage -> write = (void *) module_virtio_block_request_write;
 
-	// debug
-	kernel -> fs_format( storage_id );
-
 	//----------------------------------------------------------------------
 
 	// hodor

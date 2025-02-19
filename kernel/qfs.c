@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_fs_format( uint64_t storage_id ) {
+void kernel_qfs_format( uint64_t storage_id ) {
 	// properties of storage
 	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
 
@@ -42,9 +42,11 @@ void kernel_fs_format( uint64_t storage_id ) {
 	// prepare bitmap
 	uint32_t *bitmap = (uint32_t *) kernel -> memory_alloc( bitmap_block );
 
+	// clean'up
+	for( uint64_t i = 0; i < bitmap_block << STD_SHIFT_1024; i++ ) bitmap[ i ] = STD_MAX_unsigned;
+
 	// mark pages used by file system structures as unusable
-	for( uint64_t i = 0; i < (TRUE + bitmap_block + TRUE); i++ )
-		bitmap[ i >> STD_SHIFT_32 ] |= 1 << (i & 0b00011111);
+	for( uint64_t i = 0; i < (TRUE + bitmap_block + TRUE); i++ ) bitmap[ i >> STD_SHIFT_32 ] &= ~(1 << (i & 0b00011111) );
 
 	// write after superblock
 	storage -> write( storage_id, storage -> device_block + (LIB_VFS_BLOCK_byte / 512), (uint8_t *) bitmap, (bitmap_block << STD_SHIFT_PAGE) / storage -> device_byte );
@@ -77,4 +79,14 @@ void kernel_fs_format( uint64_t storage_id ) {
 
 	// release root directory content
 	kernel -> memory_release( (uintptr_t) root, TRUE );
+}
+
+uint8_t kernel_qfs_identify( uint64_t storage_id ) {
+	// properties of storage
+	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
+
+	
+
+	// no
+	return FALSE;
 }

@@ -9,7 +9,10 @@
 	#define	KERNEL_STORAGE_limit		(STD_PAGE_byte / sizeof( struct KERNEL_STRUCTURE_STORAGE ))
 
 	// storage type:
+	#define	KERNEL_STORAGE_FS_undefinied	EMPTY
 	#define	KERNEL_STORAGE_FS_vfs		0x01	// Virtual File System
+	#define	KERNEL_STORAGE_FS_qfs		0x02	// Quark File System
+	#define	KERNEL_STORAGE_FS_raw		0xFF	// not set
 
 	// storage class:
 	#define	KERNEL_STORAGE_CLASS_block	0b00000001	// whole storage
