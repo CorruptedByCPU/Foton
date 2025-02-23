@@ -82,11 +82,51 @@ void kernel_qfs_format( uint64_t storage_id ) {
 }
 
 uint8_t kernel_qfs_identify( uint64_t storage_id ) {
+	// lets assume, that is Quark File system
+	uint8_t qfs = TRUE;
+
 	// properties of storage
 	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
 
-	
+	// properties of knot under consideration
+	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel -> memory_alloc( TRUE );
+
+	// load superblock knot
+	storage -> read( storage -> device_id, storage -> device_block, (uint8_t *) vfs, LIB_VFS_BLOCK_byte / storage -> device_byte );
+
+	// knot type of directory?
+	if( ! (vfs -> type & STD_FILE_TYPE_directory ) ) qfs = FALSE;	// no
+
+	// knot name length is correct?
+	if( vfs -> name_limit != TRUE ) qfs = FALSE;	// no
+
+	// knot name is correct?
+	if( vfs -> name[ FALSE ] != STD_ASCII_SLASH ) qfs = FALSE;	// no
+
+	// first block of knot is within limits of storage?
+	if( (vfs -> block[ FALSE ] * (LIB_VFS_BLOCK_byte / storage -> device_byte)) >= storage -> device_limit ) qfs = FALSE;	// no
+
+	// continue?
+	if( qfs ) {
+		// load first block of root directory content
+		storage -> read( storage -> device_id, storage -> device_block + (vfs -> block[ FALSE ] * (LIB_VFS_BLOCK_byte / storage -> device_byte)), (uint8_t *) vfs, LIB_VFS_BLOCK_byte / storage -> device_byte );
+
+		// knot type of link?
+		if( ! (vfs -> type & STD_FILE_TYPE_link ) ) qfs = FALSE;	// no
+
+		// knot name length is correct?
+		if( vfs -> name_limit != TRUE ) qfs = FALSE;	// no
+
+		// knot name is correct?
+		if( vfs -> name[ FALSE ] != STD_ASCII_SLASH ) qfs = FALSE;	// no
+
+		// link leads to superblock?
+		if( ! vfs -> block[ FALSE ] ) qfs = FALSE;	// no
+	}
+
+	// release knot
+	kernel -> memory_release( (uintptr_t) vfs, TRUE );
 
 	// no
-	return FALSE;
+	return qfs;
 }

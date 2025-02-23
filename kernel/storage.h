@@ -8,6 +8,9 @@
 	// ignore more storages than hard limit
 	#define	KERNEL_STORAGE_limit		(STD_PAGE_byte / sizeof( struct KERNEL_STRUCTURE_STORAGE ))
 
+	#define	KERNEL_STORAGE_FLAGS_active	(1 << 0)
+	#define	KERNEL_STORAGE_FLAGS_reserved	(1 << 7)
+
 	// storage type:
 	#define	KERNEL_STORAGE_FS_undefinied	EMPTY
 	#define	KERNEL_STORAGE_FS_vfs		0x01	// Virtual File System
@@ -18,6 +21,7 @@
 	#define	KERNEL_STORAGE_CLASS_block	0b00000001	// whole storage
 
 	struct KERNEL_STRUCTURE_STORAGE {
+		uint8_t				flags;
 		uint8_t				device_class;
 		uint8_t				device_fs;
 		uint8_t				device_id;

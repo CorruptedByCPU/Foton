@@ -73,7 +73,6 @@
 	#define	LIB_INTERFACE_BORDER_COLOR_inactive_shadow		0xFF181818
 
 	#define	LIB_INTERFACE_COLOR_background				0xFF101010
-	#define	LIB_INTERFACE_COLOR_foreground				0xFFF0F0F0
 	#define	LIB_INTERFACE_COLOR_background_lighter			0x00080808
 	#define	LIB_INTERFACE_COLOR_background_button_default		0xFF202020
 	#define	LIB_INTERFACE_COLOR_background_menu_default		LIB_INTERFACE_COLOR_background
@@ -88,6 +87,7 @@
 	#define	LIB_INTERFACE_COLOR_background_file_default		0xFF121212
 	#define	LIB_INTERFACE_COLOR_background_file_odd			0xFF161616
 	#define	LIB_INTERFACE_COLOR_background_file_selected		0xFF208020
+	#define	LIB_INTERFACE_COLOR_foreground				0xFFF0F0F0
 
 	#define	LIB_INTERFACE_NAME_limit				LIB_INTERFACE_GLOBAL_NAME_limit
 
@@ -180,6 +180,7 @@
 	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_FILE {
 		struct	LIB_INTERFACE_STRUCTURE_ELEMENT			file;
 		struct	LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY	*entry;
+		uint8_t		view;
 		uint32_t	*pixel;
 		uint64_t	limit;
 		uint64_t	offset;

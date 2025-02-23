@@ -24,8 +24,8 @@ qemu-system-x86_64								\
 	-netdev user,id=eth0							\
 	-device virtio-net-pci-transitional,netdev=eth0,mac=00:22:44:66:88:AA	\
 	-object filter-dump,id=eth0,netdev=eth0,file=network.pcap		\
-	-device virtio-blk-pci-transitional,drive=raw0,id=raw0			\
-	-drive format=raw,file=build/storage.vfs,if=none,id=raw0		\
+	-device virtio-blk-pci-transitional,drive=vfs,id=vfs			\
+	-drive format=raw,file=build/storage.vfs,if=none,id=vfs			\
 	-serial stdio								\
 #	-readconfig tools/qemu-ehci-uhci.cfg			\
 #	-device usb-kbd,bus=ehci.0				\

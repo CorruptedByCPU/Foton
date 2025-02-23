@@ -17,11 +17,6 @@
 	#include	"./kuro/config.h"
 	#include	"./kuro/data.c"
 
-void kuro_close( void ) {
-	// end of program
-	exit();
-}
-
 size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 	// properties of directory
 	FILE *dir = EMPTY;
@@ -304,7 +299,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// find entry of ID: 0
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( kuro_interface, 0 );
-	control -> event = (void *) kuro_close;	// assign executable function to element
+	control -> event = (void *) exit;	// assign executable function to element
 
 	//----------------------------------------------------------------------
 

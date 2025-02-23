@@ -85,8 +85,11 @@ void module_virtio_block( void ) {
 	//----------------------------------------------------------------------
 
 	// register as storage
-	uint64_t storage_id = kernel -> storage_add( KERNEL_STORAGE_CLASS_block );
+	uint64_t storage_id = kernel -> storage_add();
 	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
+
+	// storage class
+	storage -> device_class = KERNEL_STORAGE_CLASS_block;
 
 	// file system type: unknown
 	storage -> device_fs = EMPTY;
@@ -103,6 +106,9 @@ void module_virtio_block( void ) {
 	// attach read/write functions
 	storage -> read = (void *) module_virtio_block_request_read;
 	storage -> write = (void *) module_virtio_block_request_write;
+
+	// storage active
+	storage -> flags |= KERNEL_STORAGE_FLAGS_active;
 
 	//----------------------------------------------------------------------
 
@@ -148,6 +154,9 @@ void module_virtio_block_transfer( uint8_t type, uint64_t id, uint64_t sector, u
 
 		// add to available ring
 		block_driver_ring[ block_driver -> index % block -> queue_limit ] = 0;
+
+		// synchronize memory with host
+		MACRO_SYNC();
 
 		// set next available index
 		block_driver -> index++;

@@ -158,7 +158,7 @@ done
 (cd build && clang ../tools/vfs.c -o vfs)
 (cd build && find root -name '.keep' -delete && ./vfs root && find root -name '*.vfs' -delete && gzip -k root.vfs)
 #(cp -rf storage build && cd build && find storage -name '.keep' -delete && ./vfs storage && find storage -name '*.vfs' -delete && gzip -k storage.vfs)
-dd if=/dev/zero of=build/storage.vfs bs=1M count=1 &> /dev/null
+dd if=/dev/urandom of=build/storage.vfs bs=1M count=1 &> /dev/null
 cp build/kernel build/root.vfs tools/limine.conf limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin build/iso
 # cp build/kernel.gz build/root.vfs.gz tools/limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin build/iso
 

@@ -15,7 +15,7 @@
 	#define	LIB_VFS_default			2		// default number of files in new directory (2 links)
 
 	struct LIB_VFS_STRUCTURE {
-		uintptr_t			block[ 5 ];	// 0-12th direct, 13th indirect, 14th double-indirect, 15th triple-indirect
+		uintptr_t			block[ 5 ];
 		uint64_t			limit;
 		uint8_t				reserved[ 206 ];
 		uint8_t				type;
