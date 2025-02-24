@@ -182,6 +182,62 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 	return local_list_entry_count;
 }
 
+size_t kuro_storage( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
+	// properties of available storages
+	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) std_storage();
+
+	// default
+	size_t local_list_entry_count = FALSE;
+
+	// storage by storage
+	while( storage -> type ) {
+		// prepare area for entry
+		entry = realloc( entry, (local_list_entry_count + 1) * sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY ) );
+
+		// define entry type and size
+		entry[ local_list_entry_count ].type = storage -> type;
+		entry[ local_list_entry_count ].byte = storage -> limit;
+
+		// unnamed
+		entry[ local_list_entry_count ].name_length = FALSE;
+
+		// set icon
+		switch( entry[ local_list_entry_count ].type ) {
+			case STD_STORAGE_TYPE_memory: {
+				// load memory icon, if not present
+				if( ! kuro_icon[ KURO_MIMETYPE_memory ] ) kuro_icon_register( KURO_MIMETYPE_memory, (uint8_t *) "/system/var/gfx/icons/media-memory.tga" );
+
+				// set memory icon
+				entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_memory;
+				entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_memory ];
+				
+				// done
+				break;
+			}
+			case STD_STORAGE_TYPE_disk: {
+				// load disk icon, if not present
+				if( ! kuro_icon[ KURO_MIMETYPE_disk ] ) kuro_icon_register( KURO_MIMETYPE_disk, (uint8_t *) "/system/var/gfx/icons/drive-harddisk.tga" );
+
+				// set disk icon
+				entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_disk;
+				entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_disk ];
+				
+				// done
+				break;
+			}
+		}
+
+		// entry registered
+		local_list_entry_count++;
+
+		// next entry
+		storage++;
+	}
+
+	// debug
+	return local_list_entry_count;
+}
+
 uint8_t kuro_compare_names( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *first, struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *second ) {
 	// minimal length
 	size_t length = first -> name_length;
@@ -308,6 +364,23 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// register initial icon (directory change)
 	kuro_icon_register( KURO_MIMETYPE_up, (uint8_t *) "/system/var/gfx/icons/go-up.tga" );
+
+	//----------------------------------------------------------------------
+
+	// find element of ID: 2
+	kuro_storages = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) lib_interface_element_by_id( kuro_interface, 2 );
+
+	// alloc initial area for list entries
+	kuro_storages -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *) malloc( TRUE );
+
+	// create list of entries
+	kuro_storages -> limit = kuro_storage( kuro_storages -> entry );
+
+	// show content from beginning
+	kuro_storages -> offset = EMPTY;
+
+	// update content of list
+	lib_interface_element_file( kuro_interface, kuro_storages );
 
 	//----------------------------------------------------------------------
 

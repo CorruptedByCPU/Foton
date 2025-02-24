@@ -323,6 +323,14 @@
 	#define	STD_SIZE_QWORD_bit				64
 	#define	STD_SIZE_PTR_byte				STD_SIZE_QWORD_byte
 
+	#define	STD_STORAGE_TYPE_memory				0b00000001
+	#define	STD_STORAGE_TYPE_disk				0b00000010
+
+	struct	STD_STRUCTURE_STORAGE {
+		uint64_t	limit;
+		uint8_t		type;
+	};
+
 	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STRUCTURE_STREAM
 
 	#define	STD_STREAM_FLOW_out_to_parent_in		0b00000001
@@ -362,7 +370,7 @@
 	#define	STD_SYSCALL_STREAM_SET				0x13
 	#define	STD_SYSCALL_STREAM_GET				0x14
 	#define	STD_SYSCALL_MEMORY				0x15
-	#define	STD_SYSCALL_SLEEP				0x16
+	// #define	STD_SYSCALL_SLEEP				0x16
 	#define	STD_SYSCALL_FILE_OPEN				0x17
 	#define	STD_SYSCALL_FILE_CLOSE				0x18
 	#define	STD_SYSCALL_CD					0x19
@@ -380,6 +388,7 @@
 	#define	STD_SYSCALL_NETWORK_SEND			0x25
 	#define	STD_SYSCALL_NETWORK_INTERFACE_SET		0x26
 	#define	STD_SYSCALL_NETWORK_RECEIVE			0x27
+	#define	STD_SYSCALL_STORAGE				0x28
 
 	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -574,6 +583,9 @@
 
 	// receive data from socket
 	void std_network_receive( int64_t socket, struct STD_STRUCTURE_NETWORK_DATA *data );
+
+	// returns list of available storages
+	uint64_t std_storage( void );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

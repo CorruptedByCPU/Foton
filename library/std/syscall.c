@@ -356,3 +356,11 @@ void std_network_receive( int64_t socket, struct STD_STRUCTURE_NETWORK_DATA *dat
 	// return nothing
 	return std_syscall_empty();
 }
+
+uintptr_t std_storage( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_STORAGE) );
+
+	// return pointer
+	return std_syscall_pointer();
+}

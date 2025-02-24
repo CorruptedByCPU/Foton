@@ -12,5 +12,7 @@
 	#define	KURO_MIMETYPE_image		0x08
 	#define	KURO_MIMETYPE_plain_text	0x09
 	#define	KURO_MIMETYPE_3d_object		0x0A
+	#define	KURO_MIMETYPE_memory		0x0B
+	#define	KURO_MIMETYPE_disk		0x0C
 
 	void kuro_icon_register( uint8_t type, uint8_t *path );

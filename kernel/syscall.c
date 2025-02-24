@@ -875,3 +875,27 @@ void kernel_syscall_network_receive( int64_t socket, struct STD_STRUCTURE_NETWOR
 	// release packet area from kernel memory
 	kernel_memory_release( (uintptr_t) data, MACRO_PAGE_ALIGN_UP( length ) >> STD_SHIFT_PAGE );
 }
+
+uintptr_t kernel_syscall_storage( void ) {
+	// amount of entries to pass
+	uint64_t limit = 1;	// last entry, always empty
+
+	// count entries
+	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) if( kernel -> storage_base_address[ i ].flags & KERNEL_STORAGE_FLAGS_active ) limit++;
+
+	// alloc enough memory for all entries
+	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_STRUCTURE_STORAGE ) * limit ) >> STD_SHIFT_PAGE );
+
+	// copy essential information about every storage
+	uint64_t entry = 0;
+	for( uint64_t i = 0; i < KERNEL_STORAGE_limit && limit != entry; i++ ) {
+		// type of storage
+		storage[ entry ].type = kernel -> storage_base_address[ i ].device_type;
+
+		// size in Bytes
+		storage[ entry++ ].limit = kernel -> storage_base_address[ i ].device_limit * kernel -> storage_base_address[ i ].device_byte;
+	}
+
+	// share structure with process
+	return (uintptr_t) storage;
+}

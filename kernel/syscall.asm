@@ -45,6 +45,7 @@ extern	kernel_syscall_network_open
 extern	kernel_syscall_network_send
 extern	kernel_syscall_network_interface_set
 extern	kernel_syscall_network_receive
+extern	kernel_syscall_storage
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -98,6 +99,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_network_send		; 0x25
 	dq	kernel_syscall_network_interface_set	; 0x26
 	dq	kernel_syscall_network_receive		; 0x27
+	dq	kernel_syscall_storage			; 0x28
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

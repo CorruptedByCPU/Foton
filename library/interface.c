@@ -1138,6 +1138,9 @@ void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interfac
 					// properties of element
 					struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) properties;
 
+					// no entries?
+					if( ! element -> limit ) break;	// nothing to do
+
 					// calculate entry id
 					uint64_t entry_id = ((element -> offset + (interface -> descriptor -> y - properties -> y)) / LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel);
 
@@ -1619,6 +1622,9 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, i
 					case LIB_INTERFACE_ELEMENT_TYPE_list: {
 						// properties of element
 						struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) properties;
+
+						// no entries?
+						if( ! element -> limit ) break;	// nothing to do
 
 						// scroll movement?
 						if( scroll ) {

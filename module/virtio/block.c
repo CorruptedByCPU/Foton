@@ -89,7 +89,7 @@ void module_virtio_block( void ) {
 	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
 
 	// storage class
-	storage -> device_class = KERNEL_STORAGE_CLASS_block;
+	storage -> device_type = STD_STORAGE_TYPE_disk;
 
 	// file system type: unknown
 	storage -> device_fs = EMPTY;

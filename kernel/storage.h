@@ -17,12 +17,9 @@
 	#define	KERNEL_STORAGE_FS_qfs		0x02	// Quark File System
 	#define	KERNEL_STORAGE_FS_raw		0xFF	// not set
 
-	// storage class:
-	#define	KERNEL_STORAGE_CLASS_block	0b00000001	// whole storage
-
 	struct KERNEL_STRUCTURE_STORAGE {
 		uint8_t				flags;
-		uint8_t				device_class;
+		uint8_t				device_type;
 		uint8_t				device_fs;
 		uint8_t				device_id;
 		uint64_t			device_block;	// first usable block of storage

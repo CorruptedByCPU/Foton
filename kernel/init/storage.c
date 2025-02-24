@@ -15,7 +15,7 @@ void kernel_init_storage( void ) {
 		struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ kernel_storage_add() ];
 
 		// storage class
-		storage -> device_class = KERNEL_STORAGE_CLASS_block;
+		storage -> device_type = STD_STORAGE_TYPE_memory;
 
 		// file system type: VFS
 		storage -> device_fs = KERNEL_STORAGE_FS_vfs;
