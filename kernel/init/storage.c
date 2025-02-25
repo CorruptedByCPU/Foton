@@ -20,6 +20,11 @@ void kernel_init_storage( void ) {
 		// file system type: VFS
 		storage -> device_fs = KERNEL_STORAGE_FS_vfs;
 
+		// set storage name
+		uint8_t string_memory[] = "Memory";
+		storage -> device_name_limit = sizeof( string_memory ) - 1;
+		for( uint8_t c = 0; c < storage -> device_name_limit; c++ ) storage -> device_name[ c ] = string_memory[ c ]; storage -> device_name[ storage -> device_name_limit ] = STD_ASCII_TERMINATOR;
+
 		// address of VFS main block location
 		storage -> device_block = (uintptr_t) limine_module_request.response -> modules[ i ] -> address;
 

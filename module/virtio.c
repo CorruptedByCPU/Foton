@@ -2,6 +2,9 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+	#include	"../library/integer.h"
+	#include	"../library/integer.c"
+
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------

@@ -887,13 +887,19 @@ uintptr_t kernel_syscall_storage( void ) {
 	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_STRUCTURE_STORAGE ) * limit ) >> STD_SHIFT_PAGE );
 
 	// copy essential information about every storage
-	uint64_t entry = 0;
-	for( uint64_t i = 0; i < KERNEL_STORAGE_limit && limit != entry; i++ ) {
+	uint64_t entry = 0; for( uint64_t i = 0; i < KERNEL_STORAGE_limit && limit != entry; i++ ) {
 		// type of storage
 		storage[ entry ].type = kernel -> storage_base_address[ i ].device_type;
 
 		// size in Bytes
-		storage[ entry++ ].limit = kernel -> storage_base_address[ i ].device_limit * kernel -> storage_base_address[ i ].device_byte;
+		storage[ entry ].limit = kernel -> storage_base_address[ i ].device_limit * kernel -> storage_base_address[ i ].device_byte;
+
+		// name
+		storage[ entry ].name_limit = kernel -> storage_base_address[ i ].device_name_limit;
+		for( uint8_t c = 0; c < storage[ entry ].name_limit && c < KERNEL_STORAGE_NAME_limit; c++ ) storage[ entry ].name[ c ] = kernel -> storage_base_address[ i ].device_name[ c ];
+
+		// next antry position
+		entry++;
 	}
 
 	// share structure with process

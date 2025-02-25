@@ -185,6 +185,9 @@
 		uint64_t	limit;
 		uint64_t	offset;
 		uint64_t	microtime;
+		uint32_t	color_default;
+		uint32_t	color_odd;
+		uint32_t	color_selected;
 	};
 
 	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY {

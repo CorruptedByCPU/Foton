@@ -329,6 +329,8 @@
 	struct	STD_STRUCTURE_STORAGE {
 		uint64_t	limit;
 		uint8_t		type;
+		uint8_t		name_limit;
+		uint8_t		name[ LIB_VFS_NAME_limit + 1 ];
 	};
 
 	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STRUCTURE_STREAM

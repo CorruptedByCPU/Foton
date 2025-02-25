@@ -94,6 +94,11 @@ void module_virtio_block( void ) {
 	// file system type: unknown
 	storage -> device_fs = EMPTY;
 
+	// set storage name
+	storage -> device_name_limit = 2;
+	uint8_t string_name[] = "vd"; for( uint8_t k = 0; k < storage -> device_name_limit; k++ ) storage -> device_name[ k ] = string_name[ k ];
+	storage -> device_name_limit += lib_integer_to_string( block -> id, STD_NUMBER_SYSTEM_decimal, (uint8_t *) &storage -> device_name[ storage -> device_name_limit ] );
+
 	// address of main block location
 	storage -> device_id = block -> id;
 

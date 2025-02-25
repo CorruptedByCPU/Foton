@@ -45,7 +45,7 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 
 		// define entry type and size
 		entry[ local_list_entry_count ].type = vfs[ e ].type;
-		entry[ local_list_entry_count ].byte = vfs[ e ].limit;
+		if( ! vfs[ e ].limit ) entry[ local_list_entry_count ].byte = STD_MAX_unsigned; else entry[ local_list_entry_count ].byte = vfs[ e ].limit;
 
 		// copy entry name
 		entry[ local_list_entry_count ].name_length = vfs[ e ].name_limit;
@@ -183,6 +183,12 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 }
 
 size_t kuro_storage( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
+		// // release current entry list
+		// kuro_release( kuro_storages );
+		// kuro_storages -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *) malloc( TRUE );
+		// kuro_storages -> limit = kuro_storage( kuro_storages -> entry );
+		// lib_interface_element_file( kuro_interface, kuro_storages );
+		
 	// properties of available storages
 	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) std_storage();
 
@@ -196,10 +202,11 @@ size_t kuro_storage( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) 
 
 		// define entry type and size
 		entry[ local_list_entry_count ].type = storage -> type;
-		entry[ local_list_entry_count ].byte = storage -> limit;
+		entry[ local_list_entry_count ].byte = STD_MAX_unsigned;	// do not show
 
-		// unnamed
-		entry[ local_list_entry_count ].name_length = FALSE;
+		// set storage name
+		entry[ local_list_entry_count ].name_length = storage -> name_limit;
+		if( storage -> name_limit ) { entry[ local_list_entry_count ].name = calloc( storage -> name_limit + 1 ); for( uint64_t i = 0; i < storage -> name_limit; i++ ) entry[ local_list_entry_count ].name[ i ] = storage -> name[ i ]; }
 
 		// set icon
 		switch( entry[ local_list_entry_count ].type ) {
@@ -233,6 +240,9 @@ size_t kuro_storage( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) 
 		// next entry
 		storage++;
 	}
+
+	// release obtained storages properties
+	std_memory_release( (uintptr_t) storage, MACRO_PAGE_ALIGN_UP( sizeof( struct STD_STRUCTURE_STORAGE ) * (local_list_entry_count + 1) ) >> STD_SHIFT_PAGE );
 
 	// debug
 	return local_list_entry_count;
@@ -327,14 +337,14 @@ void kuro_icon_register( uint8_t type, uint8_t *path ) {
 	kuro_icon[ type ] = lib_image_scale( lib_interface_icon( path ), 48, 48, 16, 16 );
 }
 
-void kuro_release( void ) {
+void kuro_release( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *list ) {
 	// check if there is any action required with entry
-	for( uint64_t i = 0; i < kuro_files -> limit; i++ )
+	for( uint64_t i = 0; i < list -> limit; i++ )
 		// release entry name area
-		free( kuro_files -> entry[ i ].name );
+		free( list -> entry[ i ].name );
 
 	// release entry list
-	free( kuro_files -> entry );
+	free( list -> entry );
 }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
@@ -378,6 +388,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// show content from beginning
 	kuro_storages -> offset = EMPTY;
+
+	// define our own colors
+	kuro_storages -> color_default = 0xFF121212;
+	kuro_storages -> color_odd = 0xFF121212;
+	kuro_storages -> color_selected = 0xFF202020;
 
 	// update content of list
 	lib_interface_element_file( kuro_interface, kuro_storages );
@@ -453,7 +468,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 						std_cd( kuro_files -> entry[ i ].name, kuro_files -> entry[ i ].name_length );
 
 						// release current entry list
-						kuro_release();
+						kuro_release( kuro_files );
 
 						// alloc initial area for list entries
 						kuro_files -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *) malloc( TRUE );
