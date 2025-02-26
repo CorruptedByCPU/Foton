@@ -61,10 +61,14 @@
 	#define	LIB_INTERFACE_ELEMENT_FLAG_active			0b00000010
 	#define	LIB_INTERFACE_ELEMENT_FLAG_flush			0b00000100
 
-	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_hover			0b00000001
-	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_active			0b00000010
-	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_run			0b00000100
-	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_select			0b00001000
+	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_persistent		0b00000001	// disard deselection of entry
+	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_individual		0b00000010	// only 1 can be selected at a time
+	#define	LIB_INTERFACE_ELEMENT_LIST_FLAG_single_click		0b00000100
+
+	#define	LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_hover		0b00000001
+	#define	LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active		0b00000010
+	#define	LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run		0b00000100
+	#define	LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select		0b00001000
 
 	#define	LIB_INTERFACE_BORDER_pixel				1
 	#define	LIB_INTERFACE_BORDER_COLOR_default			0xFF282828
@@ -180,6 +184,7 @@
 	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_FILE {
 		struct	LIB_INTERFACE_STRUCTURE_ELEMENT			file;
 		struct	LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY	*entry;
+		uint8_t		flags;
 		uint8_t		view;
 		uint32_t	*pixel;
 		uint64_t	limit;
@@ -191,6 +196,7 @@
 	};
 
 	struct	LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY {
+		uint64_t	id;
 		uint8_t		flags;
 		uint8_t		type;
 		uint8_t		mimetype;

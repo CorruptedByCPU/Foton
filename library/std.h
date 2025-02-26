@@ -327,6 +327,7 @@
 	#define	STD_STORAGE_TYPE_disk				0b00000010
 
 	struct	STD_STRUCTURE_STORAGE {
+		uint64_t 	id;
 		uint64_t	limit;
 		uint8_t		type;
 		uint8_t		name_limit;
@@ -391,6 +392,7 @@
 	#define	STD_SYSCALL_NETWORK_INTERFACE_SET		0x26
 	#define	STD_SYSCALL_NETWORK_RECEIVE			0x27
 	#define	STD_SYSCALL_STORAGE				0x28
+	#define	STD_SYSCALL_STORAGE_SELECT			0x29
 
 	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -588,6 +590,10 @@
 
 	// returns list of available storages
 	uint64_t std_storage( void );
+
+	// change main storage
+	uint8_t std_storage_select( uint64_t stoarge_id );
+
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {

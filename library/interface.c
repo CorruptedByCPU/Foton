@@ -571,8 +571,8 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			// change interface structure index
 			i += element -> file.size_byte;
 
-			// list type is always selected by default
-			interface -> element_select = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) element;
+			// list type is always selected by default and first one only
+			if( ! interface -> element_select ) interface -> element_select = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) element;
 		}
 	// until no more elements
 	} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &json ) );
@@ -924,9 +924,9 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 		if( e % 2 ) color = element -> color_odd;
 
 		// modify background color if
-		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_active ) color = element -> color_selected;
-		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_hover ) color += 0x00080808;
-		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_select ) color -= 0x00101010;
+		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active ) color = element -> color_selected;
+		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_hover ) color += 0x00080808;
+		if( element -> entry[ e ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select ) color += 0x00101010;
 
 		// fill
 		uint32_t *pixel_entry = (uint32_t *) element -> pixel + (e * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel * width);
@@ -1131,6 +1131,9 @@ void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interfac
 
 		// cursor overlaps this element? (check only if object is located under cursor)
 		if( ((properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_close || properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_maximize || properties -> type == LIB_INTERFACE_ELEMENT_TYPE_control_minimize) && (interface -> descriptor -> x >= interface -> width - (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel + (properties -> x * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)) && interface -> descriptor -> x < ((interface -> width - (LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel + (properties -> x * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel)))) + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height)) || interface -> descriptor -> x >= properties -> x && interface -> descriptor -> x < properties -> x + properties -> width && interface -> descriptor -> y >= properties -> y && interface -> descriptor -> y < properties -> y + properties -> height ) {
+			// new selected element
+			interface -> element_select = properties;
+
 			// execute event of element
 			switch( properties -> type ) {
 				case LIB_INTERFACE_ELEMENT_TYPE_list: {
@@ -1143,16 +1146,22 @@ void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interfac
 					// calculate entry id
 					uint64_t entry_id = ((element -> offset + (interface -> descriptor -> y - properties -> y)) / LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel);
 
+					// outside of available entries?
+					if( entry_id >= element -> limit ) break;	// ignore
+
+					// remove select flag from any entry
+					for( uint64_t i = 0; i < element -> limit; i++ ) element -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select;
+
 					// set active entry
-					if( interface -> key_ctrl_semaphore )
+					if( interface -> key_ctrl_semaphore && ! (element -> flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_individual) )
 						// change active flag strictly for this entry
-						element -> entry[ entry_id ].flags ^= LIB_INTERFACE_ELEMENT_LIST_FLAG_active;
+						element -> entry[ entry_id ].flags ^= LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active | LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select;
 					else {
 						// remove active flag from all entries
-						for( uint64_t i = 0; i < element -> limit; i++ ) element -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_FLAG_active;
+						for( uint64_t i = 0; i < element -> limit; i++ ) element -> entry[ i ].flags &= ~(LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active | LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select );
 
 						// set active flag
-						element -> entry[ entry_id ].flags |= LIB_INTERFACE_ELEMENT_LIST_FLAG_active;
+						element -> entry[ entry_id ].flags |= LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active | LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select;
 					}
 
 					// dimensions of element
@@ -1164,11 +1173,14 @@ void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interfac
 					else if( entry_id * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel < element -> offset ) element -> offset = entry_id * LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel;
 
 					// double-click?
-					if( std_microtime() - element -> microtime < LIB_INTERFACE_LATENCY_microtime )
+					if( std_microtime() - element -> microtime < LIB_INTERFACE_LATENCY_microtime ) {
 						// active flag already set?
-						if( element -> entry[ entry_id ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_active )
+						if( element -> entry[ entry_id ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active )
 							// add run flag to entry
-							element -> entry[ entry_id ].flags |= LIB_INTERFACE_ELEMENT_LIST_FLAG_run;
+							element -> entry[ entry_id ].flags |= LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
+					} else if( element -> flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_single_click )
+						// add run flag to entry
+						element -> entry[ entry_id ].flags |= LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
 
 					// preserve current microtime
 					element -> microtime = std_microtime();
@@ -1515,13 +1527,13 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) interface -> element_select;
 
 		// find select flag
-		uint64_t i = 0;
-		for( ; i < element -> limit; i++ ) if( element -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_select ) break;
+		uint64_t i = element -> limit;
+		for( ; i > 0; --i ) if( element -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select ) break;
 
 		// key: Arrow Up/Down
 		if( keyboard -> key == STD_KEY_ARROW_DOWN || keyboard ->key == STD_KEY_ARROW_UP ) {
 			// remove hover flag from current entry
-			element -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_FLAG_select;
+			element -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select;
 
 			// next entry
 			if( keyboard -> key == STD_KEY_ARROW_UP && i ) i--;
@@ -1530,7 +1542,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 			if( keyboard -> key == STD_KEY_ARROW_DOWN && i < element -> limit - 1 ) i++;
 
 			// set hover flag strictly for this entry
-			element -> entry[ i ].flags |= LIB_INTERFACE_ELEMENT_LIST_FLAG_select;
+			element -> entry[ i ].flags |= LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select;
 
 			// refresh
 			sync = TRUE;
@@ -1542,19 +1554,19 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 			element -> offset = EMPTY;
 
 			// add run flag to first entry
-			element -> entry[ FALSE ].flags |= LIB_INTERFACE_ELEMENT_LIST_FLAG_run;
+			element -> entry[ FALSE ].flags |= LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
 		}
 
 		// key: ENTER
 		if( keyboard -> key == STD_KEY_ENTER ) {
 			// set run flag on currently selected entry
-			element -> entry[ i ].flags |= LIB_INTERFACE_ELEMENT_LIST_FLAG_run;
+			element -> entry[ i ].flags |= LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
 		}
 
 		// key: SPACE
-		if( keyboard -> key == STD_KEY_SPACE ) {
+		if( keyboard -> key == STD_KEY_SPACE && interface -> key_ctrl_semaphore && ! (element -> flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_individual) ) {
 			// change active flag on currently selected entry
-			element -> entry[ i ].flags ^= LIB_INTERFACE_ELEMENT_LIST_FLAG_active;
+			element -> entry[ i ].flags ^= LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active;
 
 			// refresh
 			sync = TRUE;
@@ -1652,12 +1664,12 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, i
 						}
 
 						// choose new hovered entry
-						if( ! (element -> entry[ ((element -> offset + (interface -> descriptor -> y - properties -> y)) / LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_hover) ) {
+						if( ! (element -> entry[ ((element -> offset + (interface -> descriptor -> y - properties -> y)) / LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_hover) ) {
 							// remove hover flag from all entries
-							for( uint64_t i = 0; i < element -> limit; i++ ) element -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_FLAG_hover;
+							for( uint64_t i = 0; i < element -> limit; i++ ) element -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_hover;
 
 							// set hover flag strictly for this entry
-							element -> entry[ ((element -> offset + (interface -> descriptor -> y - properties -> y)) / LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ].flags |= LIB_INTERFACE_ELEMENT_LIST_FLAG_hover;
+							element -> entry[ ((element -> offset + (interface -> descriptor -> y - properties -> y)) / LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel) ].flags |= LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_hover;
 
 							// refresh
 							update = TRUE;

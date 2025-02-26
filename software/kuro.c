@@ -17,6 +17,11 @@
 	#include	"./kuro/config.h"
 	#include	"./kuro/data.c"
 
+void kuro_close( void ) {
+	// end of program
+	exit();
+}
+
 size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 	// properties of directory
 	FILE *dir = EMPTY;
@@ -40,8 +45,7 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 		entry = realloc( entry, (local_list_entry_count + 1) * sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY ) );
 
 		// create new list entry
-		if( ! local_list_entry_count ) entry[ local_list_entry_count ].flags = LIB_INTERFACE_ELEMENT_LIST_FLAG_select;
-		else entry[ local_list_entry_count ].flags = EMPTY;
+		entry[ local_list_entry_count ].flags = EMPTY;
 
 		// define entry type and size
 		entry[ local_list_entry_count ].type = vfs[ e ].type;
@@ -201,6 +205,7 @@ size_t kuro_storage( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) 
 		entry = realloc( entry, (local_list_entry_count + 1) * sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY ) );
 
 		// define entry type and size
+		entry[ local_list_entry_count ].id = storage -> id;
 		entry[ local_list_entry_count ].type = storage -> type;
 		entry[ local_list_entry_count ].byte = STD_MAX_unsigned;	// do not show
 
@@ -365,7 +370,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// find entry of ID: 0
 	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( kuro_interface, 0 );
-	control -> event = (void *) exit;	// assign executable function to element
+	control -> event = (void *) kuro_close;	// assign executable function to element
 
 	//----------------------------------------------------------------------
 
@@ -389,10 +394,16 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// show content from beginning
 	kuro_storages -> offset = EMPTY;
 
+	// do not allow deselection, do not allow more than 1 at a time, immedietly action
+	kuro_storages -> flags = LIB_INTERFACE_ELEMENT_LIST_FLAG_persistent | LIB_INTERFACE_ELEMENT_LIST_FLAG_individual | LIB_INTERFACE_ELEMENT_LIST_FLAG_single_click;
+
+	// first entry selected as default
+	kuro_storages -> entry[ FALSE ].flags = LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active;
+
 	// define our own colors
-	kuro_storages -> color_default = 0xFF121212;
-	kuro_storages -> color_odd = 0xFF121212;
-	kuro_storages -> color_selected = 0xFF202020;
+	kuro_storages -> color_default = 0xFF141414;
+	kuro_storages -> color_odd = 0xFF141414;
+	kuro_storages -> color_selected = 0xFF222222;
 
 	// update content of list
 	lib_interface_element_file( kuro_interface, kuro_storages );
@@ -413,6 +424,11 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// set order of files, by name and directories first
 	kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
+
+	// define our own colors
+	kuro_files -> color_default = 0xFF141414;
+	kuro_files -> color_odd = 0xFF141414;
+	kuro_files -> color_selected = 0xFF208020;
 
 	// update content of list
 	lib_interface_element_file( kuro_interface, kuro_files );
@@ -450,8 +466,39 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// check if there is any action required with entry
+		for( uint64_t i = 0; i < kuro_storages -> limit; i++ )
+			if( kuro_storages -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run ) {
+				// remove flag
+				kuro_storages -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
+
+				// change storage
+				if( ! std_storage_select( kuro_storages -> entry[ i ].id ) ) break;
+
+				// release current entry list
+				kuro_release( kuro_files );
+
+				// alloc initial area for list entries
+				kuro_files -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *) malloc( TRUE );
+
+				// create list of entries
+				kuro_files -> limit = kuro_reload( kuro_files -> entry );
+
+				// show content from beginning
+				kuro_files -> offset = EMPTY;
+
+				// set order of files, by name and directories first
+				kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
+
+				// update content of list
+				lib_interface_element_file( kuro_interface, kuro_files );
+
+				// update window content on screen
+				kuro_interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			}
+
+		// check if there is any action required with entry
 		for( uint64_t i = 0; i < kuro_files -> limit; i++ )
-			if( kuro_files -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_FLAG_run ) {
+			if( kuro_files -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run ) {
 				// based on mimetype
 				switch( kuro_files -> entry[ i ].mimetype ) {
 					case KURO_MIMETYPE_executable: {
@@ -530,7 +577,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				}
 
 				// remove flag
-				kuro_files -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_FLAG_run;
+				kuro_files -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
 			}
 
 		// exit?

@@ -888,6 +888,9 @@ uintptr_t kernel_syscall_storage( void ) {
 
 	// copy essential information about every storage
 	uint64_t entry = 0; for( uint64_t i = 0; i < KERNEL_STORAGE_limit && limit != entry; i++ ) {
+		// identificator of storage
+		storage[ entry ].id = i;
+
 		// type of storage
 		storage[ entry ].type = kernel -> storage_base_address[ i ].device_type;
 
@@ -904,4 +907,18 @@ uintptr_t kernel_syscall_storage( void ) {
 
 	// share structure with process
 	return (uintptr_t) storage;
+}
+
+uint8_t kernel_syscall_storage_select( uint64_t storage_id ) {
+	// storage available?
+	if( storage_id >= KERNEL_STORAGE_limit || ! (kernel -> storage_base_address[ storage_id ].flags & KERNEL_STORAGE_FLAGS_active) ) return FALSE;	// no
+
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+
+	// set task default storage
+	task -> storage = storage_id;
+
+	// storage set
+	return TRUE;
 }

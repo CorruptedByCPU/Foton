@@ -14,16 +14,10 @@ void kernel_storage( void ) {
 			if( kernel -> storage_base_address[ i ].device_fs ) continue;	// yes
 
 			// try to recognize file system
-			if( kernel_qfs_identify( i ) ) {
-				// debug
-				kernel -> log( (uint8_t *) ":)\n" );
-				kernel -> storage_base_address[ i ].device_fs = KERNEL_STORAGE_FS_qfs;	// QuarkFS
-			// there might be no file system
-			} else {
-				// debug
-				kernel -> log( (uint8_t *) ":[\n" );
-				kernel -> storage_base_address[ i ].device_fs = KERNEL_STORAGE_FS_raw;
-			}
+			if( ! kernel_qfs_identify( i ) ) kernel_qfs_format( i );
+
+			// debug
+			kernel -> storage_base_address[ i ].device_fs = KERNEL_STORAGE_FS_qfs;	// QuarkFS
 		}
 
 		// release ap time
