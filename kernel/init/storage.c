@@ -35,8 +35,8 @@ void kernel_init_storage( void ) {
 		storage -> device_limit = MACRO_PAGE_ALIGN_UP( limine_module_request.response -> modules[ i ] -> size ) >> STD_SHIFT_PAGE;
 
 		// attach read/write functions
-		storage -> read = (void *) kernel_vfs_read;
-		storage -> write = (void *) kernel_vfs_write;
+		storage -> block_read = (void *) kernel_vfs_read;
+		storage -> block_write = (void *) kernel_vfs_write;
 	
 		// storage active
 		storage -> flags |= KERNEL_STORAGE_FLAGS_active;

@@ -538,7 +538,7 @@ uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 		struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 		// set new root directory of current process
-		task -> directory = socket -> knot;
+		task -> directory = (uint64_t) socket -> knot;
 
 		// directory changed
 		flag = TRUE;

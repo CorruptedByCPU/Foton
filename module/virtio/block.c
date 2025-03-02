@@ -109,8 +109,8 @@ void module_virtio_block( void ) {
 	storage -> device_byte = 512;
 
 	// attach read/write functions
-	storage -> read = (void *) module_virtio_block_request_read;
-	storage -> write = (void *) module_virtio_block_request_write;
+	storage -> block_read = (void *) module_virtio_block_request_read;
+	storage -> block_write = (void *) module_virtio_block_request_write;
 
 	// storage active
 	storage -> flags |= KERNEL_STORAGE_FLAGS_active;

@@ -4,15 +4,15 @@
 
 uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	// direct block?
-	if( ! i ) return vfs -> block[ 0 ];	// return pointer
+	if( ! i-- ) return vfs -> block[ 0 ];	// return pointer
 
 	// indirect block?
-	if( i > 0 && i < 513 ) {
+	if( i < 512 ) {
 		// properties of indirect block
 		uintptr_t *indirect = (uintptr_t *) vfs -> block[ 1 ];
 
 		// return pointer
-		return indirect[ i - 1 ];
+		return indirect[ i ];
 	}
 
 	// no support for double-indirect and so on, yet
@@ -373,13 +373,13 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 	// properties of current directory
 	struct LIB_VFS_STRUCTURE *directory;
 
-	// start from current file?
+	// start from directory file?
 	if( *path != STD_ASCII_SLASH ) {
 		// properties of task
 		struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 	
 		// choose task current file
-		directory = task -> directory;
+		directory = (struct LIB_VFS_STRUCTURE *) task -> directory;
 	} else
 		// start from default file
 		directory = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].device_block;

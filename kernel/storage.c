@@ -16,6 +16,10 @@ void kernel_storage( void ) {
 			// try to recognize file system
 			if( ! kernel_qfs_identify( i ) ) kernel_qfs_format( i );
 
+// debug
+struct LIB_VFS_STRUCTURE test = kernel_qfs_file( i, 0 );
+kernel -> log( (uint8_t *) "%u\n", test.block[ 0 ] );
+
 			// debug
 			kernel -> storage_base_address[ i ].device_fs = KERNEL_STORAGE_FS_qfs;	// QuarkFS
 		}
