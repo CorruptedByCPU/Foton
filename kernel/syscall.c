@@ -922,3 +922,11 @@ uint8_t kernel_syscall_storage_select( uint64_t storage_id ) {
 	// storage set
 	return TRUE;
 }
+
+uintptr_t kernel_syscall_dir( uint8_t *path ) {
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+
+	// return content of directory from current storage
+	return kernel -> storage_base_address[ task -> storage ].fs.dir( task -> storage, path, lib_string_length( path ) );
+}

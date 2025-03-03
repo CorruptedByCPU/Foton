@@ -17,24 +17,17 @@
 	#include	"./kuro/config.h"
 	#include	"./kuro/data.c"
 
-void kuro_close( void ) {
+void kuro_close( int64_t result ) {
 	// end of program
 	exit();
 }
 
 size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 	// properties of directory
-	FILE *dir = EMPTY;
 	struct LIB_VFS_STRUCTURE *vfs = EMPTY;
 
-	// get directory properties
-	if( ! (dir = fopen( (uint8_t *) ".", EMPTY )) ) { log( "Critical error!\n" ); return STD_ERROR_file_not_found; }
-
-	// assign area for directory content
-	if( ! (vfs = (struct LIB_VFS_STRUCTURE *) malloc( dir -> byte )) ) { log( "No enough memory!" ); return STD_ERROR_memory_low; }
-
-	// read directory content
-	fread( dir, (uint8_t *) vfs, dir -> byte );
+	// get directory content
+	if( ! (vfs = (struct LIB_VFS_STRUCTURE *) std_dir( (uint8_t *) "." )) ) { log( "Critical error!\n" ); kuro_close( STD_ERROR_file_not_found ); }
 
 	// default
 	size_t local_list_entry_count = FALSE;
@@ -60,11 +53,11 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 		switch( vfs[ e ].type ) {
 			case STD_FILE_TYPE_link: {
 				// special purpose?
-				if( e == TRUE ) {
+				// if( e == TRUE ) {
 					// yes
 					entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_up;
 					entry[ local_list_entry_count ].icon = kuro_icon[ KURO_MIMETYPE_up ];
-				}
+				// }
 				
 				// done
 				break;
@@ -178,11 +171,9 @@ size_t kuro_reload( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 	}
 
 	// release directory content
-	free( vfs );
+	std_memory_release( (uintptr_t) vfs, MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_VFS_STRUCTURE ) * e ) >> STD_SHIFT_PAGE );
 
-	// close directory
-	fclose( dir );
-
+	// amount of files registered
 	return local_list_entry_count;
 }
 

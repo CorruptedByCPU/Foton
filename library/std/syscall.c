@@ -372,3 +372,11 @@ uint8_t std_storage_select( uint64_t storage_id ) {
 	// return TRUE/FALSE
 	return std_syscall_bool();
 }
+
+uintptr_t std_dir( uint8_t *path ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_DIR), "D" (path) );
+
+	// return pointer
+	return std_syscall_pointer();
+}

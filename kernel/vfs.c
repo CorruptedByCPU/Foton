@@ -455,3 +455,42 @@ void kernel_vfs_write( uint64_t reserved, uint64_t block, uint8_t *source, uint6
 	// write Bytes
 	while( length-- ) *((uint8_t *) block++) = *(source++);
 }
+
+uintptr_t kernel_vfs_dir( uint64_t storage_id, uint8_t *path, uint64_t length ) {
+	// properties of selected directory
+	struct LIB_VFS_STRUCTURE *directory;
+	if( ! (directory = kernel_vfs_path( path, lib_string_length( path ) )) ) return EMPTY;	// doesn't exist
+
+	// it is directory?
+	if( directory -> type != STD_FILE_TYPE_directory ) return EMPTY;	// no
+
+	// amount of available files
+	uint64_t file_count = EMPTY;
+
+	// for each data block of directory
+	for( uint64_t b = 0; b < (directory -> limit >> STD_SHIFT_PAGE); b++ ) {
+		// properties of directory entry
+		struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( directory, b );
+
+		// for every possible entry
+		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( file[ e ].name_limit ) file_count++;
+	}
+
+	// alloc area for presented files
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_VFS_STRUCTURE ) * (file_count + 1) ) >> STD_SHIFT_PAGE );
+
+	// index of shared file
+	uint64_t file_index = EMPTY;
+
+	// share file properties
+	for( uint64_t b = 0; b < (directory -> limit >> STD_SHIFT_PAGE); b++ ) {
+		// properties of directory entry
+		struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( directory, b );
+
+		// for every possible entry
+		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( vfs[ e ].name_limit ) file[ file_index++ ] = vfs[ e ];
+	}
+
+	// return list of files inside directory
+	return (uintptr_t) file;
+}

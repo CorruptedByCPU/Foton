@@ -21,11 +21,11 @@
 
 	struct KERNEL_STRUCTURE_STORAGE_FS {
 		struct KERNEL_STRUCTURE_VFS	*(*open)( uint64_t storage_id, uint8_t *path, uint64_t length, uint8_t mode );
-		void	(*close)( void );
-		void	(*file)( void );
-		void	(*read)( void );
-		void	(*write)( void );
-		struct LIB_VFS_STRUCTURE *(*dir)( uint64_t storage_id, uint8_t *path, uint64_t length );
+		void		(*close)( void );
+		void		(*file)( void );
+		void		(*read)( void );
+		void		(*write)( void );
+		uintptr_t	(*dir)( uint64_t storage_id, uint8_t *path, uint64_t length );
 	};
 
 	struct KERNEL_STRUCTURE_STORAGE {
@@ -36,7 +36,7 @@
 		uint8_t					device_name_limit;
 		uint8_t					device_name[ KERNEL_STORAGE_NAME_limit + 1 ];
 		uint64_t				device_block;	// first usable block of storage
-		uint64_t				device_limit;	// size of storage CLASS in blocks
+		uint64_t				device_limit;	// size of storage TYPE in blocks
 		uint64_t				device_byte;	// size of single BLOCK in Bytes
 		void					(*block_read)( uint64_t id, uint64_t block, uint8_t *target, uint64_t length );
 		void					(*block_write)( uint64_t id, uint64_t block, uint8_t *source, uint64_t length );

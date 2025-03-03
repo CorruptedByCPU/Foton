@@ -24,6 +24,7 @@
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
 	#include	"task.h"
+	#include	"syscall.h"
 	#include	"vfs.h"
 	#include	"time.h"
 	#include	"idt.h"

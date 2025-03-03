@@ -160,5 +160,8 @@ void kernel_init_vfs( void ) {
 
 		// kernels current directory
 		kernel -> task_base_address -> directory = kernel -> storage_base_address[ i ].device_block;
+
+		// share essential functions
+		kernel -> storage_base_address[ i ].fs.dir = (void *) kernel_vfs_dir;
 	}
 }
