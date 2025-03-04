@@ -139,12 +139,6 @@ uint8_t kernel_qfs_identify( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	// release knot
 	kernel -> memory_release( (uintptr_t) vfs, TRUE );
 
-	// if properly recognized
-	if( qfs ) {
-		// connect essential functions
-		// storage -> fs -> open = (void *) kernel_qfs_open;
-	}
-
 	// it is?
 	return qfs;
 }
@@ -166,55 +160,44 @@ struct LIB_VFS_STRUCTURE kernel_qfs_file( struct KERNEL_STRUCTURE_STORAGE *stora
 	return vfs;
 }
 
-uint64_t kernel_qfs_search( uint64_t storage_id, uint64_t directory_id, uint8_t *name, uint64_t name_length ) {
-	// properties of storage
-	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
+// uint64_t kernel_qfs_open( uint64_t storage_id, uint8_t *path, uint64_t length, uint8_t mode ) {
+// 	// properties of storage
+// 	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
 
-	// allocate block of data
-	uint8_t *block_data = (uint8_t *) kernel -> memory_alloc( TRUE );
+// 	// by default start from root directory
+// 	uint64_t file_id = EMPTY;
 
-	// not located
-	return EMPTY;
-}
-
-uint64_t kernel_qfs_open( uint64_t storage_id, uint8_t *path, uint64_t length, uint8_t mode ) {
-	// properties of storage
-	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
-
-	// by default start from root directory
-	uint64_t file_id = EMPTY;
-
-	// start from directory file?
-	if( *path != STD_ASCII_SLASH ) {	// yes
-		// properties of task
-		struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+// 	// start from directory file?
+// 	if( *path != STD_ASCII_SLASH ) {	// yes
+// 		// properties of task
+// 		struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 	
-		// choose task current file
-		file_id = task -> directory;
-	}
+// 		// choose task current file
+// 		file_id = task -> directory;
+// 	}
 
-	// parse path
-	while( length ) {
-		// remove leading '/', if exist
-		while( *path == '/' ) { path++; length--; }
+// 	// parse path
+// 	while( length ) {
+// 		// remove leading '/', if exist
+// 		while( *path == '/' ) { path++; length--; }
 
-		// select file name from path
-		uint64_t name_length = lib_string_word_end( path, length, '/' );
+// 		// select file name from path
+// 		uint64_t name_length = lib_string_word_end( path, length, '/' );
 
-		// locate file inside directory
-		file_id = kernel_qfs_search( storage_id, file_id, path, name_length );
-	}
+// 		// locate file inside directory
+// 		file_id = kernel_qfs_search( storage_id, file_id, path, name_length );
+// 	}
 
-	// return file identificator
-	return file_id;
-}
+// 	// return file identificator
+// 	return file_id;
+// }
 
-uintptr_t kernel_qfs_dir( uint64_t storage_id, uint8_t *path, uint64_t length ) {
-	// properties of storage
-	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
+uintptr_t kernel_qfs_dir( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length ) {
+	// properties of task
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// properties of selected directory
-	struct LIB_VFS_STRUCTURE directory = kernel_qfs_file( storage, 0 );
+	struct LIB_VFS_STRUCTURE directory = kernel_qfs_file( storage, task -> directory );
 	// if( ! (directory = kernel_vfs_path( path, lib_string_length( path ) )) ) return EMPTY;	// doesn't exist
 
 	// it is directory?
@@ -255,4 +238,50 @@ uintptr_t kernel_qfs_dir( uint64_t storage_id, uint8_t *path, uint64_t length ) 
 
 	// return list of files inside directory
 	return (uintptr_t) file;
+}
+
+struct LIB_VFS_STRUCTURE kernel_qfs_path( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length ) {
+	// properties of task
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+
+	// properties of current directory
+	struct LIB_VFS_STRUCTURE vfs = kernel_qfs_file( storage, task -> directory );
+
+	// start from root directory?
+	if( *path == STD_ASCII_SLASH ) vfs = kernel_qfs_file( storage, storage -> fs.root_directory_id );	// yes
+
+	// file not found
+	return vfs;
+}
+
+struct LIB_VFS_STRUCTURE kernel_qfs_search( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *directory, uint8_t *name, uint64_t name_length ) {
+	// located file properties
+	struct LIB_VFS_STRUCTURE file = { EMPTY };
+
+	// share file properties
+	for( uint64_t b = 0; b < (directory -> limit >> STD_SHIFT_PAGE); b++ ) {
+		// properties of directory entry
+		struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel_qfs_block_by_id( storage, directory, b );
+
+		// for every possible entry
+		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) {
+			// file located?
+			if( vfs[ e ].name_limit == name_length && lib_string_compare( (uint8_t *) vfs[ e ].name, name, name_length ) ) {
+				// yes
+				file = vfs[ e ];
+
+				// ignore further search
+				break;
+			}
+		}
+
+		// release data block
+		kernel -> memory_release( (uintptr_t) vfs, TRUE );
+
+		// if file located
+		if( file.name_limit ) break;	// ignore further search
+	}
+
+	// not located
+	return file;
 }

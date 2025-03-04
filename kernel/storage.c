@@ -17,7 +17,9 @@ void kernel_storage( void ) {
 			if( ! kernel_qfs_identify( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ i ] ) ) kernel_qfs_format( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ i ] );
 
 			// connect essential functions of QFS
+			kernel -> storage_base_address[ i ].fs.root_directory_id = kernel -> storage_base_address[ i ].device_block;
 			kernel -> storage_base_address[ i ].fs.dir = (void *) kernel_qfs_dir;
+			// kernel -> storage_base_address[ i ].fs.touch = (void *) kernel_vfs_touch;
 
 			// debug
 			kernel -> storage_base_address[ i ].device_fs = KERNEL_STORAGE_FS_qfs;	// QuarkFS

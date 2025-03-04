@@ -19,13 +19,17 @@
 	#define	KERNEL_STORAGE_FS_qfs			0x02	// Quark File System
 	#define	KERNEL_STORAGE_FS_raw			0xFF	// not set
 
+	struct KERNEL_STRUCTURE_STORAGE;
+
 	struct KERNEL_STRUCTURE_STORAGE_FS {
+		uint64_t	root_directory_id;
 		struct KERNEL_STRUCTURE_VFS	*(*open)( uint64_t storage_id, uint8_t *path, uint64_t length, uint8_t mode );
 		void		(*close)( void );
 		void		(*file)( void );
 		void		(*read)( void );
 		void		(*write)( void );
-		uintptr_t	(*dir)( uint64_t storage_id, uint8_t *path, uint64_t length );
+		uintptr_t	(*dir)( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length );
+		struct KERNEL_STRUCTURE_VFS *(*touch)( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t type );
 	};
 
 	struct KERNEL_STRUCTURE_STORAGE {

@@ -9,6 +9,6 @@
 	uint8_t kernel_qfs_identify( struct KERNEL_STRUCTURE_STORAGE *storage );
 	struct LIB_VFS_STRUCTURE kernel_qfs_file( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t file_id );
 	uint64_t kernel_qfs_open( uint64_t storage_id, uint8_t *path, uint64_t length, uint8_t mode );
-	uint64_t kernel_qfs_search( uint64_t storage_id, uint64_t directory_id, uint8_t *name, uint64_t name_length );
-	uintptr_t kernel_qfs_dir( uint64_t storage_id, uint8_t *path, uint64_t length );
+	struct LIB_VFS_STRUCTURE kernel_qfs_search( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *directory, uint8_t *name, uint64_t name_length );
+	uintptr_t kernel_qfs_dir( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length );
 #endif

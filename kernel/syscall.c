@@ -678,8 +678,11 @@ void kernel_syscall_file_write( struct STD_STRUCTURE_FILE *file, uint8_t *source
 }
 
 int64_t kernel_syscall_file_touch( uint8_t *path, uint8_t type ) {
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+
 	// retrieve information about module file
-	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_touch( path, type );
+	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel -> storage_base_address[ task -> storage ].fs.touch( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ task -> storage ], path, lib_string_length( path ), type );
 
 	// if file doesn't exist
 	if( ! socket ) return STD_ERROR_file_not_found;
@@ -919,6 +922,9 @@ uint8_t kernel_syscall_storage_select( uint64_t storage_id ) {
 	// set task default storage
 	task -> storage = storage_id;
 
+	// set current directory to root
+	task -> directory = kernel -> storage_base_address[ storage_id ].fs.root_directory_id;
+
 	// storage set
 	return TRUE;
 }
@@ -928,5 +934,5 @@ uintptr_t kernel_syscall_dir( uint8_t *path ) {
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// return content of directory from current storage
-	return kernel -> storage_base_address[ task -> storage ].fs.dir( task -> storage, path, lib_string_length( path ) );
+	return kernel -> storage_base_address[ task -> storage ].fs.dir( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ task -> storage ], path, lib_string_length( path ) );
 }

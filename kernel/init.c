@@ -25,6 +25,7 @@
 	//----------------------------------------------------------------------
 	#include	"task.h"
 	#include	"syscall.h"
+	#include	"storage.h"
 	#include	"vfs.h"
 	#include	"time.h"
 	#include	"idt.h"
@@ -36,7 +37,6 @@
 	#include	"memory.h"
 	#include	"page.h"
 	#include	"exec.h"
-	#include	"storage.h"
 	#include	"library.h"
 	#include	"module.h"
 	#include	"ipc.h"

@@ -238,10 +238,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_create( struct LIB_VFS_STRUCTURE *d
 	return socket;
 }
 
-struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_touch( uint8_t *path, uint8_t type ) {
-	// retrieve path length
-	uint64_t length = lib_string_length( path );
-
+struct KERNEL_STRUCTURE_VFS *kernel_vfs_touch( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t type ) {
 	// unsupported length?
 	if( ! length ) return EMPTY;	// cannot resolve path
 
