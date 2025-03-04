@@ -12,7 +12,7 @@
 	#define	LIB_VFS_length			4		// length of magic in Bytes
 	#define	LIB_VFS_magic			0x53465623	// "#VFS"
 	#define	LIB_VFS_BLOCK_byte		STD_PAGE_byte
-	#define	LIB_VFS_default			1		// default number of files in new directory (previous directory symlink)
+	#define	LIB_VFS_default			2		// default number of files in new directory (previous directory symlink)
 
 	struct LIB_VFS_STRUCTURE {
 		uintptr_t			block[ 5 ];

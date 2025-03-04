@@ -40,10 +40,14 @@ struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) &file_so;
 DIR *isdir;
 
 void vfs_default( struct LIB_VFS_STRUCTURE *vfs ) {
-	// prepare default symlink for root directory
+	// prepare default symlinks for root directory
 	vfs[ 0 ].block[ FALSE ] = EMPTY;
-	vfs[ 0 ].name_limit = 2;
+	vfs[ 0 ].name_limit = 1;
 	vfs[ 0 ].type = STD_FILE_TYPE_link;
+	strncpy( (char *) &vfs[ 0 ].name, name_symlink, 1 );
+	vfs[ 1 ].block[ FALSE ] = EMPTY;
+	vfs[ 1 ].name_limit = 2;
+	vfs[ 1 ].type = STD_FILE_TYPE_link;
 	strncpy( (char *) &vfs[ 1 ].name, name_symlink, 2 );
 }
 
@@ -89,7 +93,7 @@ int main( int argc, char *argv[] ) {
 	// for every file inside directory
 	while( (entry = readdir( directory )) != NULL ) {
 		// ignore system files
-		if( ! strcmp( entry -> d_name, ".." ) ) continue;
+		if( ! strcmp( entry -> d_name, "." ) || ! strcmp( entry -> d_name, ".." ) ) continue;
 
 		// file name longer than limit?
 		if( strlen( entry -> d_name ) > LIB_VFS_NAME_limit ) { printf( " [name \"%s\" too long]\n", entry -> d_name ); return -1; }
