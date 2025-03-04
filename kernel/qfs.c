@@ -5,6 +5,25 @@
 // debug, memory
 // for( uint8_t i = 0; i < 8; i ++ ) { kernel -> log( (uint8_t *) "0x%16X", (uintptr_t) block_data + (16 * i) ); for( uint8_t j = 0; j < 16; j++ ) kernel -> log( (uint8_t *) " %2X", block_data[ (16 * i) + j ] ); kernel -> log( (uint8_t *) "\n" ); }
 
+uint64_t kernel_qfs_alloc( struct KERNEL_STRUCTURE_STORAGE *storage ) {
+	// properties of superblock
+	struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel -> memory_alloc( TRUE );
+	storage -> block_read( storage -> device_id, storage -> device_block, (uint8_t *) superblock, LIB_VFS_BLOCK_byte / storage -> device_byte );
+
+	// load bitmap of current file system storage
+	uint32_t *bitmap = (uint32_t *) kernel -> memory_alloc( superblock -> block[ FALSE ] - TRUE );
+	storage -> block_read( storage -> device_id, storage -> device_block + (LIB_VFS_BLOCK_byte / storage -> device_byte), (uint8_t *) bitmap, (LIB_VFS_BLOCK_byte / storage -> device_byte) * (superblock -> block[ FALSE ] - TRUE) );
+
+	// alloc block
+	uint64_t block_id = kernel_memory_acquire( bitmap, TRUE, EMPTY, 16 );
+
+	// update bitmap of current file system storage
+	storage -> block_write( storage -> device_id, storage -> device_block + (LIB_VFS_BLOCK_byte / storage -> device_byte), (uint8_t *) bitmap, (LIB_VFS_BLOCK_byte / storage -> device_byte) * (superblock -> block[ FALSE ] - TRUE) );
+
+	// return allocated block
+	return block_id;
+}
+
 uintptr_t kernel_qfs_block( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *vfs, uint64_t block_id ) {
 	// alloc area for block data
 	uint64_t *block_data = (uint64_t *) kernel -> memory_alloc( TRUE );
@@ -191,7 +210,8 @@ uintptr_t kernel_qfs_dir( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *pat
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// properties of selected directory
-	struct LIB_VFS_STRUCTURE directory = kernel_qfs_path( storage, path, lib_string_length( path ) );
+	uint64_t directory_id = kernel_qfs_path( storage, path, lib_string_length( path ) );
+	struct LIB_VFS_STRUCTURE directory = kernel_qfs_file( storage, directory_id );
 
 	// it is directory?
 	if( directory.type != STD_FILE_TYPE_directory ) return EMPTY;	// no
@@ -222,6 +242,9 @@ uintptr_t kernel_qfs_dir( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *pat
 		// properties of directory entry
 		struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel_qfs_block( storage, (struct LIB_VFS_STRUCTURE *) &directory, b );
 
+// debug
+for( uint8_t i = 0; i < 8; i ++ ) { kernel -> log( (uint8_t *) "0x%16X", (uintptr_t) vfs + (16 * i) ); for( uint8_t j = 0; j < 16; j++ ) kernel -> log( (uint8_t *) " %2X", ((uint8_t *) vfs)[ (16 * i) + j ] ); kernel -> log( (uint8_t *) "\n" ); }
+
 		// for every possible entry
 		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( vfs[ e ].name_limit ) file[ file_index++ ] = vfs[ e ];
 
@@ -233,18 +256,18 @@ uintptr_t kernel_qfs_dir( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *pat
 	return (uintptr_t) file;
 }
 
-struct LIB_VFS_STRUCTURE kernel_qfs_path( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length ) {
+uint64_t kernel_qfs_path( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length ) {
 	// properties of task
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// properties of current directory
-	struct LIB_VFS_STRUCTURE vfs = kernel_qfs_file( storage, task -> directory );
+	uint64_t file_id = task -> directory;
 
 	// start from root directory?
-	if( *path == STD_ASCII_SLASH ) vfs = kernel_qfs_file( storage, storage -> fs.root_directory_id );	// yes
+	if( *path == STD_ASCII_SLASH ) return storage -> fs.root_directory_id;	// yes
 
 	// file not found
-	return vfs;
+	return file_id;
 }
 
 struct LIB_VFS_STRUCTURE kernel_qfs_search( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *directory, uint8_t *name, uint64_t name_length ) {
@@ -287,7 +310,8 @@ struct LIB_VFS_STRUCTURE kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *stor
 	uint64_t file_name_length = length - ((uintptr_t) file_name - (uintptr_t) path);
 
 	// open destination directory
-	struct LIB_VFS_STRUCTURE directory = kernel_qfs_path( storage, path, length - file_name_length );
+	uint64_t directory_id = kernel_qfs_path( storage, path, length - file_name_length );
+	struct LIB_VFS_STRUCTURE directory = kernel_qfs_file( storage, directory_id );
 
 	// check if file already exist
 	struct LIB_VFS_STRUCTURE file = kernel_qfs_search( storage, (struct LIB_VFS_STRUCTURE *) &directory, file_name, file_name_length );
@@ -304,7 +328,7 @@ struct LIB_VFS_STRUCTURE kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *stor
 			// if free entry, found
 			if( ! vfs[ e ].name_limit ) {
 				// create new entry
-				// kernel_qfs_create( storage, (struct LIB_VFS_STRUCTURE *) &directory, (struct LIB_VFS_STRUCTURE *) &vfs[ e ], file_name, file_name_length, type );
+				kernel_qfs_create( storage, directory_id, (struct LIB_VFS_STRUCTURE *) &vfs[ e ], file_name, file_name_length, type );
 
 				// update block content
 				storage -> block_write( storage -> device_id, storage -> device_block + (kernel_qfs_block_id( storage, (struct LIB_VFS_STRUCTURE *) &directory, b ) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), (uint8_t *) vfs, LIB_VFS_BLOCK_byte / storage -> device_byte );
@@ -336,50 +360,57 @@ struct LIB_VFS_STRUCTURE kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *stor
 	return file;
 }
 
-// void kernel_qfs_create( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t directory_id, struct LIB_VFS_STRUCTURE *vfs, uint8_t *name, uint64_t limit, uint8_t type ) {
-// 	// set file type
-// 	vfs -> type = type;
+void kernel_qfs_create( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t directory_id, struct LIB_VFS_STRUCTURE *vfs, uint8_t *name, uint64_t limit, uint8_t type ) {
+	// set file type
+	vfs -> type = type;
 
-// 	// set file name and limit
-// 	vfs -> name_limit = EMPTY;
-// 	for( uint8_t j = 0; j < limit; j++ ) vfs -> name[ vfs -> name_limit++ ] = name[ j ];
+	// set file name and limit
+	vfs -> name_limit = EMPTY;
+	for( uint8_t j = 0; j < limit; j++ ) vfs -> name[ vfs -> name_limit++ ] = name[ j ];
 
-// 	// default block content
-// 	switch( type ) {
-// 		// for file of type: directory
-// 		case STD_FILE_TYPE_directory: {
-// 			// assign first block for directory
-// 			vfs -> block[ FALSE ] = kernel_qfs_alloc( storage, TRUE );
+	// default block content
+	switch( type ) {
+		// for file of type: directory
+		case STD_FILE_TYPE_directory: {
+			// assign first block for directory
+			vfs -> block[ FALSE ] = kernel_qfs_alloc( storage );
 
-// 			// prepare default symlinks for root directory
+			// prepare default symlinks for directory
+			struct LIB_VFS_STRUCTURE *dir = (struct LIB_VFS_STRUCTURE *) kernel_qfs_block( storage, vfs, FALSE );
 
-// 			// previous symlink
-// 			root[ FALSE ].block[ FALSE ]	= directory_id;	// parent directory
-// 			root[ FALSE ].type		= STD_FILE_TYPE_link;
-// 			root[ FALSE ].name_limit	= 2;
-// 			root[ FALSE ].name[ 0 ]		= STD_ASCII_DOT;
-// 			root[ FALSE ].name[ 1 ]		= STD_ASCII_DOT;
+			// current symlink
+			dir[ 0 ].block[ FALSE ]	= EMPTY;	// pointing to superblock!
+			dir[ 0 ].type		= STD_FILE_TYPE_link;
+			dir[ 0 ].name_limit	= 1;
+			dir[ 0 ].name[ 0 ]	= STD_ASCII_DOT;
 
-// 			// default directory size
-// 			vfs -> limit = STD_PAGE_byte;
+			// previous symlink
+			dir[ 1 ].block[ FALSE ]	= directory_id;	// parent directory
+			dir[ 1 ].type		= STD_FILE_TYPE_link;
+			dir[ 1 ].name_limit	= 2;
+			dir[ 1 ].name[ 0 ]	= STD_ASCII_DOT;
+			dir[ 1 ].name[ 1 ]	= STD_ASCII_DOT;
 
-// 			// update block content
-// 			storage -> block_write( storage -> device_id, storage -> device_block + (vfs -> block[ FALSE ] * (LIB_VFS_BLOCK_byte / storage -> device_byte)), (uint8_t *) dir, LIB_VFS_BLOCK_byte / storage -> device_byte );
+			// default directory size
+			vfs -> limit = STD_PAGE_byte;
 
-// 			// release data block
-// 			kernel -> memory_release( (uintptr_t) dir, TRUE );
+			// update block content
+			storage -> block_write( storage -> device_id, storage -> device_block + (vfs -> block[ FALSE ] * (LIB_VFS_BLOCK_byte / storage -> device_byte)), (uint8_t *) dir, LIB_VFS_BLOCK_byte / storage -> device_byte );
 
-// 			// done
-// 			break;
-// 		}
+			// release data block
+			kernel -> memory_release( (uintptr_t) dir, TRUE );
 
-// 		// for file
-// 		default: {
-// 			// clean data pointer
-// 			vfs -> block[ FALSE ] = EMPTY;
+			// done
+			break;
+		}
 
-// 			// and file size
-// 			vfs -> limit = EMPTY;
-// 		}
-// 	}
-// }
+		// for file
+		default: {
+			// clean data pointer
+			vfs -> block[ FALSE ] = EMPTY;
+
+			// and file size
+			vfs -> limit = EMPTY;
+		}
+	}
+}
