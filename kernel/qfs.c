@@ -5,6 +5,42 @@
 // debug, memory
 // for( uint8_t i = 0; i < 8; i ++ ) { kernel -> log( (uint8_t *) "0x%16X", (uintptr_t) block_data + (16 * i) ); for( uint8_t j = 0; j < 16; j++ ) kernel -> log( (uint8_t *) " %2X", block_data[ (16 * i) + j ] ); kernel -> log( (uint8_t *) "\n" ); }
 
+uint64_t kernel_qfs_acquire( uint32_t *memory_map, uint64_t N, uint64_t p, uint64_t limit ) {
+	// search binary map for N continuous blocks
+	for( ; (p + N) < limit; p++ ) {
+		// by default we found N enabled bits
+		uint8_t found = TRUE;
+
+		// check N (c)onsecutive blocks
+		for( uint64_t c = p; c < (p + N); c++ ) {
+			// continous?
+			if( memory_map[ c >> STD_SHIFT_32 ] & 1 << (c & 0b00011111) ) continue;
+
+			// one of the bits is disabled
+			found = FALSE;
+
+			// start looking from next position
+			p = c;
+
+			// restart
+			break;
+		}
+
+		// if N consecutive blocks have been found
+		if( ! found ) continue;	// nope
+
+		// mark pages as (r)eserved
+		for( uint64_t r = p; r < (p + N); r++ )
+			memory_map[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b00011111) );
+
+		// return first block of acquired set
+		return p;
+	}
+
+	// no available blocks
+	return EMPTY;
+}
+
 uint64_t kernel_qfs_alloc( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	// properties of superblock
 	struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel -> memory_alloc( TRUE );
@@ -15,10 +51,16 @@ uint64_t kernel_qfs_alloc( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	storage -> block_read( storage -> device_id, storage -> device_block + (LIB_VFS_BLOCK_byte / storage -> device_byte), (uint8_t *) bitmap, (LIB_VFS_BLOCK_byte / storage -> device_byte) * (superblock -> block[ FALSE ] - TRUE) );
 
 	// alloc block
-	uint64_t block_id = kernel_memory_acquire( bitmap, TRUE, EMPTY, 16 );
+	uint64_t block_id = kernel_qfs_acquire( bitmap, TRUE, EMPTY, 16 );
 
 	// update bitmap of current file system storage
 	storage -> block_write( storage -> device_id, storage -> device_block + (LIB_VFS_BLOCK_byte / storage -> device_byte), (uint8_t *) bitmap, (LIB_VFS_BLOCK_byte / storage -> device_byte) * (superblock -> block[ FALSE ] - TRUE) );
+
+	// release bitmap area
+	kernel -> memory_release( (uintptr_t) bitmap, superblock -> block[ FALSE ] - TRUE );
+
+	// release superblock area
+	kernel -> memory_release( (uintptr_t) superblock, TRUE );
 
 	// return allocated block
 	return block_id;
@@ -242,9 +284,6 @@ uintptr_t kernel_qfs_dir( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *pat
 		// properties of directory entry
 		struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel_qfs_block( storage, (struct LIB_VFS_STRUCTURE *) &directory, b );
 
-// debug
-for( uint8_t i = 0; i < 8; i ++ ) { kernel -> log( (uint8_t *) "0x%16X", (uintptr_t) vfs + (16 * i) ); for( uint8_t j = 0; j < 16; j++ ) kernel -> log( (uint8_t *) " %2X", ((uint8_t *) vfs)[ (16 * i) + j ] ); kernel -> log( (uint8_t *) "\n" ); }
-
 		// for every possible entry
 		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) if( vfs[ e ].name_limit ) file[ file_index++ ] = vfs[ e ];
 
@@ -341,13 +380,15 @@ struct LIB_VFS_STRUCTURE kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *stor
 			}
 
 		// extend search?
-		// if( ! kernel_qfs_block( storage, (struct LIB_VFS_STRUCTURE *) &directory, b + 1 ) ) {
+		if( ! kernel_qfs_block_id( storage, (struct LIB_VFS_STRUCTURE *) &directory, b + 1 ) ) {
+			kernel -> log( (uint8_t *) "HELP!\n" );
+
 		// 	// expand directory content by block
 		// 	kernel_qfs_block_fill( storage, (struct LIB_VFS_STRUCTURE *) &directory, ++blocks );
 
 		// 	// new directory size
 		// 	directory.limit += STD_PAGE_byte;
-		// }
+		}
 
 		// release data block
 		kernel -> memory_release( (uintptr_t) vfs, TRUE );
