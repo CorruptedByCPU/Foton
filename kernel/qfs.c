@@ -238,7 +238,7 @@ struct LIB_VFS_STRUCTURE kernel_qfs_file( struct KERNEL_STRUCTURE_STORAGE *stora
 	storage -> block_read( storage -> device_id, storage -> device_block + (((file_id & STD_PAGE_mask) >> STD_SHIFT_PAGE) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), block_data, LIB_VFS_BLOCK_byte / storage -> device_byte );
 
 	// properties of file
-	struct LIB_VFS_STRUCTURE vfs = *((struct LIB_VFS_STRUCTURE *) &block_data[ file_id & ~STD_PAGE_mask ]);
+	struct LIB_VFS_STRUCTURE vfs = *((struct LIB_VFS_STRUCTURE *) &block_data[ (file_id & ~STD_PAGE_mask) * sizeof( struct LIB_VFS_STRUCTURE ) ]);
 
 	// release block data
 	kernel -> memory_release( (uintptr_t) block_data, TRUE );
@@ -300,18 +300,47 @@ uint64_t kernel_qfs_path( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *pat
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// properties of current directory
-	uint64_t file_id = task -> directory;
+	uint64_t directory_id = task -> directory;
 
 	// start from root directory?
-	if( *path == STD_ASCII_SLASH ) return storage -> fs.root_directory_id;	// yes
+	if( *path == STD_ASCII_SLASH ) directory_id = storage -> fs.root_directory_id;	// yes
+
+	// parse path
+	while( TRUE ) {
+		// remove leading '/', if exist
+		while( *path == '/' ) { path++; length--; }
+
+		// end of path?
+		if( ! length ) return directory_id;	// found directory
+
+		// select file name from path
+		uint64_t name_length = lib_string_word_end( path, length, '/' );
+
+		// locate file inside directory
+		struct LIB_VFS_STRUCTURE directory = kernel_qfs_file( storage, directory_id );
+		uint64_t file_id = kernel_qfs_search( storage, (struct LIB_VFS_STRUCTURE *) &directory, path, name_length );
+
+		// file not found?
+		if( ! file_id ) return EMPTY;
+
+		// last file from path and requested one?
+		if( length == name_length ) {
+			// follow symbolic links (if possible)
+			struct LIB_VFS_STRUCTURE file = kernel_qfs_file( storage, file_id );
+			while( file.type == STD_FILE_TYPE_link ) { file_id = file.block[ FALSE ]; file = kernel_qfs_file( storage, file_id ); }
+
+			// return file identificator
+			return file_id;
+		}
+	}
 
 	// file not found
-	return file_id;
+	return EMPTY;
 }
 
-struct LIB_VFS_STRUCTURE kernel_qfs_search( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *directory, uint8_t *name, uint64_t name_length ) {
-	// located file properties
-	struct LIB_VFS_STRUCTURE file = { EMPTY };
+uint64_t kernel_qfs_search( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *directory, uint8_t *name, uint64_t name_length ) {
+	// located file id
+	uint64_t id = EMPTY;
 
 	// share file properties
 	for( uint64_t b = 0; b < (directory -> limit >> STD_SHIFT_PAGE); b++ ) {
@@ -321,9 +350,9 @@ struct LIB_VFS_STRUCTURE kernel_qfs_search( struct KERNEL_STRUCTURE_STORAGE *sto
 		// for every possible entry
 		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ ) {
 			// file located?
-			if( vfs[ e ].name_limit == name_length && lib_string_compare( (uint8_t *) vfs[ e ].name, name, name_length ) ) {
-				// yes
-				file = vfs[ e ];
+			if( vfs[ e ].name_limit == name_length && lib_string_compare( (uint8_t *) vfs[ e ].name, name, name_length ) ) {	// yes
+				// calculate file id
+				id = (kernel_qfs_block_id( storage, directory, b ) << STD_SHIFT_PAGE) + e;
 
 				// ignore further search
 				break;
@@ -334,14 +363,14 @@ struct LIB_VFS_STRUCTURE kernel_qfs_search( struct KERNEL_STRUCTURE_STORAGE *sto
 		kernel -> memory_release( (uintptr_t) vfs, TRUE );
 
 		// if file located
-		if( file.name_limit ) break;	// ignore further search
+		if( id ) break;	// ignore further search
 	}
 
 	// not located
-	return file;
+	return id;
 }
 
-struct LIB_VFS_STRUCTURE kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t type ) {
+uint64_t kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t type ) {
 	// pointer to last file name inside path
 	uint8_t *file_name = lib_string_basename( path );
 
@@ -353,8 +382,8 @@ struct LIB_VFS_STRUCTURE kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *stor
 	struct LIB_VFS_STRUCTURE directory = kernel_qfs_file( storage, directory_id );
 
 	// check if file already exist
-	struct LIB_VFS_STRUCTURE file = kernel_qfs_search( storage, (struct LIB_VFS_STRUCTURE *) &directory, file_name, file_name_length );
-	if( file.name_limit ) return file;	// exist
+	uint64_t file_id = kernel_qfs_search( storage, (struct LIB_VFS_STRUCTURE *) &directory, file_name, file_name_length );
+	if( file_id ) return file_id;
 
 	// for each data block of directory
 	uint64_t blocks = directory.limit >> STD_SHIFT_PAGE;
@@ -367,17 +396,23 @@ struct LIB_VFS_STRUCTURE kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *stor
 			// if free entry, found
 			if( ! vfs[ e ].name_limit ) {
 				// create new entry
-				kernel_qfs_create( storage, directory_id, (struct LIB_VFS_STRUCTURE *) &vfs[ e ], file_name, file_name_length, type );
+				kernel_qfs_create( storage, directory_id, (kernel_qfs_block_id( storage, (struct LIB_VFS_STRUCTURE *) &directory, b ) << STD_SHIFT_PAGE) + e, (struct LIB_VFS_STRUCTURE *) &vfs[ e ], file_name, file_name_length, type );
 
 				// update block content
 				storage -> block_write( storage -> device_id, storage -> device_block + (kernel_qfs_block_id( storage, (struct LIB_VFS_STRUCTURE *) &directory, b ) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), (uint8_t *) vfs, LIB_VFS_BLOCK_byte / storage -> device_byte );
 
 				// return properties of file
-				file = vfs[ e ];
+				file_id = (kernel_qfs_block_id( storage, (struct LIB_VFS_STRUCTURE *) &directory, b ) << STD_SHIFT_PAGE) + e;
 
 				// file created, block updated
 				break;
 			}
+
+		// release data block
+		kernel -> memory_release( (uintptr_t) vfs, TRUE );
+
+		// if file created
+		if( file_id ) return file_id;	// ignore further search
 
 		// extend search?
 		if( ! kernel_qfs_block_id( storage, (struct LIB_VFS_STRUCTURE *) &directory, b + 1 ) ) {
@@ -389,19 +424,13 @@ struct LIB_VFS_STRUCTURE kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *stor
 		// 	// new directory size
 		// 	directory.limit += STD_PAGE_byte;
 		}
-
-		// release data block
-		kernel -> memory_release( (uintptr_t) vfs, TRUE );
-
-		// if file created
-		if( file.name_limit ) break;	// ignore further search
 	}
 
 	// no free entry
-	return file;
+	return EMPTY;
 }
 
-void kernel_qfs_create( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t directory_id, struct LIB_VFS_STRUCTURE *vfs, uint8_t *name, uint64_t limit, uint8_t type ) {
+void kernel_qfs_create( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t directory_id, uint64_t file_id, struct LIB_VFS_STRUCTURE *vfs, uint8_t *name, uint64_t limit, uint8_t type ) {
 	// set file type
 	vfs -> type = type;
 
@@ -419,8 +448,10 @@ void kernel_qfs_create( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t direc
 			// prepare default symlinks for directory
 			struct LIB_VFS_STRUCTURE *dir = (struct LIB_VFS_STRUCTURE *) kernel_qfs_block( storage, vfs, FALSE );
 
+			kernel_memory_clean( (uint64_t *) dir, 1 );
+
 			// current symlink
-			dir[ 0 ].block[ FALSE ]	= EMPTY;	// pointing to superblock!
+			dir[ 0 ].block[ FALSE ]	= file_id;	// pointing to itself
 			dir[ 0 ].type		= STD_FILE_TYPE_link;
 			dir[ 0 ].name_limit	= 1;
 			dir[ 0 ].name[ 0 ]	= STD_ASCII_DOT;
@@ -454,4 +485,46 @@ void kernel_qfs_create( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t direc
 			vfs -> limit = EMPTY;
 		}
 	}
+}
+
+struct KERNEL_STRUCTURE_VFS *kernel_qfs_open( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t mode ) {
+	// id of found file
+	uint64_t file_id = kernel_qfs_path( storage, path, length );
+
+	// lock exclusive access
+	MACRO_LOCK( kernel -> vfs_semaphore );
+
+	// open socket
+	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add();
+
+	// properties of task
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+
+	// file located on definied storage
+	socket -> storage = task -> storage;
+
+	// file identificator
+	socket -> knot = file_id;
+
+	// socket opened by process with ID
+	socket -> pid = task -> pid;
+
+	// protect file against any modifications?
+	if( mode == STD_FILE_MODE_modify )
+		// return flag
+		socket -> mode = STD_FILE_MODE_modify;
+
+	// unlock access
+	MACRO_UNLOCK( kernel -> vfs_semaphore );
+
+	// file found
+	return socket;
+}
+
+void kernel_qfs_close( struct KERNEL_STRUCTURE_VFS *socket ) {
+	// can we close file?
+	if( socket -> pid != kernel_task_pid() ) return;	// no! TODO: something nasty
+
+	// release socket
+	socket -> pid = EMPTY;
 }

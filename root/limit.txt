@@ -1,0 +1,6 @@
+/*-----------------------------------------------------------------------------
+Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+-----------------------------------------------------------------------------*/
+
+QuarkFS:
+- max. 4096 files inside directory

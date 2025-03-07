@@ -20,7 +20,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow, uint8_
 	for( uint64_t i = 0; i < lib_string_word_end( name, length, STD_ASCII_SPACE ); i++ ) exec.path[ exec.path_length++ ] = name[ i ];
 
 	// retrieve information about executable file
-	exec.socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( exec.path, exec.path_length, EMPTY );
+	exec.socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ kernel -> storage_root ], exec.path, exec.path_length, EMPTY );
 
 	// release area of path
 	kernel_memory_release( (uintptr_t) exec.path, MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + length ) >> STD_SHIFT_PAGE );

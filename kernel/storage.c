@@ -20,8 +20,15 @@ void kernel_storage( void ) {
 			kernel -> storage_base_address[ i ].fs.root_directory_id = kernel -> storage_base_address[ i ].device_block;
 			kernel -> storage_base_address[ i ].fs.dir = (void *) kernel_qfs_dir;
 			kernel -> storage_base_address[ i ].fs.touch = (void *) kernel_qfs_touch;
+			kernel -> storage_base_address[ i ].fs.open = (void *) kernel_qfs_open;
+			kernel -> storage_base_address[ i ].fs.file = (void *) kernel_qfs_file;
+			kernel -> storage_base_address[ i ].fs.close = (void *) kernel_qfs_close;
 
 			// debug
+			uint8_t test[] = "test";
+			kernel -> storage_base_address[ i ].fs.touch( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ i ], (uint8_t *) &test, 4, STD_FILE_TYPE_directory );
+
+			// set file system type
 			kernel -> storage_base_address[ i ].device_fs = KERNEL_STORAGE_FS_qfs;	// QuarkFS
 		}
 

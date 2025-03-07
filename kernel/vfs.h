@@ -9,7 +9,7 @@
 
 	struct	KERNEL_STRUCTURE_VFS {
 		uint64_t			storage;
-		struct LIB_VFS_STRUCTURE	*knot;
+		uint64_t			knot;
 		int64_t				pid;
 		uint8_t				mode;
 	};
@@ -24,7 +24,7 @@
 
 	void kernel_vfs_file_close( struct KERNEL_STRUCTURE_VFS *socket );
 
-	struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t length, uint8_t mode );
+	struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t mode );
 
 	void kernel_vfs_file_properties( struct KERNEL_STRUCTURE_VFS *socket, struct KERNEL_STRUCTURE_VFS_PROPERTIES *properties );
 
@@ -38,7 +38,7 @@
 
 	struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length );
 
-	struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( struct LIB_VFS_STRUCTURE *knot );
+	struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( void );
 
 	uintptr_t kernel_vfs_dir( uint64_t storage_id, uint8_t *path, uint64_t length );
 #endif

@@ -88,7 +88,7 @@ void kernel_vfs_file_close( struct KERNEL_STRUCTURE_VFS *socket ) {
 	socket -> pid = EMPTY;
 }
 
-struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t length, uint8_t mode ) {
+struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t mode ) {
 	// properties of found file
 	struct LIB_VFS_STRUCTURE *vfs;
 	if( ! (vfs = kernel_vfs_path( path, length )) ) return EMPTY;	// file not found
@@ -97,13 +97,13 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 	MACRO_LOCK( kernel -> vfs_semaphore );
 
 	// open socket
-	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add( vfs );
+	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add();
 
 	// file located on definied storage
 	socket -> storage = kernel -> storage_root;
 
 	// file identificator
-	socket -> knot = vfs;
+	socket -> knot = (uint64_t) vfs;
 
 	// socket opened by process with ID
 	socket -> pid = kernel_task_pid();
@@ -122,7 +122,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( uint8_t *path, uint64_t lengt
 
 void kernel_vfs_file_properties( struct KERNEL_STRUCTURE_VFS *socket, struct KERNEL_STRUCTURE_VFS_PROPERTIES *properties ) {
 	// properties of file
-	struct LIB_VFS_STRUCTURE *file = socket -> knot;
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
 
 	// retrun file size in Bytes
 	properties -> byte = file -> limit;
@@ -134,7 +134,7 @@ void kernel_vfs_file_properties( struct KERNEL_STRUCTURE_VFS *socket, struct KER
 
 void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target, uint64_t seek, uint64_t byte ) {
 	// properties of file
-	struct LIB_VFS_STRUCTURE *file = socket -> knot;
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
 
 	// invalid read request?
 	if( seek + byte > file -> limit ) {
@@ -223,13 +223,13 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_create( struct LIB_VFS_STRUCTURE *d
 	}
 
 	// open socket
-	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add( vfs );
+	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add();
 
 	// file located on definied storage
 	socket -> storage = kernel -> storage_root;
 
 	// file identificator
-	socket -> knot = vfs;
+	socket -> knot = (uint64_t) vfs;
 
 	// socket opened by process with ID
 	socket -> pid = kernel_task_pid();
@@ -283,7 +283,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_touch( struct KERNEL_STRUCTURE_STORAGE *
 
 void kernel_vfs_file_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source, uint64_t seek, uint64_t byte ) {
 	// properties of file
-	struct LIB_VFS_STRUCTURE *file = socket -> knot;
+	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
 
 	// insufficient file length?
 	if( seek + byte > MACRO_PAGE_ALIGN_UP( file -> limit ) ) {
@@ -423,7 +423,7 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
 	return EMPTY;
 }
 
-struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( struct LIB_VFS_STRUCTURE *knot ) {
+struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( void ) {
 	// available entry, doesn't exist by default
 	struct KERNEL_STRUCTURE_VFS *socket = EMPTY;
 
@@ -490,4 +490,12 @@ uintptr_t kernel_vfs_dir( uint64_t storage_id, uint8_t *path, uint64_t length ) 
 
 	// return list of files inside directory
 	return (uintptr_t) file;
+}
+
+struct LIB_VFS_STRUCTURE kernel_vfs_file( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t file_id ) {
+	// properties of file
+	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) file_id;
+
+	// return properties of file
+	return *vfs;
 }

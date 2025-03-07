@@ -13,7 +13,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
 
 	// retrieve information about module file
-	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length, EMPTY );
+	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ kernel -> storage_root ], path, path_length, EMPTY );
 
 	// if module does not exist
 	if( ! socket ) return;	// ignore

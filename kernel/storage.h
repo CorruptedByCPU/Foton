@@ -20,16 +20,17 @@
 	#define	KERNEL_STORAGE_FS_raw			0xFF	// not set
 
 	struct KERNEL_STRUCTURE_STORAGE;
+	struct KERNEL_STRUCTURE_VFS;
 
 	struct KERNEL_STRUCTURE_STORAGE_FS {
 		uint64_t	root_directory_id;
-		struct KERNEL_STRUCTURE_VFS	*(*open)( uint64_t storage_id, uint8_t *path, uint64_t length, uint8_t mode );
-		void		(*close)( void );
-		void		(*file)( void );
+		void		(*close)( struct KERNEL_STRUCTURE_VFS *socket );
+		struct LIB_VFS_STRUCTURE	(*file)( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t file_id );
 		void		(*read)( void );
 		void		(*write)( void );
 		uintptr_t	(*dir)( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length );
-		struct KERNEL_STRUCTURE_VFS *(*touch)( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t type );
+		uint64_t	(*touch)( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t type );
+		struct KERNEL_STRUCTURE_VFS *(*open)( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t mode );
 	};
 
 	struct KERNEL_STRUCTURE_STORAGE {

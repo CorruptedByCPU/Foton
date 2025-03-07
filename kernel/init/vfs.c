@@ -165,5 +165,8 @@ void kernel_init_vfs( void ) {
 		kernel -> storage_base_address[ i ].fs.root_directory_id = kernel -> storage_base_address[ i ].device_block;
 		kernel -> storage_base_address[ i ].fs.dir = (void *) kernel_vfs_dir;
 		kernel -> storage_base_address[ i ].fs.touch = (void *) kernel_vfs_touch;
+		kernel -> storage_base_address[ i ].fs.open = (void *) kernel_vfs_file_open;
+		kernel -> storage_base_address[ i ].fs.file = (void *) kernel_vfs_file;
+		kernel -> storage_base_address[ i ].fs.close = (void *) kernel_vfs_file_close;
 	}
 }

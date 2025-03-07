@@ -520,8 +520,14 @@ void kernel_syscall_memory( struct STD_STRUCTURE_SYSCALL_MEMORY *memory ) {
 }
 
 uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+	
+	// properties of storage
+	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ task -> storage ];
+
 	// try to open provided path
-	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( path, path_length, EMPTY );
+	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) storage -> fs.open( storage, path, path_length, EMPTY );
 
 	// if file doesn't exist
 	if( ! socket ) return FALSE;
@@ -530,13 +536,10 @@ uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 	uint8_t flag = FALSE;
 
 	// properties of opened file
-	struct LIB_VFS_STRUCTURE *vfs = socket -> knot;
+	struct LIB_VFS_STRUCTURE vfs = storage -> fs.file( storage, socket -> knot );
 
 	// it is a directory?
-	if( vfs -> type & STD_FILE_TYPE_directory ) {
-		// current task properties
-		struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
-
+	if( vfs.type & STD_FILE_TYPE_directory ) {
 		// set new root directory of current process
 		task -> directory = (uint64_t) socket -> knot;
 
@@ -545,7 +548,7 @@ uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 	}
 
 	// close file
-	kernel_vfs_file_close( socket );
+	storage -> fs.close( socket );
 
 	// done
 	return flag;
@@ -590,8 +593,11 @@ uint64_t kernel_syscall_time( void ) {
 }
 
 int64_t kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t mode ) {
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+
 	// retrieve information about module file
-	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_file_open( path, path_length, mode );
+	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_file_open( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ task -> storage ], path, path_length, mode );
 
 	// if file doesn't exist
 	if( ! socket ) return STD_ERROR_file_not_found;
