@@ -21,12 +21,20 @@ void kernel_storage( void ) {
 			kernel -> storage_base_address[ i ].fs.dir = (void *) kernel_qfs_dir;
 			kernel -> storage_base_address[ i ].fs.touch = (void *) kernel_qfs_touch;
 			kernel -> storage_base_address[ i ].fs.open = (void *) kernel_qfs_open;
-			kernel -> storage_base_address[ i ].fs.file = (void *) kernel_qfs_file;
+			kernel -> storage_base_address[ i ].fs.file = (void *) kernel_qfs_properties_by_socket;
 			kernel -> storage_base_address[ i ].fs.close = (void *) kernel_qfs_close;
+			// kernel -> storage_base_address[ i ].fs.write = (void *) kernel_qfs_write;
+			// kernel -> storage_base_address[ i ].fs.read = (void *) kernel_qfs_read;
 
 			// debug
-			uint8_t test[] = "test";
-			kernel -> storage_base_address[ i ].fs.touch( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ i ], (uint8_t *) &test, 4, STD_FILE_TYPE_directory );
+			uint8_t file[] = "file.txt";
+			uint8_t directory[] = "directory";
+			kernel -> storage_base_address[ i ].fs.touch( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ i ], (uint8_t *) &file, 8, STD_FILE_TYPE_file );
+			kernel -> storage_base_address[ i ].fs.touch( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ i ], (uint8_t *) &directory, 9, STD_FILE_TYPE_directory );
+
+			// uint8_t text[] = "simple text line.";
+			// struct KERNEL_STRUCTURE_VFS *socket = kernel -> storage_base_address[ i ].fs.open( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ i ], (uint8_t *) &file, 8, EMPTY );
+			// kernel -> storage_base_address[ i ].fs.write( socket, (uint8_t *) text, EMPTY, sizeof( text ) - 1 );
 
 			// set file system type
 			kernel -> storage_base_address[ i ].device_fs = KERNEL_STORAGE_FS_qfs;	// QuarkFS

@@ -19,12 +19,12 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	if( ! socket ) return;	// ignore
 
 	// gather information about file
-	struct KERNEL_STRUCTURE_VFS_PROPERTIES properties;
-	kernel_vfs_file_properties( socket, (struct KERNEL_STRUCTURE_VFS_PROPERTIES *) &properties );
+	struct LIB_VFS_STRUCTURE vfs;
+	vfs = kernel_vfs_file_properties( socket );
 
 	// assign area for workbench
 	uintptr_t workbench;
-	if( ! (workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( properties.byte ) >> STD_SHIFT_PAGE )) ) {
+	if( ! (workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( vfs.limit ) >> STD_SHIFT_PAGE )) ) {
 		// close file
 		kernel_vfs_file_close( socket );
 
@@ -33,7 +33,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	}
 
 	// load module into workbench space
-	kernel_vfs_file_read( socket, (uint8_t *) workbench, EMPTY, properties.byte );
+	kernel_vfs_file_read( socket, (uint8_t *) workbench, EMPTY, vfs.limit );
 
 	// close file
 	kernel_vfs_file_close( socket );
@@ -144,7 +144,7 @@ void kernel_module_load( uint8_t *name, uint64_t length ) {
 	//----------------------------------------------------------------------
 
 	// release workbench
-	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( properties.byte ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( vfs.limit ) >> STD_SHIFT_PAGE );
 
 	// map kernel space to process
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) module -> cr3 );

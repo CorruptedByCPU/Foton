@@ -25,9 +25,9 @@
 	struct KERNEL_STRUCTURE_STORAGE_FS {
 		uint64_t	root_directory_id;
 		void		(*close)( struct KERNEL_STRUCTURE_VFS *socket );
-		struct LIB_VFS_STRUCTURE	(*file)( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t file_id );
-		void		(*read)( void );
-		void		(*write)( void );
+		struct LIB_VFS_STRUCTURE	(*file)( struct KERNEL_STRUCTURE_VFS *socket );
+		void		(*read)( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target, uint64_t seek, uint64_t length_byte );
+		void		(*write)( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source, uint64_t seek, uint64_t byte );
 		uintptr_t	(*dir)( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length );
 		uint64_t	(*touch)( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t type );
 		struct KERNEL_STRUCTURE_VFS *(*open)( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t mode );

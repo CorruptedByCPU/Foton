@@ -10,7 +10,7 @@
 	struct KERNEL_STRUCTURE_EXEC_TMP {
 		uint8_t					level;
 		struct KERNEL_STRUCTURE_VFS		*socket;
-		struct KERNEL_STRUCTURE_VFS_PROPERTIES	properties;
+		struct LIB_VFS_STRUCTURE		vfs;
 		struct KERNEL_STRUCTURE_TASK		*task;
 		uintptr_t				workbench_address;
 		uintptr_t				base_address;

@@ -54,7 +54,7 @@ static void kernel_library_cancel( struct KERNEL_STRUCTURE_LIBRARY_INIT *library
 		}
 		case 3: {
 			// release workbench area
-			kernel_memory_release( library -> workbench_address, MACRO_PAGE_ALIGN_UP( library -> properties.byte ) >> STD_SHIFT_PAGE );
+			kernel_memory_release( library -> workbench_address, MACRO_PAGE_ALIGN_UP( library -> vfs.limit ) >> STD_SHIFT_PAGE );
 		}
 		case 2: {
 			// close file
@@ -264,16 +264,16 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.level++;
 
 	// gather information about file
-	kernel_vfs_file_properties( library.socket, (struct KERNEL_STRUCTURE_VFS_PROPERTIES *) &library.properties );
+	library.vfs = kernel_vfs_file_properties( library.socket );
 
 	// assign area for workbench
-	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library ); return STD_ERROR_memory_low; };
+	if( ! (library.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( library.vfs.limit ) >> STD_SHIFT_PAGE )) ) { kernel_library_cancel( (struct KERNEL_STRUCTURE_LIBRARY_INIT *) &library ); return STD_ERROR_memory_low; };
 
 	// checkpoint reached: assigned area for temporary file
 	library.level++;
 
 	// load library into workbench space
-	kernel_vfs_file_read( library.socket, (uint8_t *) library.workbench_address, EMPTY, library.properties.byte );
+	kernel_vfs_file_read( library.socket, (uint8_t *) library.workbench_address, EMPTY, library.vfs.limit );
 
 	//----------------------------------------------------------------------
 
@@ -368,7 +368,7 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 	library.entry -> flags |= KERNEL_LIBRARY_FLAG_active;
 
 	// release workbench space
-	kernel_memory_release( library.workbench_address, MACRO_PAGE_ALIGN_UP( library.properties.byte ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( library.workbench_address, MACRO_PAGE_ALIGN_UP( library.vfs.limit ) >> STD_SHIFT_PAGE );
 
 	// close file
 	kernel_vfs_file_close( library.socket );

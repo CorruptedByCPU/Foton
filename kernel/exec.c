@@ -32,16 +32,16 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow, uint8_
 	exec.level++;
 
 	// gather information about file
-	kernel_vfs_file_properties( exec.socket, (struct KERNEL_STRUCTURE_VFS_PROPERTIES *) &exec.properties );
+	exec.vfs =kernel_vfs_file_properties( exec.socket );
 
 	// assign area for workbench
-	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.properties.byte ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; };
+	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.vfs.limit ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; };
 
 	// checkpoint reached: assigned area for temporary file
 	exec.level++;
 
 	// load executable into workbench space
-	kernel_vfs_file_read( exec.socket, (uint8_t *) exec.workbench_address, EMPTY, exec.properties.byte );
+	kernel_vfs_file_read( exec.socket, (uint8_t *) exec.workbench_address, EMPTY, exec.vfs.limit );
 
 	//----------------------------------------------------------------------
 
@@ -250,7 +250,7 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow, uint8_
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) exec.task -> cr3 );
 
 	// release workbench
-	kernel_memory_release( exec.workbench_address, MACRO_PAGE_ALIGN_UP( exec.properties.byte ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( exec.workbench_address, MACRO_PAGE_ALIGN_UP( exec.vfs.limit ) >> STD_SHIFT_PAGE );
 
 	//----------------------------------------------------------------------
 
@@ -281,7 +281,7 @@ static void kernel_exec_cancel( struct KERNEL_STRUCTURE_EXEC_TMP *exec ) {
 		}
 		case 2: {
 			// release workbench area
-			kernel_memory_release( exec -> workbench_address, MACRO_PAGE_ALIGN_UP( exec -> properties.byte ) >> STD_SHIFT_PAGE );
+			kernel_memory_release( exec -> workbench_address, MACRO_PAGE_ALIGN_UP( exec -> vfs.limit ) >> STD_SHIFT_PAGE );
 		}
 		case 1: {
 			// close file

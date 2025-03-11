@@ -15,4 +15,5 @@
 	void kernel_qfs_create( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t directory_id, uint64_t file_id, struct LIB_VFS_STRUCTURE *vfs, uint8_t *name, uint64_t limit, uint8_t type );
 	uint64_t kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t type );
 	void kernel_qfs_close( struct KERNEL_STRUCTURE_VFS *socket );
+	struct LIB_VFS_STRUCTURE kernel_qfs_properties_by_socket( struct KERNEL_STRUCTURE_VFS *socket );
 #endif

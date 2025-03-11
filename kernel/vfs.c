@@ -120,16 +120,9 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( struct KERNEL_STRUCTURE_STORA
 	return socket;
 }
 
-void kernel_vfs_file_properties( struct KERNEL_STRUCTURE_VFS *socket, struct KERNEL_STRUCTURE_VFS_PROPERTIES *properties ) {
+struct LIB_VFS_STRUCTURE kernel_vfs_file_properties( struct KERNEL_STRUCTURE_VFS *socket ) {
 	// properties of file
-	struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) socket -> knot;
-
-	// retrun file size in Bytes
-	properties -> byte = file -> limit;
-
-	// return file name
-	properties -> name_length = file -> name_limit;
-	for( uint64_t i = 0; i < file -> name_limit; i++ ) properties -> name[ i ] = file -> name[ i ];
+	return *((struct LIB_VFS_STRUCTURE *) socket -> knot);
 }
 
 void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target, uint64_t seek, uint64_t byte ) {

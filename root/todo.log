@@ -3,9 +3,10 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
 started:
-- UI of libinterface.so
+- file management on external stoarges (like VirtIO-Block)
 
 yet to be done:
+- UI of libinterface.so
 - element input of libinterface.so connect with libinput.so
 - unused library, remove from memory
 - audio controller SB16

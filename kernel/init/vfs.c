@@ -166,7 +166,9 @@ void kernel_init_vfs( void ) {
 		kernel -> storage_base_address[ i ].fs.dir = (void *) kernel_vfs_dir;
 		kernel -> storage_base_address[ i ].fs.touch = (void *) kernel_vfs_touch;
 		kernel -> storage_base_address[ i ].fs.open = (void *) kernel_vfs_file_open;
-		kernel -> storage_base_address[ i ].fs.file = (void *) kernel_vfs_file;
+		kernel -> storage_base_address[ i ].fs.file = (void *) kernel_vfs_file_properties;
 		kernel -> storage_base_address[ i ].fs.close = (void *) kernel_vfs_file_close;
+		kernel -> storage_base_address[ i ].fs.write = (void *) kernel_vfs_file_write;
+		kernel -> storage_base_address[ i ].fs.read = (void *) kernel_vfs_file_read;
 	}
 }

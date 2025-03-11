@@ -536,7 +536,7 @@ uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 	uint8_t flag = FALSE;
 
 	// properties of opened file
-	struct LIB_VFS_STRUCTURE vfs = storage -> fs.file( storage, socket -> knot );
+	struct LIB_VFS_STRUCTURE vfs = storage -> fs.file( socket );
 
 	// it is a directory?
 	if( vfs.type & STD_FILE_TYPE_directory ) {
@@ -597,7 +597,7 @@ int64_t kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t m
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// retrieve information about module file
-	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_file_open( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ task -> storage ], path, path_length, mode );
+	struct KERNEL_STRUCTURE_VFS *socket = kernel -> storage_base_address[ task -> storage ].fs.open( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ task -> storage ], path, path_length, mode );
 
 	// if file doesn't exist
 	if( ! socket ) return STD_ERROR_file_not_found;
@@ -610,32 +610,38 @@ void kernel_syscall_file_close( int64_t socket ) {
 	// invalid socket value?
 	if( socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+
 	// close connection to file
-	kernel_vfs_file_close( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ socket ] );
+	kernel -> storage_base_address[ task -> storage ].fs.close( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ socket ] );
 }
 
 void kernel_syscall_file( struct STD_STRUCTURE_FILE *file ) {
-	// by default no properties (eg. invalid socket)
-	struct KERNEL_STRUCTURE_VFS_PROPERTIES properties = { EMPTY };
-
 	// invalid socket value?
 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+
 	// retrieve information about file
-	kernel_vfs_file_properties( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ], (struct KERNEL_STRUCTURE_VFS_PROPERTIES *) &properties );
+	struct LIB_VFS_STRUCTURE vfs = kernel -> storage_base_address[ task -> storage ].fs.file( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ] );
 
 	// copy important values
 
 	// file size in Bytes
-	file -> byte = properties.byte;
+	file -> byte = vfs.limit;
 
 	// file name
-	for( uint64_t i = 0; i < properties.name_length; i++ ) file -> name[ file -> name_length++ ] = properties.name[ i ];
+	for( uint64_t i = 0; i < vfs.name_limit; i++ ) file -> name[ file -> name_length++ ] = vfs.name[ i ];
 }
 
 void kernel_syscall_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target, uint64_t byte ) {
 	// invalid socket value?
 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
+
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// properties of file
 	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ];
@@ -648,7 +654,7 @@ void kernel_syscall_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target,
 
 		// read file content into preallocated area
 		struct LIB_VFS_STRUCTURE *directory = (struct LIB_VFS_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( byte ) >> STD_SHIFT_PAGE );
-		kernel_vfs_file_read( socket, (uint8_t *) directory, file -> seek, byte );
+		kernel -> storage_base_address[ task -> storage ].fs.read( socket, (uint8_t *) directory, file -> seek, byte );
 
 		// parse block by block
 		for( size_t b = 0; b < (byte >> STD_SHIFT_PAGE); b++ ) {
@@ -666,7 +672,7 @@ void kernel_syscall_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target,
 	}
 
 	// no, pass file content to process memory
-	else kernel_vfs_file_read( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ], target, file -> seek, byte );
+	else kernel -> storage_base_address[ task -> storage ].fs.read( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ], target, file -> seek, byte );
 
 	// next file Bytes content
 	file -> seek += byte;
@@ -676,8 +682,8 @@ void kernel_syscall_file_write( struct STD_STRUCTURE_FILE *file, uint8_t *source
 	// invalid socket value?
 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
-	// pass file content to process memory
-	kernel_vfs_file_write( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ], source, file -> seek, byte );
+	// pass file content to storage
+	kernel -> storage_base_address[ ((struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ]) -> storage ].fs.write( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ], source, file -> seek, byte );
 
 	// next file Bytes content
 	file -> seek += byte;

@@ -230,6 +230,11 @@ uint8_t kernel_qfs_identify( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	return qfs;
 }
 
+struct LIB_VFS_STRUCTURE kernel_qfs_properties_by_socket( struct KERNEL_STRUCTURE_VFS *socket ) {
+	// properties of file
+	return kernel_qfs_file( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ socket -> storage ], socket -> knot );
+}
+
 struct LIB_VFS_STRUCTURE kernel_qfs_file( struct KERNEL_STRUCTURE_STORAGE *storage, uint64_t file_id ) {
 	// allocate block for data
 	uint8_t *block_data = (uint8_t *) kernel -> memory_alloc( TRUE );
