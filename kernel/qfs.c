@@ -240,7 +240,10 @@ struct LIB_VFS_STRUCTURE kernel_qfs_file( struct KERNEL_STRUCTURE_STORAGE *stora
 	uint8_t *block_data = (uint8_t *) kernel -> memory_alloc( TRUE );
 
 	// load block of data containing knot
+	kernel -> log( (uint8_t *) "%X %u\n", file_id, storage -> device_block + (((file_id & STD_PAGE_mask) >> STD_SHIFT_PAGE) * (LIB_VFS_BLOCK_byte / storage -> device_byte)) );
 	storage -> block_read( storage -> device_id, storage -> device_block + (((file_id & STD_PAGE_mask) >> STD_SHIFT_PAGE) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), block_data, LIB_VFS_BLOCK_byte / storage -> device_byte );
+
+	// for( uint8_t i = 0; i < 96; i ++ ) { kernel -> log( (uint8_t *) "0x%16X", (uintptr_t) block_data + (16 * i) ); for( uint8_t j = 0; j < 16; j++ ) kernel -> log( (uint8_t *) " %2X", block_data[ (16 * i) + j ] ); kernel -> log( (uint8_t *) "\n" ); }
 
 	// properties of file
 	struct LIB_VFS_STRUCTURE vfs = *((struct LIB_VFS_STRUCTURE *) &block_data[ (file_id & ~STD_PAGE_mask) * sizeof( struct LIB_VFS_STRUCTURE ) ]);
@@ -250,6 +253,25 @@ struct LIB_VFS_STRUCTURE kernel_qfs_file( struct KERNEL_STRUCTURE_STORAGE *stora
 
 	// return file properties
 	return vfs;
+}
+
+void kernel_qfs_file_update( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *file, uint64_t file_id ) {
+	// allocate block for data
+	uint8_t *block_data = (uint8_t *) kernel -> memory_alloc( TRUE );
+
+	// load block of data containing knot
+	storage -> block_read( storage -> device_id, storage -> device_block + (((file_id & STD_PAGE_mask) >> STD_SHIFT_PAGE) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), block_data, LIB_VFS_BLOCK_byte / storage -> device_byte );
+
+	// for( uint8_t i = 0; i < 96; i ++ ) { kernel -> log( (uint8_t *) "0x%16X", (uintptr_t) block_data + (16 * i) ); for( uint8_t j = 0; j < 16; j++ ) kernel -> log( (uint8_t *) " %2X", block_data[ (16 * i) + j ] ); kernel -> log( (uint8_t *) "\n" ); }
+
+	// properties of file
+	*((struct LIB_VFS_STRUCTURE *) &block_data[ (file_id & ~STD_PAGE_mask) * sizeof( struct LIB_VFS_STRUCTURE ) ]) = *file;
+
+	// update block of data containing knot
+	storage -> block_write( storage -> device_id, storage -> device_block + (((file_id & STD_PAGE_mask) >> STD_SHIFT_PAGE) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), block_data, LIB_VFS_BLOCK_byte / storage -> device_byte );
+
+	// release block data
+	kernel -> memory_release( (uintptr_t) block_data, TRUE );
 }
 
 uintptr_t kernel_qfs_dir( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length ) {
@@ -532,4 +554,63 @@ void kernel_qfs_close( struct KERNEL_STRUCTURE_VFS *socket ) {
 
 	// release socket
 	socket -> pid = EMPTY;
+}
+
+void kernel_qfs_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source, uint64_t seek, uint64_t byte ) {
+	kernel -> log( (uint8_t *) "stoarge: %u\n", socket -> storage );
+	// properties of file
+	struct LIB_VFS_STRUCTURE file = kernel_qfs_file( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ socket -> storage ], socket -> knot );
+
+	// // insufficient file length?
+	// if( seek + byte > MACRO_PAGE_ALIGN_UP( file.limit ) ) {
+	// 	// assign required blocks
+	// 	kernel_vfs_block_fill( file, MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
+	// }
+
+	// set new file length
+	file.limit = seek + byte;
+
+	// // INFO: writing to file from seek == EMPTY, means the same as create new content
+
+	// // calculate first block number
+	// uint64_t b = MACRO_PAGE_ALIGN_DOWN( seek ) >> STD_SHIFT_PAGE;
+
+	// // write first part of data
+	// seek %= STD_PAGE_byte;
+
+	// // target block pointer
+	// uint8_t *target;
+
+	// // write all blocks with provided data
+	// while( byte ) {
+	// 	// block for first part of data
+	// 	target = (uint8_t *) kernel_vfs_block_by_id( file, b++ );
+
+	// 	// full or part of block?
+	// 	uint64_t limit = STD_PAGE_byte;
+	// 	if( limit > byte ) limit = byte;
+
+	// 	// copy data to block
+	// 	for( uint64_t i = seek; i < limit && byte--; i++ ) target[ i ] = *(source++);
+
+	// 	// start from begining of next block
+	// 	seek = EMPTY;
+	// }
+
+	// // truncate no more needed file blocks
+	// do {
+	// 	// obtain block to truncate
+	// 	uintptr_t block = kernel_vfs_block_remove( file, b );
+
+	// 	// no more blocks?
+	// 	if( ! block ) break;	// yes
+
+	// 	// release it
+	// 	kernel_memory_release( block, TRUE );
+	// // until forever
+	// } while( TRUE );
+
+	// update properties of file
+	kernel -> log( (uint8_t *) "stoarge: %u\n", socket -> storage );
+	kernel_qfs_file_update( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ socket -> storage ], (struct LIB_VFS_STRUCTURE *) &file, socket -> knot );
 }
