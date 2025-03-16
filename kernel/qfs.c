@@ -71,7 +71,7 @@ uintptr_t kernel_qfs_block( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB
 	uint64_t *block_data = (uint64_t *) kernel -> memory_alloc( TRUE );
 
 	// direct block?
-	if( ! block_id-- ) storage -> block_read( storage -> device_id, (vfs -> block[ FALSE ] * (LIB_VFS_BLOCK_byte / storage -> device_byte)), (uint8_t *) block_data, LIB_VFS_BLOCK_byte / storage -> device_byte );
+	if( ! block_id-- ) storage -> block_read( storage -> device_id, storage -> device_block + (vfs -> block[ FALSE ] * (LIB_VFS_BLOCK_byte / storage -> device_byte)), (uint8_t *) block_data, LIB_VFS_BLOCK_byte / storage -> device_byte );
 
 	// indirect block?
 	else if( block_id < 512 ) {
@@ -240,10 +240,7 @@ struct LIB_VFS_STRUCTURE kernel_qfs_file( struct KERNEL_STRUCTURE_STORAGE *stora
 	uint8_t *block_data = (uint8_t *) kernel -> memory_alloc( TRUE );
 
 	// load block of data containing knot
-	kernel -> log( (uint8_t *) "%X %u\n", file_id, storage -> device_block + (((file_id & STD_PAGE_mask) >> STD_SHIFT_PAGE) * (LIB_VFS_BLOCK_byte / storage -> device_byte)) );
 	storage -> block_read( storage -> device_id, storage -> device_block + (((file_id & STD_PAGE_mask) >> STD_SHIFT_PAGE) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), block_data, LIB_VFS_BLOCK_byte / storage -> device_byte );
-
-	// for( uint8_t i = 0; i < 96; i ++ ) { kernel -> log( (uint8_t *) "0x%16X", (uintptr_t) block_data + (16 * i) ); for( uint8_t j = 0; j < 16; j++ ) kernel -> log( (uint8_t *) " %2X", block_data[ (16 * i) + j ] ); kernel -> log( (uint8_t *) "\n" ); }
 
 	// properties of file
 	struct LIB_VFS_STRUCTURE vfs = *((struct LIB_VFS_STRUCTURE *) &block_data[ (file_id & ~STD_PAGE_mask) * sizeof( struct LIB_VFS_STRUCTURE ) ]);
@@ -443,13 +440,11 @@ uint64_t kernel_qfs_touch( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *pa
 
 		// extend search?
 		if( ! kernel_qfs_block_id( storage, (struct LIB_VFS_STRUCTURE *) &directory, b + 1 ) ) {
-			kernel -> log( (uint8_t *) "HELP!\n" );
+			// expand directory content by block
+			kernel_qfs_block_fill( storage, (struct LIB_VFS_STRUCTURE *) &directory, ++blocks );
 
-		// 	// expand directory content by block
-		// 	kernel_qfs_block_fill( storage, (struct LIB_VFS_STRUCTURE *) &directory, ++blocks );
-
-		// 	// new directory size
-		// 	directory.limit += STD_PAGE_byte;
+			// new directory size
+			directory.limit += STD_PAGE_byte;
 		}
 	}
 
@@ -528,7 +523,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_qfs_open( struct KERNEL_STRUCTURE_STORAGE *s
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// file located on definied storage
-	socket -> storage = task -> storage;
+	socket -> storage = ((uintptr_t) storage - (uintptr_t) kernel -> storage_base_address) / sizeof( struct KERNEL_STRUCTURE_STORAGE );
 
 	// file identificator
 	socket -> knot = file_id;
@@ -556,51 +551,90 @@ void kernel_qfs_close( struct KERNEL_STRUCTURE_VFS *socket ) {
 	socket -> pid = EMPTY;
 }
 
-void kernel_qfs_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source, uint64_t seek, uint64_t byte ) {
-	kernel -> log( (uint8_t *) "stoarge: %u\n", socket -> storage );
-	// properties of file
-	struct LIB_VFS_STRUCTURE file = kernel_qfs_file( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ socket -> storage ], socket -> knot );
+void kernel_qfs_block_fill( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
+	// direct blocks
 
-	// // insufficient file length?
-	// if( seek + byte > MACRO_PAGE_ALIGN_UP( file.limit ) ) {
-	// 	// assign required blocks
-	// 	kernel_vfs_block_fill( file, MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );
-	// }
+	// block doesn't exist?
+	if( ! vfs -> block[ 0 ] ) vfs -> block[ 0 ] = kernel_qfs_alloc( storage );	// no, add
+
+	// that was last block
+	if( ! --i ) return;	// yes
+
+	// indirect block exist?
+	if( ! vfs -> block[ 1 ] ) vfs -> block[ 1 ] = kernel_qfs_alloc( storage );	// no, add
+
+	// read indirect block content
+	uintptr_t *indirect = (uintptr_t *) kernel_qfs_block( storage, vfs, vfs -> block[ 1 ] );
+
+	// indirect blocks
+	for( uint64_t b = 0; b < 512; b++ ) {
+		// that was last block
+		if( ! i-- ) break;
+
+		// block exist?
+		if( indirect[ b ] ) continue;	// yep
+
+		// allocate block
+		indirect[ b ] = kernel_qfs_alloc( storage );
+	}
+
+	// write new indirect block content
+	storage -> block_write( storage -> device_id, storage -> device_block + (vfs -> block[ 1 ] * (LIB_VFS_BLOCK_byte / storage -> device_byte)), (uint8_t *) indirect, LIB_VFS_BLOCK_byte / storage -> device_byte );
+
+	// release content of indirect block
+	kernel -> memory_release( (uintptr_t) indirect, TRUE );
+}
+
+void kernel_qfs_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source, uint64_t seek, uint64_t byte ) {
+	// properties of storage
+	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ socket -> storage ];
+
+	// properties of file
+	struct LIB_VFS_STRUCTURE file = kernel_qfs_file( storage, socket -> knot );
+
+	// insufficient file length?
+	if( seek + byte > MACRO_PAGE_ALIGN_UP( file.limit ) ) kernel_qfs_block_fill( storage, (struct LIB_VFS_STRUCTURE *) &file, MACRO_PAGE_ALIGN_UP( seek + byte ) >> STD_SHIFT_PAGE );	// no
 
 	// set new file length
 	file.limit = seek + byte;
 
-	// // INFO: writing to file from seek == EMPTY, means the same as create new content
+	// INFO: writing to file from seek == EMPTY, means the same as create new content
 
-	// // calculate first block number
-	// uint64_t b = MACRO_PAGE_ALIGN_DOWN( seek ) >> STD_SHIFT_PAGE;
+	// calculate first block number
+	uint64_t b = (MACRO_PAGE_ALIGN_DOWN( seek ) >> STD_SHIFT_PAGE);
 
-	// // write first part of data
-	// seek %= STD_PAGE_byte;
+	// write first part of data
+	seek %= STD_PAGE_byte;
 
-	// // target block pointer
-	// uint8_t *target;
+	// target block pointer
+	uint8_t *target = (uint8_t *) kernel -> memory_alloc( TRUE );
 
-	// // write all blocks with provided data
-	// while( byte ) {
-	// 	// block for first part of data
-	// 	target = (uint8_t *) kernel_vfs_block_by_id( file, b++ );
+	// write all blocks with provided data
+	while( byte ) {
+		// load block of data containing knot
+		storage -> block_read( storage -> device_id, storage -> device_block + (kernel_qfs_block_id( storage, (struct LIB_VFS_STRUCTURE *) &file, b ) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), target, LIB_VFS_BLOCK_byte / storage -> device_byte );
 
-	// 	// full or part of block?
-	// 	uint64_t limit = STD_PAGE_byte;
-	// 	if( limit > byte ) limit = byte;
+		// full or part of block?
+		uint64_t limit = STD_PAGE_byte;
+		if( limit > byte ) limit = byte;
 
-	// 	// copy data to block
-	// 	for( uint64_t i = seek; i < limit && byte--; i++ ) target[ i ] = *(source++);
+		// copy data to block
+		for( uint64_t i = seek; i < limit && byte--; i++ ) target[ i ] = *(source++);
 
-	// 	// start from begining of next block
-	// 	seek = EMPTY;
-	// }
+		// update block of data containing knot
+		storage -> block_write( storage -> device_id, storage -> device_block + (kernel_qfs_block_id( storage, (struct LIB_VFS_STRUCTURE *) &file, b++ ) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), target, LIB_VFS_BLOCK_byte / storage -> device_byte );
+
+		// start from begining of next block
+		seek = EMPTY;
+	}
+
+	// release block content
+	kernel -> memory_release( (uintptr_t) target, TRUE );
 
 	// // truncate no more needed file blocks
 	// do {
 	// 	// obtain block to truncate
-	// 	uintptr_t block = kernel_vfs_block_remove( file, b );
+	// 	uintptr_t block = kernel_qfs_block_remove( (struct LIB_VFS_STRUCTURE *) &file, b );
 
 	// 	// no more blocks?
 	// 	if( ! block ) break;	// yes
@@ -611,6 +645,48 @@ void kernel_qfs_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source, uin
 	// } while( TRUE );
 
 	// update properties of file
-	kernel -> log( (uint8_t *) "stoarge: %u\n", socket -> storage );
-	kernel_qfs_file_update( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ socket -> storage ], (struct LIB_VFS_STRUCTURE *) &file, socket -> knot );
+	kernel_qfs_file_update( storage, (struct LIB_VFS_STRUCTURE *) &file, socket -> knot );
+}
+
+void kernel_qfs_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target, uint64_t seek, uint64_t byte ) {
+	// properties of storage
+	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ socket -> storage ];
+
+	// properties of file
+	struct LIB_VFS_STRUCTURE file = kernel_qfs_file( storage, socket -> knot );
+
+	// invalid read request?
+	if( seek + byte > file.limit ) {
+		// read up to end of file?
+		if( seek < file.limit ) byte = file.limit - seek;	// yes
+		else return;	// no, ignore
+	}
+
+	// calculate first block number
+	uint64_t b = (MACRO_PAGE_ALIGN_DOWN( seek ) >> STD_SHIFT_PAGE);
+
+	// read first part of file
+	seek %= STD_PAGE_byte;
+
+	// source block pointer
+	uint8_t *source = (uint8_t *) kernel -> memory_alloc( TRUE );
+
+	// read all blocks containing requested data
+	while( byte ) {
+		// load block of data containing knot
+		storage -> block_read( storage -> device_id, storage -> device_block + (kernel_qfs_block_id( storage, (struct LIB_VFS_STRUCTURE *) &file, b ) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), source, LIB_VFS_BLOCK_byte / storage -> device_byte );
+
+		// full or part of block?
+		uint64_t limit = STD_PAGE_byte;
+		if( limit > byte ) limit = byte;
+
+		// copy data to block
+		for( uint64_t i = seek; i < limit && byte--; i++ ) *(target++) = source[ i ];
+
+		// start from begining of next block
+		seek = EMPTY;
+	}
+
+	// release block content
+	kernel -> memory_release( (uintptr_t) source, TRUE );
 }

@@ -19,7 +19,7 @@ uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	return EMPTY;
 }
 
-uintptr_t kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
+void kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	// direct blocks
 
 	// block doesn't exist?
@@ -29,7 +29,7 @@ uintptr_t kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	}
 
 	// that was last block
-	if( ! i-- ) return vfs -> block[ 0 ];
+	if( ! --i ) return;;
 
 	// indirect block exist?
 	if( ! vfs -> block[ 1 ] ) vfs -> block[ 1 ] = kernel_memory_alloc( TRUE );	// no, add
@@ -38,7 +38,7 @@ uintptr_t kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	uintptr_t *indirect = (uintptr_t *) vfs -> block[ 1 ];
 	for( uint64_t b = 0; b < 512; b++ ) {
 		// that was last block
-		if( ! i-- ) return vfs -> block[ b ];
+		if( ! i-- ) return;
 
 		// block exist?
 		if( indirect[ b ] ) continue;	// yep
@@ -46,9 +46,6 @@ uintptr_t kernel_vfs_block_fill( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 		// allocate block
 		indirect[ b ] = kernel_memory_alloc( TRUE );
 	}
-
-	// we should not be in here
-	return EMPTY;
 }
 
 uintptr_t kernel_vfs_block_remove( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {

@@ -11,6 +11,8 @@
 	#define	MACRO_NOP( void ) __asm__ volatile( "nop" );
 	#define	MACRO_SYNC( void ) __asm__ volatile( "lock addq $0, (%rsp)" );
 	// #define	MACRO_SYNC( void ) __asm__ volatile( "mfence" );
+	#define	MACRO_K( void ) kernel -> log( (uint8_t *) "!\n" );
+	#define	MACRO_P( void ) log( "!\n" );
 
 	// exclusive access
 	#define	MACRO_LOCK( semaphore ) while( __sync_val_compare_and_swap( &semaphore, UNLOCK, LOCK ) ) {};

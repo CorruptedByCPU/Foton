@@ -18,4 +18,6 @@
 	struct LIB_VFS_STRUCTURE kernel_qfs_properties_by_socket( struct KERNEL_STRUCTURE_VFS *socket );
 	void kernel_qfs_write( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *source, uint64_t seek, uint64_t byte );
 	void kernel_qfs_file_update( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *vfs, uint64_t file_id );
+	void kernel_qfs_block_fill( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *vfs, uint64_t i );
+	void kernel_qfs_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target, uint64_t seek, uint64_t byte );
 #endif

@@ -102,6 +102,9 @@ void module_virtio_block( void ) {
 	// address of main block location
 	storage -> device_id = block -> id;
 
+	// first usable device block
+	storage -> device_block = EMPTY;
+
 	// length of storage in Blocks
 	storage -> device_limit = driver_port_in_qword( module_virtio[ block -> id ].base_address + MODULE_VIRTIO_REGISTER_device_config + offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_DEVICE_CONFIG, capacity ) );
 
