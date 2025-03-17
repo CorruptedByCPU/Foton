@@ -10,13 +10,13 @@ int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow, uint8_
 	if( length > LIB_VFS_NAME_limit ) return STD_ERROR_limit;	// no
 
 	// default location of executables
-	uint8_t path_default[ 12 ] = "/system/bin/";
+	uint8_t path_default[ 5 ] = "/bin/";
 
 	// assign area for combined path
 	exec.path = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + length ) >> STD_SHIFT_PAGE );
 
 	// set file path name
-	for( uint64_t i = 0; i < 12; i++ ) exec.path[ exec.path_length++ ] = path_default[ i ];
+	for( uint64_t i = 0; i < 5; i++ ) exec.path[ exec.path_length++ ] = path_default[ i ];
 	for( uint64_t i = 0; i < lib_string_word_end( name, length, STD_ASCII_SPACE ); i++ ) exec.path[ exec.path_length++ ] = name[ i ];
 
 	// retrieve information about executable file

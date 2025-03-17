@@ -126,6 +126,9 @@ void kernel_qfs_format( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	// first block of root directory
 	superblock -> block[ FALSE ] = TRUE + bitmap_block;
 
+	// available space
+	storage -> device_free = MACRO_PAGE_ALIGN_DOWN( storage -> device_byte * storage -> device_limit ) - ((TRUE + bitmap_block + TRUE) << STD_SHIFT_PAGE);
+
 	// type
 	superblock -> type = STD_FILE_TYPE_directory;
 
@@ -145,7 +148,7 @@ void kernel_qfs_format( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	uint32_t *bitmap = (uint32_t *) kernel -> memory_alloc( bitmap_block );
 
 	// clean'up
-	for( uint64_t i = 0; i < bitmap_block << STD_SHIFT_1024; i++ ) bitmap[ i ] = STD_MAX_unsigned;
+	for( uint64_t i = 0; i < (MACRO_PAGE_ALIGN_DOWN( storage -> device_byte * storage -> device_limit ) >> STD_SHIFT_PAGE) << STD_SHIFT_8; i++ ) bitmap[ i >> STD_SHIFT_32 ] |= 1 << (i & 0b00011111);
 
 	// mark pages used by file system structures as unusable
 	for( uint64_t i = 0; i < (TRUE + bitmap_block + TRUE); i++ ) bitmap[ i >> STD_SHIFT_32 ] &= ~(1 << (i & 0b00011111) );

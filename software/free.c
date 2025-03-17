@@ -7,6 +7,9 @@ struct STD_STRUCTURE_STREAM_META stream_meta;
 struct STD_STRUCTURE_SYSCALL_MEMORY memory;
 
 void unit( uint8_t level ) {
+	// default color
+	print( "\e[38;5;245m" );
+
 	// select unit
 	switch( level ) {
 		case 1: { print( "KiB " ); break; }
@@ -17,6 +20,9 @@ void unit( uint8_t level ) {
 			// undefinied
 			print( "Err" );
 	}
+
+	// reset color
+	print( "\e[0m" );
 }
 
 void ratio( uint64_t bytes ) {
@@ -28,7 +34,7 @@ void ratio( uint64_t bytes ) {
 
 void status( uint64_t total, uint64_t available ) {
 	// width of status bar
-	int16_t width = stream_meta.width - (58 + 4);
+	int16_t width = stream_meta.width - (58 + 6);
 	if( width < 10 ) return;	// no enough space to show anything
 
 	// calculate usage in percents
@@ -49,8 +55,15 @@ void status( uint64_t total, uint64_t available ) {
 	printf( "\e[38;5;239m" );
 	while( free-- ) print( "|" );
 
+	// by default status bar is green
+	print( "\e[38;5;118m" );
+
+	// if there is less than half or quartes space, change color
+	if( available < total >> STD_SHIFT_2 ) print( "\e[38;5;226m" );
+	if( available < total >> STD_SHIFT_4 ) print( "\e[38;5;196m" );
+
 	// and at last %
-	printf( "%3u%%", (uint64_t) (((double) (total - available) / (double) total) * 100.0f) );
+	printf( " %3u%%", (uint64_t) (((double) (total - available) / (double) total) * 100.0f) );
 }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
@@ -61,16 +74,50 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	std_memory( (struct STD_STRUCTURE_SYSCALL_MEMORY *) &memory );
 
 	// show header
-	print( "             Total       Use      Free      Page     Share\n" );
+	print( "             Total    \e[38;5;241min\e[0m Use      Free      Page     Share\n" );
 
-	//----------------------------------------------------------------------
+	// properties of available storages
+	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) std_storage();
+
+	// preserve pointer base address
+	uintptr_t storage_ptr = (uintptr_t) storage;
+
+	// check longest storage name
+	uint64_t name_limit = EMPTY;
+	while( (++storage) -> type ) if( name_limit < storage -> name_limit ) name_limit = storage -> name_limit; if( name_limit < 6 ) name_limit = 6;	// "Memory" string length
 
 	// internal memory
-	print( " Memory: " ); ratio( memory.total ); ratio( memory.total - memory.available ); ratio( memory.available );  ratio( memory.paging );  ratio( memory.shared ); status( memory.total, memory.available );
+	printf( " %*s: ", name_limit, (uint8_t *) "Memory" ); ratio( memory.total ); ratio( memory.total - memory.available ); ratio( memory.available );  ratio( memory.paging );  ratio( memory.shared ); status( memory.total, memory.available ); print( "\n" );
 
-	//----------------------------------------------------------------------
+	// storage by storage
+	storage = (struct STD_STRUCTURE_STORAGE *) storage_ptr;
+	do {
+		// omit first entry (system)
+		if( (uintptr_t) storage == storage_ptr ) continue;
 
-	// to be done... all available storages
+		// show its name
+		printf( " \e[0m%*s: ", name_limit, storage -> name );
+
+		// total size
+		ratio( storage -> limit );
+		// used
+		ratio( storage -> limit - storage -> available );
+		// free
+		ratio( storage -> available );
+
+		// N/A cells
+		printf( "\e[38;5;239m%*s\e[0m ", 9, (uint8_t *) "---" );
+		printf( "\e[38;5;239m%*s\e[0m ", 9, (uint8_t *) "---" );
+
+		// visual usage representation
+		status( storage -> limit, storage -> available );
+
+		// move cursor to next line
+		print( "\n");
+	} while( (++storage) -> type );
+
+	// release obtained storages properties
+	std_memory_release( storage_ptr, MACRO_PAGE_ALIGN_UP( (uintptr_t) storage - storage_ptr ) >> STD_SHIFT_PAGE );
 
 	// exit
 	return 0;

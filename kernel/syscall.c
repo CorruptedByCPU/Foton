@@ -881,6 +881,9 @@ uintptr_t kernel_syscall_storage( void ) {
 		// size in Bytes
 		storage[ entry ].limit = kernel -> storage_base_address[ i ].device_limit * kernel -> storage_base_address[ i ].device_byte;
 
+		// available in Bytes
+		storage[ entry ].available = kernel -> storage_base_address[ i ].device_free;
+
 		// name
 		storage[ entry ].name_limit = kernel -> storage_base_address[ i ].device_name_limit;
 		for( uint8_t c = 0; c < storage[ entry ].name_limit && c < KERNEL_STORAGE_NAME_limit; c++ ) storage[ entry ].name[ c ] = kernel -> storage_base_address[ i ].device_name[ c ];

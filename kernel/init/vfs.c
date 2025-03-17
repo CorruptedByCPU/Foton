@@ -150,7 +150,7 @@ void kernel_init_vfs( void ) {
 		if( kernel -> task_base_address -> directory ) continue;	// yes
 
 		// containing special purpose file
-		uint8_t string_file_path[] = "/system/etc/hostname.txt";
+		uint8_t string_file_path[] = "/etc/hostname.txt";
 
 		// retrieve properties of file
 		struct LIB_VFS_STRUCTURE *vfs = kernel_vfs_path( string_file_path, sizeof( string_file_path ) - 1 ); if( ! vfs ) continue;	// file not found

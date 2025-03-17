@@ -247,11 +247,11 @@ int64_t kernel_library_load( uint8_t *name, uint64_t length ) {
 
 	// default location of libraries
 	uint64_t path_length = 0;
-	uint8_t path_default[ 12 ] = "/system/lib/";
+	uint8_t path_default[ 5 ] = "/lib/";
 
 	// set file path name
-	uint8_t path[ 12 + LIB_VFS_NAME_limit ];
-	for( uint64_t i = 0; i < 12; i++ ) path[ path_length++ ] = path_default[ i ];
+	uint8_t path[ 5 + LIB_VFS_NAME_limit ];
+	for( uint64_t i = 0; i < 5; i++ ) path[ path_length++ ] = path_default[ i ];
 	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
 
 	// retrieve information about library file

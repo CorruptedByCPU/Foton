@@ -44,7 +44,7 @@ rm -rf build && mkdir -p build/iso
 rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 
 # git deosn't allow empty folder
-mkdir -p root/system/{bin,lib}
+mkdir -p root/{bin,lib}
 
 # copy default filesystem structure
 cp -rf root build
@@ -99,13 +99,13 @@ for modules in `(cd module && ls *.c)`; do
 	# connect with libraries (if necessery)
 	SUB=""
 	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
-	${LD} ${SUB} build/${module}.o -o build/root/system/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
+	${LD} ${SUB} build/${module}.o -o build/root/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
 
 	# we do not need any additional information
-	strip -s build/root/system/lib/modules/${module}.ko
+	strip -s build/root/lib/modules/${module}.ko
 
 	# information
-	module_size=`ls -lh build/root/system/lib/modules/${module}.ko | cut -d ' ' -f 5`
+	module_size=`ls -lh build/root/lib/modules/${module}.ko | cut -d ' ' -f 5`
 	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 done
 
@@ -119,16 +119,16 @@ for library in type path color elf integer float string network input math json 
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 
 	# convert to shared
-	${C} -shared build/${library}.o -o build/root/system/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/system/lib/ ${lib} || exit 1
+	${C} -shared build/${library}.o -o build/root/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/lib/ ${lib} || exit 1
 
 	# we do not need any additional information
-	strip -s build/root/system/lib/lib${library}.so
+	strip -s build/root/lib/lib${library}.so
 
 	# update libraries list
 	lib="${lib} -l${library}"
 
 	# information
-	library_size=`ls -lh build/root/system/lib/lib${library}.so | cut -d ' ' -f 5`
+	library_size=`ls -lh build/root/lib/lib${library}.so | cut -d ' ' -f 5`
 	echo -e "${green}\xE2\x9C\x94${default}|Library: lib${library}.so|${library_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 done
 
@@ -142,13 +142,13 @@ for software in `(cd software && ls *.c)`; do
 	${C} -DSOFTWARE -c software/${name}.c -o build/${name}.o ${CFLAGS_SOFTWARE} || exit 1
 
 	# connect with libraries (if necessery)
-	${LD} --as-needed -L./build/root/system/lib build/${name}.o -o build/root/system/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
+	${LD} --as-needed -L./build/root/lib build/${name}.o -o build/root/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
 
 	# we do not need any additional information
-	strip -s build/root/system/bin/${name} > /dev/null 2>&1
+	strip -s build/root/bin/${name} > /dev/null 2>&1
 
 	# information
-	software_size=`ls -lh build/root/system/bin/${name} | cut -d ' ' -f 5`
+	software_size=`ls -lh build/root/bin/${name} | cut -d ' ' -f 5`
 	echo -e "${green}\xE2\x9C\x94${default}|Software: ${name}|${software_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 done
 

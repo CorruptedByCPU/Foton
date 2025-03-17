@@ -5,11 +5,11 @@
 void kernel_module_load( uint8_t *name, uint64_t length ) {
 	// default location of modules
 	uint64_t path_length = 0;
-	uint8_t path_default[ 20 ] = "/system/lib/modules/";
+	uint8_t path_default[ 13 ] = "/lib/modules/";
 
 	// set file path name
-	uint8_t path[ 20 + LIB_VFS_NAME_limit ];
-	for( uint64_t i = 0; i < 20; i++ ) path[ path_length++ ] = path_default[ i ];
+	uint8_t path[ 13 + LIB_VFS_NAME_limit ];
+	for( uint64_t i = 0; i < 13; i++ ) path[ path_length++ ] = path_default[ i ];
 	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
 
 	// retrieve information about module file

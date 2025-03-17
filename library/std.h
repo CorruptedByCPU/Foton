@@ -329,6 +329,7 @@
 	struct	STD_STRUCTURE_STORAGE {
 		uint64_t 	id;
 		uint64_t	limit;
+		uint64_t	available;
 		uint8_t		type;
 		uint8_t		name_limit;
 		uint8_t		name[ LIB_VFS_NAME_limit + 1 ];

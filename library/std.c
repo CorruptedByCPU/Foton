@@ -325,6 +325,15 @@ void printf( const char *string, ... ) {
 			// omit prefix value if existed
 			s += prefix;
 
+			// definied prefix length?
+			if( string[ s ] == '*' ) {
+				// amount of digits after digit delimiter
+				p_value = va_arg( argv, uint64_t );
+
+				// leave predefinied prefix
+				s += 1;
+			}
+
 			// definied suffix length?
 			uint64_t pre_suffix = EMPTY;
 			if( string[ s ] == '.' && string[ s + 1 ] == '*' ) {
@@ -418,10 +427,22 @@ void printf( const char *string, ... ) {
 					uint64_t length = lib_string_length( substring );
 
 					// change string length if predefinied value exist
-					if( pre_suffix ) length = pre_suffix;
+					if( pre_suffix ) {
+						// new length
+						length = pre_suffix;
 
-					// resize cache for substring
-					cache = (uint8_t *) realloc( cache, c + length );
+						// resize cache for substring
+						cache = (uint8_t *) realloc( cache, c + length );
+					} else {
+						// extend with prefix
+						if( p_value > length ) {
+							log( "%u - %u\n", p_value, length );
+							// resize cache for substring with prefix
+							cache = (uint8_t *) realloc( cache, c + p_value ); for( uint64_t i = 0; i < (p_value - length); i++ ) cache[ c++ ] = STD_ASCII_SPACE;
+						} else
+							// resize cache for substring without prefix
+							cache = (uint8_t *) realloc( cache, c + length );
+					}
 
 					// insert substring into cache
 					for( uint64_t i = 0; i < length; i++ ) cache[ c++ ] = substring[ i ];
