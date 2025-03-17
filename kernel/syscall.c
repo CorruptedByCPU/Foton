@@ -872,6 +872,9 @@ uintptr_t kernel_syscall_storage( void ) {
 
 	// copy essential information about every storage
 	uint64_t entry = 0; for( uint64_t i = 0; i < KERNEL_STORAGE_limit && limit != entry; i++ ) {
+		// ignore system root directory entry
+		if( i == kernel -> storage_root ) continue;
+	
 		// identificator of storage
 		storage[ entry ].id = i;
 

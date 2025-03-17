@@ -92,9 +92,6 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// storage by storage
 	storage = (struct STD_STRUCTURE_STORAGE *) storage_ptr;
 	do {
-		// omit first entry (system)
-		if( (uintptr_t) storage == storage_ptr ) continue;
-
 		// show its name
 		printf( " \e[0m%*s: ", name_limit, storage -> name );
 
