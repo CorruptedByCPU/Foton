@@ -30,6 +30,7 @@ void ratio( uint64_t bytes ) {
 	if( bytes >= 0x40000000 ) { printf( "%4u ", bytes / 0x40000000 ); unit( 3 ); return; }
 	if( bytes >= 0x100000 ) { printf( "%5u ", bytes / 0x100000 ); unit( 2 ); return; }
 	if( bytes >= 0x400 ) { printf( "%5u ", bytes / 0x400 ); unit( 1 ); return; }
+	else printf( " %8s ", (uint8_t *) "Empty" );
 }
 
 void status( uint64_t total, uint64_t available ) {

@@ -41,7 +41,7 @@
 		uint8_t					device_name_limit;
 		uint8_t					device_name[ KERNEL_STORAGE_NAME_limit + 1 ];
 		uint64_t				device_block;	// first usable block of storage
-		uint64_t				device_limit;	// size of storage TYPE in blocks
+		uint64_t				device_limit;	// size of storage in Bytes
 		uint64_t				device_byte;	// size of single BLOCK in Bytes
 		uint64_t				device_free;	// available size of storage in Bytes
 		void					(*block_read)( uint64_t id, uint64_t block, uint8_t *target, uint64_t length );

@@ -121,8 +121,11 @@ void kernel_init_vfs( void ) {
 
 	// detect VFS storages
 	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) {
-		// entry marked as VFS?
-		if( kernel -> storage_base_address[ i ].device_fs != KERNEL_STORAGE_FS_vfs ) continue;	// thats not it
+		// entry type of MEMORY marked as UNDEFINIED?
+		if( kernel -> storage_base_address[ i ].device_type != STD_STORAGE_TYPE_memory || kernel -> storage_base_address[ i ].device_fs != KERNEL_STORAGE_FS_undefinied ) continue;	// thats not it
+
+		// storage type of VFS?
+		if( ! kernel_vfs_identify( kernel -> storage_base_address[ i ].device_block, kernel -> storage_base_address[ i ].device_limit ) ) continue;	// no
 
 		// create superblock for VFS
 		struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( LIB_VFS_BLOCK_byte ) >> STD_SHIFT_PAGE );
@@ -155,8 +158,13 @@ void kernel_init_vfs( void ) {
 		// retrieve properties of file
 		struct LIB_VFS_STRUCTURE *vfs = kernel_vfs_path( string_file_path, sizeof( string_file_path ) - 1 ); if( ! vfs ) continue;	// file not found
 
-		// set this one as default storage
+		// set this one as default storage for kernel/system
 		kernel -> storage_root = i;
+
+		// set storage name
+		uint8_t string_system[] = "System";
+		kernel -> storage_base_address[ i ].device_name_limit = sizeof( string_system ) - 1;
+		for( uint8_t c = 0; c < kernel -> storage_base_address[ i ].device_name_limit; c++ ) kernel -> storage_base_address[ i ].device_name[ c ] = string_system[ c ]; kernel -> storage_base_address[ i ].device_name[ kernel -> storage_base_address[ i ].device_name_limit ] = STD_ASCII_TERMINATOR;
 
 		// kernels current directory
 		kernel -> task_base_address -> directory = kernel -> storage_base_address[ i ].device_block;
@@ -170,5 +178,12 @@ void kernel_init_vfs( void ) {
 		kernel -> storage_base_address[ i ].fs.close = (void *) kernel_vfs_file_close;
 		kernel -> storage_base_address[ i ].fs.write = (void *) kernel_vfs_file_write;
 		kernel -> storage_base_address[ i ].fs.read = (void *) kernel_vfs_file_read;
+
+		// attach read/write functions
+		kernel -> storage_base_address[ i ].block_read = (void *) kernel_vfs_read;
+		kernel -> storage_base_address[ i ].block_write = (void *) kernel_vfs_write;
+
+		// set storage type
+		kernel -> storage_base_address[ i ].device_fs = KERNEL_STORAGE_FS_vfs;
 	}
 }

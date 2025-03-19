@@ -39,7 +39,7 @@ uint8_t lib_integer_to_string( uint64_t value, uint8_t base, uint8_t *string ) {
 	uint8_t length = lib_integer_digit_count( value, base );
 
 	// value equal to ZERO?
-	if( ! value ) { string[ value ] = '0'; return length; }
+	if( ! value ) { string[ FALSE ] = '0'; return TRUE; }
 
 	// digit index on string
 	uint8_t index = 0;

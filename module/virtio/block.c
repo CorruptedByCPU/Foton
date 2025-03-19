@@ -105,11 +105,11 @@ void module_virtio_block( void ) {
 	// first usable device block
 	storage -> device_block = EMPTY;
 
-	// length of storage in Blocks
-	storage -> device_limit = driver_port_in_qword( module_virtio[ block -> id ].base_address + MODULE_VIRTIO_REGISTER_device_config + offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_DEVICE_CONFIG, capacity ) );
-
 	// default block size in Bytes
 	storage -> device_byte = 512;
+
+	// length of storage in Blocks
+	storage -> device_limit = driver_port_in_qword( module_virtio[ block -> id ].base_address + MODULE_VIRTIO_REGISTER_device_config + offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_DEVICE_CONFIG, capacity ) ) * storage -> device_byte;
 
 	// attach read/write functions
 	storage -> block_read = (void *) module_virtio_block_request_read;

@@ -436,7 +436,6 @@ void printf( const char *string, ... ) {
 					} else {
 						// extend with prefix
 						if( p_value > length ) {
-							log( "%u - %u\n", p_value, length );
 							// resize cache for substring with prefix
 							cache = (uint8_t *) realloc( cache, c + p_value ); for( uint64_t i = 0; i < (p_value - length); i++ ) cache[ c++ ] = STD_ASCII_SPACE;
 						} else
@@ -469,6 +468,8 @@ void printf( const char *string, ... ) {
 					cache = (uint8_t *) realloc( cache, c + v );
 					for( uint8_t i = 0; i < v; i++ ) cache[ c++ ] = digits[ i ];
 
+					log( "%s\n", cache );
+					
 					// next character from string
 					continue;
 				}

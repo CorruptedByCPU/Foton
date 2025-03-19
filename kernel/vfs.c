@@ -2,6 +2,50 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+uint64_t kernel_vfs_format( struct KERNEL_STRUCTURE_STORAGE *storage ) {
+	// prepare superblock
+	struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel -> memory_alloc( TRUE );
+
+	// root directory size in Bytes
+	superblock -> limit = STD_PAGE_byte;
+
+	// first block of root directory
+	superblock -> block[ FALSE ] = (uintptr_t) kernel -> memory_alloc( TRUE );
+
+	// type
+	superblock -> type = STD_FILE_TYPE_directory;
+
+	// name
+	superblock -> name_limit = 1;
+	superblock -> name[ FALSE ] = STD_ASCII_SLASH;
+
+	// set first block pointer
+	storage -> device_block = (uintptr_t) superblock;
+
+	//----------------------------------------------------------------------
+
+	// prepare root directory
+	struct LIB_VFS_STRUCTURE *root = (struct LIB_VFS_STRUCTURE *) superblock -> block[ FALSE ];
+
+	// prepare default symlinks for root directory
+
+	// current symlink
+	root[ 0 ].block[ FALSE ]	= (uintptr_t) superblock;	// pointing to superblock!
+	root[ 0 ].type			= STD_FILE_TYPE_link;
+	root[ 0 ].name_limit		= 1;
+	root[ 0 ].name[ 0 ]		= STD_ASCII_DOT;
+
+	// previous symlink
+	root[ 1 ].block[ FALSE ]	= (uintptr_t) superblock;	// pointing to superblock!
+	root[ 1 ].type			= STD_FILE_TYPE_link;
+	root[ 1 ].name_limit		= 2;
+	root[ 1 ].name[ 0 ]		= STD_ASCII_DOT;
+	root[ 1 ].name[ 1 ]		= STD_ASCII_DOT;
+
+	// default size of stoarge
+	return STD_PAGE_byte << STD_SHIFT_2;
+}
+
 uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
 	// direct block?
 	if( ! i-- ) return vfs -> block[ 0 ];	// return pointer

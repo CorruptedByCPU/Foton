@@ -126,11 +126,8 @@ void _entry( void ) {
 	// recreate kernel's paging structures
 	kernel_init_page();
 
-	// debug
-	// kernel -> log( (uint8_t *) "Switch PML4 table" );
-
 	// reload new kernel environment paging array
-	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) ); // kernel -> log( (uint8_t *) ".\n" );
+	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) );
 
 	// create Global Descriptor Table
 	kernel_init_gdt();

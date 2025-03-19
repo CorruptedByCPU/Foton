@@ -120,14 +120,14 @@ void kernel_qfs_format( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	superblock -> limit = STD_PAGE_byte;
 
 	// bitmap length in blocks
-	uint64_t bitmap_block = ((MACRO_PAGE_ALIGN_DOWN( storage -> device_byte * storage -> device_limit ) >> STD_SHIFT_PAGE) - (TRUE + TRUE)) / 32768;
-	if( ((MACRO_PAGE_ALIGN_DOWN( storage -> device_byte * storage -> device_limit ) >> STD_SHIFT_PAGE) - (TRUE + TRUE)) % 32768 ) bitmap_block++;
+	uint64_t bitmap_block = ((MACRO_PAGE_ALIGN_DOWN( storage -> device_limit ) >> STD_SHIFT_PAGE) - (TRUE + TRUE)) / 32768;
+	if( ((MACRO_PAGE_ALIGN_DOWN( storage -> device_limit ) >> STD_SHIFT_PAGE) - (TRUE + TRUE)) % 32768 ) bitmap_block++;
 
 	// first block of root directory
 	superblock -> block[ FALSE ] = TRUE + bitmap_block;
 
 	// available space
-	storage -> device_free = MACRO_PAGE_ALIGN_DOWN( storage -> device_byte * storage -> device_limit ) - ((TRUE + bitmap_block + TRUE) << STD_SHIFT_PAGE);
+	storage -> device_free = MACRO_PAGE_ALIGN_DOWN( storage -> device_limit ) - ((TRUE + bitmap_block + TRUE) << STD_SHIFT_PAGE);
 
 	// type
 	superblock -> type = STD_FILE_TYPE_directory;
@@ -148,7 +148,7 @@ void kernel_qfs_format( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	uint32_t *bitmap = (uint32_t *) kernel -> memory_alloc( bitmap_block );
 
 	// clean'up
-	for( uint64_t i = 0; i < (MACRO_PAGE_ALIGN_DOWN( storage -> device_byte * storage -> device_limit ) >> STD_SHIFT_PAGE) << STD_SHIFT_8; i++ ) bitmap[ i >> STD_SHIFT_32 ] |= 1 << (i & 0b00011111);
+	for( uint64_t i = 0; i < (MACRO_PAGE_ALIGN_DOWN( storage -> device_limit ) >> STD_SHIFT_PAGE) << STD_SHIFT_8; i++ ) bitmap[ i >> STD_SHIFT_32 ] |= 1 << (i & 0b00011111);
 
 	// mark pages used by file system structures as unusable
 	for( uint64_t i = 0; i < (TRUE + bitmap_block + TRUE); i++ ) bitmap[ i >> STD_SHIFT_32 ] &= ~(1 << (i & 0b00011111) );
@@ -206,7 +206,7 @@ uint8_t kernel_qfs_identify( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	if( vfs -> name[ FALSE ] != STD_ASCII_SLASH ) qfs = FALSE;	// no
 
 	// first block of knot is within limits of storage?
-	if( (vfs -> block[ FALSE ] * (LIB_VFS_BLOCK_byte / storage -> device_byte)) >= storage -> device_limit ) qfs = FALSE;	// no
+	if( (vfs -> block[ FALSE ] * (LIB_VFS_BLOCK_byte / storage -> device_byte)) >= (MACRO_PAGE_ALIGN_DOWN( storage -> device_limit ) >> STD_SHIFT_PAGE) ) qfs = FALSE;	// no
 
 	// continue?
 	if( qfs ) {
@@ -261,8 +261,6 @@ void kernel_qfs_file_update( struct KERNEL_STRUCTURE_STORAGE *storage, struct LI
 
 	// load block of data containing knot
 	storage -> block_read( storage -> device_id, storage -> device_block + (((file_id & STD_PAGE_mask) >> STD_SHIFT_PAGE) * (LIB_VFS_BLOCK_byte / storage -> device_byte)), block_data, LIB_VFS_BLOCK_byte / storage -> device_byte );
-
-	// for( uint8_t i = 0; i < 96; i ++ ) { kernel -> log( (uint8_t *) "0x%16X", (uintptr_t) block_data + (16 * i) ); for( uint8_t j = 0; j < 16; j++ ) kernel -> log( (uint8_t *) " %2X", block_data[ (16 * i) + j ] ); kernel -> log( (uint8_t *) "\n" ); }
 
 	// properties of file
 	*((struct LIB_VFS_STRUCTURE *) &block_data[ (file_id & ~STD_PAGE_mask) * sizeof( struct LIB_VFS_STRUCTURE ) ]) = *file;
