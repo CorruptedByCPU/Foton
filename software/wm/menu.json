@@ -1,7 +1,7 @@
 {
 	"window": {
 		"width": 122,
-		"height": 169
+		"height": 145
 	},
 	"menu": {
 		"id": 0,
@@ -11,7 +11,7 @@
 		"height": 24,
 		"name": "Console",
 		"command": "console",
-		"icon": "/var/gfx/icons/terminal.tga"
+		"icon": "System:/var/gfx/icons/terminal.tga"
 	},
 	"menu": {
 		"id": 0,
@@ -21,7 +21,7 @@
 		"height": 24,
 		"name": "Kuro",
 		"command": "kuro",
-		"icon": "/var/gfx/icons/system-file-manager.tga"
+		"icon": "System:/var/gfx/icons/system-file-manager.tga"
 	},
 	"menu": {
 		"id": 0,
@@ -31,7 +31,7 @@
 		"height": 24,
 		"name": "Moko",
 		"command": "console moko",
-		"icon": "/var/gfx/icons/accessories-text-editor.tga"
+		"icon": "System:/var/gfx/icons/accessories-text-editor.tga"
 	},
 	"menu": {
 		"id": 0,
@@ -41,7 +41,7 @@
 		"height": 24,
 		"name": "Taris",
 		"command": "taris",
-		"icon": "/var/gfx/icons/taris.tga"
+		"icon": "System:/var/gfx/icons/taris.tga"
 	},
 	"menu": {
 		"id": 0,
@@ -51,16 +51,6 @@
 		"height": 24,
 		"name": "Task Manager",
 		"command": "console tm",
-		"icon": "/var/gfx/icons/utilities-system-monitor.tga"
-	},
-	"menu": {
-		"id": 0,
-		"x": 1,
-		"y": 144,
-		"width": 120,
-		"height": 24,
-		"name": "3D Viewer",
-		"command": "3d /var/cube.obj",
-		"icon": "/var/gfx/icons/3d.tga"
+		"icon": "System:/var/gfx/icons/utilities-system-monitor.tga"
 	}
 }

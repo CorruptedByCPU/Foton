@@ -43,7 +43,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		FILE *dir = fopen( (uint8_t *) ".", EMPTY );
 
 		// open hostname file
-		FILE *file = fopen( (uint8_t *) "/etc/hostname.txt", EMPTY );
+		FILE *file = fopen( (uint8_t *) "System:/etc/hostname.txt", EMPTY );
 		if( file ) {
 			// load file content
 			fread( file, hostname, 63 );

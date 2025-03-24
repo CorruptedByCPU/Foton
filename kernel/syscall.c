@@ -596,8 +596,45 @@ int64_t kernel_syscall_file_open( uint8_t *path, uint64_t path_length, uint8_t m
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
+	// storage selected by default
+	uint64_t storage_id = task -> storage;
+
+	// find colon inside path
+	uint64_t i = 0;
+	for( ; i < path_length; i++ ) if( path[ i ] == STD_ASCII_COLON ) {
+		// storage by ID?
+		if( lib_string_length_scope_digit( path ) ) {
+			// retrieve storage ID
+			uint64_t id = lib_string_to_integer( path, STD_NUMBER_SYSTEM_decimal );
+
+			// invalid storage?
+			if( id >= KERNEL_STORAGE_limit || ! (kernel -> storage_base_address[ id ].flags & KERNEL_STORAGE_FLAGS_active)) return STD_ERROR_file_not_found;	// yep
+
+			// select storage
+			storage_id = id;
+		} else {
+			// storage by name
+
+			// find storage with exact name
+			for( uint64_t j = 0; j < KERNEL_STORAGE_limit; j++ ) {
+				// storage active?
+				if( ! (kernel -> storage_base_address[ j ].flags & KERNEL_STORAGE_FLAGS_active) ) continue;	// no
+
+				// storage found?
+				if( lib_string_compare( path, kernel -> storage_base_address[ j ].device_name, i ) ) { storage_id = j; break; }	// yes
+			}
+		}
+
+		// remove storage from path
+		path += i + 1;
+		path_length -= i + 1;
+
+		// ready
+		break;
+	}
+
 	// retrieve information about module file
-	struct KERNEL_STRUCTURE_VFS *socket = kernel -> storage_base_address[ task -> storage ].fs.open( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ task -> storage ], path, path_length, mode );
+	struct KERNEL_STRUCTURE_VFS *socket = kernel -> storage_base_address[ storage_id ].fs.open( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ], path, path_length, mode );
 
 	// if file doesn't exist
 	if( ! socket ) return STD_ERROR_file_not_found;
@@ -621,11 +658,8 @@ void kernel_syscall_file( struct STD_STRUCTURE_FILE *file ) {
 	// invalid socket value?
 	if( file -> socket > KERNEL_VFS_limit ) return;	// yep, ignore
 
-	// current task properties
-	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
-
 	// retrieve information about file
-	struct LIB_VFS_STRUCTURE vfs = kernel -> storage_base_address[ task -> storage ].fs.file( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ] );
+	struct LIB_VFS_STRUCTURE vfs = kernel -> storage_base_address[ ((struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ]) -> storage ].fs.file( (struct KERNEL_STRUCTURE_VFS *) &kernel -> vfs_base_address[ file -> socket ] );
 
 	// copy important values
 
@@ -662,8 +696,45 @@ int64_t kernel_syscall_file_touch( uint8_t *path, uint8_t type ) {
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
+	// storage selected by default
+	uint64_t storage_id = task -> storage;
+
+	// find colon inside path
+	uint64_t i = 0;
+	for( ; i < lib_string_length( path ); i++ ) if( path[ i ] == STD_ASCII_COLON ) {
+		// storage by ID?
+		if( lib_string_length_scope_digit( path ) ) {
+			kernel -> log( (uint8_t *) "By ID!\n" );
+			// retrieve storage ID
+			uint64_t id = lib_string_to_integer( path, STD_NUMBER_SYSTEM_decimal );
+
+			// invalid storage?
+			if( id >= KERNEL_STORAGE_limit || ! (kernel -> storage_base_address[ id ].flags & KERNEL_STORAGE_FLAGS_active)) return STD_ERROR_file_not_found;	// yep
+
+			// select storage
+			storage_id = id;
+		} else {
+			// storage by name
+
+			// find storage with exact name
+			for( uint64_t j = 0; j < KERNEL_STORAGE_limit; j++ ) {
+				// storage active?
+				if( ! (kernel -> storage_base_address[ j ].flags & KERNEL_STORAGE_FLAGS_active) ) continue;	// no
+
+				// storage found?
+				if( lib_string_compare( path, kernel -> storage_base_address[ j ].device_name, i ) ) { storage_id = j; break; }	// yes
+			}
+		}
+
+		// remove storage from path
+		path += i + 1;
+
+		// ready
+		break;
+	}
+
 	// retrieve information about module file
-	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel -> storage_base_address[ task -> storage ].fs.touch( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ task -> storage ], path, lib_string_length( path ), type );
+	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel -> storage_base_address[ storage_id ].fs.touch( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ], path, lib_string_length( path ), type );
 
 	// if file doesn't exist
 	if( ! socket ) return STD_ERROR_file_not_found;
@@ -872,6 +943,9 @@ uintptr_t kernel_syscall_storage( void ) {
 
 	// copy essential information about every storage
 	uint64_t entry = 0; for( uint64_t i = 0; i < KERNEL_STORAGE_limit && limit != entry; i++ ) {
+		// ignore RamFS entry
+		if( i == TRUE ) continue;
+
 		// identificator of storage
 		storage[ entry ].id = i;
 

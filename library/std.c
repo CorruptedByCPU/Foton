@@ -468,8 +468,6 @@ void printf( const char *string, ... ) {
 					cache = (uint8_t *) realloc( cache, c + v );
 					for( uint8_t i = 0; i < v; i++ ) cache[ c++ ] = digits[ i ];
 
-					log( "%s\n", cache );
-					
 					// next character from string
 					continue;
 				}

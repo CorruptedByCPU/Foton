@@ -35,10 +35,11 @@ void ratio( uint64_t bytes ) {
 
 void status( uint64_t total, uint64_t available ) {
 	// width of status bar
-	int16_t width = stream_meta.width - (58 + 6);
+	int16_t width = stream_meta.width - (58 + 7);
 	if( width < 10 ) return;	// no enough space to show anything
 
 	// calculate usage in percents
+	uint8_t	percent = (uint8_t) (((double) (total - available) / (double) total) * 100.0f);
 	uint8_t used = (uint8_t) (((double) (total - available) / (double) total) * (double) width);
 	uint8_t free = ((double) available / (double) total) * (double) width;
 
@@ -48,6 +49,10 @@ void status( uint64_t total, uint64_t available ) {
 	// if there is less than half or quartes space, change color
 	if( available < total >> STD_SHIFT_2 ) print( "\e[38;5;226m" );
 	if( available < total >> STD_SHIFT_4 ) print( "\e[38;5;196m" );
+
+	// percents not always perfect ;)
+	if( free + used < width ) free++;
+	if( ! available ) { used++; free = 0; percent = 100; }
 
 	// show usage
 	while( used-- ) print( "|" );
@@ -64,7 +69,7 @@ void status( uint64_t total, uint64_t available ) {
 	if( available < total >> STD_SHIFT_4 ) print( "\e[38;5;196m" );
 
 	// and at last %
-	printf( " %3u%%", (uint64_t) (((double) (total - available) / (double) total) * 100.0f) );
+	printf( " %3u%%", percent );
 }
 
 int64_t _main( uint64_t argc, uint8_t *argv[] ) {
