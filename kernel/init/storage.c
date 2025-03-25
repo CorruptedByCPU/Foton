@@ -6,65 +6,42 @@ void kernel_init_storage( void ) {
 	// allocate area for list of available storages
 	kernel -> storage_base_address = (struct KERNEL_STRUCTURE_STORAGE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_STORAGE_limit * sizeof( struct KERNEL_STRUCTURE_STORAGE ) ) >> STD_SHIFT_PAGE );
 
-	// register modules as storages
+	// register all modules as memory storage
 	for( uint64_t i = 0; i < limine_module_request.response -> module_count; i++ ) {
-		// register device of type MEMORY
+		// register device
 		struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ kernel_storage_add() ];
 
-		// storage class
+		// as memory type
 		storage -> device_type = STD_STORAGE_TYPE_memory;
 
-		// file system type
+		// with unknown file system
 		storage -> device_fs = KERNEL_STORAGE_FS_undefinied;
 
-		// address of main block
+		// first block of device
 		storage -> device_block = (uintptr_t) limine_module_request.response -> modules[ i ] -> address;
 
-		// default block size in Bytes
-		storage -> device_byte = STD_PAGE_byte;
-
-		// storage size in Bytes
+		// device limit (Bytes)
 		storage -> device_limit = limine_module_request.response -> modules[ i ] -> size;
-	
-		// storage active
-		storage -> flags |= KERNEL_STORAGE_FLAGS_active;
 	}
 
 	//----------------------------------------------------------------------
 
-	// register device of type VFS
+	// register device
 	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ kernel_storage_add() ];
 
-	// storage class
+	// as memory type
 	storage -> device_type = STD_STORAGE_TYPE_memory;
 
-	// file system type: VFS
+	// and with file system of VFS
 	storage -> device_fs = KERNEL_STORAGE_FS_vfs;
 
-	// default block size in Bytes
-	storage -> device_byte = kernel_vfs_format( storage );
-
-	// length of storage in Blocks
-	storage -> device_limit = kernel -> page_total << STD_SHIFT_PAGE;	// unlimited up to size of RAM
+	// create default directory structure
+	kernel_vfs_format( storage );
 
 	// set storage name
-	uint8_t string_tempfs[] = "RamFS";
-	storage -> device_name_limit = sizeof( string_tempfs ) - 1;
-	for( uint8_t c = 0; c < storage -> device_name_limit; c++ ) storage -> device_name[ c ] = string_tempfs[ c ]; storage -> device_name[ storage -> device_name_limit ] = STD_ASCII_TERMINATOR;
-
-	// attach read/write functions
-	storage -> block_read = (void *) kernel_vfs_read;
-	storage -> block_write = (void *) kernel_vfs_write;
-
-	// share essential functions
-	storage -> fs.root_directory_id = storage -> device_block;
-	storage -> fs.dir = (void *) kernel_vfs_dir;
-	storage -> fs.touch = (void *) kernel_vfs_touch;
-	storage -> fs.open = (void *) kernel_vfs_file_open;
-	storage -> fs.file = (void *) kernel_vfs_file_properties;
-	storage -> fs.close = (void *) kernel_vfs_file_close;
-	storage -> fs.write = (void *) kernel_vfs_file_write;
-	storage -> fs.read = (void *) kernel_vfs_file_read;
+	uint8_t local_string_home[] = "home";
+	storage -> device_name_limit = sizeof( local_string_home ) - 1;
+	for( uint8_t c = 0; c < storage -> device_name_limit; c++ ) storage -> device_name[ c ] = local_string_home[ c ]; storage -> device_name[ storage -> device_name_limit ] = STD_ASCII_TERMINATOR;
 
 	// storage active
 	storage -> flags |= KERNEL_STORAGE_FLAGS_active;
@@ -75,6 +52,6 @@ void kernel_init_storage( void ) {
 	//----------------------------------------------------------------------
 
 	// start Storage thread
-	uint8_t storage_string_thread_name[] = "storage";
-	kernel_module_thread( (uintptr_t) &kernel_storage, (uint8_t *) &storage_string_thread_name, sizeof( storage_string_thread_name ) );
+	uint8_t local_string_storage[] = "storage";
+	kernel_module_thread( (uintptr_t) &kernel_storage, (uint8_t *) &local_string_storage, sizeof( local_string_storage ) );
 }

@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint64_t kernel_vfs_format( struct KERNEL_STRUCTURE_STORAGE *storage ) {
+void kernel_vfs_format( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	// prepare superblock
 	struct LIB_VFS_STRUCTURE *superblock = (struct LIB_VFS_STRUCTURE *) kernel -> memory_alloc( TRUE );
 
@@ -19,8 +19,25 @@ uint64_t kernel_vfs_format( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	superblock -> name_limit = 1;
 	superblock -> name[ FALSE ] = STD_ASCII_SLASH;
 
+	// default block size in Bytes
+	storage -> device_byte = LIB_VFS_BLOCK_byte;
+
 	// set first block pointer
 	storage -> device_block = (uintptr_t) superblock;
+
+	// attach read/write functions
+	storage -> block_read = (void *) kernel_vfs_read;
+	storage -> block_write = (void *) kernel_vfs_write;
+
+	// share essential functions
+	storage -> fs.root_directory_id = storage -> device_block;
+	storage -> fs.dir = (void *) kernel_vfs_dir;
+	storage -> fs.touch = (void *) kernel_vfs_touch;
+	storage -> fs.open = (void *) kernel_vfs_file_open;
+	storage -> fs.file = (void *) kernel_vfs_file_properties;
+	storage -> fs.close = (void *) kernel_vfs_file_close;
+	storage -> fs.write = (void *) kernel_vfs_file_write;
+	storage -> fs.read = (void *) kernel_vfs_file_read;
 
 	//----------------------------------------------------------------------
 
@@ -42,8 +59,8 @@ uint64_t kernel_vfs_format( struct KERNEL_STRUCTURE_STORAGE *storage ) {
 	root[ 1 ].name[ 0 ]		= STD_ASCII_DOT;
 	root[ 1 ].name[ 1 ]		= STD_ASCII_DOT;
 
-	// default size of stoarge
-	return STD_PAGE_byte << STD_SHIFT_2;
+	// length of storage in Blocks
+	storage -> device_limit = STD_PAGE_byte << STD_SHIFT_2;
 }
 
 uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t i ) {
@@ -141,7 +158,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( struct KERNEL_STRUCTURE_STORA
 	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add();
 
 	// file located on definied storage
-	socket -> storage = kernel -> storage_root;
+	socket -> storage = ((uintptr_t) storage - (uintptr_t) kernel -> storage_base_address) / sizeof( struct KERNEL_STRUCTURE_STORAGE );
 
 	// file identificator
 	socket -> knot = (uint64_t) vfs;
@@ -204,7 +221,7 @@ void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS *socket, uint8_t *target,
 	}
 }
 
-struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_create( struct LIB_VFS_STRUCTURE *directory, struct LIB_VFS_STRUCTURE *vfs, uint8_t *name, uint64_t length, uint8_t type ) {
+struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_create( struct KERNEL_STRUCTURE_STORAGE *storage, struct LIB_VFS_STRUCTURE *directory, struct LIB_VFS_STRUCTURE *vfs, uint8_t *name, uint64_t length, uint8_t type ) {
 	// new file?
 	if( ! vfs -> name_limit ) {	// yes
 		// set file name
@@ -260,7 +277,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_create( struct LIB_VFS_STRUCTURE *d
 	struct KERNEL_STRUCTURE_VFS *socket = kernel_vfs_socket_add();
 
 	// file located on definied storage
-	socket -> storage = kernel -> storage_root;
+	socket -> storage = ((uintptr_t) storage - (uintptr_t) kernel -> storage_base_address) / sizeof( struct KERNEL_STRUCTURE_STORAGE );
 
 	// file identificator
 	socket -> knot = (uint64_t) vfs;
@@ -288,7 +305,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_touch( struct KERNEL_STRUCTURE_STORAGE *
 
 	// check if file already exist
 	struct LIB_VFS_STRUCTURE *file;
-	if( (file = kernel_vfs_path( path, length )) ) return kernel_vfs_file_create( directory, file, file_name, file_name_length, type );
+	if( (file = kernel_vfs_path( path, length )) ) return kernel_vfs_file_create( storage, directory, file, file_name, file_name_length, type );
 
 	// for each data block of directory
 	uint64_t blocks = directory -> limit >> STD_SHIFT_PAGE;
@@ -299,7 +316,7 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_touch( struct KERNEL_STRUCTURE_STORAGE *
 		// for every possible entry
 		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
 			// if free entry, found
-			if( ! entry[ e ].name_limit ) return kernel_vfs_file_create( directory, (struct LIB_VFS_STRUCTURE *) &entry[ e ], file_name, file_name_length, type );
+			if( ! entry[ e ].name_limit ) return kernel_vfs_file_create( storage, directory, (struct LIB_VFS_STRUCTURE *) &entry[ e ], file_name, file_name_length, type );
 
 		// extend search?
 		if( ! kernel_vfs_block_by_id( directory, b + 1 ) ) {

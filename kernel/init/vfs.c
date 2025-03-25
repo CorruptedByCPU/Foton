@@ -162,7 +162,7 @@ void kernel_init_vfs( void ) {
 		kernel -> storage_root = i;
 
 		// set storage name
-		uint8_t string_system[] = "System";
+		uint8_t string_system[] = "system";
 		kernel -> storage_base_address[ i ].device_name_limit = sizeof( string_system ) - 1;
 		for( uint8_t c = 0; c < kernel -> storage_base_address[ i ].device_name_limit; c++ ) kernel -> storage_base_address[ i ].device_name[ c ] = string_system[ c ]; kernel -> storage_base_address[ i ].device_name[ kernel -> storage_base_address[ i ].device_name_limit ] = STD_ASCII_TERMINATOR;
 
@@ -185,5 +185,7 @@ void kernel_init_vfs( void ) {
 
 		// set storage type
 		kernel -> storage_base_address[ i ].device_fs = KERNEL_STORAGE_FS_vfs;
+
+		kernel -> storage_base_address[ i ].flags = KERNEL_STORAGE_FLAGS_active;
 	}
 }

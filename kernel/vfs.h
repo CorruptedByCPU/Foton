@@ -35,4 +35,8 @@
 	struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( void );
 
 	uintptr_t kernel_vfs_dir( uint64_t storage_id, uint8_t *path, uint64_t length );
+
+
+	void kernel_vfs_read( uint64_t reserved, uint64_t block, uint8_t *target, uint64_t length );
+	void kernel_vfs_write( uint64_t reserved, uint64_t block, uint8_t *source, uint64_t length );
 #endif

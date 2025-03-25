@@ -935,16 +935,13 @@ uintptr_t kernel_syscall_storage( void ) {
 	uint64_t limit = 1;	// last entry, always empty
 
 	// count entries
-	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) if( kernel -> storage_base_address[ i ].flags & KERNEL_STORAGE_FLAGS_active ) limit++;
+	for( uint64_t i = TRUE; i < KERNEL_STORAGE_limit; i++ ) if( kernel -> storage_base_address[ i ].flags & KERNEL_STORAGE_FLAGS_active ) limit++;
 
 	// alloc enough memory for all entries
 	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_STRUCTURE_STORAGE ) * limit ) >> STD_SHIFT_PAGE );
 
 	// copy essential information about every storage
-	uint64_t entry = 0; for( uint64_t i = 0; i < KERNEL_STORAGE_limit && limit != entry; i++ ) {
-		// ignore RamFS entry
-		// if( i == TRUE ) continue;
-
+	uint64_t entry = FALSE; for( uint64_t i = TRUE; i < KERNEL_STORAGE_limit && limit != entry; i++ ) {
 		// identificator of storage
 		storage[ entry ].id = i;
 

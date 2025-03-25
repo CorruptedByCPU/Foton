@@ -164,10 +164,10 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// retrieve stream meta data
-		std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT );
+		while( ! std_stream_get( (uint8_t *) &stream_meta, STD_STREAM_OUT ) );
 
 		// not at beginning of line?
-		if( stream_meta.width ) printf( "\n" );	// new line
+		if( stream_meta.width ) print( "\n" );	// new line
 
 		// first directory showed?
 		if( i > 1 && j + 1 < i ) print( "\n" );	// yep

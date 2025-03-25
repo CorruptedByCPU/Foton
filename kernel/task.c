@@ -98,13 +98,15 @@ struct KERNEL_STRUCTURE_TASK *kernel_task_add( uint8_t *name, uint8_t length ) {
 		// ID of its parent
 		kernel -> task_base_address[ i ].pid_parent = kernel_task_pid();
 
+		// ID of default storage
+		kernel -> task_base_address[ i ].storage = kernel -> storage_user;
+
 		// reset number of characters representing process name
 		kernel -> task_base_address[ i ].name_length = length;
 
 		// set process name
 		if( kernel -> task_base_address[ i ].name_length > KERNEL_TASK_NAME_limit ) kernel -> task_base_address[ i ].name_length = KERNEL_TASK_NAME_limit;
 		for( uint16_t n = 0; n < kernel -> task_base_address[ i ].name_length; n++ ) kernel -> task_base_address[ i ].name[ n ] = name[ n ]; kernel -> task_base_address[ i ].name[ kernel -> task_base_address[ i ].name_length ] = STD_ASCII_TERMINATOR;
-
 
 		// number of jobs in queue
 		kernel -> task_count++;
