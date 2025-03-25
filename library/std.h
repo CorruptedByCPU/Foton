@@ -594,7 +594,7 @@
 	uint64_t std_storage( void );
 
 	// change main storage
-	uint8_t std_storage_select( uint64_t stoarge_id );
+	uint8_t std_storage_select( uint8_t *name );
 
 	// return content of directory (in VFS structure)
 	uintptr_t std_dir( uint8_t *path );

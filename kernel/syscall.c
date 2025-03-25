@@ -704,7 +704,6 @@ int64_t kernel_syscall_file_touch( uint8_t *path, uint8_t type ) {
 	for( ; i < lib_string_length( path ); i++ ) if( path[ i ] == STD_ASCII_COLON ) {
 		// storage by ID?
 		if( lib_string_length_scope_digit( path ) ) {
-			kernel -> log( (uint8_t *) "By ID!\n" );
 			// retrieve storage ID
 			uint64_t id = lib_string_to_integer( path, STD_NUMBER_SYSTEM_decimal );
 
@@ -944,7 +943,7 @@ uintptr_t kernel_syscall_storage( void ) {
 	// copy essential information about every storage
 	uint64_t entry = 0; for( uint64_t i = 0; i < KERNEL_STORAGE_limit && limit != entry; i++ ) {
 		// ignore RamFS entry
-		if( i == TRUE ) continue;
+		// if( i == TRUE ) continue;
 
 		// identificator of storage
 		storage[ entry ].id = i;
@@ -970,12 +969,30 @@ uintptr_t kernel_syscall_storage( void ) {
 	return (uintptr_t) storage;
 }
 
-uint8_t kernel_syscall_storage_select( uint64_t storage_id ) {
-	// storage available?
-	if( storage_id >= KERNEL_STORAGE_limit || ! (kernel -> storage_base_address[ storage_id ].flags & KERNEL_STORAGE_FLAGS_active) ) return FALSE;	// no
-
+uint8_t kernel_syscall_storage_select( uint8_t *name ) {
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
+
+	// storage selected by default
+	uint64_t storage_id = task -> storage;
+
+	// storage by ID?
+	if( lib_string_length_scope_digit( name ) ) storage_id = lib_string_to_integer( name, STD_NUMBER_SYSTEM_decimal );
+	else {
+		// storage by name
+
+		// find storage with exact name
+		for( uint64_t j = 0; j < KERNEL_STORAGE_limit; j++ ) {
+			// storage active?
+			if( ! (kernel -> storage_base_address[ j ].flags & KERNEL_STORAGE_FLAGS_active) ) continue;	// no
+
+			// storage found?
+			if( lib_string_compare( name, kernel -> storage_base_address[ j ].device_name, lib_string_length( name ) ) ) { storage_id = j; break; }	// yes
+		}
+	}
+
+	// storage available?
+	if( storage_id >= KERNEL_STORAGE_limit || ! (kernel -> storage_base_address[ storage_id ].flags & KERNEL_STORAGE_FLAGS_active) ) return FALSE;	// no
 
 	// set task default storage
 	task -> storage = storage_id;

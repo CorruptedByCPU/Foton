@@ -48,9 +48,6 @@ struct KERNEL {
 	uint32_t						framebuffer_pitch_byte;
 	int64_t							framebuffer_pid;
 
-	// functions of BFS management
-	// void							(*fs_format)( uint64_t storage_id );
-
 	// variables of GDT management functions
 	struct KERNEL_STRUCTURE_GDT_HEADER			gdt_header;
 

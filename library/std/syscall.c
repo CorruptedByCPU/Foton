@@ -365,9 +365,9 @@ uintptr_t std_storage( void ) {
 	return std_syscall_pointer();
 }
 
-uint8_t std_storage_select( uint64_t storage_id ) {
+uint8_t std_storage_select( uint8_t *name ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_STORAGE_SELECT), "D" (storage_id) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_STORAGE_SELECT), "D" (name) );
 
 	// return TRUE/FALSE
 	return std_syscall_bool();

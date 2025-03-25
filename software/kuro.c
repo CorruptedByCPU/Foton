@@ -468,7 +468,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 				kuro_storages -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
 
 				// change storage
-				if( ! std_storage_select( kuro_storages -> entry[ i ].id ) ) break;
+				if( ! std_storage_select( kuro_storages -> entry[ i ].name ) ) break;
 
 				// release current entry list
 				kuro_release( kuro_files );
