@@ -190,6 +190,7 @@ size_t kuro_storage( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) 
 		// lib_interface_element_file( kuro_interface, kuro_storages );
 		
 	// properties of available storages
+	uint64_t storage_id = std_storage_id();	// get current storage id
 	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) std_storage();
 
 	// default
@@ -204,6 +205,8 @@ size_t kuro_storage( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) 
 		entry[ local_list_entry_count ].id = storage -> id;
 		entry[ local_list_entry_count ].type = storage -> type;
 		entry[ local_list_entry_count ].byte = STD_MAX_unsigned;	// do not show
+		if( storage -> id == storage_id ) entry[ local_list_entry_count ].flags = LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active | LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select;
+		else entry[ local_list_entry_count ].flags = EMPTY;
 
 		// set storage name
 		entry[ local_list_entry_count ].name_length = storage -> name_limit;

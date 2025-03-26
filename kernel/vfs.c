@@ -421,6 +421,11 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint64_t storage_id, uint8_t *path, u
 	// properties of root directory
 	struct LIB_VFS_STRUCTURE *directory = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ storage_id ].device_block;
 
+	// if path is empty
+	if( ! length || (*path == STD_ASCII_SLASH && length == TRUE) )
+		// acquired VFS root file
+		return directory;
+
 	// start from local directory?
 	if( *path != STD_ASCII_SLASH ) {
 		// properties of task
@@ -429,11 +434,6 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint64_t storage_id, uint8_t *path, u
 		// choose task current directory
 		directory = (struct LIB_VFS_STRUCTURE *) task -> directory;
 	}
-
-	// if path is empty
-	if( ! length )
-		// acquired VFS root file
-		return directory;
 
 	// parse path
 	while( TRUE ) {
@@ -503,9 +503,11 @@ void kernel_vfs_write( uint64_t reserved, uint64_t block, uint8_t *source, uint6
 }
 
 uintptr_t kernel_vfs_dir( uint64_t storage_id, uint8_t *path, uint64_t length ) {
+	kernel -> log( (uint8_t *) "dir\n" );
+
 	// properties of selected directory
 	struct LIB_VFS_STRUCTURE *directory;
-	if( ! (directory = kernel_vfs_path( storage_id, path, lib_string_length( path ) )) ) return EMPTY;	// doesn't exist
+	if( ! (directory = kernel_vfs_path( storage_id, path, length )) ) return EMPTY;	// doesn't exist
 
 	// it is directory?
 	if( directory -> type != STD_FILE_TYPE_directory ) return EMPTY;	// no

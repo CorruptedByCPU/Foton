@@ -522,9 +522,46 @@ void kernel_syscall_memory( struct STD_STRUCTURE_SYSCALL_MEMORY *memory ) {
 uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
-	
+
+	// storage selected by default
+	uint64_t storage_id = task -> storage;
+
+	// find colon inside path
+	uint64_t i = 0;
+	for( ; i < path_length; i++ ) if( path[ i ] == STD_ASCII_COLON ) {
+		// storage by ID?
+		if( lib_string_length_scope_digit( path ) ) {
+			// retrieve storage ID
+			uint64_t id = lib_string_to_integer( path, STD_NUMBER_SYSTEM_decimal );
+
+			// invalid storage?
+			if( id >= KERNEL_STORAGE_limit || ! (kernel -> storage_base_address[ id ].flags & KERNEL_STORAGE_FLAGS_active)) return STD_ERROR_file_not_found;	// yep
+
+			// select storage
+			storage_id = id;
+		} else {
+			// storage by name
+
+			// find storage with exact name
+			for( uint64_t j = 0; j < KERNEL_STORAGE_limit; j++ ) {
+				// storage active?
+				if( ! (kernel -> storage_base_address[ j ].flags & KERNEL_STORAGE_FLAGS_active) ) continue;	// no
+
+				// storage found?
+				if( lib_string_compare( path, kernel -> storage_base_address[ j ].device_name, i ) ) { storage_id = j; break; }	// yes
+			}
+		}
+
+		// remove storage from path
+		path += i + 1;
+		path_length -= i + 1;
+
+		// ready
+		break;
+	}
+
 	// properties of storage
-	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ task -> storage ];
+	struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage_id ];
 
 	// try to open provided path
 	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) storage -> fs.open( storage, path, path_length, EMPTY );
@@ -540,7 +577,8 @@ uint8_t kernel_syscall_cd( uint8_t *path, uint64_t path_length ) {
 
 	// it is a directory?
 	if( vfs.type & STD_FILE_TYPE_directory ) {
-		// set new root directory of current process
+		// set new storage and root directory of current process
+		task -> storage = storage_id;
 		task -> directory = (uint64_t) socket -> knot;
 
 		// directory changed
@@ -1011,5 +1049,5 @@ uintptr_t kernel_syscall_dir( uint8_t *path ) {
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 
 	// return content of directory from current storage
-	return kernel -> storage_base_address[ task -> storage ].fs.dir( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ task -> storage ], path, lib_string_length( path ) );
+	return kernel -> storage_base_address[ task -> storage ].fs.dir( task -> storage, path, lib_string_length( path ) );
 }

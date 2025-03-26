@@ -60,14 +60,17 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// properties of available storages
 		uint64_t storage_id = std_storage_id();	// get current storage id
-		struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) std_storage();
-		do { if( storage -> id == storage_id ) break; } while( (++storage) -> type );
+		struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) std_storage(); uint64_t entries = EMPTY;
+		do { entries++; if( storage -> id == storage_id ) break; } while( (++storage) -> type );
 
 		// show prompt
 		printf( "\e[0m\e[P\e[38;5;47m%s \e[38;5;15m%s:%s \e[38;5;47m%%\e[0m ", hostname, storage -> name, (uint8_t *) &dir -> name );
 
 		// close directory
 		fclose( dir );
+
+		// release storage properties
+		while( (++storage) -> type ) { entries++; }; std_memory_release( (uintptr_t) storage, MACRO_PAGE_ALIGN_UP( sizeof( struct STD_STRUCTURE_STORAGE ) * (entries + 1) ) >> STD_SHIFT_PAGE );
 
 		// receive command from user
 		uint64_t shell_command_length = lib_input( input, shell_command, SHELL_COMMAND_limit, EMPTY, (uint8_t *) &shell_key_ctrl_left_semaphore );

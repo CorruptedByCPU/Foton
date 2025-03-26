@@ -195,7 +195,7 @@ void _entry( uintptr_t kernel_ptr ) {
 
 				// VirtIO controller?
 				if( (uint16_t) device_vendor != DRIVER_PCI_DEVICE_VENDOR_virtio ) continue;	// no
-				
+
 				// Supported VirtIO device?
 				if( ((device_vendor >> STD_MOVE_WORD) < 0x1000) && ((device_vendor >> STD_MOVE_WORD) > 0x107F) ) continue;	// no
 
