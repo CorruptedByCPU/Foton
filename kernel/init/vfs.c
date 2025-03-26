@@ -156,7 +156,7 @@ void kernel_init_vfs( void ) {
 		uint8_t string_file_path[] = "/etc/hostname.txt";
 
 		// retrieve properties of file
-		struct LIB_VFS_STRUCTURE *vfs = kernel_vfs_path( string_file_path, sizeof( string_file_path ) - 1 ); if( ! vfs ) continue;	// file not found
+		struct LIB_VFS_STRUCTURE *vfs = kernel_vfs_path( i, string_file_path, sizeof( string_file_path ) - 1 ); if( ! vfs ) continue;	// file not found
 
 		// set this one as default storage for kernel/system
 		kernel -> storage_root = i;

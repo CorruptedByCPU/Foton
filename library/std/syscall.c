@@ -380,3 +380,11 @@ uintptr_t std_dir( uint8_t *path ) {
 	// return pointer
 	return std_syscall_pointer();
 }
+
+uint64_t std_storage_id( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_STORAGE_ID) );
+
+	// return value unsigned
+	return std_syscall_value_unsigned();
+}

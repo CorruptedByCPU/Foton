@@ -395,6 +395,7 @@
 	#define	STD_SYSCALL_STORAGE				0x28
 	#define	STD_SYSCALL_STORAGE_SELECT			0x29
 	#define	STD_SYSCALL_DIR					0x2A
+	#define	STD_SYSCALL_STORAGE_ID				0x2B
 
 	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -595,6 +596,9 @@
 
 	// change main storage
 	uint8_t std_storage_select( uint8_t *name );
+
+	// returns storage id in use
+	uint64_t std_storage_id( void );
 
 	// return content of directory (in VFS structure)
 	uintptr_t std_dir( uint8_t *path );

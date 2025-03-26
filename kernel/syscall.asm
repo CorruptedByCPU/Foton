@@ -48,6 +48,7 @@ extern	kernel_syscall_network_receive
 extern	kernel_syscall_storage
 extern	kernel_syscall_storage_select
 extern	kernel_syscall_dir
+extern	kernel_syscall_storage_id
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -104,6 +105,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_storage			; 0x28
 	dq	kernel_syscall_storage_select		; 0x29
 	dq	kernel_syscall_dir			; 0x2A
+	dq	kernel_syscall_storage_id		; 0x2B
 kernel_syscall_list_end:
 
 ; 64 bit procedure code

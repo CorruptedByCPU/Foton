@@ -149,7 +149,7 @@ void kernel_vfs_file_close( struct KERNEL_STRUCTURE_VFS *socket ) {
 struct KERNEL_STRUCTURE_VFS *kernel_vfs_file_open( struct KERNEL_STRUCTURE_STORAGE *storage, uint8_t *path, uint64_t length, uint8_t mode ) {
 	// properties of found file
 	struct LIB_VFS_STRUCTURE *vfs;
-	if( ! (vfs = kernel_vfs_path( path, length )) ) return EMPTY;	// file not found
+	if( ! (vfs = kernel_vfs_path( ((uintptr_t) storage - (uintptr_t) kernel -> storage_base_address) / sizeof( struct KERNEL_STRUCTURE_STORAGE ), path, length )) ) return EMPTY;	// file not found
 
 	// lock exclusive access
 	MACRO_LOCK( kernel -> vfs_semaphore );
@@ -301,11 +301,11 @@ struct KERNEL_STRUCTURE_VFS *kernel_vfs_touch( struct KERNEL_STRUCTURE_STORAGE *
 
 	// open destination directory
 	struct LIB_VFS_STRUCTURE *directory;
-	if( ! (directory = kernel_vfs_path( path, length - file_name_length )) ) return EMPTY;	// path not resolvable
+	if( ! (directory = kernel_vfs_path( ((uintptr_t) storage - (uintptr_t) kernel -> storage_base_address) / sizeof( struct KERNEL_STRUCTURE_STORAGE ), path, length - file_name_length )) ) return EMPTY;	// path not resolvable
 
 	// check if file already exist
 	struct LIB_VFS_STRUCTURE *file;
-	if( (file = kernel_vfs_path( path, length )) ) return kernel_vfs_file_create( storage, directory, file, file_name, file_name_length, type );
+	if( (file = kernel_vfs_path( ((uintptr_t) storage - (uintptr_t) kernel -> storage_base_address) / sizeof( struct KERNEL_STRUCTURE_STORAGE ), path, length )) ) return kernel_vfs_file_create( storage, directory, file, file_name, file_name_length, type );
 
 	// for each data block of directory
 	uint64_t blocks = directory -> limit >> STD_SHIFT_PAGE;
@@ -414,23 +414,21 @@ struct LIB_VFS_STRUCTURE *kernel_vfs_search_file( struct LIB_VFS_STRUCTURE *dire
 	return EMPTY;
 }
 
-struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length ) {
+struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint64_t storage_id, uint8_t *path, uint64_t length ) {
 	// properties of current file
 	struct LIB_VFS_STRUCTURE *file;
 
-	// properties of current directory
-	struct LIB_VFS_STRUCTURE *directory;
+	// properties of root directory
+	struct LIB_VFS_STRUCTURE *directory = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ storage_id ].device_block;
 
-	// start from directory file?
+	// start from local directory?
 	if( *path != STD_ASCII_SLASH ) {
 		// properties of task
 		struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();
 	
-		// choose task current file
+		// choose task current directory
 		directory = (struct LIB_VFS_STRUCTURE *) task -> directory;
-	} else
-		// start from default file
-		directory = (struct LIB_VFS_STRUCTURE *) kernel -> storage_base_address[ kernel -> storage_root ].device_block;
+	}
 
 	// if path is empty
 	if( ! length )
@@ -507,7 +505,7 @@ void kernel_vfs_write( uint64_t reserved, uint64_t block, uint8_t *source, uint6
 uintptr_t kernel_vfs_dir( uint64_t storage_id, uint8_t *path, uint64_t length ) {
 	// properties of selected directory
 	struct LIB_VFS_STRUCTURE *directory;
-	if( ! (directory = kernel_vfs_path( path, lib_string_length( path ) )) ) return EMPTY;	// doesn't exist
+	if( ! (directory = kernel_vfs_path( storage_id, path, lib_string_length( path ) )) ) return EMPTY;	// doesn't exist
 
 	// it is directory?
 	if( directory -> type != STD_FILE_TYPE_directory ) return EMPTY;	// no

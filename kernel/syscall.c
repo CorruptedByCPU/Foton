@@ -966,6 +966,11 @@ uintptr_t kernel_syscall_storage( void ) {
 	return (uintptr_t) storage;
 }
 
+uint64_t kernel_syscall_storage_id( void ) {
+	// return ID of currently storage in use
+	return kernel_task_active() -> storage;
+}
+
 uint8_t kernel_syscall_storage_select( uint8_t *name ) {
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_active();

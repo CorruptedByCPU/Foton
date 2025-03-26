@@ -30,7 +30,7 @@
 
 	uint8_t	kernel_vfs_identify( uintptr_t base_address, uint64_t limit_byte );
 
-	struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint8_t *path, uint64_t length );
+	struct LIB_VFS_STRUCTURE *kernel_vfs_path( uint64_t storage_id, uint8_t *path, uint64_t length );
 
 	struct KERNEL_STRUCTURE_VFS *kernel_vfs_socket_add( void );
 

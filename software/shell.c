@@ -43,7 +43,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		FILE *dir = fopen( (uint8_t *) ".", EMPTY );
 
 		// open hostname file
-		FILE *file = fopen( (uint8_t *) "System:/etc/hostname.txt", EMPTY );
+		FILE *file = fopen( (uint8_t *) "system:/etc/hostname.txt", EMPTY );
 		if( file ) {
 			// load file content
 			fread( file, hostname, 63 );
@@ -58,8 +58,13 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			hostname[ lib_string_word_of_letters_and_digits( hostname, lib_string_length( hostname ) ) ] = STD_ASCII_TERMINATOR;
 		}
 
+		// properties of available storages
+		uint64_t storage_id = std_storage_id();	// get current storage id
+		struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) std_storage();
+		do { if( storage -> id == storage_id ) break; } while( (++storage) -> type );
+
 		// show prompt
-		printf( "\e[0m\e[P\e[38;5;47m%s \e[38;5;15m%s \e[38;5;47m%%\e[0m ", hostname, (uint8_t *) &dir -> name );
+		printf( "\e[0m\e[P\e[38;5;47m%s \e[38;5;15m%s:%s \e[38;5;47m%%\e[0m ", hostname, storage -> name, (uint8_t *) &dir -> name );
 
 		// close directory
 		fclose( dir );

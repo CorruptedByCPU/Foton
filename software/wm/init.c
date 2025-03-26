@@ -46,7 +46,7 @@ uint8_t wm_init( void ) {
 	struct LIB_IMAGE_STRUCTURE_TGA *workbench_image = EMPTY;
 
 	// retrieve file information
-	if( (workbench_file = fopen( (uint8_t *) "System:/var/gfx/wallpapers/default.tga", EMPTY )) ) {
+	if( (workbench_file = fopen( (uint8_t *) "system:/var/gfx/wallpapers/default.tga", EMPTY )) ) {
 		// assign area for file
 		workbench_image = (struct LIB_IMAGE_STRUCTURE_TGA *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( workbench_file -> byte ) >> STD_SHIFT_PAGE );
 
@@ -171,7 +171,7 @@ uint8_t wm_init( void ) {
 	struct LIB_IMAGE_STRUCTURE_TGA *cursor_image = EMPTY;
 
 	// retrieve file information
-	if( (cursor_file = fopen( (uint8_t *) "System:/var/gfx/cursors/default.tga", EMPTY )) ) {
+	if( (cursor_file = fopen( (uint8_t *) "system:/var/gfx/cursors/default.tga", EMPTY )) ) {
 		// assign area for file
 		cursor_image = (struct LIB_IMAGE_STRUCTURE_TGA *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( cursor_file -> byte ) >> STD_SHIFT_PAGE );
 
@@ -218,8 +218,8 @@ uint8_t wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
-// debug
-// std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
+	// debug
+	std_exec( (uint8_t *) "console", 7, EMPTY, TRUE );
 
 	// Window Manager initialized.
 	return TRUE;

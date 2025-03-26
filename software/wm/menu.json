@@ -11,7 +11,7 @@
 		"height": 24,
 		"name": "Console",
 		"command": "console",
-		"icon": "System:/var/gfx/icons/terminal.tga"
+		"icon": "system:/var/gfx/icons/terminal.tga"
 	},
 	"menu": {
 		"id": 0,
@@ -21,7 +21,7 @@
 		"height": 24,
 		"name": "Kuro",
 		"command": "kuro",
-		"icon": "System:/var/gfx/icons/system-file-manager.tga"
+		"icon": "system:/var/gfx/icons/system-file-manager.tga"
 	},
 	"menu": {
 		"id": 0,
@@ -31,7 +31,7 @@
 		"height": 24,
 		"name": "Moko",
 		"command": "console moko",
-		"icon": "System:/var/gfx/icons/accessories-text-editor.tga"
+		"icon": "system:/var/gfx/icons/accessories-text-editor.tga"
 	},
 	"menu": {
 		"id": 0,
@@ -41,7 +41,7 @@
 		"height": 24,
 		"name": "Taris",
 		"command": "taris",
-		"icon": "System:/var/gfx/icons/taris.tga"
+		"icon": "system:/var/gfx/icons/taris.tga"
 	},
 	"menu": {
 		"id": 0,
@@ -51,6 +51,6 @@
 		"height": 24,
 		"name": "Task Manager",
 		"command": "console tm",
-		"icon": "System:/var/gfx/icons/utilities-system-monitor.tga"
+		"icon": "system:/var/gfx/icons/utilities-system-monitor.tga"
 	}
 }
