@@ -42,7 +42,7 @@ void kernel_init_acpi( void ) {
 
 	// do recon on all entries of list
 	for( uint64_t i = 0; i < list_length; i++ ) {
-		// SDT pointer address
+		// *SDT pointer
 		uintptr_t sdt = EMPTY;
 
 		// get address of table from a given entry on list
@@ -57,10 +57,10 @@ void kernel_init_acpi( void ) {
 		struct KERNEL_STRUCTURE_INIT_ACPI_MADT *madt = (struct KERNEL_STRUCTURE_INIT_ACPI_MADT *) sdt;
 		if( madt -> signature == KERNEL_INIT_ACPI_MADT_signature ) {
 			// store APIC base address
-			kernel -> apic_base_address = (struct KERNEL_STRUCTURE_APIC *) (uintptr_t) (madt -> lapic_address | KERNEL_MEMORY_mirror);
+			kernel -> lapic_base_address = (struct KERNEL_STRUCTURE_APIC *) (uintptr_t) (madt -> lapic_address | KERNEL_MEMORY_mirror);
 
 			// debug
-			kernel_log( (uint8_t *) "APIC base address 0x%X\n", (uint64_t) kernel -> apic_base_address );
+			kernel_log( (uint8_t *) "APIC base address 0x%X\n", (uint64_t) kernel -> lapic_base_address );
 
 			// length of MADT list
 			uint64_t limit = (uint32_t) madt -> length - sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_MADT );
@@ -84,6 +84,12 @@ void kernel_init_acpi( void ) {
 
 						// debug
 						kernel_log( (uint8_t *) "I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
+
+						// register available IRQ lines
+						kernel -> io_apic_irq_lines = EMPTY;	// all available
+
+						// unlock access to lines
+						MACRO_UNLOCK( kernel -> io_apic_semaphore );
 					}
 				}
 
@@ -91,12 +97,6 @@ void kernel_init_acpi( void ) {
 				list += sdt_length;
 				limit -= sdt_length;
 			}
-
-			// nothing more to do
-			break;
 		}
 	}
-
-	// debug
-	kernel_log( (uint8_t *) "ACPI parsed.\n" );
 }

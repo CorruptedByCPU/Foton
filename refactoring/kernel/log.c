@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_log( uint8_t *string, ... ) {
+void kernel_log( unsigned char *string, ... ) {
 	// properties of argument list
 	va_list argv;
 

@@ -101,12 +101,12 @@ void module_virtio_irq( void ) {
 					uint64_t index_used = network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].device_index % network -> queue_limit[ MODULE_VIRTIO_NETWORK_QUEUE_RX ];
 
 					// alloc area for frame content
-					uint8_t *source = (uint8_t *) (network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].descriptor_address[ ring_used[ index_used ].index ].address | KERNEL_PAGE_mirror) + sizeof( struct MODULE_VIRTIO_NETWORK_STRUCTURE_HEADER );
+					uint8_t *source = (uint8_t *) (network -> queue[ MODULE_VIRTIO_NETWORK_QUEUE_RX ].descriptor_address[ ring_used[ index_used ].index ].address | KERNEL_MEMORY_mirror) + sizeof( struct MODULE_VIRTIO_NETWORK_STRUCTURE_HEADER );
 					uint8_t *target = (uint8_t *) kernel -> memory_alloc( TRUE );
 					for( uint64_t f = 0; f < ring_used[ index_used ].length - sizeof( struct MODULE_VIRTIO_NETWORK_STRUCTURE_HEADER ); f++ ) target[ f ] = source[ f ];
 
 					// store frame on network stack
-					kernel -> network_rx( (uintptr_t) target | ring_used[ index_used ].length | KERNEL_PAGE_mirror );
+					kernel -> network_rx( (uintptr_t) target | ring_used[ index_used ].length | KERNEL_MEMORY_mirror );
 
 					// reset entry
 					ring_used[ index_used ].length = EMPTY;

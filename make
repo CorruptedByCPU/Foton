@@ -44,21 +44,20 @@ rm -rf build && mkdir -p build/iso
 rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 
 # git deosn't allow empty folder
-mkdir -p root/{bin,lib}
+mkdir -p root/{bin,lib/modules}
 
 # copy default filesystem structure
 cp -rf root build
 
 # build subroutines required by kernel
 EXT=""
-${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o		|| exit 1; EXT="${EXT} build/gdt.o"
-${ASM} -f elf64 kernel/idt.asm		-o build/idt.o		|| exit 1; EXT="${EXT} build/idt.o"
-${ASM} -f elf64 kernel/task.asm		-o build/task.o		|| exit 1; EXT="${EXT} build/task.o"
-${ASM} -f elf64 kernel/driver/rtc.asm	-o build/rtc.o		|| exit 1; EXT="${EXT} build/rtc.o"
-${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o	|| exit 1; EXT="${EXT} build/syscall.o"
+# ${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o		|| exit 1; EXT="${EXT} build/gdt.o"
+# ${ASM} -f elf64 kernel/idt.asm		-o build/idt.o		|| exit 1; EXT="${EXT} build/idt.o"
+# ${ASM} -f elf64 kernel/task.asm		-o build/task.o		|| exit 1; EXT="${EXT} build/task.o"
+# ${ASM} -f elf64 kernel/driver/rtc.asm	-o build/rtc.o		|| exit 1; EXT="${EXT} build/rtc.o"
+# ${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o	|| exit 1; EXT="${EXT} build/syscall.o"
 
 # default configuration of clang for kernel making
-if [ ! -z "${2}" ]; then DEBUG="-DDEBUG"; fi
 CFLAGS="${FLAGS} -mno-mmx -mno-sse -mno-sse2 -mno-3dnow ${DEBUG}"
 CFLAGS_SOFTWARE="${FLAGS} ${DEBUG}"
 LDFLAGS="-nostdlib -static -no-dynamic-linker"
@@ -77,80 +76,80 @@ gzip -k build/kernel
 
 #===============================================================================
 
-for submodules in `(cd module && ls *.asm)`; do
-	# module name
-	submodule=${submodules%.*}
+# for submodules in `(cd module && ls *.asm)`; do
+# 	# module name
+# 	submodule=${submodules%.*}
 
-	# build
-	${ASM} -f elf64 module/${submodule}.asm -o build/${submodule}.ao
+# 	# build
+# 	${ASM} -f elf64 module/${submodule}.asm -o build/${submodule}.ao
 
-	# information
-	submodule_size=`ls -lh build/${submodule}.ao | cut -d ' ' -f 5`
-	echo -e "${green}\xE2\x9C\x94${default}|[submodule of ${submodule}.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-done
+# 	# information
+# 	submodule_size=`ls -lh build/${submodule}.ao | cut -d ' ' -f 5`
+# 	echo -e "${green}\xE2\x9C\x94${default}|[submodule of ${submodule}.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+# done
 
-for modules in `(cd module && ls *.c)`; do
-	# module name
-	module=${modules%.*}
+# for modules in `(cd module && ls *.c)`; do
+# 	# module name
+# 	module=${modules%.*}
 
-	# build
-	${C} -c -fpic -DMODULE module/${module}.c -o build/${module}.o ${CFLAGS} || exit 1
+# 	# build
+# 	${C} -c -fpic -DMODULE module/${module}.c -o build/${module}.o ${CFLAGS} || exit 1
 
-	# connect with libraries (if necessery)
-	SUB=""
-	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
-	${LD} ${SUB} build/${module}.o -o build/root/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
+# 	# connect with libraries (if necessery)
+# 	SUB=""
+# 	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
+# 	${LD} ${SUB} build/${module}.o -o build/root/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
 
-	# we do not need any additional information
-	strip -s build/root/lib/modules/${module}.ko
+# 	# we do not need any additional information
+# 	strip -s build/root/lib/modules/${module}.ko
 
-	# information
-	module_size=`ls -lh build/root/lib/modules/${module}.ko | cut -d ' ' -f 5`
-	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-done
+# 	# information
+# 	module_size=`ls -lh build/root/lib/modules/${module}.ko | cut -d ' ' -f 5`
+# 	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+# done
 
-#===============================================================================
+# #===============================================================================
 
-lib=""	# include list of libraries
+# lib=""	# include list of libraries
 
-# keep parsing libraries by. dependencies and alphabetically
-for library in type path color elf integer float string network input math json font std window image interface random rgl terminal; do
-	# build
-	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
+# # keep parsing libraries by. dependencies and alphabetically
+# for library in type path color elf integer float string network input math json font std window image interface random rgl terminal; do
+# 	# build
+# 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 
-	# convert to shared
-	${C} -shared build/${library}.o -o build/root/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/lib/ ${lib} || exit 1
+# 	# convert to shared
+# 	${C} -shared build/${library}.o -o build/root/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/lib/ ${lib} || exit 1
 
-	# we do not need any additional information
-	strip -s build/root/lib/lib${library}.so
+# 	# we do not need any additional information
+# 	strip -s build/root/lib/lib${library}.so
 
-	# update libraries list
-	lib="${lib} -l${library}"
+# 	# update libraries list
+# 	lib="${lib} -l${library}"
 
-	# information
-	library_size=`ls -lh build/root/lib/lib${library}.so | cut -d ' ' -f 5`
-	echo -e "${green}\xE2\x9C\x94${default}|Library: lib${library}.so|${library_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-done
+# 	# information
+# 	library_size=`ls -lh build/root/lib/lib${library}.so | cut -d ' ' -f 5`
+# 	echo -e "${green}\xE2\x9C\x94${default}|Library: lib${library}.so|${library_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+# done
 
-#===============================================================================
+# #===============================================================================
 
-for software in `(cd software && ls *.c)`; do
-	# program name
-	name=${software::$(expr ${#software} - 2)}
+# for software in `(cd software && ls *.c)`; do
+# 	# program name
+# 	name=${software::$(expr ${#software} - 2)}
 
-	# build
-	${C} -DSOFTWARE -c software/${name}.c -o build/${name}.o ${CFLAGS_SOFTWARE} || exit 1
+# 	# build
+# 	${C} -DSOFTWARE -c software/${name}.c -o build/${name}.o ${CFLAGS_SOFTWARE} || exit 1
 
-	# connect with libraries (if necessery)
-	${LD} --as-needed -L./build/root/lib build/${name}.o -o build/root/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
+# 	# connect with libraries (if necessery)
+# 	${LD} --as-needed -L./build/root/lib build/${name}.o -o build/root/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
 
-	# we do not need any additional information
-	strip -s build/root/bin/${name} > /dev/null 2>&1
+# 	# we do not need any additional information
+# 	strip -s build/root/bin/${name} > /dev/null 2>&1
 
-	# information
-	software_size=`ls -lh build/root/bin/${name} | cut -d ' ' -f 5`
-	echo -e "${green}\xE2\x9C\x94${default}|Software: ${name}|${software_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-done
+# 	# information
+# 	software_size=`ls -lh build/root/bin/${name} | cut -d ' ' -f 5`
+# 	echo -e "${green}\xE2\x9C\x94${default}|Software: ${name}|${software_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+# done
 
 #===============================================================================
 
