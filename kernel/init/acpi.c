@@ -76,9 +76,6 @@ void kernel_init_acpi( void ) {
 				struct KERNEL_STRUCTURE_INIT_ACPI_MADT_ENTRY *sdt = (struct KERNEL_STRUCTURE_INIT_ACPI_MADT_ENTRY *) list;
 				uint8_t sdt_length = (uint8_t) sdt -> length;
 
-				// debug
-				kernel_log( (uint8_t *) "[DEBUG] 0x%2X\n", *((uint8_t *) sdt) );
-
 				// I/O APIC entry found?
 				struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *io_apic = (struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *) list;
 				if( io_apic -> type == KERNEL_INIT_ACPI_APIC_TYPE_io_apic ) {

@@ -9,7 +9,13 @@ void kernel_init_memory( void ) {
 	// describe all memory areas marked as USBALE inside binary memory map
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
 		// debug
-		if( limine_memmap_request.response -> entries[ i ] -> base > ((uintptr_t) kernel & ~KERNEL_MEMORY_mirror) ) break;	// yes
+		// if( limine_memmap_request.response -> entries[ i ] -> base > ((uintptr_t) kernel & ~KERNEL_MEMORY_mirror) ) break;	// yes
+
+		// ignore irrelevant entries
+		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_KERNEL_AND_MODULES && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_ACPI_RECLAIMABLE ) continue;
+
+		// ignore not aligned entries
+		if( limine_memmap_request.response -> entries[ i ] -> base & ~STD_PAGE_mask ) continue;
 
 		// debug
 		kernel_log( (uint8_t *) "\r0x%16X:0x%16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );
@@ -20,12 +26,6 @@ void kernel_init_memory( void ) {
 			case LIMINE_MEMMAP_ACPI_RECLAIMABLE: { kernel_log( (uint8_t *) "ACPI (reclaimable)\n" ); break; }
 			default: kernel_log( (uint8_t *) "\n" );
 		}
-
-		// ignore irrelevant entries
-		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_KERNEL_AND_MODULES && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_ACPI_RECLAIMABLE ) continue;
-
-		// ignore not aligned entries
-		if( limine_memmap_request.response -> entries[ i ] -> base & ~STD_PAGE_mask ) continue;
 
 		// retrieve the farthest part of memory area for use
 		if( kernel -> page_limit < (limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length) >> STD_SHIFT_PAGE ) kernel -> page_limit = (limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length) >> STD_SHIFT_PAGE;

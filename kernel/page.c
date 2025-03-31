@@ -74,9 +74,6 @@ uint8_t kernel_page_alloc( uint64_t *pml4, uintptr_t target, uint64_t n, uint16_
 					// set flags for PML1 entry
 					pml1[ p1 ] |= flags;
 
-					// debug
-					kernel_log( (uint8_t *) "\r0x%16X", target ); target += STD_PAGE_byte;
-
 					// if all area is described
 					if( ! --n ) return TRUE;
 				}
@@ -165,9 +162,6 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 
 					// next page target from described physical memory area
 					source += STD_PAGE_byte;
-
-					// debug
-					kernel_log( (uint8_t *) "\r0x%16X", source ); target += STD_PAGE_byte;
 
 					// if all area is described
 					if( ! --n ) return TRUE;

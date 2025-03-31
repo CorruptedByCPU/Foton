@@ -74,6 +74,7 @@ void _entry( void ) {
 
 	// reload new kernel environment paging array
 	kernel_log( (uint8_t *) "\rNew CR3 and RSP," );
+	MACRO_DEBUF();
 	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_MEMORY_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) ); kernel_log( (uint8_t *) " set.\n" );
 
 	// hodor, that should not happen!
