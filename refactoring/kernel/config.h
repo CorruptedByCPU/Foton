@@ -10,8 +10,8 @@
 
 #define	KERNEL_BASE_address	0xFFFFFFFF80000000	// higher half
 
-#define	KERNEL_STACK_page	2
-#define	KERNEL_STACK_address	(uintptr_t) -(KERNEL_STACK_page << STD_SHIFT_PAGE)	// minimal size
+#define	KERNEL_STACK_LIMIT_page	2
+#define	KERNEL_STACK_address	(uintptr_t) -(KERNEL_STACK_LIMIT_page << STD_SHIFT_PAGE)	// minimal size
 #define	KERNEL_STACK_pointer	0xFFFFFFFFFFFFF000
 
 #ifndef	KERNEL_GDT

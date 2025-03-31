@@ -6,6 +6,8 @@ void kernel_init_acpi( void ) {
 	// RSDP or XSDP header properties
 	struct KERNEL_STRUCTURE_INIT_ACPI_RSDP_OR_XSDP_HEADER *rsdp_or_xsdp_header = (struct KERNEL_STRUCTURE_INIT_ACPI_RSDP_OR_XSDP_HEADER *) limine_rsdp_request.response -> address;
 
+	kernel_log( (uint8_t *) "*SDP address 0x%16X\n", rsdp_or_xsdp_header );
+
 	// amount of entries
 	uint64_t list_length = EMPTY;
 
@@ -73,6 +75,9 @@ void kernel_init_acpi( void ) {
 				// get size of entry being processed
 				struct KERNEL_STRUCTURE_INIT_ACPI_MADT_ENTRY *sdt = (struct KERNEL_STRUCTURE_INIT_ACPI_MADT_ENTRY *) list;
 				uint8_t sdt_length = (uint8_t) sdt -> length;
+
+				// debug
+				kernel_log( (uint8_t *) "[DEBUG] 0x%2X\n", *((uint8_t *) sdt) );
 
 				// I/O APIC entry found?
 				struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *io_apic = (struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *) list;

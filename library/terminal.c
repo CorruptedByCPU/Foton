@@ -75,7 +75,49 @@ void lib_terminal_char( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t ascii )
 	lib_terminal_cursor_disable( terminal );
 
 	// printable character?
-	if( ascii >= 0x20 && ascii <= 0x7F ) {
+	if( ascii < STD_ASCII_SPACE || ascii > STD_ASCII_TILDE ) {	// no
+		switch( ascii ) {
+			case STD_ASCII_NEW_LINE: {
+				// set the cursor position from the beginning of the new line
+				terminal -> cursor_x = EMPTY;
+				terminal -> cursor_y++;
+
+				// done
+				break;
+			}
+
+			case STD_ASCII_RETURN: {
+				// set the cursor position from the beginning of the current line
+				terminal -> cursor_x = EMPTY;
+
+				// done
+				break;
+			}
+
+			case STD_ASCII_BACKSPACE: {
+				// the cursor is at the beginning of the current line?
+				if( terminal -> cursor_x )
+					// move the cursor back one position
+					terminal -> cursor_x--;
+				else if( terminal -> cursor_y ) {
+					// place the cursor at the end of the previous line
+					terminal -> cursor_y--;
+					terminal -> cursor_x = terminal -> width_char - 1;
+				}
+
+				// done
+				break;
+			}
+
+			case STD_ASCII_TAB: {
+				// calculate tabulator position
+				terminal -> cursor_x += (LIB_TERMINAL_TAB_length - (terminal -> cursor_x % LIB_TERMINAL_TAB_length));
+
+				// done
+				break;
+			}
+		}
+	} else {
 		// clear space under new character
 		if( terminal -> flags & LIB_TERMINAL_FLAG_clean ) lib_terminal_char_drain( terminal );
 
@@ -84,38 +126,6 @@ void lib_terminal_char( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t ascii )
 
 		// set the new cursor position
 		terminal -> cursor_x++;
-	} else {
-		// special character NEW LINE?
-		if( ascii == 0x0A ) {
-			// set the cursor position from the beginning of the new line
-			terminal -> cursor_x = EMPTY;
-			terminal -> cursor_y++;
-		}
-
-		// special character ENTER?
-		if( ascii == 0x0D ) {
-			// set the cursor position from the beginning of the current line
-			terminal -> cursor_x = EMPTY;
-		}
-
-		// special character BACKSPACE?
-		if( ascii == 0x08 ) {
-			// the cursor is at the beginning of the current line?
-			if( terminal -> cursor_x )
-				// move the cursor back one position
-				terminal -> cursor_x--;
-			else if( terminal -> cursor_y ) {
-				// place the cursor at the end of the previous line
-				terminal -> cursor_y--;
-				terminal -> cursor_x = terminal -> width_char - 1;
-			}
-		}
-
-		// special character TAB?
-		if( ascii == 0x0B ) {
-			// calculate tabulator position
-			terminal -> cursor_x += (LIB_TERMINAL_TAB_length - (terminal -> cursor_x % LIB_TERMINAL_TAB_length));
-		}
 	}
 
 	// update cursor properties

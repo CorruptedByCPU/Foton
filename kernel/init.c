@@ -3,9 +3,10 @@
 ===============================================================================*/
 
 	//----------------------------------------------------------------------
-	// Build-in libraries.
+	// Build-in libraries
 	//----------------------------------------------------------------------
 	#include	"../library/color.c"
+	#include	"../library/elf.c"
 	#include	"../library/font.c"
 	#include	"../library/string.c"
 	#include	"../library/terminal.c"
@@ -22,6 +23,8 @@
 	//----------------------------------------------------------------------
 	#include	"apic.h"
 	#include	"config.h"
+	#include	"memory.h"
+	#include	"page.h"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -34,6 +37,8 @@
 	// kernel routines, procedures
 	//----------------------------------------------------------------------
 	#include	"log.c"
+	#include	"memory.c"
+	#include	"page.c"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -48,6 +53,7 @@
 	#include	"init/acpi.c"
 	#include	"init/env.c"
 	#include	"init/memory.c"
+	#include	"init/page.c"
 	//======================================================================
 
 // start of kernel initialization
@@ -64,7 +70,11 @@ void _entry( void ) {
 	kernel_init_acpi();
 
 	// create own Kernel paging structures
-	// kernel_init_page();
+	kernel_init_page();
+
+	// reload new kernel environment paging array
+	kernel_log( (uint8_t *) "\rNew CR3 and RSP," );
+	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_MEMORY_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) ); kernel_log( (uint8_t *) " set.\n" );
 
 	// hodor, that should not happen!
 	while( TRUE );

@@ -8,7 +8,13 @@
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
+#define	KERNEL_BASE_address	0xFFFFFFFF80000000	// in higher half
+
 #define	KERNEL_MEMORY_mirror	0xFFFF800000000000
+
+#define	KERNEL_STACK_LIMIT_page	2
+#define	KERNEL_STACK_address	(uintptr_t) -(KERNEL_STACK_LIMIT_page << STD_SHIFT_PAGE)
+#define	KERNEL_STACK_pointer	0xFFFFFFFFFFFFF000
 
 struct KERNEL {
 	volatile struct KERNEL_STRUCTURE_APIC	*apic_base_address;
@@ -23,6 +29,7 @@ struct KERNEL {
 
 	uint32_t	*memory_base_address;
 
+	uint64_t	*page_base_address;
 	uint64_t	page_available;
 	uint64_t	page_limit;
 	uint64_t	page_total;

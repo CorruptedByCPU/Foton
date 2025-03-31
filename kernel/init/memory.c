@@ -6,15 +6,17 @@ void kernel_init_memory( void ) {
 	// binary memory map will be placed right after kernel environment global variables/functions/rountines
 	kernel -> memory_base_address = (uint32_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
 
-
 	// describe all memory areas marked as USBALE inside binary memory map
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
 		// debug
-		kernel_log( (uint8_t *) "0x%16X:0x%16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );
+		if( limine_memmap_request.response -> entries[ i ] -> base > ((uintptr_t) kernel & ~KERNEL_MEMORY_mirror) ) break;	// yes
+
+		// debug
+		kernel_log( (uint8_t *) "\r0x%16X:0x%16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );
 		switch( limine_memmap_request.response -> entries[ i ] -> type ) {
 			case LIMINE_MEMMAP_USABLE: { kernel_log( (uint8_t *) "Usable\n" ); break; }
 			case LIMINE_MEMMAP_KERNEL_AND_MODULES: { kernel_log( (uint8_t *) "Kernel and Modules\n" ); break; }
-			case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE: { kernel_log( (uint8_t *) "Bootloader (reclaimable)\n" ); break; }
+			case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE: { kernel_log( (uint8_t *) "Bootloader\n" ); break; }
 			case LIMINE_MEMMAP_ACPI_RECLAIMABLE: { kernel_log( (uint8_t *) "ACPI (reclaimable)\n" ); break; }
 			default: kernel_log( (uint8_t *) "\n" );
 		}

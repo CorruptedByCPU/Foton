@@ -27,7 +27,7 @@
 	// #define	KERNEL_PAGE_TYPE_			0b110
 	// #define	KERNEL_PAGE_TYPE_			0b111
 
-	#define	KERNEL_PAGE_PML_records			512
+	#define	KERNEL_PAGE_PMLx_entry			512
 
 	#define	KERNEL_PAGE_PML1_shift			12
 	#define	KERNEL_PAGE_PML2_shift			21
