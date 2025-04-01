@@ -17,28 +17,30 @@
 #define	KERNEL_STACK_pointer	0xFFFFFFFFFFFFF000
 
 struct KERNEL {
-	volatile struct KERNEL_STRUCTURE_APIC	*apic_base_address;
+	volatile struct KERNEL_STRUCTURE_APIC		*apic_base_address;
 
-	uint32_t	*framebuffer_base_address;
-	uint16_t	framebuffer_width_pixel;
-	uint16_t	framebuffer_height_pixel;
-	uint32_t	framebuffer_pitch_byte;
-	int64_t		framebuffer_pid;
+	uint32_t					*framebuffer_base_address;
+	uint16_t					framebuffer_width_pixel;
+	uint16_t					framebuffer_height_pixel;
+	uint32_t					framebuffer_pitch_byte;
+	int64_t						framebuffer_pid;
 
-	struct KERNEL_STRUCTURE_GDT_HEADER	gdt_header;
+	struct KERNEL_STRUCTURE_GDT_HEADER		gdt_header;
 
-	// struct KERNEL_STRUCTURE_IDT_HEADER	idt_header;
+	struct KERNEL_STRUCTURE_IDT_HEADER		idt_header;
 
 	volatile struct KERNEL_STRUCTURE_IO_APIC	*io_apic_base_address;
 
-	uint32_t	*memory_base_address;
+	uint32_t					*memory_base_address;
 
-	uint64_t	*page_base_address;
-	uint64_t	page_available;
-	uint64_t	page_limit;
-	uint64_t	page_total;
+	uint64_t					*page_base_address;
+	uint64_t					page_available;
+	uint64_t					page_limit;
+	uint64_t					page_total;
 
-	struct LIB_TERMINAL_STRUCTURE	terminal;
+	struct LIB_TERMINAL_STRUCTURE			terminal;
 
-	struct KERNEL_STRUCTURE_TSS	tss;
+	struct KERNEL_STRUCTURE_TSS			tss;
 };
+
+void kernel_log( uint8_t *string, ... );

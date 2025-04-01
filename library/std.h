@@ -627,14 +627,14 @@
 
 			// amount of args inside string
 			uint64_t argc = 1;	// command itself is always an argument
-			for( uint64_t i = 0; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) { argc++; for( ; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) break; }
+			for( uint64_t i = INIT; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) { argc++; for( ; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) break; }
 
 			// allocate memory for argv vectors
 			uint8_t *argv[ argc ];
 
 			// insert pointers to every argument inside string
-			uint64_t arg = 0;
-			for( uint64_t i = 0; i < entry.length; i++ ) {
+			uint64_t arg = INIT;
+			for( uint64_t i = INIT; i < entry.length; i++ ) {
 				// arg?
 				if( entry.string[ i ] != STD_ASCII_SPACE ) {
 					// save pointer to argument
@@ -662,16 +662,11 @@
 	// substitute of internal functions required by clang
 	//------------------------------------------------------------------------------
 
-	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) {
-		// copy source content inside target
-		for( uint64_t i = 0; i < length; i++) target[ i ] = source[ i ];
-	}
+	// copy source content inside target
+	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) { for( uint64_t i = INIT; i < length; i++) target[ i ] = source[ i ]; }
 
-	void memset( uint8_t *cache, uint8_t value, uint64_t length ) {
-		// fill cache with definied value
-		for( uint64_t i = 0; i < length; i++ )
-			cache[ i ] = value;
-	}
+	// fill cache with definied value
+	void memset( uint8_t *cache, uint8_t value, uint64_t length ) { for( uint64_t i = INIT; i < length; i++ ) cache[ i ] = value; }
 
 	//------------------------------------------------------------------------------
 	// substitute of libc

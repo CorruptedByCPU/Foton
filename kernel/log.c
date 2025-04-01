@@ -11,7 +11,7 @@ void kernel_log( uint8_t *string, ... ) {
 
 	// for every character from string
 	uint64_t length = lib_string_length( string );
-	for( uint64_t i = 0; i < length; i++ ) {
+	for( uint64_t i = INIT; i < length; i++ ) {
 		// special character?
 		if( string[ i ] != '%' ) {
 			// no, show it
@@ -85,7 +85,7 @@ void kernel_log( uint8_t *string, ... ) {
 				uint8_t *substring = va_arg( argv, uint8_t * );
 				
 				// show 'substring' on terminal
-				for( uint64_t j = 0; j < lib_string_length( substring ); j++ )
+				for( uint64_t j = INIT; j < lib_string_length( substring ); j++ )
 					lib_terminal_string( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, substring, lib_string_length( substring ) );
 
 				// next character from string
@@ -98,6 +98,18 @@ void kernel_log( uint8_t *string, ... ) {
 
 				// show 'value' on terminal
 				lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, STD_ASCII_DIGIT_0 );
+
+				// next character from string
+				continue;
+			}
+
+			case 'p': {
+				// retrieve value
+				uint64_t value = va_arg( argv, uint64_t );
+
+				// show 'value' on terminal
+				lib_terminal_string( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, (uint8_t *) "0x", 2 );
+				lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 16, 16, STD_ASCII_DIGIT_0 );
 
 				// next character from string
 				continue;

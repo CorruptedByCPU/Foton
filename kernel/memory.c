@@ -63,4 +63,4 @@ uintptr_t kernel_memory_alloc( uint64_t n ) {
 	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_MEMORY_mirror;
 }
 
-void kernel_memory_clean( uint64_t *address, uint64_t n ) { for( uint64_t i = 0; i < n << STD_SHIFT_512; i++ ) address[ i ] = EMPTY; }
+void kernel_memory_clean( uint64_t *address, uint64_t n ) { for( uint64_t i = INIT; i < n << STD_SHIFT_512; i++ ) address[ i ] = EMPTY; }

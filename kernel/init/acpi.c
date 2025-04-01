@@ -6,20 +6,15 @@ void kernel_init_acpi( void ) {
 	// RSDP or XSDP header properties
 	struct KERNEL_STRUCTURE_INIT_ACPI_RSDP_OR_XSDP_HEADER *rsdp_or_xsdp_header = (struct KERNEL_STRUCTURE_INIT_ACPI_RSDP_OR_XSDP_HEADER *) limine_rsdp_request.response -> address;
 
-	kernel_log( (uint8_t *) "*SDP address 0x%16X\n", rsdp_or_xsdp_header );
-
 	// amount of entries
 	uint64_t list_length = EMPTY;
 
 	// pointer to list depending on revision
-	uint32_t *list_rsdt_address = EMPTY;
-	uint64_t *list_xsdt_address = EMPTY;
+	uint32_t *rsdt_address = EMPTY;
+	uint64_t *xsdt_address = EMPTY;
 
 	// check revision number of header
 	if( rsdp_or_xsdp_header -> revision < 0x02 ) {
-		// debug
-		kernel_log( (uint8_t *) "RSDT (Root System Description Pointer).\n" );
-
 		// RSDT header properties
 		struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *rsdt = (struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *) ((uintptr_t) rsdp_or_xsdp_header -> rsdt_address);
 	
@@ -27,11 +22,8 @@ void kernel_init_acpi( void ) {
 		list_length = (rsdt -> length - sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT )) >> STD_SHIFT_4;
 
 		// pointer to list of RSDT entries
-		list_rsdt_address = (uint32_t *) ((uintptr_t) rsdp_or_xsdp_header -> rsdt_address + sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT ));
+		rsdt_address = (uint32_t *) ((uintptr_t) rsdp_or_xsdp_header -> rsdt_address + sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT ));
 	} else {
-		// debug
-		kernel_log( (uint8_t *) "XSDT (eXtended System Descriptor Table).\n" );
-
 		// XSDT header properties
 		struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *xsdt = (struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *) ((uintptr_t) rsdp_or_xsdp_header -> xsdt_address);
 
@@ -39,33 +31,30 @@ void kernel_init_acpi( void ) {
 		list_length = (xsdt -> length - sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT )) >> STD_SHIFT_8;
 
 		// pointer to list of XSDT entries
-		list_xsdt_address = (uint64_t *) ((uintptr_t) rsdp_or_xsdp_header -> xsdt_address + sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT ));
+		xsdt_address = (uint64_t *) ((uintptr_t) rsdp_or_xsdp_header -> xsdt_address + sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT ));
 	}
 
 	// do recon on all entries of list
-	for( uint64_t i = 0; i < list_length; i++ ) {
+	for( uint64_t i = INIT; i < list_length; i++ ) {
 		// SDT pointer address
 		uintptr_t sdt = EMPTY;
 
 		// get address of table from a given entry on list
 		if( rsdp_or_xsdp_header -> revision < 0x02 )
 			// with RSDT in case of ACPI 1.0
-			sdt = list_rsdt_address[ i ];
+			sdt = rsdt_address[ i ];
 		else
 			// or XSDT in case of ACPI 2.0+
-			sdt = list_xsdt_address[ i ];
+			sdt = xsdt_address[ i ];
 
 		// if entry contains an MADT signature (Multiple APIC Description Table)
 		struct KERNEL_STRUCTURE_INIT_ACPI_MADT *madt = (struct KERNEL_STRUCTURE_INIT_ACPI_MADT *) sdt;
 		if( madt -> signature == KERNEL_INIT_ACPI_MADT_signature ) {
 			// calculate checksum
-			uint8_t checksum = EMPTY; for( uint8_t x = EMPTY; x < madt -> length; x++ ) checksum += ((uint8_t *) madt)[ x ]; if( checksum ) continue;
+			uint8_t checksum = EMPTY; for( uint8_t x = EMPTY; x < sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_MADT ); x++ ) checksum += ((uint8_t *) madt)[ x ]; if( checksum ) continue;
 
 			// store APIC base address
 			kernel -> apic_base_address = (struct KERNEL_STRUCTURE_APIC *) (uintptr_t) (madt -> lapic_address | KERNEL_MEMORY_mirror);
-
-			// debug
-			kernel_log( (uint8_t *) "APIC base address 0x%X\n", (uint64_t) kernel -> apic_base_address );
 
 			// length of MADT list
 			uint64_t limit = (uint32_t) madt -> length - sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_MADT );
@@ -83,13 +72,9 @@ void kernel_init_acpi( void ) {
 				struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *io_apic = (struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *) list;
 				if( io_apic -> type == KERNEL_INIT_ACPI_APIC_TYPE_io_apic ) {
 					// I/O APIC supports interrupt vectors 0+?
-					if( io_apic -> gsib == EMPTY ) {
+					if( io_apic -> gsib == EMPTY )
 						// store base address of I/O APIC
 						kernel -> io_apic_base_address = (struct KERNEL_STRUCTURE_IO_APIC *) (uintptr_t) (io_apic -> base_address | KERNEL_MEMORY_mirror);
-
-						// debug
-						kernel_log( (uint8_t *) "I/O APIC base address 0x%X\n", (uint64_t) kernel -> io_apic_base_address );
-					}
 				}
 
 				// check next entry on list
@@ -98,7 +83,4 @@ void kernel_init_acpi( void ) {
 			}
 		}
 	}
-
-	// debug
-	kernel_log( (uint8_t *) "ACPI parsed.\n" );
 }

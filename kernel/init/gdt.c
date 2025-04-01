@@ -33,7 +33,4 @@ void kernel_init_gdt( void ) {
 
 	// initialize stack pointer inside TSS table
 	kernel -> tss.rsp0 = KERNEL_STACK_pointer;
-
-	// debug
-	kernel_log( (uint8_t *) "GDT ready.\n" );
 }

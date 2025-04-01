@@ -89,15 +89,15 @@ uint8_t kernel_page_alloc( uint64_t *pml4, uintptr_t target, uint64_t n, uint16_
 				}
 
 				// first entry of PML1 array
-				p1 = 0;
+				p1 = INIT;
 			}
 
 			// first entry of PML2 array
-			p2 = 0;
+			p2 = INIT;
 		}
 
 		// first entry of PML3 array
-		p3 = 0;
+		p3 = INIT;
 	}
 
 	// invalid area target
@@ -178,15 +178,15 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 				}
 
 				// first record of PML1 array
-				p1 = 0;
+				p1 = INIT;
 			}
 
 			// first record of PML2 array
-			p2 = 0;
+			p2 = INIT;
 		}
 
 		// first record of PML3 array
-		p3 = 0;
+		p3 = INIT;
 	}
 
 	// invalid address area mapping

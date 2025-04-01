@@ -4,10 +4,10 @@
 
 void kernel_init_env( void ) {
 	// look for address of the largest chunk of physical memory (RAM)
-	uint64_t limit = 0;
+	uint64_t limit = INIT;
 
 	// search through all memory map entries provided by Limine Bootloader
-	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
+	for( uint64_t i = INIT; i < limine_memmap_request.response -> entry_count; i++ ) {
 		// unUSABLE memory?
 		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE ) continue;	// yes
 
@@ -42,4 +42,7 @@ void kernel_init_env( void ) {
 	kernel -> terminal.color_foreground	= lib_color( 252 );	// not white
 	kernel -> terminal.color_background	= lib_color( 232 );	// not black
 	lib_terminal( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal );
+
+	// disable cursor
+	lib_terminal_cursor_disable( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal );
 }

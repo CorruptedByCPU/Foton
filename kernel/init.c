@@ -22,6 +22,7 @@
 	// variables, structures, definitions of Kernel
 	//----------------------------------------------------------------------
 	#include	"gdt.h"
+	#include	"idt.h"
 	#include	"tss.h"
 	#include	"apic.h"
 	#include	"config.h"
@@ -38,6 +39,8 @@
 	//----------------------------------------------------------------------
 	// kernel routines, procedures
 	//----------------------------------------------------------------------
+	#include	"apic.c"
+	#include	"idt.c"
 	#include	"log.c"
 	#include	"memory.c"
 	#include	"page.c"
@@ -55,6 +58,7 @@
 	#include	"init/acpi.c"
 	#include	"init/env.c"
 	#include	"init/gdt.c"
+	#include	"init/idt.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
 	//======================================================================
@@ -76,14 +80,15 @@ void _entry( void ) {
 	kernel_init_page();
 
 	// reload new kernel environment paging array
-	kernel_log( (uint8_t *) "\rNew CR3 and RSP," );
-	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_MEMORY_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) ); kernel_log( (uint8_t *) " set.\n" );
+	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_MEMORY_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) );
 
 	// create Global Descriptor Table
 	kernel_init_gdt();
 
 	// create Interrupt Descriptor Table
-	// kernel_init_idt();
+	kernel_init_idt();
+
+	// ESSENTIAL -----------------------------------------------------------
 
 	// debug
 	uint64_t offset_x = EMPTY;
