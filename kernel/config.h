@@ -25,6 +25,10 @@ struct KERNEL {
 	uint32_t	framebuffer_pitch_byte;
 	int64_t		framebuffer_pid;
 
+	struct KERNEL_STRUCTURE_GDT_HEADER	gdt_header;
+
+	// struct KERNEL_STRUCTURE_IDT_HEADER	idt_header;
+
 	volatile struct KERNEL_STRUCTURE_IO_APIC	*io_apic_base_address;
 
 	uint32_t	*memory_base_address;
@@ -35,4 +39,6 @@ struct KERNEL {
 	uint64_t	page_total;
 
 	struct LIB_TERMINAL_STRUCTURE	terminal;
+
+	struct KERNEL_STRUCTURE_TSS	tss;
 };

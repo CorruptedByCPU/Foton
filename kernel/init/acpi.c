@@ -16,7 +16,7 @@ void kernel_init_acpi( void ) {
 	uint64_t *list_xsdt_address = EMPTY;
 
 	// check revision number of header
-	if( rsdp_or_xsdp_header -> revision == EMPTY ) {
+	if( rsdp_or_xsdp_header -> revision < 0x02 ) {
 		// debug
 		kernel_log( (uint8_t *) "RSDT (Root System Description Pointer).\n" );
 
@@ -48,7 +48,7 @@ void kernel_init_acpi( void ) {
 		uintptr_t sdt = EMPTY;
 
 		// get address of table from a given entry on list
-		if( rsdp_or_xsdp_header -> revision == EMPTY )
+		if( rsdp_or_xsdp_header -> revision < 0x02 )
 			// with RSDT in case of ACPI 1.0
 			sdt = list_rsdt_address[ i ];
 		else
@@ -58,6 +58,9 @@ void kernel_init_acpi( void ) {
 		// if entry contains an MADT signature (Multiple APIC Description Table)
 		struct KERNEL_STRUCTURE_INIT_ACPI_MADT *madt = (struct KERNEL_STRUCTURE_INIT_ACPI_MADT *) sdt;
 		if( madt -> signature == KERNEL_INIT_ACPI_MADT_signature ) {
+			// calculate checksum
+			uint8_t checksum = EMPTY; for( uint8_t x = EMPTY; x < madt -> length; x++ ) checksum += ((uint8_t *) madt)[ x ]; if( checksum ) continue;
+
 			// store APIC base address
 			kernel -> apic_base_address = (struct KERNEL_STRUCTURE_APIC *) (uintptr_t) (madt -> lapic_address | KERNEL_MEMORY_mirror);
 
@@ -93,9 +96,6 @@ void kernel_init_acpi( void ) {
 				list += sdt_length;
 				limit -= sdt_length;
 			}
-
-			// nothing more to do
-			break;
 		}
 	}
 

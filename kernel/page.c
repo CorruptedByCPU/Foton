@@ -2,6 +2,16 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+uintptr_t kernel_page_address( uint64_t *pml4, uintptr_t source ) {
+	// locate page table pointers
+	uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ (source >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PMLx_entry - 1) ] ) | KERNEL_MEMORY_mirror);
+	uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ (source >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PMLx_entry - 1) ] ) | KERNEL_MEMORY_mirror);
+	uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ (source >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PMLx_entry - 1) ] ) | KERNEL_MEMORY_mirror);
+
+	// return address of physical page connected to area
+	return MACRO_PAGE_ALIGN_DOWN( pml1[ (source >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PMLx_entry - 1) ] );
+}
+
 uint8_t kernel_page_alloc( uint64_t *pml4, uintptr_t target, uint64_t n, uint16_t flags ) {
 	// start with following array[ entries ]
 	uint16_t p1 = (target >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PMLx_entry - 1);

@@ -21,6 +21,8 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of Kernel
 	//----------------------------------------------------------------------
+	#include	"gdt.h"
+	#include	"tss.h"
 	#include	"apic.h"
 	#include	"config.h"
 	#include	"memory.h"
@@ -52,6 +54,7 @@
 	//----------------------------------------------------------------------
 	#include	"init/acpi.c"
 	#include	"init/env.c"
+	#include	"init/gdt.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
 	//======================================================================
@@ -74,8 +77,18 @@ void _entry( void ) {
 
 	// reload new kernel environment paging array
 	kernel_log( (uint8_t *) "\rNew CR3 and RSP," );
-	MACRO_DEBUF();
 	__asm__ volatile( "movq %0, %%cr3\nmovq %1, %%rsp" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_MEMORY_mirror), "r" ((uintptr_t) KERNEL_STACK_pointer) ); kernel_log( (uint8_t *) " set.\n" );
+
+	// create Global Descriptor Table
+	kernel_init_gdt();
+
+	// create Interrupt Descriptor Table
+	// kernel_init_idt();
+
+	// debug
+	uint64_t offset_x = EMPTY;
+	for( uint64_t y = (limine_framebuffer_request.response -> framebuffers[ 0 ] -> height >> STD_SHIFT_2) - 16; y < (limine_framebuffer_request.response -> framebuffers[ 0 ] -> height >> STD_SHIFT_2) + 16; y++ ) { for( uint64_t x = (limine_framebuffer_request.response -> framebuffers[ 0 ] -> width >> STD_SHIFT_2) - 16; x < (limine_framebuffer_request.response -> framebuffers[ 0 ] -> width >> STD_SHIFT_2) + 16; x++ ) { kernel -> framebuffer_base_address[ (y * limine_framebuffer_request.response -> framebuffers[ 0 ] -> width) + x + offset_x ] = 0x0000FF00; } offset_x++; }
+	for( uint64_t y = (limine_framebuffer_request.response -> framebuffers[ 0 ] -> height >> STD_SHIFT_2) + 16; y > (limine_framebuffer_request.response -> framebuffers[ 0 ] -> height >> STD_SHIFT_2) - 64; y-- ) { for( uint64_t x = (limine_framebuffer_request.response -> framebuffers[ 0 ] -> width >> STD_SHIFT_2) - 16; x < (limine_framebuffer_request.response -> framebuffers[ 0 ] -> width >> STD_SHIFT_2) + 16; x++ ) { kernel -> framebuffer_base_address[ (y * limine_framebuffer_request.response -> framebuffers[ 0 ] -> width) + x + offset_x ] = 0x0000FF00; } offset_x += (y % 2); }
 
 	// hodor, that should not happen!
 	while( TRUE );
