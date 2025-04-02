@@ -17,7 +17,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t n, uint64_t p, uint64
 		// check for N (c)onsecutive pages
 		for( uint64_t c = p; c < (p + n); c++ ) {
 			// continous?
-			if( memory[ c >> STD_SHIFT_32 ] & 1 << (c & 0b00011111) ) continue;
+			if( memory[ c >> STD_SHIFT_32 ] & 1 << (c & STD_BIT_CONTROL_DWORD_bit) ) continue;
 
 			// one of the bits is disabled
 			found = FALSE;
@@ -30,7 +30,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t n, uint64_t p, uint64
 		if( ! found ) continue;	// nope
 
 		// mark pages as (r)eserved
-		for( uint64_t r = p; r < (p + n); r++ ) memory[ r >> STD_SHIFT_32 ] &= ~(1 << (r & 0b00011111) );
+		for( uint64_t r = p; r < (p + n); r++ ) memory[ r >> STD_SHIFT_32 ] &= ~(1 << (r & STD_BIT_CONTROL_DWORD_bit) );
 
 		// unlock access to binary memory map
 		MACRO_UNLOCK( *lock );

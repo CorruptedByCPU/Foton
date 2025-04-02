@@ -50,9 +50,6 @@ void kernel_init_acpi( void ) {
 		// if entry contains an MADT signature (Multiple APIC Description Table)
 		struct KERNEL_STRUCTURE_INIT_ACPI_MADT *madt = (struct KERNEL_STRUCTURE_INIT_ACPI_MADT *) sdt;
 		if( madt -> signature == KERNEL_INIT_ACPI_MADT_signature ) {
-			// calculate checksum
-			uint8_t checksum = EMPTY; for( uint8_t x = EMPTY; x < sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_MADT ); x++ ) checksum += ((uint8_t *) madt)[ x ]; if( checksum ) continue;
-
 			// store APIC base address
 			kernel -> apic_base_address = (struct KERNEL_STRUCTURE_APIC *) (uintptr_t) (madt -> lapic_address | KERNEL_MEMORY_mirror);
 

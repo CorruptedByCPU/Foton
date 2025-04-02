@@ -30,13 +30,13 @@ void kernel_init_memory( void ) {
 		// mark bits inside binary memory map by chunks (64 bit wide)
 
 		// prefix
-		if( base & 0b00011111 ) {
+		if( base & STD_BIT_CONTROL_DWORD_bit ) {
 			// amount of bits to the end of chunk
-			uint64_t prefix = STD_SIZE_DWORD_bit - (base & 0b00011111);
+			uint64_t prefix = STD_SIZE_DWORD_bit - (base & STD_BIT_CONTROL_DWORD_bit);
 
 			// if amount og bits larger than limit
 			if( limit < prefix ) prefix = limit;	// do only limit
-			for( uint64_t k = base; k < base + prefix; k++ ) kernel -> memory_base_address[ k >> STD_SHIFT_32 ] |= 1 << (k & 0b00011111);
+			for( uint64_t k = base; k < base + prefix; k++ ) kernel -> memory_base_address[ k >> STD_SHIFT_32 ] |= 1 << (k & STD_BIT_CONTROL_DWORD_bit);
 
 			// no more bits of this limit?
 			if( limit == prefix ) continue;	// yes
@@ -47,7 +47,7 @@ void kernel_init_memory( void ) {
 		}
 
 		// amount of full chunks
-		uint64_t chunks = limit & (uint64_t) ~0b00011111;
+		uint64_t chunks = limit & (uint64_t) ~STD_BIT_CONTROL_DWORD_bit;
 
 		// register them?
 		if( chunks ) {
@@ -62,7 +62,7 @@ void kernel_init_memory( void ) {
 		// suffix
 
 		// there are some bits left?
-		if( limit ) for( uint64_t k = base; k < base + limit; k++ ) kernel -> memory_base_address[ k >> STD_SHIFT_32 ] |= 1 << (k & 0b00011111);	// yes
+		if( limit ) for( uint64_t k = base; k < base + limit; k++ ) kernel -> memory_base_address[ k >> STD_SHIFT_32 ] |= 1 << (k & STD_BIT_CONTROL_DWORD_bit);	// yes
 
 		// added memory area to available memory
 		kernel -> page_available += limine_memmap_request.response -> entries[ i ] -> length >> STD_SHIFT_PAGE;
@@ -74,7 +74,7 @@ void kernel_init_memory( void ) {
 	// mark pages used by kernel environment global variables/functions/rountines and binary memory map itself as unavailable
 	for( uint64_t i = ((uint64_t) kernel & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE; i < (((uintptr_t) kernel -> memory_base_address + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + 1 )) & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE; i++ ) {
 		// set as unavailable
-		kernel -> memory_base_address[ i >> STD_SHIFT_32 ] &= ~(1 << (i & 0b00011111));
+		kernel -> memory_base_address[ i >> STD_SHIFT_32 ] &= ~(1 << (i & STD_BIT_CONTROL_DWORD_bit));
 
 		// available pages removed
 		kernel -> page_available--;

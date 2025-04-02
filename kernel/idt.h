@@ -94,4 +94,7 @@
 
 	// external routine (assembly language)
 	extern void kernel_idt_spurious_interrupt( void );
+
+	// connect IRQ [type] to function
+	void kernel_idt_attach( uint8_t irq, uint16_t type, uintptr_t address );
 #endif

@@ -38,9 +38,22 @@ struct KERNEL {
 	uint64_t					page_limit;
 	uint64_t					page_total;
 
+	struct KERNEL_STRUCTURE_STORAGE			*storage_base_address;
+	uint64_t					storage_limit;
+
+	struct KERNEL_STRUCTURE_TASK			**task_ap_address;
+	struct KERNEL_STRUCTURE_TASK			*task_base_address;
+	uint64_t					task_limit;
+
 	struct LIB_TERMINAL_STRUCTURE			terminal;
 
+	uint32_t					time_hz;
+	uint64_t					time_units;
+
 	struct KERNEL_STRUCTURE_TSS			tss;
+
+	struct KERNEL_STRUCTURE_VFS			*vfs_base_address;
+	uint64_t					vfs_limit;
 };
 
 void kernel_log( uint8_t *string, ... );

@@ -13,7 +13,7 @@ if [ -z "${OPT}" ]; then OPT="3 -ffast-math"; fi
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 CC="clang"
-C="${CC} -std=c99 -include ./library/std.h" # -g -pedantic-errors 
+C="${CC} -std=c99 -include ./library/std.h -pedantic-errors" # -g 
 LD="ld.lld"
 ASM="nasm"
 ISO="xorriso"
@@ -51,10 +51,10 @@ cp -rf root build
 
 # build subroutines required by kernel
 EXT=""
+${ASM} -f elf64 kernel/driver/rtc.asm	-o build/rtc.o		|| exit 1; EXT="${EXT} build/rtc.o"
 ${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o		|| exit 1; EXT="${EXT} build/gdt.o"
 ${ASM} -f elf64 kernel/idt.asm		-o build/idt.o		|| exit 1; EXT="${EXT} build/idt.o"
-# ${ASM} -f elf64 kernel/task.asm		-o build/task.o		|| exit 1; EXT="${EXT} build/task.o"
-# ${ASM} -f elf64 kernel/driver/rtc.asm	-o build/rtc.o		|| exit 1; EXT="${EXT} build/rtc.o"
+${ASM} -f elf64 kernel/task.asm		-o build/task.o		|| exit 1; EXT="${EXT} build/task.o"
 # ${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o	|| exit 1; EXT="${EXT} build/syscall.o"
 
 # default configuration of clang for kernel making

@@ -3,6 +3,12 @@
 ===============================================================================*/
 
 	//----------------------------------------------------------------------
+	// variables, structures, definitions of Limine Bootloader
+	//----------------------------------------------------------------------
+	#include	"../limine/limine.h"
+	//======================================================================
+
+	//----------------------------------------------------------------------
 	// Build-in libraries
 	//----------------------------------------------------------------------
 	#include	"../library/color.c"
@@ -13,21 +19,27 @@
 	//======================================================================
 
 	//----------------------------------------------------------------------
-	// variables, structures, definitions of Limine Bootloader
+	// Build-in driver variables, structures, definitions
 	//----------------------------------------------------------------------
-	#include	"../limine/limine.h"
+	#include	"driver/port.h"
+	#include	"driver/rtc.h"
 	//======================================================================
 
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of Kernel
 	//----------------------------------------------------------------------
+	#include	"apic.h"
 	#include	"gdt.h"
 	#include	"idt.h"
-	#include	"tss.h"
-	#include	"apic.h"
-	#include	"config.h"
+	#include	"io_apic.h"
 	#include	"memory.h"
 	#include	"page.h"
+	#include	"storage.h"
+	#include	"task.h"
+	#include	"tss.h"
+	#include	"vfs.h"
+	// --- always at end
+	#include	"config.h"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -37,17 +49,26 @@
 	//======================================================================
 
 	//----------------------------------------------------------------------
+	// Build-in drivers
+	//----------------------------------------------------------------------
+	#include	"driver/port.c"
+	#include	"driver/rtc.c"
+	//======================================================================
+
+	//----------------------------------------------------------------------
 	// kernel routines, procedures
 	//----------------------------------------------------------------------
 	#include	"apic.c"
 	#include	"idt.c"
+	#include	"io_apic.c"
 	#include	"log.c"
 	#include	"memory.c"
 	#include	"page.c"
+	#include	"task.c"
 	//======================================================================
 
 	//----------------------------------------------------------------------
-	// variables, structures, definitions of Kernel initialization
+	// variables, structures, definitions of Kernel initialization routines
 	//----------------------------------------------------------------------
 	#include	"init/acpi.h"
 	//======================================================================
@@ -61,6 +82,9 @@
 	#include	"init/idt.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
+	#include	"init/storage.c"
+	#include	"init/task.c"
+	#include	"init/vfs.c"
 	//======================================================================
 
 // start of kernel initialization
@@ -90,11 +114,24 @@ void _entry( void ) {
 
 	// ESSENTIAL -----------------------------------------------------------
 
-	// debug
-	uint64_t offset_x = EMPTY;
-	for( uint64_t y = (limine_framebuffer_request.response -> framebuffers[ 0 ] -> height >> STD_SHIFT_2) - 16; y < (limine_framebuffer_request.response -> framebuffers[ 0 ] -> height >> STD_SHIFT_2) + 16; y++ ) { for( uint64_t x = (limine_framebuffer_request.response -> framebuffers[ 0 ] -> width >> STD_SHIFT_2) - 16; x < (limine_framebuffer_request.response -> framebuffers[ 0 ] -> width >> STD_SHIFT_2) + 16; x++ ) { kernel -> framebuffer_base_address[ (y * limine_framebuffer_request.response -> framebuffers[ 0 ] -> width) + x + offset_x ] = 0x0000FF00; } offset_x++; }
-	for( uint64_t y = (limine_framebuffer_request.response -> framebuffers[ 0 ] -> height >> STD_SHIFT_2) + 16; y > (limine_framebuffer_request.response -> framebuffers[ 0 ] -> height >> STD_SHIFT_2) - 64; y-- ) { for( uint64_t x = (limine_framebuffer_request.response -> framebuffers[ 0 ] -> width >> STD_SHIFT_2) - 16; x < (limine_framebuffer_request.response -> framebuffers[ 0 ] -> width >> STD_SHIFT_2) + 16; x++ ) { kernel -> framebuffer_base_address[ (y * limine_framebuffer_request.response -> framebuffers[ 0 ] -> width) + x + offset_x ] = 0x0000FF00; } offset_x += (y % 2); }
+	// configure RTC as our only source of passing time, for now
+	driver_rtc_init();
 
-	// hodor, that should not happen!
-	while( TRUE );
+	// assign area for streams
+	// kernel -> stream_base_address = (struct KERNEL_STRUCTURE_STREAM *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_STREAM_limit * sizeof( struct KERNEL_STRUCTURE_STREAM ) ) >> STD_SHIFT_PAGE );
+
+	// create Task queue
+	kernel_init_task();
+
+	// create storage container
+	kernel_init_storage();
+
+	// initialize VFS directory
+	kernel_init_vfs();
+
+	//----------------------------------------------------------------------
+
+	// debug
+	__asm__ volatile( "sti" );
+	while( TRUE ) kernel_log( (uint8_t *) "\rkernel -> time_units: %u/%u Hz (Uptime: %u second/s)", kernel -> time_units, kernel -> time_hz, kernel -> time_units / kernel -> time_hz );
 }

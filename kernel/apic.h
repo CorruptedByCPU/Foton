@@ -48,4 +48,10 @@
 		uint8_t		reserved_B[ 76 ];
 		uint32_t	tdc;	// 0x03E0	Timer - Divide Configuration
 	} __attribute__( (packed) );
+
+	// accept IRQ interrupt
+	void kernel_apic_accept( void );
+
+	// current BP/A id
+	uint8_t kernel_apic_id( void );
 #endif

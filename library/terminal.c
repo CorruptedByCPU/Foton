@@ -404,7 +404,7 @@ void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value
 
 	// space for value decoding
 	uint8_t i = INIT;
-	uint8_t string[ 64 ] = { [0 ... 63] = character };	// 8 byte value
+	uint8_t string[ 64 ]; for( uint8_t k = INIT; k < 64; k++ ) string[ k ] = character;
 
 	// convert value to individual digits
 	while( value ) {

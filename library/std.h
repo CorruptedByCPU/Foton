@@ -93,6 +93,8 @@
 	#define	STD_ASCII_TILDE					0x7E
 	#define	STD_ASCII_DELETE				0x7F
 
+	#define	STD_BIT_CONTROL_DWORD_bit			31	// or 0b00011111
+
 	#define	STD_COLOR_mask					0xFF000000
 	#define	STD_COLOR_BLACK					0xFF000000
 	#define	STD_COLOR_DARK					0xFF272727
@@ -123,11 +125,11 @@
 	#define	STD_ERROR_locked				-9
 	#define	STD_ERROR_unavailable				-10
 
-	#define	STD_FILE_TYPE_file				0b00000001
-	#define	STD_FILE_TYPE_directory				0b00000010
-	#define	STD_FILE_TYPE_link				0b00000100
+	#define	STD_FILE_TYPE_file				0x01
+	#define	STD_FILE_TYPE_directory				0x02
+	#define	STD_FILE_TYPE_link				0x04
 
-	#define	STD_FILE_MODE_modify				0b00000001
+	#define	STD_FILE_MODE_modify				0x01
 
 	#define	STD_FILE_NAME_limit				LIB_VFS_NAME_limit
 
@@ -405,14 +407,14 @@
 		int64_t		pid;
 	};
 
-	#define	STD_TASK_FLAG_active				0b0000000000000001
-	#define	STD_TASK_FLAG_exec				0b0000000000000010
-	#define	STD_TASK_FLAG_close				0b0000000000000100
-	#define	STD_TASK_FLAG_module				0b0000000000001000
-	#define	STD_TASK_FLAG_thread				0b0000000000010000
-	#define	STD_TASK_FLAG_sleep				0b0000000000100000
-	#define	STD_TASK_FLAG_init				0b0100000000000000
-	#define	STD_TASK_FLAG_secured				0b1000000000000000
+	#define	STD_TASK_FLAG_active				0x0001	// 0b0000000000000001
+	#define	STD_TASK_FLAG_exec				0x0002	// 0b0000000000000010
+	#define	STD_TASK_FLAG_close				0x0004	// 0b0000000000000100
+	#define	STD_TASK_FLAG_module				0x0008	// 0b0000000000001000
+	#define	STD_TASK_FLAG_thread				0x0010	// 0b0000000000010000
+	#define	STD_TASK_FLAG_sleep				0x0020	// 0b0000000000100000
+	#define	STD_TASK_FLAG_init				0x4000	// 0b0100000000000000
+	#define	STD_TASK_FLAG_secured				0x8000	// 0b1000000000000000
 
 	struct STD_STRUCTURE_SYSCALL_TASK {
 		int64_t		pid;
