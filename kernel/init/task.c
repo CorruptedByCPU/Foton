@@ -16,17 +16,32 @@ void kernel_init_task( void ) {
 	// thats the purpose of kernel entry :)
 	//----------------------------------------------------------------------
 
+	// id of BS Processor
+	uint8_t bsp = kernel_apic_id();
+
 	// mark first entry of task queue as secured (in use)
-	kernel -> task_base_address -> flags = STD_TASK_FLAG_secured;
+	kernel -> task_base_address[ bsp ].flags = STD_TASK_FLAG_secured;
 
 	// prepare area for APs
-	kernel -> task_ap_address = (struct KERNEL_STRUCTURE_TASK **) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( limine_smp_request.response -> cpu_count << STD_SHIFT_PTR ) >> STD_SHIFT_PAGE );
+	kernel -> task_ap_address = (uint64_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( limine_smp_request.response -> cpu_count << STD_SHIFT_PTR ) >> STD_SHIFT_PAGE );
 
 	// each CPU needs to know which task he was currently executing
 	// that information is stored on AP list
 
 	// BS CPU is currently executing Kernel initialization routines
-	kernel -> task_ap_address[ kernel_apic_id() ] = INIT;
+	kernel -> task_ap_address[ bsp ] = INIT;
+
+	//----------------------------------------------------------------------
+	// every child will inherit this parameters:
+	//----------------------------------------------------------------------
+
+	// storage id and directory knot
+	kernel -> task_base_address[ kernel -> task_ap_address[ bsp ] ].storage = INIT;
+
+	// root directory of that storage
+	kernel -> task_base_address[ kernel -> task_ap_address[ bsp ] ].directory = kernel -> storage_base_address[ kernel -> task_base_address[ kernel -> task_ap_address[ bsp ] ].storage ].block;
+
+	//----------------------------------------------------------------------
 
 	// attach task switch routine to APIC timer - interrupt handler
 	kernel_idt_attach( KERNEL_IDT_IRQ_offset, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) kernel_task );

@@ -39,7 +39,7 @@ void kernel_init_env( void ) {
 	kernel -> terminal.base_address		= kernel -> framebuffer_base_address;
 	kernel -> terminal.scanline_pixel	= kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift;
 	kernel -> terminal.alpha		= EMPTY;
-	kernel -> terminal.color_foreground	= lib_color( 252 );	// not white
+	kernel -> terminal.color_foreground	= lib_color( 47 );	// not white
 	kernel -> terminal.color_background	= lib_color( 232 );	// not black
 	lib_terminal( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal );
 

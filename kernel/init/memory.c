@@ -72,7 +72,7 @@ void kernel_init_memory( void ) {
 	if( kernel -> page_limit % STD_SIZE_BYTE_bit ) kernel -> page_limit += (uint8_t) STD_SIZE_BYTE_bit - (kernel -> page_limit % STD_SIZE_BYTE_bit);
 
 	// mark pages used by kernel environment global variables/functions/rountines and binary memory map itself as unavailable
-	for( uint64_t i = ((uint64_t) kernel & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE; i < (((uintptr_t) kernel -> memory_base_address + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + 1 )) & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE; i++ ) {
+	for( uint64_t i = ((uint64_t) kernel & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE; i < (((uintptr_t) kernel -> memory_base_address + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE )) & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE; i++ ) {
 		// set as unavailable
 		kernel -> memory_base_address[ i >> STD_SHIFT_32 ] &= ~(1 << (i & STD_BIT_CONTROL_DWORD_bit));
 

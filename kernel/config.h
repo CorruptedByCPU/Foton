@@ -31,6 +31,10 @@ struct KERNEL {
 
 	volatile struct KERNEL_STRUCTURE_IO_APIC	*io_apic_base_address;
 
+	struct KERNEL_STRUCTURE_LIBRARY			*library_base_address;
+	uint64_t					library_limit;
+	uint32_t					*library_memory_address;
+
 	uint32_t					*memory_base_address;
 
 	uint64_t					*page_base_address;
@@ -40,8 +44,9 @@ struct KERNEL {
 
 	struct KERNEL_STRUCTURE_STORAGE			*storage_base_address;
 	uint64_t					storage_limit;
+	uint8_t						storage_lock;
 
-	struct KERNEL_STRUCTURE_TASK			**task_ap_address;
+	uint64_t					*task_ap_address;
 	struct KERNEL_STRUCTURE_TASK			*task_base_address;
 	uint64_t					task_limit;
 
@@ -52,8 +57,9 @@ struct KERNEL {
 
 	struct KERNEL_STRUCTURE_TSS			tss;
 
-	struct KERNEL_STRUCTURE_VFS			*vfs_base_address;
+	struct KERNEL_STRUCTURE_VFS_SOCKET		*vfs_base_address;
 	uint64_t					vfs_limit;
+	uint8_t						vfs_lock;
 };
 
 void kernel_log( uint8_t *string, ... );

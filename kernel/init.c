@@ -32,6 +32,7 @@
 	#include	"gdt.h"
 	#include	"idt.h"
 	#include	"io_apic.h"
+	#include	"library.h"
 	#include	"memory.h"
 	#include	"page.h"
 	#include	"storage.h"
@@ -61,10 +62,13 @@
 	#include	"apic.c"
 	#include	"idt.c"
 	#include	"io_apic.c"
+	// #include	"library.c"
 	#include	"log.c"
 	#include	"memory.c"
 	#include	"page.c"
+	#include	"storage.c"
 	#include	"task.c"
+	#include	"vfs.c"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -78,8 +82,10 @@
 	//----------------------------------------------------------------------
 	#include	"init/acpi.c"
 	#include	"init/env.c"
+	#include	"init/exec.c"
 	#include	"init/gdt.c"
 	#include	"init/idt.c"
+	#include	"init/library.c"
 	#include	"init/memory.c"
 	#include	"init/page.c"
 	#include	"init/storage.c"
@@ -120,14 +126,20 @@ void _entry( void ) {
 	// assign area for streams
 	// kernel -> stream_base_address = (struct KERNEL_STRUCTURE_STREAM *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_STREAM_limit * sizeof( struct KERNEL_STRUCTURE_STREAM ) ) >> STD_SHIFT_PAGE );
 
-	// create Task queue
-	kernel_init_task();
-
 	// create storage container
 	kernel_init_storage();
 
 	// initialize VFS directory
 	kernel_init_vfs();
+
+	// create Task queue
+	kernel_init_task();
+
+	// prepare library management area
+	kernel_init_library();
+
+	// execute initial software
+	kernel_init_exec();
 
 	//----------------------------------------------------------------------
 

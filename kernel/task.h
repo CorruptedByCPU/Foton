@@ -31,6 +31,8 @@
 		volatile uint16_t		flags;
 		uint8_t				name_length;
 		uint8_t				*name;
+		uint64_t			storage;
+		uint64_t			directory;
 	};
 
 	// external routine (assembly language)
