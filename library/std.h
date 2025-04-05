@@ -134,11 +134,11 @@
 	#define	STD_FILE_NAME_limit				LIB_VFS_NAME_limit
 
 	struct	STD_STRUCTURE_FILE {
-		int64_t		socket;
+		uint64_t	socket;
 		uint64_t	byte;
 		uint64_t	seek;
-		uint16_t	name_length;
-		uint8_t		name[ STD_FILE_NAME_limit ];
+		uint8_t		name_limit;
+		uint8_t		name[ STD_FILE_NAME_limit + 1 ];
 	};
 
 	#define	STD_IPC_SIZE_byte				40

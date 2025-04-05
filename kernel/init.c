@@ -29,6 +29,7 @@
 	// variables, structures, definitions of Kernel
 	//----------------------------------------------------------------------
 	#include	"apic.h"
+	#include	"exec.h"
 	#include	"gdt.h"
 	#include	"idt.h"
 	#include	"io_apic.h"
@@ -36,6 +37,7 @@
 	#include	"memory.h"
 	#include	"page.h"
 	#include	"storage.h"
+	#include	"syscall.h"
 	#include	"task.h"
 	#include	"tss.h"
 	#include	"vfs.h"
@@ -60,6 +62,7 @@
 	// kernel routines, procedures
 	//----------------------------------------------------------------------
 	#include	"apic.c"
+	#include	"exec.c"
 	#include	"idt.c"
 	#include	"io_apic.c"
 	// #include	"library.c"
@@ -67,6 +70,7 @@
 	#include	"memory.c"
 	#include	"page.c"
 	#include	"storage.c"
+	#include	"syscall.c"
 	#include	"task.c"
 	#include	"vfs.c"
 	//======================================================================

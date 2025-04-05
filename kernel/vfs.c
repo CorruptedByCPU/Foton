@@ -19,7 +19,32 @@ uintptr_t kernel_vfs_block_by_id( struct LIB_VFS_STRUCTURE *vfs, uint64_t b ) {
 	return EMPTY;
 }
 
-struct KERNEL_STRUCTURE_VFS_SOCKET *kernel_vfs_socket( uint64_t knot ) {
+struct KERNEL_STRUCTURE_VFS_FILE kernel_vfs_file( struct KERNEL_STRUCTURE_STORAGE *storage, uintptr_t directory, uint8_t *name, uint64_t limit ) {
+	// properties of directory
+	struct LIB_VFS_STRUCTURE *dir = (struct LIB_VFS_STRUCTURE *) directory;
+
+	// for each data block of directory
+	for( uint64_t b = INIT; b < (dir -> limit >> STD_SHIFT_PAGE); b++ ) {
+		// properties of directory entry
+		struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( dir, b );
+
+		// for every possible entry
+		for( uint8_t e = INIT; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
+			// if found
+			if( vfs[ e ].name_limit == limit && lib_string_compare( (uint8_t *) vfs[ e ].name, name, limit ) )
+				// done
+				return (struct KERNEL_STRUCTURE_VFS_FILE) { vfs[ e ].type, vfs[ e ].limit, (uintptr_t) &vfs[ e ] };
+	}
+
+	// debug
+	return (struct KERNEL_STRUCTURE_VFS_FILE) { EMPTY };
+}
+
+void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS_SOCKET *socket, uint8_t *target, uint64_t seek, uint64_t limit ) {
+
+}
+
+struct KERNEL_STRUCTURE_VFS_SOCKET *kernel_vfs_socket( uint64_t pid ) {
 	// exclusive access
 	MACRO_LOCK( kernel -> vfs_lock );
 
@@ -29,12 +54,12 @@ struct KERNEL_STRUCTURE_VFS_SOCKET *kernel_vfs_socket( uint64_t knot ) {
 	// search thru all sockets
 	for( uint64_t i = INIT; i < kernel -> vfs_limit; i++ )
 		// available for use?
-		if( kernel -> vfs_base_address[ i ].knot ) {
+		if( ! kernel -> vfs_base_address[ i ].pid ) {
 			// yes
 			socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ i ];
 
 			// reserved by
-			socket -> pid = knot;
+			socket -> pid = pid;
 
 			// done
 			break;
@@ -45,4 +70,9 @@ struct KERNEL_STRUCTURE_VFS_SOCKET *kernel_vfs_socket( uint64_t knot ) {
 
 	// socket
 	return socket;
+}
+
+void kernel_vfs_socket_delete( struct KERNEL_STRUCTURE_VFS_SOCKET *socket ) {
+	// close connection to file
+	socket -> pid = EMPTY;
 }

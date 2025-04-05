@@ -12,4 +12,5 @@
 
 	uintptr_t kernel_memory_alloc( uint64_t n );
 	void kernel_memory_clean( uint64_t *address, uint64_t n );
+	void kernel_memory_release( uintptr_t address, uint64_t n );
 #endif

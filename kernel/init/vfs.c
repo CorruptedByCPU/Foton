@@ -169,6 +169,11 @@ void kernel_init_vfs( void ) {
 	kernel -> vfs_limit = KERNEL_VFS_limit;
 	kernel -> vfs_base_address = (struct KERNEL_STRUCTURE_VFS_SOCKET *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( kernel -> vfs_limit * sizeof( struct KERNEL_STRUCTURE_VFS_SOCKET ) ) >> STD_SHIFT_PAGE );
 
+	// create list of sharable file management functions
+	kernel -> vfs = (struct KERNEL_STRUCTURE_VFS *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct KERNEL_STRUCTURE_VFS ) ) >> STD_SHIFT_PAGE );
+	kernel -> vfs -> file			= kernel_vfs_file;
+	kernel -> vfs -> file_read		= kernel_vfs_file_read;
+
 	// detect modules with Virtual File System (like initramfs from GNU/Linux)
 	for( uint64_t i = INIT; i < limine_module_request.response -> module_count; i++ ) {
 		// VFS module type?
@@ -197,6 +202,9 @@ void kernel_init_vfs( void ) {
 			continue;
 		}
 
+		// update list of sharable file management functions/variables
+		kernel -> vfs -> root = (uint64_t) vfs;	// root directory id
+
 		//--------------------------------------------------------------
 
 		// create storage
@@ -205,12 +213,8 @@ void kernel_init_vfs( void ) {
 		// main block data at
 		storage -> block = (uint64_t) vfs;
 
-		// storage name
-		uint8_t storage_name[ 6 ] = "System";
-		for( storage -> name_limit = INIT; storage -> name_limit < sizeof( storage_name ); storage -> name_limit++ ) storage -> name[ storage -> name_limit ] = storage_name[ storage -> name_limit ]; storage -> name[ storage -> name_limit ] = STD_ASCII_TERMINATOR;
-
-		// // create maintenance structure
-		// struct KERNEL_STRUCTURE_VFS_USE *use = (struct KERNEL_STRUCTURE_VFS_USE *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( KERNEL_STRUCTURE_VFS_USE ) ) );
+		// set already definied filesystem
+		storage -> vfs = kernel -> vfs;
 
 		// storage is active from now on
 		storage -> flags |= KERNEL_STORAGE_FLAGS_active;

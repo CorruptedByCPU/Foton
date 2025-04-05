@@ -57,6 +57,7 @@ struct KERNEL {
 
 	struct KERNEL_STRUCTURE_TSS			tss;
 
+	struct KERNEL_STRUCTURE_VFS			*vfs;
 	struct KERNEL_STRUCTURE_VFS_SOCKET		*vfs_base_address;
 	uint64_t					vfs_limit;
 	uint8_t						vfs_lock;

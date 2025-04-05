@@ -10,7 +10,7 @@
 	#define	KERNEL_STORAGE_FLAGS_active	1	// 0b00000001
 	#define	KERNEL_STORAGE_FLAGS_secure	128	// 0b10000000
 
-	#define	KERNEL_STORAGE_NAME_limit	31
+	#define	KERNEL_STORAGE_FILESYSTEM_vfs	0x01
 
 	struct KERNEL_STRUCTURE_STORAGE {
 		uint8_t				flags;
@@ -18,8 +18,6 @@
 		uint64_t			block;	// first
 		uint64_t			limit;	// blocks
 		uint64_t			byte;	// block limit
-		uint8_t				name_limit;
-		uint8_t				name[ KERNEL_STORAGE_NAME_limit + TRUE ];
-		struct KERNEL_STRUCTURE_VFS_USE	*use;
+		struct KERNEL_STRUCTURE_VFS	*vfs;
 	};
 #endif

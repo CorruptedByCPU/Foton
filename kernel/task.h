@@ -27,7 +27,7 @@
 	struct	KERNEL_STRUCTURE_TASK {
 		uintptr_t			cr3;
 		uintptr_t			rsp;
-		int64_t				pid;
+		uint64_t			pid;
 		volatile uint16_t		flags;
 		uint8_t				name_length;
 		uint8_t				*name;
@@ -37,4 +37,7 @@
 
 	// external routine (assembly language)
 	extern void kernel_task( void );
+
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *kernel_task_current( void );
 #endif
