@@ -10,7 +10,7 @@
 uint8_t *lib_path( void ) {
 	// prepare area for path resolution
 	uint64_t current_length = EMPTY;
-	uint8_t *current_path = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_STRUCTURE_FILE, name_length ) ) + 1 );
+	uint8_t *current_path = calloc( lib_integer_limit_unsigned( MACRO_SIZEOF( struct STD_STRUCTURE_FILE, name_limit ) ) + 1 );
 
 	// array of directories names
 	uint64_t i = 0;
@@ -36,7 +36,7 @@ uint8_t *lib_path( void ) {
 		sprintf( "/%s", (uint8_t *) &current_path[ current_length ], (uint8_t *) &dir[ --i ] -> name );
 
 		// generated path length
-		current_length += dir[ i ] -> name_length + 1;
+		current_length += dir[ i ] -> name_limit + 1;
 
 		// close directory
 		fclose( dir[ i ] );

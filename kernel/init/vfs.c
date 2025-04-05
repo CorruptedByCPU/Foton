@@ -81,7 +81,7 @@ uint8_t kernel_init_vfs_check( struct LIB_VFS_STRUCTURE *vfs, uint8_t *path ) {
 
 void kernel_init_vfs_realloc( struct LIB_VFS_STRUCTURE *vfs, uintptr_t offset ) {
 	// directory blocks
-	uint64_t b = vfs -> limit >> STD_SHIFT_PAGE;
+	uint64_t b = MACRO_PAGE_ALIGN_UP( vfs -> limit ) >> STD_SHIFT_PAGE;
 
 	// true block offset
 	offset += vfs -> block[ FALSE ];

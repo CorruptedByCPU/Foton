@@ -41,7 +41,34 @@ struct KERNEL_STRUCTURE_VFS_FILE kernel_vfs_file( struct KERNEL_STRUCTURE_STORAG
 }
 
 void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS_SOCKET *socket, uint8_t *target, uint64_t seek, uint64_t limit ) {
+	// properties of file
+	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) socket -> file.knot;
 
+	// first block of data
+	uint64_t b = MACRO_PAGE_ALIGN_DOWN( seek ) >> STD_SHIFT_PAGE;
+
+	// read first part of file
+	seek %= STD_PAGE_byte;
+
+	// source block pointer
+	uint8_t *source;
+
+	// read all blocks of requested data
+	while( limit ) {
+		// select block pointer
+		source = (uint8_t *) kernel_vfs_block_by_id( vfs, b++ );
+
+		// full or part of block?
+		uint64_t x = STD_PAGE_byte;
+		if( x > limit ) { x = limit; limit = EMPTY; }
+		else limit -= x;
+
+		// copy data from block
+		for( uint64_t i = seek; i < x; i++ ) *(target++) = source[ i ];
+
+		// start from begining of next block
+		seek = EMPTY;
+	}
 }
 
 struct KERNEL_STRUCTURE_VFS_SOCKET *kernel_vfs_socket( uint64_t pid ) {

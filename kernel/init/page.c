@@ -42,11 +42,11 @@ void kernel_init_page( void ) {
 	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) ((struct limine_file *) limine_kernel_file_request.response -> kernel_file) -> address;
 
 	// kernel file ELF64 header properties
-	struct LIB_ELF_STRUCTURE_HEADER *elf_header = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> headers_offset);
+	struct LIB_ELF_STRUCTURE_HEADER *elf_header = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> header_offset);
 
 	// calculate loaded kernel limit
 	uint64_t kernel_limit = EMPTY;
-	for( uint16_t i = INIT; i < elf -> h_entry_count; i++ ) {
+	for( uint16_t i = INIT; i < elf -> header_count; i++ ) {
 		// ignore blank entry or not loadable
  		if( elf_header[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_header[ i ].memory_size ) continue;
 

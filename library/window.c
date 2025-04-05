@@ -8,6 +8,9 @@
 	#ifndef	LIB_WINDOW
 		#include	"./window.h"
 	#endif
+	#ifndef	LIB_STRING
+		#include	"./string.h"
+	#endif
 
 struct STD_STRUCTURE_WINDOW_DESCRIPTOR *lib_window_event( struct STD_STRUCTURE_WINDOW_DESCRIPTOR *descriptor ) {
 	// acquired new descriptor properties?

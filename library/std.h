@@ -15,6 +15,10 @@
 		#include	"./vfs.h"
 	#endif
 
+	#ifndef	LIB_STRING
+		#include	"./string.h"
+	#endif
+
 	#define	EMPTY						0
 	#define	INIT						EMPTY
 
@@ -147,10 +151,10 @@
 	#define	STD_IPC_TYPE_mouse				0x01
 	#define	STD_IPC_TYPE_event				0xFF
 
-	#define	STD_IPC_MOUSE_BUTTON_left			0b00000001
-	#define	STD_IPC_MOUSE_BUTTON_right			0b00000010
-	#define	STD_IPC_MOUSE_BUTTON_middle			0b00000100
-	#define	STD_IPC_MOUSE_BUTTON_release			0b10000000
+	#define	STD_IPC_MOUSE_BUTTON_left			0x01
+	#define	STD_IPC_MOUSE_BUTTON_right			0x02
+	#define	STD_IPC_MOUSE_BUTTON_middle			0x04
+	#define	STD_IPC_MOUSE_BUTTON_release			0x80
 
 	struct	STD_STRUCTURE_IPC {
 		volatile uint64_t	ttl;
@@ -339,8 +343,8 @@
 
 	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STRUCTURE_STREAM
 
-	#define	STD_STREAM_FLOW_out_to_parent_in		0b00000001
-	#define	STD_STREAM_FLOW_out_to_in			0b00000010
+	#define	STD_STREAM_FLOW_out_to_parent_in		0x01
+	#define	STD_STREAM_FLOW_out_to_in			0x02
 
 	#define	STD_STREAM_OUT					0x00
 	#define	STD_STREAM_IN					0x01
@@ -617,7 +621,7 @@
 		void std_syscall_empty( void );
 
 		// initial function of every process
-		extern int64_t _main( uint64_t argc, uint8_t *argv[] );
+		extern uint64_t _main( uint64_t argc, uint8_t *argv[] );
 
 		// initialization of process environment
 		void _entry( struct STD_STRUCTURE_ENTRY entry ) {

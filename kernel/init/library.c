@@ -5,7 +5,7 @@
 void kernel_init_library( void ) {
 	// prepare area for registered libraries
 	kernel -> library_limit = KERNEL_LIBRARY_limit;
-	kernel -> library_base_address = (struct KERNEL_STRUCTURE_LIBRARY *) kernel_memory_alloc( kernel -> library_limit );
+	kernel -> library_base_address = (struct KERNEL_STRUCTURE_LIBRARY *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( kernel -> library_limit * sizeof( struct KERNEL_STRUCTURE_LIBRARY ) ) >> STD_SHIFT_PAGE );
 
 	// prepare area for memory map of libraries
 	kernel -> library_memory_address = (uint32_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE );

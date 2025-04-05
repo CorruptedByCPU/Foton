@@ -27,14 +27,14 @@ clear
 # check environment software, required!
 ENV=true
 echo -n "Foton environment: "
-	type -a ${CC} &> /dev/null || (echo -en "\e[38;5;196m${C}\e[0m" && ENV=false)
-	type -a ${LD} &> /dev/null || (echo -en "\e[38;5;196m${LD}\e[0m" && ENV=false)
-	type -a ${ASM} &> /dev/null || (echo -en "\e[38;5;196m${ASM}\e[0m" && ENV=false)
-	type -a ${ISO} &> /dev/null || (echo -en "\e[38;5;196m${ISO}\e[0m" && ENV=false)
-if [ "${ENV}" = false ]; then echo -e "\n[please install missing software]"; exit 1; else echo -e "\e[38;5;2m\xE2\x9C\x94\e[0m"; fi
+	type -a ${CC} &> /dev/null || (echo -en "\033[38;5;196m${C}\033[0m" && ENV=false)
+	type -a ${LD} &> /dev/null || (echo -en "\033[38;5;196m${LD}\033[0m" && ENV=false)
+	type -a ${ASM} &> /dev/null || (echo -en "\033[38;5;196m${ASM}\033[0m" && ENV=false)
+	type -a ${ISO} &> /dev/null || (echo -en "\033[38;5;196m${ISO}\033[0m" && ENV=false)
+if [ "${ENV}" = false ]; then echo -e "\n[please install missing software]"; exit 1; else echo -e "\033[38;5;2m\xE2\x9C\x94\033[0m"; fi
 
 # optional
-type -a qemu-system-x86_64 &> /dev/null || echo -e "Optional \e[38;5;11mqemu\e[0m not installed. ISO file will be generated regardless of that."
+type -a qemu-system-x86_64 &> /dev/null || echo -e "Optional \033[38;5;11mqemu\033[0m not installed. ISO file will be generated regardless of that."
 
 # external resources initialization
 git submodule update --init
@@ -108,48 +108,48 @@ gzip -k build/kernel
 # 	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 # done
 
-# #===============================================================================
+#===============================================================================
 
-# lib=""	# include list of libraries
+lib=""	# include list of libraries
 
-# # keep parsing libraries by. dependencies and alphabetically
-# for library in type path color elf integer float string network input math json font std window image interface random rgl terminal; do
-# 	# build
-# 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
+# keep parsing libraries by. dependencies and alphabetically
+for library in type path color elf integer float string network input math json font std window image interface random rgl terminal; do
+	# build
+	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 
-# 	# convert to shared
-# 	${C} -shared build/${library}.o -o build/root/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/lib/ ${lib} || exit 1
+	# convert to shared
+	${C} -shared build/${library}.o -o build/root/lib/lib${library}.so ${CFLAGS_SOFTWARE} -Wl,--as-needed,-T./tools/library.ld -L./build/root/lib/ ${lib} || exit 1
 
-# 	# we do not need any additional information
-# 	strip -s build/root/lib/lib${library}.so
+	# we do not need any additional information
+	strip -s build/root/lib/lib${library}.so
 
-# 	# update libraries list
-# 	lib="${lib} -l${library}"
+	# update libraries list
+	lib="${lib} -l${library}"
 
-# 	# information
-# 	library_size=`ls -lh build/root/lib/lib${library}.so | cut -d ' ' -f 5`
-# 	echo -e "${green}\xE2\x9C\x94${default}|Library: lib${library}.so|${library_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-# done
+	# information
+	library_size=`ls -lh build/root/lib/lib${library}.so | cut -d ' ' -f 5`
+	echo -e "${green}\xE2\x9C\x94${default}|Library: lib${library}.so|${library_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+done
 
-# #===============================================================================
+#===============================================================================
 
-# for software in `(cd software && ls *.c)`; do
-# 	# program name
-# 	name=${software::$(expr ${#software} - 2)}
+for software in `(cd software && ls *.c)`; do
+	# program name
+	name=${software::$(expr ${#software} - 2)}
 
-# 	# build
-# 	${C} -DSOFTWARE -c software/${name}.c -o build/${name}.o ${CFLAGS_SOFTWARE} || exit 1
+	# build
+	${C} -DSOFTWARE -c software/${name}.c -o build/${name}.o ${CFLAGS_SOFTWARE} || exit 1
 
-# 	# connect with libraries (if necessery)
-# 	${LD} --as-needed -L./build/root/lib build/${name}.o -o build/root/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
+	# connect with libraries (if necessery)
+	${LD} --as-needed -L./build/root/lib build/${name}.o -o build/root/bin/${name} ${lib} -T tools/software.ld ${LDFLAGS}
 
-# 	# we do not need any additional information
-# 	strip -s build/root/bin/${name} > /dev/null 2>&1
+	# we do not need any additional information
+	strip -s build/root/bin/${name} > /dev/null 2>&1
 
-# 	# information
-# 	software_size=`ls -lh build/root/bin/${name} | cut -d ' ' -f 5`
-# 	echo -e "${green}\xE2\x9C\x94${default}|Software: ${name}|${software_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-# done
+	# information
+	software_size=`ls -lh build/root/bin/${name} | cut -d ' ' -f 5`
+	echo -e "${green}\xE2\x9C\x94${default}|Software: ${name}|${software_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+done
 
 #===============================================================================
 

@@ -310,7 +310,7 @@ struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_view( struct LIB_RGL_STRUC
 	matrix.cell[ 3 ][ 2 ] = -dz;
 
 	return matrix;
-};
+}
 
 uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct LIB_RGL_STRUCTURE_TRIANGLE *parse ) {
 	vector3f line1 = lib_rgl_vector_substract( vr[ parse -> v[ 1 ] ], vr[ parse -> v[ 0 ] ] );
@@ -348,7 +348,7 @@ struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_perspective( struct LIB_RG
 	matrix.cell[ 3 ][ 2 ] = -(f * n) / (f - n);
 
 	return matrix;
-};
+}
 
 void lib_rgl_multiply_vector( vector3f *v, struct LIB_RGL_STRUCTURE_MATRIX *matrix ) {
 	// temporary vector

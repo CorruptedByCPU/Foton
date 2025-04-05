@@ -28,6 +28,25 @@ void kernel_log( uint8_t *string, ... ) {
 		// omit prefix value if existed
 		i += prefix;
 
+		// definied prefix length?
+		if( string[ i ] == '*' ) {
+			// amount of digits after digit delimiter
+			p_value = va_arg( argv, uint64_t );
+
+			// leave predefinied prefix
+			i += 1;
+		}
+
+		// definied suffix length?
+		uint64_t pre_suffix = EMPTY;
+		if( string[ i ] == '.' && string[ i + 1 ] == '*' ) {
+			// amount of digits after digit delimiter
+			pre_suffix = va_arg( argv, uint64_t );
+
+			// leave predefinied suffix
+			i += 2;
+		}
+
 		// check sequence type
 		switch( string[ i ] ) {
 			case '%': {
@@ -83,10 +102,17 @@ void kernel_log( uint8_t *string, ... ) {
 			case 's': {
 				// retrieve substring
 				uint8_t *substring = va_arg( argv, uint8_t * );
-				
+
+				uint64_t limit = lib_string_length( substring );
+
+				// change string length if predefinied value exist
+				if( pre_suffix ) {
+					// new length
+					limit = pre_suffix;
+				}
+
 				// show 'substring' on terminal
-				for( uint64_t j = INIT; j < lib_string_length( substring ); j++ )
-					lib_terminal_string( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, substring, lib_string_length( substring ) );
+				lib_terminal_string( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, substring, lib_string_length( substring ) );
 
 				// next character from string
 				continue;

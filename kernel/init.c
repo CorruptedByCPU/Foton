@@ -65,7 +65,7 @@
 	#include	"exec.c"
 	#include	"idt.c"
 	#include	"io_apic.c"
-	// #include	"library.c"
+	#include	"library.c"
 	#include	"log.c"
 	#include	"memory.c"
 	#include	"page.c"
