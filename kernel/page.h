@@ -20,8 +20,8 @@
 	#define	KERNEL_PAGE_TYPE_THREAD		0x03
 	#define	KERNEL_PAGE_TYPE_LIBRARY	0x04
 	#define	KERNEL_PAGE_TYPE_SHARED		0x05
-	// #define	KERNEL_PAGE_TYPE_		0b110
-	// #define	KERNEL_PAGE_TYPE_		0b111
+	// #define	KERNEL_PAGE_TYPE_		0x06
+	// #define	KERNEL_PAGE_TYPE_		0x07
 
 	#define	KERNEL_PAGE_PMLx_entry		512
 
@@ -31,5 +31,6 @@
 	#define	KERNEL_PAGE_PML4_shift		39
 
 	uint8_t kernel_page_alloc( uint64_t *pml4, uintptr_t target, uint64_t n, uint16_t flags );
+	uint8_t kernel_page_disconnect( uint64_t *pml4, uint64_t source, uint64_t n );
 	uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t n, uint16_t flags );
 #endif

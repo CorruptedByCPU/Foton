@@ -11,7 +11,7 @@ void kernel_library_cancel( struct KERNEL_STRUCTURE_LIBRARY_INIT *lib ) {
 		
 		case 5: {
 			// disconnect library area from global paging array
-			// kernel_page_disconnect( (uint64_t *) kernel -> page_base_address, lib -> base_address, lib -> page );
+			kernel_page_disconnect( (uint64_t *) kernel -> page_base_address, lib -> base_address, lib -> page );
 		}
 
 		case 4: {

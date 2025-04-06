@@ -13,6 +13,7 @@
 		uint64_t				limit;
 		struct KERNEL_STRUCTURE_VFS_SOCKET	*socket;
 		uintptr_t				workbench;
+		struct KERNEL_STRUCTURE_TASK		*task;
 	};
 
 	// process id

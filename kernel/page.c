@@ -104,6 +104,65 @@ uint8_t kernel_page_alloc( uint64_t *pml4, uintptr_t target, uint64_t n, uint16_
 	return FALSE;
 }
 
+uint8_t kernel_page_disconnect( uint64_t *pml4, uint64_t source, uint64_t n ) {
+	// start with following array[ entries ]
+	uint16_t p4 = (source >> KERNEL_PAGE_PML4_shift) & (KERNEL_PAGE_PMLx_entry - 1); 
+	uint16_t p3 = (source >> KERNEL_PAGE_PML3_shift) & (KERNEL_PAGE_PMLx_entry - 1);
+	uint16_t p2 = (source >> KERNEL_PAGE_PML2_shift) & (KERNEL_PAGE_PMLx_entry - 1);
+	uint16_t p1 = (source >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PMLx_entry - 1);
+
+	// start with an entry representing given address in PML4 array
+	for( ; p4 < KERNEL_PAGE_PMLx_entry; p4++ ) {
+		// PML3 array exist?
+		if( ! pml4[ p4 ] ) return FALSE;	// no
+
+		// get PML3 array address (remove flags)
+		uint64_t *pml3 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4[ p4 ] ) | KERNEL_MEMORY_mirror);
+
+		// start with an entry representing given address in PML3 array
+		for( ; p3 < KERNEL_PAGE_PMLx_entry; p3++ ) {
+			// PML2 array exist?
+			if( ! pml3[ p3 ] ) return FALSE;	// no
+
+			// get PML2 array address (remove flags)
+			uint64_t *pml2 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3[ p3 ] ) | KERNEL_MEMORY_mirror);
+
+			// start with an entry representing given address in PML2 array
+			for( ; p2 < KERNEL_PAGE_PMLx_entry; p2++ ) {
+				// PML1 array exist?
+				if( ! pml2[ p2 ] ) return FALSE;	// no
+
+				// get PML1 array address (remove flags)
+				uint64_t *pml1 = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2[ p2 ] ) | KERNEL_MEMORY_mirror);
+
+				// start with an entry representing given address in PML1 array
+				for( ; p1 < KERNEL_PAGE_PMLx_entry; p1++ ) {
+					// entry exist?
+					if( ! pml1[ p1 ] ) return FALSE;	// no
+
+					// remove entry
+					pml1[ p1 ] = EMPTY;
+
+					// whole area is disconnected
+					if( ! --n ) return TRUE;
+				}
+
+				// first entry of PML1 array
+				p1 = INIT;
+			}
+
+			// first entry of PML2 array
+			p2 = INIT;
+		}
+
+		// first entry of PML3 array
+		p3 = INIT;
+	}
+
+	// something is wrong
+	return FALSE;
+}
+
 uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t n, uint16_t flags ) {
 	// start with following table[ entry ]
 	uint16_t p1 = (target >> KERNEL_PAGE_PML1_shift) & (KERNEL_PAGE_PMLx_entry - 1);

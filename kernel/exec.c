@@ -48,8 +48,6 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 	// load content of file
 	kernel -> storage_base_address[ exec.socket -> storage ].vfs -> file_read( exec.socket, (uint8_t *) exec.workbench, EMPTY, exec.socket -> file.limit );
 
-	//----------------------------------------------------------------------
-
 	// file contains ELF header?
 	if( ! lib_elf_identify( exec.workbench ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; };	// no
 
@@ -62,7 +60,20 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 	// load libraries required by executable
 	if( ! kernel_library( elf ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }	// something went wrong
 
-	//----------------------------------------------------------------------
+	// add new task entry
+	if( ! (exec.task = kernel_task_add( name, limit )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }	// end of resources
+
+	// checkpoint: task ----------------------------------------------------
+	exec.level++;
+
+	// create paging table
+	if( ! (exec.task -> cr3 = (uint64_t *) kernel_memory_alloc( TRUE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+
+	// all allocated pages, mark as type of PROCESS
+	exec.task -> page_type = KERNEL_PAGE_TYPE_PROCESS;
+
+	// checkpoint: paging --------------------------------------------------
+	exec.level++;
 
 // debug
 kernel_log( (uint8_t *) "Exec, OK.\n" );

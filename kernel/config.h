@@ -49,6 +49,8 @@ struct KERNEL {
 	uint64_t					*task_ap_address;
 	struct KERNEL_STRUCTURE_TASK			*task_base_address;
 	uint64_t					task_limit;
+	uint8_t						task_lock;
+	uint64_t					task_id;
 
 	struct LIB_TERMINAL_STRUCTURE			terminal;
 

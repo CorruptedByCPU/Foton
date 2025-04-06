@@ -25,18 +25,23 @@
 	#define	KERNEL_TASK_NAME_limit		(STD_PAGE_byte - TRUE)
 
 	struct	KERNEL_STRUCTURE_TASK {
-		uintptr_t			cr3;
+		uint64_t 			*cr3;
 		uintptr_t			rsp;
 		uint64_t			pid;
+		uint64_t			parent;
 		volatile uint16_t		flags;
-		uint8_t				name_length;
+		uint16_t			name_limit;
 		uint8_t				*name;
 		uint64_t			storage;
 		uint64_t			directory;
+		uint8_t				page_type;
 	};
 
 	// external routine (assembly language)
 	extern void kernel_task( void );
+
+	// properties of created task
+	struct KERNEL_STRUCTURE_TASK *kernel_task_add( uint8_t *name, uint16_t limit );
 
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *kernel_task_current( void );
