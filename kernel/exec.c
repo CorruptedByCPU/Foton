@@ -63,17 +63,45 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 	// add new task entry
 	if( ! (exec.task = kernel_task_add( name, limit )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }	// end of resources
 
+	// mark task type
+	exec.task -> type = KERNEL_TASK_TYPE_PROCESS;
+
 	// checkpoint: task ----------------------------------------------------
 	exec.level++;
 
 	// create paging table
 	if( ! (exec.task -> cr3 = (uint64_t *) kernel_memory_alloc( TRUE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
 
-	// all allocated pages, mark as type of PROCESS
-	exec.task -> page_type = KERNEL_PAGE_TYPE_PROCESS;
-
 	// checkpoint: paging --------------------------------------------------
 	exec.level++;
+
+	// describe area under context stack
+	if( ! kernel_page_alloc( exec.task -> cr3, KERNEL_STACK_address, KERNEL_STACK_LIMIT_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (exec.task -> type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+
+	// set initial startup configuration for new process
+	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( exec.task -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_MEMORY_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
+
+	// set the process entry address
+	context -> rip		= elf -> entry_ptr;
+
+	// code descriptor
+	context -> cs		= offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring3 ) | 0x03;
+
+	// basic processor state flags
+	context -> eflags	= KERNEL_TASK_EFLAGS_default;
+
+	// the context stack top pointer
+	exec.task -> rsp	= KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
+
+	// stack descriptor
+	context -> ss		= offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring3 ) | 0x03;
+
+	//----------------------------------------------------------------------
+
+	// insert on stack, whole provided command line
+
+
+	
 
 // debug
 kernel_log( (uint8_t *) "Exec, OK.\n" );

@@ -30,6 +30,7 @@
 	#define	KERNEL_PAGE_PML3_shift		30
 	#define	KERNEL_PAGE_PML4_shift		39
 
+	uintptr_t kernel_page_address( uint64_t *pml4, uintptr_t source );
 	uint8_t kernel_page_alloc( uint64_t *pml4, uintptr_t target, uint64_t n, uint16_t flags );
 	uint8_t kernel_page_disconnect( uint64_t *pml4, uint64_t source, uint64_t n );
 	uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t n, uint16_t flags );
