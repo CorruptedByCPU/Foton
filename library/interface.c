@@ -583,7 +583,7 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// store new properties pointer
 	interface -> properties = properties;
-};
+}
 
 void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// first element properties

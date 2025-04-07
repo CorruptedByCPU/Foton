@@ -6,7 +6,7 @@
 extern	kernel_idt_exception
 extern	kernel_idt_interrupt_default
 
-; 64 bit procedure code
+; 64 bit code
 [BITS 64]
 
 ; information for linker
@@ -302,14 +302,11 @@ kernel_idt_exception_entry:
 	mov	rax,	cr2
 	push	rax
 
-	; turn off Direction Flag
-	cld
-
 	; execute exception handler
 	mov	rdi,	rsp
 	call	kernel_idt_exception
 
-	; release value of CR2 register from stack
+	; remove value of CR2 register from stack
 	add	rsp,	0x08
 
 	; restore ogirinal registers

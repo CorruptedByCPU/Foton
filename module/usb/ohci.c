@@ -44,7 +44,7 @@ void module_usb_ohci_init( uint8_t c ) {
 	volatile uint32_t bytes = ~ohci -> hcca + 1;
 
 	// reserve memory area below 1 MiB
-	uintptr_t base_address = kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( bytes ) >> STD_SHIFT_PAGE ) | KERNEL_PAGE_mirror;
+	uintptr_t base_address = kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( bytes ) >> STD_SHIFT_PAGE ) | KERNEL_MEMORY_mirror;
 
 	// debug
 	// kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - HCCA memory block at 0x%X\n", c, module_usb_controller[ c ].pci.bus, module_usb_controller[ c ].pci.device, module_usb_controller[ c ].pci.function, base_address );
@@ -69,7 +69,7 @@ void module_usb_ohci_init( uint8_t c ) {
 	for( uint8_t i = 0; i < (rh_descriptor_a & STD_MASK_byte); i++ )
 		rh_descriptor_b |= 1 << (i + 17);
 	ohci -> rh_descriptor_b = rh_descriptor_b;
-	ohci -> hcca = base_address & ~KERNEL_PAGE_mirror;
+	ohci -> hcca = base_address & ~KERNEL_MEMORY_mirror;
 	ohci -> control_head = EMPTY;
 	ohci -> bulk_head = EMPTY;
 	ohci -> control = 0x000006B0;

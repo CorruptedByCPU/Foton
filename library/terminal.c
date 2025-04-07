@@ -75,7 +75,49 @@ void lib_terminal_char( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t ascii )
 	lib_terminal_cursor_disable( terminal );
 
 	// printable character?
-	if( ascii >= 0x20 && ascii <= 0x7F ) {
+	if( ascii < STD_ASCII_SPACE || ascii > STD_ASCII_TILDE ) {	// no
+		switch( ascii ) {
+			case STD_ASCII_NEW_LINE: {
+				// set the cursor position from the beginning of the new line
+				terminal -> cursor_x = EMPTY;
+				terminal -> cursor_y++;
+
+				// done
+				break;
+			}
+
+			case STD_ASCII_RETURN: {
+				// set the cursor position from the beginning of the current line
+				terminal -> cursor_x = EMPTY;
+
+				// done
+				break;
+			}
+
+			case STD_ASCII_BACKSPACE: {
+				// the cursor is at the beginning of the current line?
+				if( terminal -> cursor_x )
+					// move the cursor back one position
+					terminal -> cursor_x--;
+				else if( terminal -> cursor_y ) {
+					// place the cursor at the end of the previous line
+					terminal -> cursor_y--;
+					terminal -> cursor_x = terminal -> width_char - 1;
+				}
+
+				// done
+				break;
+			}
+
+			case STD_ASCII_TAB: {
+				// calculate tabulator position
+				terminal -> cursor_x += (LIB_TERMINAL_TAB_length - (terminal -> cursor_x % LIB_TERMINAL_TAB_length));
+
+				// done
+				break;
+			}
+		}
+	} else {
 		// clear space under new character
 		if( terminal -> flags & LIB_TERMINAL_FLAG_clean ) lib_terminal_char_drain( terminal );
 
@@ -84,38 +126,6 @@ void lib_terminal_char( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t ascii )
 
 		// set the new cursor position
 		terminal -> cursor_x++;
-	} else {
-		// special character NEW LINE?
-		if( ascii == 0x0A ) {
-			// set the cursor position from the beginning of the new line
-			terminal -> cursor_x = EMPTY;
-			terminal -> cursor_y++;
-		}
-
-		// special character ENTER?
-		if( ascii == 0x0D ) {
-			// set the cursor position from the beginning of the current line
-			terminal -> cursor_x = EMPTY;
-		}
-
-		// special character BACKSPACE?
-		if( ascii == 0x08 ) {
-			// the cursor is at the beginning of the current line?
-			if( terminal -> cursor_x )
-				// move the cursor back one position
-				terminal -> cursor_x--;
-			else if( terminal -> cursor_y ) {
-				// place the cursor at the end of the previous line
-				terminal -> cursor_y--;
-				terminal -> cursor_x = terminal -> width_char - 1;
-			}
-		}
-
-		// special character TAB?
-		if( ascii == 0x0B ) {
-			// calculate tabulator position
-			terminal -> cursor_x += (LIB_TERMINAL_TAB_length - (terminal -> cursor_x % LIB_TERMINAL_TAB_length));
-		}
 	}
 
 	// update cursor properties
@@ -130,8 +140,8 @@ void lib_terminal_char( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t ascii )
 
 void lib_terminal_char_drain( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// clear the entire line with the default background color
-	for( uint16_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ ) {
-		for( uint16_t x = 0; x < LIB_FONT_WIDTH_pixel; x++ )
+	for( uint16_t y = INIT; y < LIB_FONT_HEIGHT_pixel; y++ ) {
+		for( uint16_t x = INIT; x < LIB_FONT_WIDTH_pixel; x++ )
 			terminal -> pointer[ (terminal -> scanline_pixel * y) + x ] = terminal -> color_background - (terminal -> alpha << 24);
 	}
 }
@@ -180,8 +190,8 @@ void lib_terminal_cursor_set( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 
 void lib_terminal_cursor_switch( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// set the pointer to the cursor position
-	for( uint64_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ )
-		for( uint64_t x = 0; x < LIB_FONT_WIDTH_pixel; x++ )
+	for( uint64_t y = INIT; y < LIB_FONT_HEIGHT_pixel; y++ )
+		for( uint64_t x = INIT; x < LIB_FONT_WIDTH_pixel; x++ )
 			terminal -> pointer[ (terminal -> scanline_pixel * y) + x ] = (terminal -> pointer[ (terminal -> scanline_pixel * y) + x ] & STD_COLOR_mask) | (~terminal -> pointer[ (terminal -> scanline_pixel * y) + x ] & ~STD_COLOR_mask);
 }
 
@@ -190,8 +200,8 @@ void lib_terminal_drain( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	lib_terminal_cursor_disable( terminal );
 
 	// fill terminal area with solid color
-	for( uint64_t y = 0; y < terminal -> height; y++ )
-		for( uint64_t x = 0; x < terminal -> width; x++ )
+	for( uint64_t y = INIT; y < terminal -> height; y++ )
+		for( uint64_t x = INIT; x < terminal -> width; x++ )
 			terminal -> base_address[ (terminal -> scanline_pixel * y) + x ] = terminal -> color_background - (terminal -> alpha << 24);
 
 	// set new cursor position
@@ -208,8 +218,8 @@ void lib_terminal_drain_line( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	uint32_t *line_pointer = terminal -> base_address + ((terminal -> cursor_y * (terminal -> scanline_pixel * LIB_FONT_HEIGHT_pixel)));
 
 	// clear the entire line with the default background color
-	for( uint16_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ )
-		for( uint16_t x = 0; x < terminal -> width; x++ )
+	for( uint16_t y = INIT; y < LIB_FONT_HEIGHT_pixel; y++ )
+		for( uint16_t x = INIT; x < terminal -> width; x++ )
 			line_pointer[ (terminal -> scanline_pixel * y) + x ] = terminal -> color_background - (terminal -> alpha << 24);
 }
 
@@ -218,8 +228,8 @@ void lib_terminal_drain_line_n( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_
 	uint32_t *line_pointer = terminal -> base_address + ((n * (terminal -> scanline_pixel * LIB_FONT_HEIGHT_pixel)));
 
 	// clear the entire line with the default background color
-	for( uint16_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ )
-		for( uint16_t x = 0; x < terminal -> width; x++ )
+	for( uint16_t y = INIT; y < LIB_FONT_HEIGHT_pixel; y++ )
+		for( uint16_t x = INIT; x < terminal -> width; x++ )
 			line_pointer[ (terminal -> scanline_pixel * y) + x ] = terminal -> color_background - (terminal -> alpha << 24);
 }
 
@@ -228,7 +238,7 @@ void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	uint64_t count = (terminal -> height_char - 1) * terminal -> scanline_line;
 
 	// scroll all lines one by one (except the last one)
-	for( uint64_t i = 0; i < count; i++ )
+	for( uint64_t i = INIT; i < count; i++ )
 		terminal -> base_address[ i ] = terminal -> base_address[ i + terminal -> scanline_line ];
 
 	// clear last line of terminal
@@ -238,7 +248,7 @@ void lib_terminal_scroll_up( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 void lib_terminal_scroll_down( struct LIB_TERMINAL_STRUCTURE *terminal ) {
 	// scroll all lines one by one
 	uint64_t line = terminal -> height_char - 1;
-	do for( uint64_t x = 0; x < terminal -> scanline_line; x++ ) terminal -> base_address[ (line * terminal -> scanline_line) + x ] = terminal -> base_address[ ((line - 1) * terminal -> scanline_line) + x ];
+	do for( uint64_t x = INIT; x < terminal -> scanline_line; x++ ) terminal -> base_address[ (line * terminal -> scanline_line) + x ] = terminal -> base_address[ ((line - 1) * terminal -> scanline_line) + x ];
 	while( --line );
 
 	// clear first line of terminal
@@ -254,7 +264,7 @@ void lib_terminal_parse( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *strin
 
 	// for every character from string
 	uint64_t length = lib_string_length( string );
-	for( uint64_t i = 0; i < length; i++ ) {
+	for( uint64_t i = INIT; i < length; i++ ) {
 		// special character?
 		if( string[ i ] == '%' ) {	
 			// prefix before type?
@@ -305,7 +315,7 @@ void lib_terminal_parse( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *strin
 
 					// number of digits after dot
 					uint64_t s_digits = 1;
-					if( s_value ) for( uint8_t m = 0; m < s_value; m++ ) s_digits *= 10;
+					if( s_value ) for( uint8_t m = INIT; m < s_value; m++ ) s_digits *= 10;
 					else s_digits = 1000000;	// if not specified set default
 
 					// show 'value'
@@ -382,7 +392,7 @@ void lib_terminal_string( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t *stri
 	lib_terminal_cursor_disable( terminal );
 
 	// show every character from string
-	for( uint64_t i = 0; i < length; i++ ) lib_terminal_char( terminal, string[ i ] );
+	for( uint64_t i = INIT; i < length; i++ ) lib_terminal_char( terminal, string[ i ] );
 
 	// turn on the cursor, no CPU power waste
 	lib_terminal_cursor_enable( terminal );
@@ -393,8 +403,8 @@ void lib_terminal_value( struct LIB_TERMINAL_STRUCTURE *terminal, uint64_t value
 	if( base < 2 || base > 36 ) return;	// end of operation
 
 	// space for value decoding
-	uint8_t i = 0;
-	uint8_t string[ 64 ] = { [0 ... 63] = character };	// 8 byte value
+	uint8_t i = INIT;
+	uint8_t string[ 64 ]; for( uint8_t k = INIT; k < 64; k++ ) string[ k ] = character;
 
 	// convert value to individual digits
 	while( value ) {

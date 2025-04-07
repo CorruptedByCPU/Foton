@@ -5,6 +5,7 @@
 #ifndef	KERNEL_IDT
 	#define	KERNEL_IDT
 
+	// devices IRQ line starts at
 	#define	KERNEL_IDT_IRQ_offset			0x20
 
 	#define	KERNEL_IDT_TYPE_gate_interrupt		0x8E00
@@ -59,13 +60,6 @@
 		uint64_t				ss;
 	} __attribute__( (packed) );
 
-	// connect interrupt occurrence with corresponding procedure
-	void kernel_idt_mount( uint8_t id, uint16_t type, uintptr_t address );
-
-	// default interrupt procedure for any device/service
-	__attribute__ (( preserve_most ))
-	void kernel_idt_interrupt_default( struct KERNEL_STRUCTURE_IDT_RETURN *interrupt );
-
 	// external routine (assembly language)
 	extern void kernel_irq( void );
 
@@ -100,4 +94,7 @@
 
 	// external routine (assembly language)
 	extern void kernel_idt_spurious_interrupt( void );
+
+	// connect IRQ [type] to function
+	void kernel_idt_attach( uint8_t irq, uint16_t type, uintptr_t address );
 #endif

@@ -69,7 +69,7 @@ void module_usb_hid_keyboard( void ) {
 			kernel -> memory_clean( (uint64_t *) cache, TRUE );
 
 			// create input Transfer Descriptor
-			uint8_t status = module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x08, (uintptr_t) cache & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 16 );
+			uint8_t status = module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x08, (uintptr_t) cache & ~KERNEL_MEMORY_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 16 );
 
 			// if something bad hapenned
 			if( status ) continue;	// ignore keys
@@ -192,7 +192,7 @@ void module_usb_hid_mouse( void ) {
 			kernel -> memory_clean( (uint64_t *) cache, TRUE );
 
 			// create input Transfer Descriptor
-			module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x04, (uintptr_t) cache & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 8 );
+			module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x04, (uintptr_t) cache & ~KERNEL_MEMORY_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 8 );
 
 			// Buttons status
 			kernel -> device_mouse_status = cache[ 0 ];
@@ -338,7 +338,7 @@ void _entry( uintptr_t kernel_ptr ) {
 						module_usb_controller[ module_usb_controller_limit ].base_address |= (uint64_t) driver_pci_read( module_usb_controller[ module_usb_controller_limit ].pci, bar_high ) << STD_MOVE_DWORD;
 
 					// map MMIO controller area
-					kernel -> page_map( kernel -> page_base_address, module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask, (module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask) | KERNEL_PAGE_mirror, MACRO_PAGE_ALIGN_UP( TRUE ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+					kernel -> page_map( kernel -> page_base_address, module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask, (module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask) | KERNEL_MEMORY_mirror, MACRO_PAGE_ALIGN_UP( TRUE ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 					// debug
 					// kernel -> log( (uint8_t *) "[USB].%u PCI %2X:%2X.%u - MMIO address 0x%16X\n", module_usb_controller_limit, module_usb_controller[ module_usb_controller_limit ].pci.bus, module_usb_controller[ module_usb_controller_limit ].pci.device, module_usb_controller[ module_usb_controller_limit ].pci.function, module_usb_controller[ module_usb_controller_limit ].base_address &= ~0b00001111 );
@@ -350,7 +350,7 @@ void _entry( uintptr_t kernel_ptr ) {
 				module_usb_controller[ module_usb_controller_limit ].base_address &= ~0b00001111;
 
 				// convert base address to logical
-				module_usb_controller[ module_usb_controller_limit ].base_address |= KERNEL_PAGE_mirror;
+				module_usb_controller[ module_usb_controller_limit ].base_address |= KERNEL_MEMORY_mirror;
 
 				// controller registered
 				module_usb_controller_limit++;

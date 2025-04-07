@@ -13,7 +13,7 @@ if [ -z "${OPT}" ]; then OPT="3 -ffast-math"; fi
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 CC="clang"
-C="${CC} -std=c99 -include ./library/std.h" # -g -pedantic-errors 
+C="${CC} -std=c99 -include ./library/std.h -pedantic-errors" # -g 
 LD="ld.lld"
 ASM="nasm"
 ISO="xorriso"
@@ -27,14 +27,14 @@ clear
 # check environment software, required!
 ENV=true
 echo -n "Foton environment: "
-	type -a ${CC} &> /dev/null || (echo -en "\e[38;5;196m${C}\e[0m" && ENV=false)
-	type -a ${LD} &> /dev/null || (echo -en "\e[38;5;196m${LD}\e[0m" && ENV=false)
-	type -a ${ASM} &> /dev/null || (echo -en "\e[38;5;196m${ASM}\e[0m" && ENV=false)
-	type -a ${ISO} &> /dev/null || (echo -en "\e[38;5;196m${ISO}\e[0m" && ENV=false)
-if [ "${ENV}" = false ]; then echo -e "\n[please install missing software]"; exit 1; else echo -e "\e[38;5;2m\xE2\x9C\x94\e[0m"; fi
+	type -a ${CC} &> /dev/null || (echo -en "\033[38;5;196m${C}\033[0m" && ENV=false)
+	type -a ${LD} &> /dev/null || (echo -en "\033[38;5;196m${LD}\033[0m" && ENV=false)
+	type -a ${ASM} &> /dev/null || (echo -en "\033[38;5;196m${ASM}\033[0m" && ENV=false)
+	type -a ${ISO} &> /dev/null || (echo -en "\033[38;5;196m${ISO}\033[0m" && ENV=false)
+if [ "${ENV}" = false ]; then echo -e "\n[please install missing software]"; exit 1; else echo -e "\033[38;5;2m\xE2\x9C\x94\033[0m"; fi
 
 # optional
-type -a qemu-system-x86_64 &> /dev/null || echo -e "Optional \e[38;5;11mqemu\e[0m not installed. ISO file will be generated regardless of that."
+type -a qemu-system-x86_64 &> /dev/null || echo -e "Optional \033[38;5;11mqemu\033[0m not installed. ISO file will be generated regardless of that."
 
 # external resources initialization
 git submodule update --init
@@ -44,21 +44,20 @@ rm -rf build && mkdir -p build/iso
 rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 
 # git deosn't allow empty folder
-mkdir -p root/{bin,lib}
+mkdir -p root/{bin,lib/modules}
 
 # copy default filesystem structure
 cp -rf root build
 
 # build subroutines required by kernel
 EXT=""
+${ASM} -f elf64 kernel/driver/rtc.asm	-o build/rtc.o		|| exit 1; EXT="${EXT} build/rtc.o"
 ${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o		|| exit 1; EXT="${EXT} build/gdt.o"
 ${ASM} -f elf64 kernel/idt.asm		-o build/idt.o		|| exit 1; EXT="${EXT} build/idt.o"
 ${ASM} -f elf64 kernel/task.asm		-o build/task.o		|| exit 1; EXT="${EXT} build/task.o"
-${ASM} -f elf64 kernel/driver/rtc.asm	-o build/rtc.o		|| exit 1; EXT="${EXT} build/rtc.o"
 ${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o	|| exit 1; EXT="${EXT} build/syscall.o"
 
 # default configuration of clang for kernel making
-if [ ! -z "${2}" ]; then DEBUG="-DDEBUG"; fi
 CFLAGS="${FLAGS} -mno-mmx -mno-sse -mno-sse2 -mno-3dnow ${DEBUG}"
 CFLAGS_SOFTWARE="${FLAGS} ${DEBUG}"
 LDFLAGS="-nostdlib -static -no-dynamic-linker"
@@ -77,37 +76,37 @@ gzip -k build/kernel
 
 #===============================================================================
 
-for submodules in `(cd module && ls *.asm)`; do
-	# module name
-	submodule=${submodules%.*}
+# for submodules in `(cd module && ls *.asm)`; do
+# 	# module name
+# 	submodule=${submodules%.*}
 
-	# build
-	${ASM} -f elf64 module/${submodule}.asm -o build/${submodule}.ao
+# 	# build
+# 	${ASM} -f elf64 module/${submodule}.asm -o build/${submodule}.ao
 
-	# information
-	submodule_size=`ls -lh build/${submodule}.ao | cut -d ' ' -f 5`
-	echo -e "${green}\xE2\x9C\x94${default}|[submodule of ${submodule}.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-done
+# 	# information
+# 	submodule_size=`ls -lh build/${submodule}.ao | cut -d ' ' -f 5`
+# 	echo -e "${green}\xE2\x9C\x94${default}|[submodule of ${submodule}.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+# done
 
-for modules in `(cd module && ls *.c)`; do
-	# module name
-	module=${modules%.*}
+# for modules in `(cd module && ls *.c)`; do
+# 	# module name
+# 	module=${modules%.*}
 
-	# build
-	${C} -c -fpic -DMODULE module/${module}.c -o build/${module}.o ${CFLAGS} || exit 1
+# 	# build
+# 	${C} -c -fpic -DMODULE module/${module}.c -o build/${module}.o ${CFLAGS} || exit 1
 
-	# connect with libraries (if necessery)
-	SUB=""
-	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
-	${LD} ${SUB} build/${module}.o -o build/root/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
+# 	# connect with libraries (if necessery)
+# 	SUB=""
+# 	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
+# 	${LD} ${SUB} build/${module}.o -o build/root/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
 
-	# we do not need any additional information
-	strip -s build/root/lib/modules/${module}.ko
+# 	# we do not need any additional information
+# 	strip -s build/root/lib/modules/${module}.ko
 
-	# information
-	module_size=`ls -lh build/root/lib/modules/${module}.ko | cut -d ' ' -f 5`
-	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-done
+# 	# information
+# 	module_size=`ls -lh build/root/lib/modules/${module}.ko | cut -d ' ' -f 5`
+# 	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+# done
 
 #===============================================================================
 

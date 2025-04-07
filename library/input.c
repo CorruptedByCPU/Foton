@@ -84,13 +84,13 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 					for( int64_t i = cursor_index; i < length; i++ ) cache[ i ] = cache[ i + 1 ];
 
 					// preserve current cursor location
-					print( "\e[s" );
+					print( "\033[s" );
 
 					// show on terminal
 					for( uint64_t i = cursor_index; i < length; i++ ) printf( "%c", cache[ i ] );
 
 					// restore cursor location
-					print( " \e[u" );
+					print( " \033[u" );
 				}
 
 				// done
@@ -109,13 +109,13 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 				for( int64_t i = cursor_index; i < length; i++ ) cache[ i ] = cache[ i + 1 ];
 
 				// preserve current cursor location
-				print( "\e[s" );
+				print( "\033[s" );
 
 				// show on terminal
 				for( uint64_t i = cursor_index; i < length; i++ ) printf( "%c", cache[ i ] );
 
 				// restore cursor location
-				print( " \e[u" );
+				print( " \033[u" );
 
 				// done
 				continue;
@@ -126,21 +126,21 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 				// move by whole word?
 				if( *ctrl_semaphore ) {
 					// are we at white character?
-					while( cursor_index && cache[ cursor_index - 1 ] == STD_ASCII_SPACE ) { print( "\e[D" ); cursor_index--; }
+					while( cursor_index && cache[ cursor_index - 1 ] == STD_ASCII_SPACE ) { print( "\033[D" ); cursor_index--; }
 
 					// find beginning of previous word
 					while( cursor_index ) {
 						if( cache[ cursor_index - 1 ] == STD_ASCII_SPACE ) break;
 					
 						// move cursor left
-						print( "\e[D" );
+						print( "\033[D" );
 
 						// cursor position inside cache
 						cursor_index--;
 					}
 				} else {
 					// yes
-					print( "\e[D" );
+					print( "\033[D" );
 
 					// cursor position inside cache
 					cursor_index--;
@@ -154,7 +154,7 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 					// are we at white character?
 					while( cursor_index < length && cache[ cursor_index ] == STD_ASCII_SPACE ) {
 						// move cursor right
-						print( "\e[C" );
+						print( "\033[C" );
 
 						// cursor position inside cache
 						cursor_index++;
@@ -165,14 +165,14 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 						if( cache[ cursor_index ] == STD_ASCII_SPACE ) break;
 					
 						// move cursor right
-						print( "\e[C" );
+						print( "\033[C" );
 
 						// cursor position inside cache
 						cursor_index++;
 					}
 				} else {
 					// yes
-					print( "\e[C" );
+					print( "\033[C" );
 
 					// cursor position inside cache
 					cursor_index++;
@@ -189,7 +189,7 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 				input -> history_index -= length_previous + TRUE;
 
 				// move cursor at end of current command
-				if( cursor_index != length ) while( cursor_index++ != length ) { print( "\e[C" ); cursor_index++; }
+				if( cursor_index != length ) while( cursor_index++ != length ) { print( "\033[C" ); cursor_index++; }
 
 				// and clear prompt
 				while( length-- ) { print( "\b" ); cursor_index--; }
@@ -212,7 +212,7 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 				uint64_t length_next = lib_string_length_line( input -> history + input -> history_index );
 
 				// move cursor at end of current command
-				if( cursor_index != length ) while( cursor_index++ != length ) { print( "\e[C" ); cursor_index++; }
+				if( cursor_index != length ) while( cursor_index++ != length ) { print( "\033[C" ); cursor_index++; }
 
 				// and clear prompt
 				while( length-- ) { print( "\b" ); cursor_index--; }
@@ -228,11 +228,11 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 			// cancel operation?
 			if( keyboard -> key == 'c' && *ctrl_semaphore ) {
 				// move cursor at beginning of input
-				while( cursor_index-- ) print( "\e[D" );
+				while( cursor_index-- ) print( "\033[D" );
 
 				// show input content again but with different color
 				cache[ length ] = STD_ASCII_TERMINATOR;
-				printf( "\e[38;5;8m%s", cache );
+				printf( "\033[38;5;8m%s", cache );
 
 				// yes
 				return EMPTY;
@@ -241,13 +241,13 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 			// Home key?
 			if( keyboard -> key == STD_KEY_HOME ) {
 				// move cursor at beginning of input
-				while( cursor_index ) { print( "\e[D" ); cursor_index--; }
+				while( cursor_index ) { print( "\033[D" ); cursor_index--; }
 			}
 
 			// End key?
 			if( keyboard -> key == STD_KEY_END ) {
 				// move cursor at beginning of input
-				while( length > cursor_index ) { print( "\e[C" ); cursor_index++; }
+				while( length > cursor_index ) { print( "\033[C" ); cursor_index++; }
 			}
 
 			// if key is not printable
@@ -280,13 +280,13 @@ uint64_t lib_input( struct LIB_INPUT_STRUCTURE *input, uint8_t *cache, uint64_t 
 				length++;
 
 				// show character and preserve cursor location
-				printf( "%c\e[s", keyboard -> key );
+				printf( "%c\033[s", keyboard -> key );
 
 				// show on terminal
 				for( uint64_t i = cursor_index; i < length; i++ ) printf( "%c", cache[ i ] );
 
 				// restore cursor location
-				print( "\e[u" );
+				print( "\033[u" );
 			}
 		} else
 			// free up AP time
