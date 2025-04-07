@@ -219,7 +219,7 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 // debug
-// std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
+std_exec( (uint8_t *) "console tm", 10, EMPTY, TRUE );
 
 	// Window Manager initialized.
 	return TRUE;
