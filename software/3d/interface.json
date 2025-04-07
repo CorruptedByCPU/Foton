@@ -1,0 +1,19 @@
+{
+	"window": {
+		"x": -1,
+		"y": -1,
+		"width": 322,
+		"height": 345,
+		"name": "3D Viewer"
+	},
+	"control": {
+		"id": 0,
+		"type": "close"
+	},
+	"control": {
+		"type": "maximize"
+	},
+	"control": {
+		"type": "minimize"
+	}
+}

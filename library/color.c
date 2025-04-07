@@ -8,7 +8,6 @@
 	#ifndef	LIB_COLOR
 		#include	"./color.h"
 	#endif
-	//======================================================================
 
 uint32_t lib_color_palette[ 16 ] = {
 	STD_COLOR_BLACK,

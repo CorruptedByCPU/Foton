@@ -14,7 +14,7 @@
 
 	#define LIB_TERMINAL_TAB_length		8	// chars
 
-	#define	LIB_TERMINAL_FLAG_clean		1	// or 0b00000001, clean space for character under cursor
+	#define	LIB_TERMINAL_FLAG_clean		0b00000001	// clean space for character under cursor
 
 	struct LIB_TERMINAL_STRUCTURE {
 		uint16_t	width;

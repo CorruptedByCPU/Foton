@@ -54,7 +54,7 @@
 		uint8_t		length;
 	} __attribute__( (packed) );
 
-	struct	KERNEL_STRUCTURE_INIT_ACPI_APIC {
+	struct	KERNEL_STRUCTURE_INIT_ACPI_LAPIC {
 		uint8_t		type;
 		uint8_t		length;
 	} __attribute__( (packed) );

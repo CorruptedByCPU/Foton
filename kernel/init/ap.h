@@ -10,5 +10,5 @@
 	#define KERNEL_INIT_AP_MSR_EFLAGS	0xC0000084
 
 	// external routine (assembly language)
-	extern void kernel_syscall( void );
+	extern void kernel_syscall();
 #endif

@@ -60,7 +60,7 @@ void _entry( uintptr_t kernel_ptr ) {
 			mmio |= (uint64_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_bar1 ) << STD_SHIFT_32;
 
 		// remember mmio base address of network controller
-		module_e1000_mmio_base_address = (struct MODULE_E1000_STRUCTURE_MMIO *) ((mmio & ~0x0F) | KERNEL_MEMORY_mirror);
+		module_e1000_mmio_base_address = (struct MODULE_E1000_STRUCTURE_MMIO *) ((mmio & ~0x0F) | KERNEL_PAGE_mirror);
 
 		// debug
 		// kernel -> log( (uint8_t *) "[E1000] MMIO base address at 0x%X\n", module_e1000_mmio_base_address );
@@ -69,7 +69,7 @@ void _entry( uintptr_t kernel_ptr ) {
 		module_e1000_irq_number = (uint8_t) driver_pci_read( pci, DRIVER_PCI_REGISTER_irq );
 
 		// map MMIO controller area
-		kernel -> page_map( kernel -> page_base_address, (uintptr_t) module_e1000_mmio_base_address & ~KERNEL_MEMORY_mirror, (uintptr_t) module_e1000_mmio_base_address, MACRO_PAGE_ALIGN_UP( MODULE_E1000_MMIO_limit ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+		kernel -> page_map( kernel -> page_base_address, (uintptr_t) module_e1000_mmio_base_address & ~KERNEL_PAGE_mirror, (uintptr_t) module_e1000_mmio_base_address, MACRO_PAGE_ALIGN_UP( MODULE_E1000_MMIO_limit ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 		// retrieve network controller mac address
 		module_e1000_mac[ 0 ] = (uint8_t) (module_e1000_eeprom( 0x0001 ) >> 16);
@@ -99,8 +99,8 @@ void _entry( uintptr_t kernel_ptr ) {
 		module_e1000_rx_base_address = (struct MODULE_E1000_STRUCTURE_RDESC *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( MODULE_E1000_RDLEN_SIZE_byte ) >> STD_SHIFT_PAGE );
 
 		// load descriptor table address to MMIO of network controller
-		module_e1000_mmio_base_address -> rdbal = (uint32_t) ((uintptr_t) module_e1000_rx_base_address & ~KERNEL_MEMORY_mirror);
-		module_e1000_mmio_base_address -> rdbah = (uint32_t) (((uintptr_t) module_e1000_rx_base_address & ~KERNEL_MEMORY_mirror) >> 32);
+		module_e1000_mmio_base_address -> rdbal = (uint32_t) ((uintptr_t) module_e1000_rx_base_address & ~KERNEL_PAGE_mirror);
+		module_e1000_mmio_base_address -> rdbah = (uint32_t) (((uintptr_t) module_e1000_rx_base_address & ~KERNEL_PAGE_mirror) >> 32);
 
 		// set up size of descriptor cache, header and limit
 		// documentation, page  321/410, point 13.4.27
@@ -125,7 +125,7 @@ void _entry( uintptr_t kernel_ptr ) {
 
 		// load descriptor table address to network controller mmio
 		module_e1000_mmio_base_address -> tdbal = (uint32_t) ((uintptr_t) module_e1000_tx_base_address);
-		module_e1000_mmio_base_address -> tdbah = (uint32_t) (((uintptr_t) module_e1000_tx_base_address & ~KERNEL_MEMORY_mirror) >> 32);
+		module_e1000_mmio_base_address -> tdbah = (uint32_t) (((uintptr_t) module_e1000_tx_base_address & ~KERNEL_PAGE_mirror) >> 32);
 
 		// set up size of descriptor cache, header and limit
 		// documentation, page 330/410, point 13.4.38
@@ -218,7 +218,7 @@ void driver_e1000( void ) {
 	// if descriptor has set Length
 	if( module_e1000_rx_base_address[ 0 ].length ) {
 		// storage function of network is available
-		kernel -> network_rx( (uintptr_t) module_e1000_rx_base_address[ 0 ].address | module_e1000_rx_base_address[ 0 ].length | KERNEL_MEMORY_mirror );
+		kernel -> network_rx( (uintptr_t) module_e1000_rx_base_address[ 0 ].address | module_e1000_rx_base_address[ 0 ].length | KERNEL_PAGE_mirror );
 
 		// insert clean page
 		module_e1000_rx_base_address[ 0 ].address = kernel -> memory_alloc_page();

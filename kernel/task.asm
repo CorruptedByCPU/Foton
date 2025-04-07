@@ -2,10 +2,12 @@
 ; Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ;=================================================================================
 
+%define	KERNEL_STACK_pointer	0xFFFFFFFFFFFFF000
+
 ; get pointer from APIC exception handling function
 extern	kernel_task_switch
 
-; 64 bit code
+; 64 bit procedure code
 [BITS 64]
 
 ; information for linker
@@ -16,6 +18,7 @@ global	kernel_task
 
 ; align routine to full address (I am Speed - Lightning McQueen)
 align	0x08,	db	0x00
+
 kernel_task:
 	; turn off Interrupt Flag
 	cli
@@ -41,14 +44,14 @@ kernel_task:
 	push	r15
 
 	; preserve "floating point" registers
-	mov	rbp,	0xFFFFFFFFFFFFF000
+	mov	rbp,	KERNEL_STACK_pointer
 	FXSAVE64	[rbp]
 
 	; execute exception handler
 	call	kernel_task_switch
 
 	; restore "floating point" registers
-	mov	rbp,	0xFFFFFFFFFFFFF000
+	mov	rbp,	KERNEL_STACK_pointer
 	FXRSTOR64	[rbp]
 
 	; restore ogirinal registers

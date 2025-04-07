@@ -2,13 +2,13 @@
 ; Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ;=================================================================================
 
-; 64 bit code
+; 64 bit procedure code
 [BITS 64]
 
 ; information for linker
 section	.text
 
-; share routine with C
+; share initialization routine
 global	kernel_gdt_reload
 
 ; align routine to full address
@@ -17,19 +17,19 @@ kernel_gdt_reload:
 	; preserve original register
 	push	rax
 
-	; set CS descriptor
-	push	0x08	; offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring0 )
+	; CS descriptor
+	push	0x08
 	push	.cs
 	retfq
 
 .cs:
 	; DS, ES and SS descriptors
-	mov	ax,	0x10	; offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring0 )
+	mov	ax,	0x10
 	mov	ds,	ax
 	mov	es,	ax
 	mov	ss,	ax
 
-	; FS and GS descriptors (unused by kernel)
+	; FS and GS descriptors
 	xor	ax,	ax
 	mov	fs,	ax
 	mov	gs,	ax

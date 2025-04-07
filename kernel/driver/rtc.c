@@ -14,23 +14,23 @@ void driver_rtc( void ) {
 
 		// periodic interrupt?
 		if( c & DRIVER_RTC_STATUS_REGISTER_C_interrupt_periodic )
-			// increase RTC interrupts count
-			kernel -> time_units++;
+			// increase the real-time controller invocation count
+			kernel -> time_rtc++;
 	}
 
 	// accept current interrupt call
-	kernel_apic_accept();
+	kernel_lapic_accept();
 }
 
 void driver_rtc_init( void ) {
 	// connect real-time controller interrupt handler
-	kernel_idt_attach( KERNEL_IDT_IRQ_offset + DRIVER_RTC_IRQ_number, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) driver_rtc_entry );
+	kernel_idt_mount( KERNEL_IDT_IRQ_offset + DRIVER_RTC_IRQ_number, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) driver_rtc_entry );
 
 	// connect interrupt vector from IDT table in IOAPIC controller
-	kernel_io_apic_attach( KERNEL_IDT_IRQ_offset + DRIVER_RTC_IRQ_number, DRIVER_RTC_IO_APIC_register );
+	kernel_io_apic_connect( KERNEL_IDT_IRQ_offset + DRIVER_RTC_IRQ_number, DRIVER_RTC_IO_APIC_register );
 
-	// inform about interval
-	kernel -> time_hz = DRIVER_RTC_Hz;
+	// debug
+	// kernel -> log( (uint8_t *) "[RTC] IRQ 0x%2X, connected.\n", DRIVER_RTC_IRQ_number );
 
 	// state of real-time controller register
 	uint8_t local_register_status = EMPTY;

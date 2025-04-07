@@ -2,209 +2,255 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-static void kernel_exec_cancel( struct KERNEL_STRUCTURE_EXEC *exec ) {
-	// undo performed operations depending on cavity
-	switch( exec -> level ) {
-		case 6: {
-			// cannot foresee any error at this level and above
-		}
+int64_t kernel_exec( uint8_t *name, uint64_t length, uint8_t stream_flow, uint8_t detach ) {
+	// prepare temporary execution area
+	struct KERNEL_STRUCTURE_EXEC_TMP exec = { EMPTY };
 
-		case 5: {
-			// release memory map from task entry
-			kernel_memory_release( (uintptr_t) exec -> task -> memory, MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE );
-		}
-
-		case 4: {
-			// release paging structure
-			kernel_page_deconstruct( exec -> task -> cr3, exec -> task -> type );
-		}
-
-		case 3: {
-			// release task entry
-			exec -> task -> flags = EMPTY;
-		}
-
-		case 2: {
-			// release temporary area
-			kernel_memory_release( exec -> workbench, MACRO_PAGE_ALIGN_UP( exec -> socket -> file.limit ) >> STD_SHIFT_PAGE );
-		}
-
-		case 1: {
-			// close file
-			kernel_vfs_socket_delete( exec -> socket );
-		}
-	}
-}
-
-uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t init ) {
-	// execution state
-	struct KERNEL_STRUCTURE_EXEC exec = { INIT };
+	// file name length allowed?
+	if( length > LIB_VFS_NAME_limit ) return STD_ERROR_limit;	// no
 
 	// default location of executables
 	uint8_t path_default[ 5 ] = "/bin/";
 
-	// combine default path with executable name
-	exec.path = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + limit ) >> STD_SHIFT_PAGE ); for( uint8_t i = INIT; i < sizeof( path_default ); i++ ) exec.path[ exec.limit++ ] = path_default[ i ]; for( uint64_t i = INIT; i < lib_string_word_end( name, limit, STD_ASCII_SPACE ); i++ ) exec.path[ exec.limit++ ] = name[ i ];
+	// assign area for combined path
+	exec.path = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + length ) >> STD_SHIFT_PAGE );
 
-	// open file
-	exec.socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ kernel_syscall_file_open( exec.path, exec.limit ) ];
+	// set file path name
+	for( uint64_t i = 0; i < 5; i++ ) exec.path[ exec.path_length++ ] = path_default[ i ];
+	for( uint64_t i = 0; i < lib_string_word_end( name, length, STD_ASCII_SPACE ); i++ ) exec.path[ exec.path_length++ ] = name[ i ];
 
-	// release path, no more needed
-	kernel_memory_release( (uintptr_t) exec.path, MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + limit ) >> STD_SHIFT_PAGE );
+	// retrieve information about executable file
+	exec.socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ kernel -> storage_root ], exec.path, exec.path_length, EMPTY );
 
-	// file doesn't exist?
-	if( ! exec.socket ) return EMPTY;	// yep
+	// release area of path
+	kernel_memory_release( (uintptr_t) exec.path, MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + length ) >> STD_SHIFT_PAGE );
 
-	// checkpoint: socket --------------------------------------------------
+	// if executable does not exist
+	if( ! exec.socket ) return STD_ERROR_file_not_found;
+
+	// checkpoint reached: file socket opened
 	exec.level++;
 
-	// assign temporary area for parsing file content
-	if( ! (exec.workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.socket -> file.limit ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; };
+	// gather information about file
+	exec.vfs =kernel_vfs_file_properties( exec.socket );
 
-	// checkpoint: workbench -----------------------------------------------
+	// assign area for workbench
+	if( ! (exec.workbench_address = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.vfs.limit ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; };
+
+	// checkpoint reached: assigned area for temporary file
 	exec.level++;
 
-	// load content of file
-	kernel -> storage_base_address[ exec.socket -> storage ].vfs -> file_read( exec.socket, (uint8_t *) exec.workbench, EMPTY, exec.socket -> file.limit );
+	// load executable into workbench space
+	kernel_vfs_file_read( exec.socket, (uint8_t *) exec.workbench_address, EMPTY, exec.vfs.limit );
 
-	// file contains ELF header?
-	if( ! lib_elf_identify( exec.workbench ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; };	// no
+	//----------------------------------------------------------------------
 
-	// ELF file properties
-	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) exec.workbench;
+	// file contains proper ELF header?
+	if( ! lib_elf_identify( exec.workbench_address ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_file_unknown; }	// no
 
-	// executable?
-	if( elf -> type != LIB_ELF_TYPE_executable ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }	// no
+	// ELF structure properties
+	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) exec.workbench_address;
 
-	// load libraries required by executable
-	if( ! kernel_library( elf ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }	// something went wrong
+	// it's an executable file?
+	if( elf -> type != LIB_ELF_TYPE_executable ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_file_not_executable; }	// no
 
-	// add new task entry
-	if( ! (exec.task = kernel_task_add( name, limit )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }	// end of resources
+	// load libraries required by file
+	int64_t result = kernel_library( elf );
+	if( result ) {
+		// cancel execution
+		kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec );
+		
+		// return last error
+		return result;
+	}
 
-	// mark task type
-	exec.task -> type = KERNEL_TASK_TYPE_PROCESS;
+	//----------------------------------------------------------------------
 
-	// checkpoint: task ----------------------------------------------------
+	// create a new job in task queue
+	if( ! (exec.task = kernel_task_add( name, length )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_limit; }
+
+	// checkpoint reached: prepared task entry for new process
 	exec.level++;
 
-	// create paging table
-	if( ! (exec.task -> cr3 = (uint64_t *) kernel_memory_alloc( TRUE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+	//----------------------------------------------------------------------
+
+	// prepare Paging table for new process
+	if( ! (exec.task -> cr3 = kernel_memory_alloc( TRUE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; }
 
 	// page used for structure
 	kernel -> page_structure++;
 
-	// checkpoint: paging --------------------------------------------------
+	// all allocated pages, mark as type of PROCESS
+	exec.task -> page_type = KERNEL_PAGE_TYPE_PROCESS;
+
+	// checkpoint reached: assigned default paging array
 	exec.level++;
-
-	// describe area under context stack
-	if( ! kernel_page_alloc( exec.task -> cr3, KERNEL_STACK_address, KERNEL_STACK_LIMIT_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (exec.task -> type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
-
-	// set initial startup configuration for new process
-	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( exec.task -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_MEMORY_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
-
-	// set the process entry address
-	context -> rip		= elf -> entry_ptr;
-
-	// code descriptor
-	context -> cs		= offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring3 ) | 0x03;
-
-	// basic processor state flags
-	context -> eflags	= KERNEL_TASK_EFLAGS_default;
-
-	// the context stack top pointer
-	exec.task -> rsp	= KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
-
-	// stack descriptor
-	context -> ss		= offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring3 ) | 0x03;
 
 	//----------------------------------------------------------------------
 
-	// insert on stack, whole provided command line
-	exec.stack_byte = (limit & ~STD_MASK_byte_half) + 0x18;
+	// describe space under exec context stack or low memory occured
+	if( ! kernel_page_alloc( (uint64_t *) exec.task -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; }
 
-	// allocate area for stack
-	if( ! (exec.stack = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+	// set initial startup configuration for new process
+	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( (uint64_t *) exec.task -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
 
-	// new context stack pointer
+	// code descriptor
+	context -> cs = offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring3 ) | 0x03;
+
+	// basic processor state flags
+	context -> eflags = KERNEL_TASK_EFLAGS_default;
+
+	// stack descriptor
+	context -> ss = offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring3 ) | 0x03;
+
+	// the context stack top pointer
+	exec.task -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
+
+	// set the process entry address
+	context -> rip = elf -> entry_ptr;
+
+	//----------------------------------------------------------------------
+
+	// length of name with arguments properties
+	exec.stack_byte = (length & ~0x0F) + 0x18;
+
+	// assign area for process stack or low memory occured
+	if( ! (exec.stack = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; }
+
+	// stack pointer of process
 	context -> rsp = KERNEL_TASK_STACK_pointer - exec.stack_byte;
 
-	// share argc
-	*((uint64_t *) &exec.stack[ MACRO_PAGE_ALIGN_UP( exec.stack_byte ) - exec.stack_byte ]) = limit;
+	// share to process:
 
-	// and argv
-	for( uint64_t i = INIT; i < limit; i++ ) exec.stack[ MACRO_PAGE_ALIGN_UP( exec.stack_byte ) - exec.stack_byte + 0x08 + i ] = name[ i ];
+	// length of args in Bytes
+	uint64_t *arg_length = (uint64_t *) &exec.stack[ MACRO_PAGE_ALIGN_UP( exec.stack_byte ) - exec.stack_byte ]; *arg_length = length;
 
-	// map as stack
-	if( ! kernel_page_map( exec.task -> cr3, (uintptr_t) exec.stack & ~KERNEL_MEMORY_mirror, MACRO_PAGE_ALIGN_DOWN( context -> rsp ), MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.stack, MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE ); kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+	// and string itself
+	for( uint64_t i = 0; i < length; i++ ) exec.stack[ MACRO_PAGE_ALIGN_UP( exec.stack_byte ) - exec.stack_byte + 0x08 + i ] = name[ i ];
 
-	// stack length
-	exec.task -> stack_page += MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE;
+	// map stack space to process paging array
+	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, (uintptr_t) exec.stack & ~KERNEL_PAGE_mirror, MACRO_PAGE_ALIGN_DOWN( context -> rsp ), MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.stack, MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE ); kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; }
+
+	// process stack size
+	exec.task -> stack += MACRO_PAGE_ALIGN_UP( exec.stack_byte ) >> STD_SHIFT_PAGE;
 
 	//----------------------------------------------------------------------
 
 	// ELF header properties
-	struct LIB_ELF_STRUCTURE_HEADER *elf_header = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> header_offset);
+	struct LIB_ELF_STRUCTURE_HEADER *elf_h = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> headers_offset);
 
-	// find furthest position in page of initialized executable
-	for( uint16_t i = INIT; i < elf -> header_count; i++ ) {
+	// prepare the memory space for segments used by the process
+	for( uint16_t i = 0; i < elf -> h_entry_count; i++ ) {
 		// ignore blank entry or not loadable
-		if( elf_header[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_header[ i ].segment_size  || ! elf_header[ i ].memory_size ) continue;
+ 		if( elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_h[ i ].memory_size ) continue;
 
-		// update executable area limit?
-		if( exec.page < (MACRO_PAGE_ALIGN_UP( elf_header[ i ].virtual_address + elf_header[ i ].memory_size ) - KERNEL_EXEC_base_address) >> STD_SHIFT_PAGE ) exec.page = (MACRO_PAGE_ALIGN_UP( elf_header[ i ].virtual_address + elf_header[ i ].memory_size ) - KERNEL_EXEC_base_address) >> STD_SHIFT_PAGE;
+		// update executable space size?
+		if( exec.page < (MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].memory_size ) - KERNEL_EXEC_base_address) >> STD_SHIFT_PAGE ) exec.page = (MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].memory_size ) - KERNEL_EXEC_base_address) >> STD_SHIFT_PAGE;
 	}
 
-	// acquire area for executable
-	if( ! (exec.base = kernel_memory_alloc( exec.page )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+	// allocate calculated space
+	if( ! (exec.base_address = kernel_memory_alloc( exec.page )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; }
 
 	// load executable segments in place
-	for( uint16_t i = INIT; i < elf -> header_count; i++ ) {
+	for( uint16_t i = 0; i < elf -> h_entry_count; i++ ) {
 		// ignore blank entry or not loadable
- 		if( elf_header[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_header[ i ].segment_size || ! elf_header[ i ].memory_size ) continue;
-
-		// segment source
-		uint8_t *source = (uint8_t *) ((uintptr_t) elf + elf_header[ i ].segment_offset);
+ 		if( elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_h[ i ].segment_size || ! elf_h[ i ].memory_size ) continue;
 
 		// segment destination
-		uint8_t *destination = (uint8_t *) ((elf_header[ i ].virtual_address - KERNEL_EXEC_base_address) + exec.base);
+		uint8_t *destination = (uint8_t *) ((elf_h[ i ].virtual_address - KERNEL_EXEC_base_address) + exec.base_address);
+
+		// segment source
+		uint8_t *source = (uint8_t *) ((uintptr_t) elf + elf_h[ i ].segment_offset);
 
 		// copy segment content into place
-		for( uint64_t j = INIT; j < elf_header[ i ].memory_size; j++ ) destination[ j ] = source[ j ];
+		for( uint64_t j = 0; j < elf_h[ i ].memory_size; j++ ) destination[ j ] = source[ j ];
 	}
 
-	// map executable area
-	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, exec.base & ~KERNEL_MEMORY_mirror, KERNEL_EXEC_base_address, exec.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.base, exec.page ); kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+	// map executable space to paging array
+	if( ! kernel_page_map( (uint64_t *) exec.task -> cr3, exec.base_address & ~KERNEL_PAGE_mirror, KERNEL_EXEC_base_address, exec.page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (exec.task -> page_type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_memory_release( (uintptr_t) exec.base_address, exec.page ); kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; }
 
 	// process memory usage
 	exec.task -> page += exec.page;
 
 	//----------------------------------------------------------------------
 
-	// create virtual memory map
-	if( ! (exec.task -> memory = (uint32_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+	// create virtual memory map for process, no less than kernels
+	if( ! (exec.task -> memory_map = (uint32_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; }
 
-	// checkpoint: memory
+	// checkpoint reached: assigned memory map
 	exec.level++;
 
-	// fill up
-	for( uint64_t i = (KERNEL_EXEC_base_address >> STD_SHIFT_PAGE) >> STD_SHIFT_32; i < kernel -> page_limit >> STD_SHIFT_32; i++ ) exec.task -> memory[ i ] = STD_MAX_unsigned;
+	// fill in binary memory map
+	for( uint64_t i = (MACRO_PAGE_ALIGN_DOWN( KERNEL_EXEC_base_address ) >> STD_SHIFT_PAGE) >> STD_SHIFT_32; i < kernel -> page_limit >> STD_SHIFT_32; i++ ) exec.task -> memory_map[ i ] = STD_MAX_unsigned;
 
 	// mark as occupied pages used by the executable
-	kernel_memory_acquire( exec.task -> memory, exec.page, KERNEL_EXEC_base_address >> STD_SHIFT_PAGE, kernel -> page_limit );
+	kernel_memory_acquire( exec.task -> memory_map, exec.page, KERNEL_EXEC_base_address >> STD_SHIFT_PAGE, kernel -> page_limit );
 
 	//----------------------------------------------------------------------
 
 	// connect required functions new locations / from another library
-	kernel_library_link( elf, exec.base, FALSE );
+	kernel_library_link( elf, exec.base_address, FALSE );
 
 	//----------------------------------------------------------------------
 
-	// map kernel
+	// make a default input stream
+	if( ! (exec.task -> stream_in = kernel_stream()) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC_TMP *) &exec ); return STD_ERROR_memory_low; }
+
+	// checkpoint reached: assigned stream in/out
+	exec.level++;
+
+	// properties of parent task
+	struct KERNEL_STRUCTURE_TASK *parent;
+
+	// deatch process from its parent?
+	if( detach ) {	// yes
+		// select parent as initial task
+		parent = kernel_task_by_id( kernel -> init_pid );
+
+		// correction
+		exec.task -> pid_parent = kernel -> init_pid;
+	// no
+	} else parent = (struct KERNEL_STRUCTURE_TASK *) kernel_task_active();
+
+	// set default output stream based on flag
+	switch( stream_flow ) {
+		case STD_STREAM_FLOW_out_to_parent_in: {
+			// childs output to parents input
+			exec.task -> stream_out = parent -> stream_in;
+
+			// done
+			break;
+		}
+
+		case STD_STREAM_FLOW_out_to_in: {
+			// loopback stream
+			exec.task -> stream_out = exec.task -> stream_in;
+		
+			// done
+			break;
+		}
+
+		default: {
+			// inherit parents output
+			exec.task -> stream_out = parent -> stream_out;
+		}
+	}
+
+	// stream used by new exec
+	exec.task -> stream_out -> lock++;
+
+	//----------------------------------------------------------------------
+
+	// exec inherites root directory of parent, regardles of detach semaphore
+	exec.task -> directory = kernel_task_active() -> directory;
+
+	//----------------------------------------------------------------------
+
+	// map kernel space to process
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) exec.task -> cr3 );
 
 	// release workbench
-	kernel_memory_release( exec.workbench, MACRO_PAGE_ALIGN_UP( exec.socket -> file.limit ) >> STD_SHIFT_PAGE );
+	kernel_memory_release( exec.workbench_address, MACRO_PAGE_ALIGN_UP( exec.vfs.limit ) >> STD_SHIFT_PAGE );
 
 	//----------------------------------------------------------------------
 
@@ -212,8 +258,34 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 	exec.task -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
 
 	// close file
-	kernel_vfs_socket_delete( exec.socket );
+	kernel_vfs_file_close( exec.socket );
 
-	// PID of new task
-	return exec.task -> pid;;
+	// return PID of created job
+	return exec.task -> pid;
+}
+
+static void kernel_exec_cancel( struct KERNEL_STRUCTURE_EXEC_TMP *exec ) {
+	// undo performed operations depending on cavity
+	switch( exec -> level ) {
+		case 5: {
+			// release memory map from task entry
+			kernel_memory_release( (uintptr_t) exec -> task -> memory_map, MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) >> STD_SHIFT_PAGE );
+		}
+		case 4: {
+			// release paging structure
+			kernel_page_deconstruct( (uint64_t *) exec -> task -> cr3, exec -> task -> page_type );
+		}
+		case 3: {
+			// release task entry
+			exec -> task -> flags = EMPTY;
+		}
+		case 2: {
+			// release workbench area
+			kernel_memory_release( exec -> workbench_address, MACRO_PAGE_ALIGN_UP( exec -> vfs.limit ) >> STD_SHIFT_PAGE );
+		}
+		case 1: {
+			// close file
+			kernel_vfs_file_close( exec -> socket );
+		}
+	}
 }

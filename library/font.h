@@ -10,10 +10,10 @@
 	#endif
 
         // display management
-	#define LIB_FONT_ALIGN_left             	1
-	#define LIB_FONT_ALIGN_center           	2
-	#define LIB_FONT_ALIGN_right            	4
-	#define LIB_FONT_ALIGN_justify          	8
+	#define LIB_FONT_ALIGN_left             	0b00000001
+	#define LIB_FONT_ALIGN_center           	0b00000010
+	#define LIB_FONT_ALIGN_right            	0b00000100
+	#define LIB_FONT_ALIGN_justify          	0b00001000
 
 	// available font styles
 	#define LIB_FONT_FAMILY_ROBOTO_MONO     	0

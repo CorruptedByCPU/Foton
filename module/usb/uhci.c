@@ -270,7 +270,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 	packet -> length	= 0x08;	// default first request length
 
 	// retrieve default descriptor from device
-	module_usb_uhci_descriptor( port, 0x08, descriptor_default & ~KERNEL_MEMORY_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
+	module_usb_uhci_descriptor( port, 0x08, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
 
 	// properties of device descriptor
 	struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_DEVICE *descriptor_device = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_DEVICE *) descriptor_default;
@@ -301,7 +301,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 	packet -> length	= descriptor_device -> length;
 
 	// retrieve full device descriptor
-	module_usb_uhci_descriptor( port, descriptor_device -> length, descriptor_default & ~KERNEL_MEMORY_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
+	module_usb_uhci_descriptor( port, descriptor_device -> length, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
 
 	// CONFIGURATION/INTERFACE/ENDPOINT DESCRIPTORS ------------------------
 
@@ -312,7 +312,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 	packet -> length	= sizeof( struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_CONFIGURATION );
 
 	// retrieve part of configuration properties
-	module_usb_uhci_descriptor( port, sizeof( struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_CONFIGURATION ), descriptor_default & ~KERNEL_MEMORY_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
+	module_usb_uhci_descriptor( port, sizeof( struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_CONFIGURATION ), descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
 
 	// properties of configuration descriptor
 	struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_CONFIGURATION *descriptor_configuration = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_CONFIGURATION *) descriptor_default;
@@ -321,7 +321,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 	packet -> length = descriptor_configuration -> total_length;
 
 	// retrieve full configuration properties
-	module_usb_uhci_descriptor( port, descriptor_configuration -> total_length, descriptor_default & ~KERNEL_MEMORY_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
+	module_usb_uhci_descriptor( port, descriptor_configuration -> total_length, descriptor_default & ~KERNEL_PAGE_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, (uintptr_t) packet );
 
 	// prepare packet
 	packet -> type		= MODULE_USB_PACKET_TYPE_direction_host_to_device;
@@ -408,7 +408,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 
 void module_usb_uhci_init( uint8_t c ) {
 	// alloc area for frame list
-	module_usb_controller[ c ].frame_base_address = (uint32_t) (kernel -> memory_alloc_low( TRUE ) & ~KERNEL_MEMORY_mirror);
+	module_usb_controller[ c ].frame_base_address = (uint32_t) (kernel -> memory_alloc_low( TRUE ) & ~KERNEL_PAGE_mirror);
 
 	// type of access
 	if( module_usb_controller[ c ].mmio_semaphore ) {
@@ -428,7 +428,7 @@ void module_usb_uhci_init( uint8_t c ) {
 		uhci -> frame_list_base_address = module_usb_controller[ c ].frame_base_address;
 
 		// fill up frame list with queues
-		module_usb_uhci_queue( (uint32_t *) (module_usb_controller[ c ].frame_base_address | KERNEL_MEMORY_mirror) );
+		module_usb_uhci_queue( (uint32_t *) (module_usb_controller[ c ].frame_base_address | KERNEL_PAGE_mirror) );
 
 		// clear status register
 		uhci -> status = 0b00111111;
@@ -453,7 +453,7 @@ void module_usb_uhci_init( uint8_t c ) {
 	driver_port_out_dword( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, frame_list_base_address ), module_usb_controller[ c ].frame_base_address );
 
 	// fill up frame list with queues
-	module_usb_uhci_queue( (uint32_t *) (module_usb_controller[ c ].frame_base_address | KERNEL_MEMORY_mirror) );
+	module_usb_uhci_queue( (uint32_t *) (module_usb_controller[ c ].frame_base_address | KERNEL_PAGE_mirror) );
 
 	// clear status register
 	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, status ), 0b00111111 );

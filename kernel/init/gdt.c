@@ -32,5 +32,5 @@ void kernel_init_gdt( void ) {
 	kernel_gdt_reload();
 
 	// initialize stack pointer inside TSS table
-	kernel -> tss.rsp0 = KERNEL_STACK_pointer;
+	kernel -> tss_table.rsp0 = KERNEL_STACK_pointer;
 }

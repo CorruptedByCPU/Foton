@@ -11,11 +11,15 @@ void kernel_log( uint8_t *string, ... ) {
 
 	// for every character from string
 	uint64_t length = lib_string_length( string );
-	for( uint64_t i = INIT; i < length; i++ ) {
+	for( uint64_t i = 0; i < length; i++ ) {
 		// special character?
 		if( string[ i ] != '%' ) {
 			// no, show it
-			lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, (uint8_t) string[ i ] );
+			#ifdef LIB_TERMINAL
+				lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, (uint8_t) string[ i ] );
+			#else
+				driver_serial_char( (uint8_t) string[ i ] );
+			#endif
 
 			// next character
 			continue;
@@ -28,30 +32,15 @@ void kernel_log( uint8_t *string, ... ) {
 		// omit prefix value if existed
 		i += prefix;
 
-		// definied prefix length?
-		if( string[ i ] == '*' ) {
-			// amount of digits after digit delimiter
-			p_value = va_arg( argv, uint64_t );
-
-			// leave predefinied prefix
-			i += 1;
-		}
-
-		// definied suffix length?
-		uint64_t pre_suffix = EMPTY;
-		if( string[ i ] == '.' && string[ i + 1 ] == '*' ) {
-			// amount of digits after digit delimiter
-			pre_suffix = va_arg( argv, uint64_t );
-
-			// leave predefinied suffix
-			i += 2;
-		}
-
 		// check sequence type
 		switch( string[ i ] ) {
 			case '%': {
 				// just show '%' character
-				lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, '%' );
+				#ifdef LIB_TERMINAL
+					lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, '%' );
+				#else
+					driver_serial_char( '%' );
+				#endif
 
 				// next character
 				break;
@@ -62,7 +51,11 @@ void kernel_log( uint8_t *string, ... ) {
 				uint64_t value = va_arg( argv, uint64_t );
 
 				// show 'value' on terminal
-				lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 2, p_value, STD_ASCII_DIGIT_0 );
+				#ifdef LIB_TERMINAL
+					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 2, p_value, STD_ASCII_DIGIT_0 );
+				#else
+					driver_serial_value( value, 2, p_value, STD_ASCII_DIGIT_0 );
+				#endif
 
 				// next character from string
 				continue;
@@ -73,7 +66,11 @@ void kernel_log( uint8_t *string, ... ) {
 				uint8_t c = va_arg( argv, uint64_t );
 				
 				// show 'character' on terminal
-				lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, c );
+				#ifdef LIB_TERMINAL
+					lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, c );
+				#else
+					driver_serial_char( c );
+				#endif
 
 				// next character from string
 				continue;
@@ -86,14 +83,22 @@ void kernel_log( uint8_t *string, ... ) {
 				// value signed?
 				if( value & 0x8000000000000000 ) {
 					// show 'character' on terminal
-					lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, '-' );
+					#ifdef LIB_TERMINAL
+						lib_terminal_char( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, '-' );
+					#else
+						driver_serial_char( '-' );
+					#endif
 
 					// remove sign
 					value = ~value + 1;
 				}
 
 				// show 'value' on terminal
-				lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, STD_ASCII_DIGIT_0 );
+				#ifdef LIB_TERMINAL
+					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, STD_ASCII_DIGIT_0 );
+				#else
+					driver_serial_value( value, 10, p_value, STD_ASCII_DIGIT_0 );
+				#endif
 
 				// next character from string
 				continue;
@@ -102,17 +107,14 @@ void kernel_log( uint8_t *string, ... ) {
 			case 's': {
 				// retrieve substring
 				uint8_t *substring = va_arg( argv, uint8_t * );
-
-				uint64_t limit = lib_string_length( substring );
-
-				// change string length if predefinied value exist
-				if( pre_suffix ) {
-					// new length
-					limit = pre_suffix;
-				}
-
+				
 				// show 'substring' on terminal
-				lib_terminal_string( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, substring, lib_string_length( substring ) );
+				for( uint64_t j = 0; j < lib_string_length( substring ); j++ )
+					#ifdef LIB_TERMINAL
+						lib_terminal_string( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, substring, lib_string_length( substring ) );
+					#else
+						driver_serial_char( substring[ j ] );
+					#endif
 
 				// next character from string
 				continue;
@@ -123,19 +125,11 @@ void kernel_log( uint8_t *string, ... ) {
 				uint64_t value = va_arg( argv, uint64_t );
 
 				// show 'value' on terminal
-				lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, STD_ASCII_DIGIT_0 );
-
-				// next character from string
-				continue;
-			}
-
-			case 'p': {
-				// retrieve value
-				uint64_t value = va_arg( argv, uint64_t );
-
-				// show 'value' on terminal
-				lib_terminal_string( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, (uint8_t *) "0x", 2 );
-				lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 16, 16, STD_ASCII_DIGIT_0 );
+				#ifdef LIB_TERMINAL
+					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 10, p_value, STD_ASCII_DIGIT_0 );
+				#else
+					driver_serial_value( value, 10, p_value, STD_ASCII_DIGIT_0 );
+				#endif
 
 				// next character from string
 				continue;
@@ -146,7 +140,11 @@ void kernel_log( uint8_t *string, ... ) {
 				uint64_t value = va_arg( argv, uint64_t );
 
 				// show 'value' on terminal
-				lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 16, p_value, STD_ASCII_DIGIT_0 );
+				#ifdef LIB_TERMINAL
+					lib_terminal_value( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal, value, 16, p_value, STD_ASCII_DIGIT_0 );
+				#else
+					driver_serial_value( value, 16, p_value, STD_ASCII_DIGIT_0 );
+				#endif
 
 				// next character from string
 				continue;

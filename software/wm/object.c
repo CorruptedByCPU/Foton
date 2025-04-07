@@ -2,91 +2,95 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-// void wm_object( void ) {
-// 	// block access to object list
-// 	MACRO_LOCK( wm_list_lock );
+void wm_object( void ) {
+	// block access to object list
+	MACRO_LOCK( wm_list_semaphore );
 
-// 	// search whole list for object flush
-// 	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
-// 		// ignore cursor object
-// 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
+	// search whole list for object flush
+	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
+		// ignore cursor object
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
 
-// 		// active window selected?
-// 		if( wm_list_base_address[ i ] == wm_object_active ) wm_object_active -> descriptor -> flags |= STD_WINDOW_FLAG_active;
-// 		else wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_active;
+		// active window selected?
+		if( wm_list_base_address[ i ] == wm_object_active ) wm_object_active -> descriptor -> flags |= STD_WINDOW_FLAG_active;
+		else wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_active;
 
-// 		// object maximized, minimized or requested flush?
-// 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_maximize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
-// 			// parse whole object area
-// 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
+		// object maximized, minimized or requested flush?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_maximize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize || wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
+			// parse whole object area
+			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
 
-// 			// request parsed
-// 			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_flush;
+			// request parsed
+			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_flush;
 
-// 			// remove minimize flag (if set)
-// 			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize ) {
-// 				// remove minimize flag
-// 				wm_list_base_address[ i ] -> descriptor -> flags  &= ~STD_WINDOW_FLAG_minimize;
+			// remove minimize flag (if set)
+			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_minimize ) {
+				// remove minimize flag
+				wm_list_base_address[ i ] -> descriptor -> flags  &= ~STD_WINDOW_FLAG_minimize;
 
-// 				// hide object
-// 				wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
+				// hide object
+				wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
 
-// 				// find new active object
-// 				wm_object_active_new();
+				// find new active object
+				wm_object_active_new();
 
-// 				// update taskbar list
-// 				wm_taskbar_modified = TRUE;
-// 			}
+				// update taskbar list
+				wm_taskbar_modified = TRUE;
+			}
 
-// 			// remove maximize flag (if set)
-// 			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_maximize ) {
-// 				// remove maximize flag
-// 				wm_list_base_address[ i ] -> descriptor -> flags  &= ~STD_WINDOW_FLAG_maximize;
+			// remove maximize flag (if set)
+			if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_maximize ) {
+				// remove maximize flag
+				wm_list_base_address[ i ] -> descriptor -> flags  &= ~STD_WINDOW_FLAG_maximize;
 
-// 				// propose new properties of object
-// 				wm_list_base_address[ i ] -> descriptor -> new_x	= 0;
-// 				wm_list_base_address[ i ] -> descriptor -> new_y	= 0;
-// 				wm_list_base_address[ i ] -> descriptor -> new_width	= wm_object_workbench -> width;
-// 				wm_list_base_address[ i ] -> descriptor -> new_height	= wm_object_workbench -> height - wm_object_taskbar -> height;
+				// propose new properties of object
+				wm_list_base_address[ i ] -> descriptor -> new_x	= 0;
+				wm_list_base_address[ i ] -> descriptor -> new_y	= 0;
+				wm_list_base_address[ i ] -> descriptor -> new_width	= wm_object_workbench -> width;
+				wm_list_base_address[ i ] -> descriptor -> new_height	= wm_object_workbench -> height - wm_object_taskbar -> height;
 
-// 				// inform application interface about requested properties
-// 				wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
-// 			}
+				// inform application interface about requested properties
+				wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
+			}
 
-// 			// redraw cursor too
-// 			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-// 		}
+			// redraw cursor too
+			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		}
 
-// 		// object renamed?
-// 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_name ) {
-// 			// done
-// 			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_name;
+		// object renamed?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_name ) {
+			// done
+			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_name;
 
-// 			// update taskbar list
-// 			wm_taskbar_modified = TRUE;
-// 		}
-// 	}
+			// update taskbar list
+			wm_taskbar_modified = TRUE;
+		}
+	}
 
-// 	// release access to object list
-// 	MACRO_UNLOCK( wm_list_lock );
-// }
+	// release access to object list
+	MACRO_UNLOCK( wm_list_semaphore );
+}
 
-// void wm_object_active_new( void ) {
-// 	// search thru object list as far as to taskbar object
-// 	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
-// 		// taskbar object?
-// 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) break;	// yes
+void wm_object_active_new( void ) {
+	// search thru object list as far as to taskbar object
+	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
+		// taskbar object?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) break;	// yes
 
-// 		// object is visible?
-// 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) wm_object_active = wm_list_base_address[ i ];
-// 	}
-// }
+		// object is visible?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) wm_object_active = wm_list_base_address[ i ];
+	}
+}
 
 void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
-	MACRO_LOCK( wm_list_lock );
+	// block access to object list
+	MACRO_LOCK( wm_list_semaphore );
+
+	// entry id
+	uint64_t i = 0;	// first one
 
 	// find taskbar object on list
-	uint64_t i = INIT; for( ; i < wm_list_limit; i++ ) {
+	for( ; i < wm_list_limit; i++ ) {
 		// taskbar object?
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) {
 			// move all objects one position forward
@@ -103,14 +107,16 @@ void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 	// amount of objects on list
 	wm_list_limit++;
 
-	MACRO_UNLOCK( wm_list_lock );
+	// release access to object list
+	MACRO_UNLOCK( wm_list_semaphore );
 }
 
 struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t width, uint16_t height ) {
-	MACRO_LOCK( wm_object_lock );
+	// block access to object array
+	MACRO_LOCK( wm_object_semaphore );
 
 	// find available entry
-	for( uint64_t i = INIT; i < WM_OBJECT_LIMIT; i++ ) {
+	for( uint64_t i = 0; i < WM_OBJECT_LIMIT; i++ ) {
 		// entry in use?
 		if( wm_object_base_address[ i ].descriptor ) continue;	// yes
 
@@ -136,141 +142,143 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t wid
 		// newly created object becomes active
 		wm_object_active = (struct WM_STRUCTURE_OBJECT *) &wm_object_base_address[ i ];
 
-		MACRO_UNLOCK( wm_object_lock );
+		// release acces to object array
+		MACRO_UNLOCK( wm_object_semaphore );
 
 		// ready
 		return (struct WM_STRUCTURE_OBJECT *) &wm_object_base_address[ i ];
 	}
 
-	MACRO_UNLOCK( wm_object_lock );
+	// release acces to object array
+	MACRO_UNLOCK( wm_object_semaphore );
 
 	// no available entry
 	return EMPTY;
 }
 
-// struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t parse_hidden ) {
-// 	// block access to object list
-// 	MACRO_LOCK( wm_list_lock );
+struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t parse_hidden ) {
+	// block access to object list
+	MACRO_LOCK( wm_list_semaphore );
 
-// 	// find object at current cursor coordinates
-// 	for( uint16_t i = wm_list_limit - 1; i >= 0; i-- ) {
-// 		// object marked as cursor?
-// 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// leave it
+	// find object at current cursor coordinates
+	for( uint16_t i = wm_list_limit - 1; i >= 0; i-- ) {
+		// object marked as cursor?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// leave it
 
-// 		// object is visible? (or include hidden ones too)
-// 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible || parse_hidden ) {
-// 			// coordinates at object area?
-// 			if( wm_list_base_address[ i ] -> x > x ) continue;	// no
-// 			if( wm_list_base_address[ i ] -> y > y ) continue;	// no
-// 			if( (wm_list_base_address[ i ] -> x + wm_list_base_address[ i ] -> width) < x ) continue;	// no
-// 			if( (wm_list_base_address[ i ] -> y + wm_list_base_address[ i ] -> height) < y ) continue;	// no
+		// object is visible? (or include hidden ones too)
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible || parse_hidden ) {
+			// coordinates at object area?
+			if( wm_list_base_address[ i ] -> x > x ) continue;	// no
+			if( wm_list_base_address[ i ] -> y > y ) continue;	// no
+			if( (wm_list_base_address[ i ] -> x + wm_list_base_address[ i ] -> width) < x ) continue;	// no
+			if( (wm_list_base_address[ i ] -> y + wm_list_base_address[ i ] -> height) < y ) continue;	// no
 
-// 			// preserve object properties
-// 			struct WM_STRUCTURE_OBJECT *object = wm_list_base_address[ i ];
+			// preserve object properties
+			struct WM_STRUCTURE_OBJECT *object = wm_list_base_address[ i ];
 
-// 			// release access to object list
-// 			MACRO_UNLOCK( wm_list_lock );
+			// release access to object list
+			MACRO_UNLOCK( wm_list_semaphore );
 
-// 			// return a pointer to an object
-// 			return object;
-// 		}
-// 	}
+			// return a pointer to an object
+			return object;
+		}
+	}
 
-// 	// release access to object list
-// 	MACRO_UNLOCK( wm_list_lock );
+	// release access to object list
+	MACRO_UNLOCK( wm_list_semaphore );
 
-// 	// nothing under specified coordinates
-// 	return EMPTY;
-// }
+	// nothing under specified coordinates
+	return EMPTY;
+}
 
-// void wm_object_move( int16_t x, int16_t y ) {
-// 	// object attached to XY axis?
-// 	if( wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_xy ) return;	// yep
+void wm_object_move( int16_t x, int16_t y ) {
+	// object attached to XY axis?
+	if( wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_xy ) return;	// yep
 
-// 	// prepare zone for truncate
-// 	struct WM_STRUCTURE_ZONE zone;
-// 	zone.x = wm_object_selected -> x;
-// 	zone.y = wm_object_selected -> y;
-// 	zone.width = wm_object_selected -> width;
-// 	zone.height = wm_object_selected -> height;
+	// prepare zone for truncate
+	struct WM_STRUCTURE_ZONE zone;
+	zone.x = wm_object_selected -> x;
+	zone.y = wm_object_selected -> y;
+	zone.width = wm_object_selected -> width;
+	zone.height = wm_object_selected -> height;
 
-// 	// a movement on X axis occurred?
-// 	if( x ) {
-// 		// new position of selected object
-// 		wm_object_selected -> x += x;
+	// a movement on X axis occurred?
+	if( x ) {
+		// new position of selected object
+		wm_object_selected -> x += x;
 
-// 		// X axis shift is positive?
-// 		if( x > 0 )	// yes
-// 			// width of exposed zone
-// 			zone.width = x;
-// 		else {
-// 			// position and width of exposed zone
-// 			zone.x = wm_object_selected -> x + wm_object_selected -> width;
-// 			zone.width = ~x + 1;
-// 		}
+		// X axis shift is positive?
+		if( x > 0 )	// yes
+			// width of exposed zone
+			zone.width = x;
+		else {
+			// position and width of exposed zone
+			zone.x = wm_object_selected -> x + wm_object_selected -> width;
+			zone.width = ~x + 1;
+		}
 
-// 		// register zone
-// 		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone, FALSE );
+		// register zone
+		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone, FALSE );
 
-// 		// update zone properties
-// 		zone.x = wm_object_selected -> x;
-// 		zone.width = wm_object_selected -> width;
-// 	}
+		// update zone properties
+		zone.x = wm_object_selected -> x;
+		zone.width = wm_object_selected -> width;
+	}
 
-// 	// a movement on Y axis occured?
-// 	if( y ) {
-// 		// new position of selected object
-// 		wm_object_selected -> y += y;
+	// a movement on Y axis occured?
+	if( y ) {
+		// new position of selected object
+		wm_object_selected -> y += y;
 
-// 		// Y axis shift is positive?
-// 		if( y > 0 )	// yes
-// 			// height of exposed fragment
-// 			zone.height = y;
-// 		else {
-// 			// position and height of exposed fragment
-// 			zone.y = wm_object_selected -> y + wm_object_selected -> height;
-// 			zone.height = ~y + 1;
-// 		}
+		// Y axis shift is positive?
+		if( y > 0 )	// yes
+			// height of exposed fragment
+			zone.height = y;
+		else {
+			// position and height of exposed fragment
+			zone.y = wm_object_selected -> y + wm_object_selected -> height;
+			zone.height = ~y + 1;
+		}
 
-// 		// register zone
-// 		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone, FALSE );
-// 	}
+		// register zone
+		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone, FALSE );
+	}
 
-// 	// object has been moved
-// 	wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-// }
+	// object has been moved
+	wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+}
 
-// uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object ) {
-// 	// block access to object list
-// 	MACRO_LOCK( wm_list_lock );
+uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object ) {
+	// block access to object list
+	MACRO_LOCK( wm_list_semaphore );
 
-// 	// find object on list
-// 	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
-// 		// object located?
-// 		if( wm_list_base_address[ i ] != object ) continue;	// no
+	// find object on list
+	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
+		// object located?
+		if( wm_list_base_address[ i ] != object ) continue;	// no
 
-// 		// move all objects in place of selected
-// 		for( uint64_t j = i; j < wm_list_limit - 1; j++ ) {
-// 			// next object will be a taskbar or move on?
-// 			if( wm_list_base_address[ j + 1 ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar && ! (object -> descriptor -> flags & STD_WINDOW_FLAG_lock) ) break;
+		// move all objects in place of selected
+		for( uint64_t j = i; j < wm_list_limit - 1; j++ ) {
+			// next object will be a taskbar or move on?
+			if( wm_list_base_address[ j + 1 ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar && ! (object -> descriptor -> flags & STD_WINDOW_FLAG_lock) ) break;
 
-// 			// no, move next object to current position
-// 			wm_list_base_address[ i++ ] = wm_list_base_address[ j + 1 ];
-// 		}
+			// no, move next object to current position
+			wm_list_base_address[ i++ ] = wm_list_base_address[ j + 1 ];
+		}
 
-// 		// put object back on its new position
-// 		wm_list_base_address[ i ] = object;
+		// put object back on its new position
+		wm_list_base_address[ i ] = object;
 
-// 		// release access to object list
-// 		MACRO_UNLOCK( wm_list_lock );
+		// release access to object list
+		MACRO_UNLOCK( wm_list_semaphore );
 
-// 		// object changed position
-// 		return TRUE;
-// 	}
+		// object changed position
+		return TRUE;
+	}
 
-// 	// release access to object list
-// 	MACRO_UNLOCK( wm_list_lock );
+	// release access to object list
+	MACRO_UNLOCK( wm_list_semaphore );
 
-// 	// object not found
-// 	return FALSE;
-// }
+	// object not found
+	return FALSE;
+}

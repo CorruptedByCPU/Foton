@@ -4,7 +4,7 @@
 
 void kernel_init_ap( void ) {
 	// reload kernel environment paging array
-	__asm__ volatile( "movq %0, %%cr3" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_MEMORY_mirror) );
+	__asm__ volatile( "movq %0, %%cr3" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror) );
 
 	// reload Global Descriptor Table
 	__asm__ volatile( "lgdt (%0)" :: "r" (&kernel -> gdt_header) );
@@ -16,24 +16,24 @@ void kernel_init_ap( void ) {
 	__asm__ volatile( "lidt (%0)" :: "r" (&kernel -> idt_header) );
 
 	// create a TSS descriptor for current BS/A processor
-	uint8_t id = kernel_apic_id();
+	uint8_t current_cpu_id = kernel_lapic_id();
 
 	// Task State Segment descriptor properties
 	struct KERNEL_STRUCTURE_TSS_ENTRY *tss = (struct KERNEL_STRUCTURE_TSS_ENTRY *) &kernel -> gdt_header.base_address[ KERNEL_TSS_OFFSET ];
 
 	// insert descriptor data for BSP/logical processor
-	tss[ id ].limit_low	= sizeof( struct KERNEL_STRUCTURE_TSS );	// size of Task State Segment array in Bytes
-	tss[ id ].base_low	= (uint64_t) &kernel -> tss;			// TSS table address (bits 15..0)
-	tss[ id ].base_middle	= (uint64_t) &kernel -> tss >> 16;		// TSS table address (bits 23..16)
-	tss[ id ].access	= 0x89;						// TSS descriptor access attributes
-	tss[ id ].base_high	= (uint64_t) &kernel -> tss >> 24;		// TSS table address (bits 31..24)
-	tss[ id ].base_64bit	= (uint64_t) &kernel -> tss >> 32;		// TSS table address (bits 63..32)
+	tss[ current_cpu_id ].limit_low = sizeof( struct KERNEL_STRUCTURE_TSS );	// size of Task State Segment array in Bytes
+	tss[ current_cpu_id ].base_low = (uint64_t) &kernel -> tss_table;		// TSS table address (bits 15..0)
+	tss[ current_cpu_id ].base_middle = (uint64_t) &kernel -> tss_table >> 16;	// TSS table address (bits 23..16)
+	tss[ current_cpu_id ].access = 0b10001001;					// TSS descriptor access attributes
+	tss[ current_cpu_id ].base_high = (uint64_t) &kernel -> tss_table >> 24;	// TSS table address (bits 31..24)
+	tss[ current_cpu_id ].base_64bit = (uint64_t) &kernel -> tss_table >> 32;	// TSS table address (bits 63..32)
 
 	// set TSS descriptor for BS/A processor
-	__asm__ volatile( "ltr %%ax" :: "a" ((uintptr_t) &tss[ id ] & ~STD_PAGE_mask) );
+	__asm__ volatile( "ltr %%ax" :: "a" ((uintptr_t) &tss[ current_cpu_id ] & ~STD_PAGE_mask) );
 
 	// select task from queue which CPU is now processing
-	kernel -> task_ap_address[ id ] = INIT;
+	kernel -> task_cpu_address[ current_cpu_id ] = &kernel -> task_base_address[ 0 ];
 
 	// disable x87 FPU Emulation, enable co-processor Monitor
 	__asm__ volatile( "movq %cr0, %rax\nand $0xFFFB, %ax\nor $0x02, %ax\nmovq %rax, %cr0" );
@@ -61,17 +61,17 @@ void kernel_init_ap( void ) {
 	__asm__ volatile( "wrmsr" :: "a" ((uint32_t) KERNEL_TASK_EFLAGS_if | KERNEL_TASK_EFLAGS_df), "c" (KERNEL_INIT_AP_MSR_EFLAGS), "d" (EMPTY) );
 	//--------------------------------------------------------------------------
 
-	// re/initialize APIC of BS/A processor
-	kernel_init_apic();
+	// re/initialize LAPIC of BS/A processor
+	kernel_init_lapic();
 
-	// reload cpu cycle counter in APIC controller
-	kernel_apic_reload();
+	// reload cpu cycle counter in LAPIC controller
+	kernel_lapic_reload();
 
 	// accept current interrupt call (if exist)
-	kernel_apic_accept();
+	kernel_lapic_accept();
 
-	// // BS/A initialized
-	// kernel -> cpu_count++;
+	// BS/A initialized
+	kernel -> cpu_count++;
 
 	// enable interrupt handling
 	__asm__ volatile( "sti" );

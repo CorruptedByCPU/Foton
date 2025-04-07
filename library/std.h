@@ -15,10 +15,6 @@
 		#include	"./vfs.h"
 	#endif
 
-	#ifndef	LIB_STRING
-		#include	"./string.h"
-	#endif
-
 	#define	EMPTY						0
 	#define	INIT						EMPTY
 
@@ -97,8 +93,6 @@
 	#define	STD_ASCII_TILDE					0x7E
 	#define	STD_ASCII_DELETE				0x7F
 
-	#define	STD_BIT_CONTROL_DWORD_bit			31	// or 0b00011111
-
 	#define	STD_COLOR_mask					0xFF000000
 	#define	STD_COLOR_BLACK					0xFF000000
 	#define	STD_COLOR_DARK					0xFF272727
@@ -129,20 +123,20 @@
 	#define	STD_ERROR_locked				-9
 	#define	STD_ERROR_unavailable				-10
 
-	#define	STD_FILE_TYPE_file				0x01
-	#define	STD_FILE_TYPE_directory				0x02
-	#define	STD_FILE_TYPE_link				0x04
+	#define	STD_FILE_TYPE_file				0b00000001
+	#define	STD_FILE_TYPE_directory				0b00000010
+	#define	STD_FILE_TYPE_link				0b00000100
 
-	#define	STD_FILE_MODE_modify				0x01
+	#define	STD_FILE_MODE_modify				0b00000001
 
 	#define	STD_FILE_NAME_limit				LIB_VFS_NAME_limit
 
 	struct	STD_STRUCTURE_FILE {
-		uint64_t	socket;
+		int64_t		socket;
 		uint64_t	byte;
 		uint64_t	seek;
-		uint8_t		name_limit;
-		uint8_t		name[ STD_FILE_NAME_limit + 1 ];
+		uint16_t	name_length;
+		uint8_t		name[ STD_FILE_NAME_limit ];
 	};
 
 	#define	STD_IPC_SIZE_byte				40
@@ -151,10 +145,10 @@
 	#define	STD_IPC_TYPE_mouse				0x01
 	#define	STD_IPC_TYPE_event				0xFF
 
-	#define	STD_IPC_MOUSE_BUTTON_left			0x01
-	#define	STD_IPC_MOUSE_BUTTON_right			0x02
-	#define	STD_IPC_MOUSE_BUTTON_middle			0x04
-	#define	STD_IPC_MOUSE_BUTTON_release			0x80
+	#define	STD_IPC_MOUSE_BUTTON_left			0b00000001
+	#define	STD_IPC_MOUSE_BUTTON_right			0b00000010
+	#define	STD_IPC_MOUSE_BUTTON_middle			0b00000100
+	#define	STD_IPC_MOUSE_BUTTON_release			0b10000000
 
 	struct	STD_STRUCTURE_IPC {
 		volatile uint64_t	ttl;
@@ -343,8 +337,8 @@
 
 	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STRUCTURE_STREAM
 
-	#define	STD_STREAM_FLOW_out_to_parent_in		0x01
-	#define	STD_STREAM_FLOW_out_to_in			0x02
+	#define	STD_STREAM_FLOW_out_to_parent_in		0b00000001
+	#define	STD_STREAM_FLOW_out_to_in			0b00000010
 
 	#define	STD_STREAM_OUT					0x00
 	#define	STD_STREAM_IN					0x01
@@ -401,24 +395,23 @@
 	#define	STD_SYSCALL_STORAGE				0x28
 	#define	STD_SYSCALL_STORAGE_SELECT			0x29
 	#define	STD_SYSCALL_DIR					0x2A
-	#define	STD_SYSCALL_STORAGE_ID				0x2B
 
 	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER {
 		uint32_t	*base_address;
 		uint16_t	width_pixel;
 		uint16_t	height_pixel;
 		uint64_t	pitch_byte;
-		uint64_t	pid;
+		int64_t		pid;
 	};
 
-	#define	STD_TASK_FLAG_active				0x0001	// 0b0000000000000001
-	#define	STD_TASK_FLAG_exec				0x0002	// 0b0000000000000010
-	#define	STD_TASK_FLAG_close				0x0004	// 0b0000000000000100
-	#define	STD_TASK_FLAG_module				0x0008	// 0b0000000000001000
-	#define	STD_TASK_FLAG_thread				0x0010	// 0b0000000000010000
-	#define	STD_TASK_FLAG_sleep				0x0020	// 0b0000000000100000
-	#define	STD_TASK_FLAG_init				0x4000	// 0b0100000000000000
-	#define	STD_TASK_FLAG_secured				0x8000	// 0b1000000000000000
+	#define	STD_TASK_FLAG_active				0b0000000000000001
+	#define	STD_TASK_FLAG_exec				0b0000000000000010
+	#define	STD_TASK_FLAG_close				0b0000000000000100
+	#define	STD_TASK_FLAG_module				0b0000000000001000
+	#define	STD_TASK_FLAG_thread				0b0000000000010000
+	#define	STD_TASK_FLAG_sleep				0b0000000000100000
+	#define	STD_TASK_FLAG_init				0b0100000000000000
+	#define	STD_TASK_FLAG_secured				0b1000000000000000
 
 	struct STD_STRUCTURE_SYSCALL_TASK {
 		int64_t		pid;
@@ -603,9 +596,6 @@
 	// change main storage
 	uint8_t std_storage_select( uint8_t *name );
 
-	// returns storage id in use
-	uint64_t std_storage_id( void );
-
 	// return content of directory (in VFS structure)
 	uintptr_t std_dir( uint8_t *path );
 
@@ -621,7 +611,7 @@
 		void std_syscall_empty( void );
 
 		// initial function of every process
-		extern uint64_t _main( uint64_t argc, uint8_t *argv[] );
+		extern int64_t _main( uint64_t argc, uint8_t *argv[] );
 
 		// initialization of process environment
 		void _entry( struct STD_STRUCTURE_ENTRY entry ) {
@@ -633,14 +623,14 @@
 
 			// amount of args inside string
 			uint64_t argc = 1;	// command itself is always an argument
-			for( uint64_t i = INIT; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) { argc++; for( ; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) break; }
+			for( uint64_t i = 0; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) { argc++; for( ; i < entry.length; i++ ) if( entry.string[ i ] == STD_ASCII_SPACE ) break; }
 
 			// allocate memory for argv vectors
 			uint8_t *argv[ argc ];
 
 			// insert pointers to every argument inside string
-			uint64_t arg = INIT;
-			for( uint64_t i = INIT; i < entry.length; i++ ) {
+			uint64_t arg = 0;
+			for( uint64_t i = 0; i < entry.length; i++ ) {
 				// arg?
 				if( entry.string[ i ] != STD_ASCII_SPACE ) {
 					// save pointer to argument
@@ -668,11 +658,16 @@
 	// substitute of internal functions required by clang
 	//------------------------------------------------------------------------------
 
-	// copy source content inside target
-	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) { for( uint64_t i = INIT; i < length; i++) target[ i ] = source[ i ]; }
+	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) {
+		// copy source content inside target
+		for( uint64_t i = 0; i < length; i++) target[ i ] = source[ i ];
+	}
 
-	// fill cache with definied value
-	void memset( uint8_t *cache, uint8_t value, uint64_t length ) { for( uint64_t i = INIT; i < length; i++ ) cache[ i ] = value; }
+	void memset( uint8_t *cache, uint8_t value, uint64_t length ) {
+		// fill cache with definied value
+		for( uint64_t i = 0; i < length; i++ )
+			cache[ i ] = value;
+	}
 
 	//------------------------------------------------------------------------------
 	// substitute of libc
@@ -690,6 +685,7 @@
 	float sqrtf( float x );
 	double minf( double first, double second );
 	double maxf( double first, double second );
+	void log( const char *string, ... );
 	void print( const char *string );
 	void printf( const char *string, ... );
 	void sprintf( const char *string, ... );

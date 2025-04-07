@@ -5,7 +5,7 @@
 ; get pointer from driver handling function
 extern	driver_rtc
 
-; 64 bit code
+; 64 bit procedure code
 [BITS 64]
 
 ; information for linker

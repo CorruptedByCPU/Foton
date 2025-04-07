@@ -7,37 +7,38 @@
 
 	#define	KERNEL_LIBRARY_base_address		0x0000700000000000
 
-	#define	KERNEL_LIBRARY_FLAG_active		0x01
-	#define	KERNEL_LIBRARY_FLAG_reserved		0x80
+	#define	KERNEL_LIBRARY_limit			16
 
-	#define	KERNEL_LIBRARY_limit			STD_PAGE_byte / sizeof( struct KERNEL_STRUCTURE_LIBRARY )
+	#define	KERNEL_LIBRARY_FLAG_active		0b00000001
+	#define	KERNEL_LIBRARY_FLAG_reserved		0b10000000
 
 	struct	KERNEL_STRUCTURE_LIBRARY {
+		uintptr_t				pointer;
+		uint64_t				size_page;
 		uint8_t					flags;
-		uintptr_t				base;
-		uintptr_t				offset;
-		uint64_t				limit;
-		struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL	*elf_section_dynsym;
-		uint64_t				elf_section_dynsym_count;
-		uint8_t					*elf_section_strtab;
-		uint16_t				name_limit;
-		uint8_t					name[ LIB_VFS_NAME_limit + 1 ];
+		uint8_t					*strtab;
+		struct LIB_ELF_STRUCTURE_DYNAMIC_SYMBOL	*dynamic_linking;
+		uint64_t				d_entry_count;
+		uint16_t				name_length;
+		uint8_t					name[ LIB_VFS_NAME_limit ];
 	};
 
 	struct KERNEL_STRUCTURE_LIBRARY_INIT {
 		uint8_t					level;
-		uint8_t					*path;
-		uint64_t				limit;
-		struct KERNEL_STRUCTURE_VFS_SOCKET	*socket;
-		uintptr_t				workbench;
+		struct KERNEL_STRUCTURE_VFS		*socket;
+		struct LIB_VFS_STRUCTURE		vfs;
 		struct KERNEL_STRUCTURE_LIBRARY		*entry;
-		uint64_t				page;
+		uintptr_t				workbench_address;
 		uintptr_t				base_address;
+		uint64_t				page;
 	};
 
-	// load all libraries, required by this ELF executable
-	uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf );
+	// loads libraries required by executable
+	int64_t kernel_library( struct LIB_ELF_STRUCTURE *elf );
 
-	// connect libraries to executable
-	void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t base_address, uint8_t is_library );
+	// configure and initialize library
+	int64_t kernel_library_load( uint8_t *name, uint64_t length );
+
+	// reserving entry for new library
+	struct KERNEL_STRUCTURE_LIBRARY *kernel_library_register( void );
 #endif

@@ -69,12 +69,12 @@ void module_virtio_block( void ) {
 	uint64_t limit_used = MACRO_PAGE_ALIGN_UP( (sizeof( struct MODULE_VIRTIO_STRUCTURE_RING ) * block -> queue_limit) + (3 * sizeof( uint16_t )) );
 
 	// acquire area for queue
-	block -> queue.descriptor_address = (struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR *) (kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( limit_cache + limit_available + limit_used ) >> STD_SHIFT_PAGE ) | KERNEL_MEMORY_mirror);
+	block -> queue.descriptor_address = (struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR *) (kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( limit_cache + limit_available + limit_used ) >> STD_SHIFT_PAGE ) | KERNEL_PAGE_mirror);
 	block -> queue.driver_address = (struct MODULE_VIRTIO_STRUCTURE_DRIVER *) ((uintptr_t) block -> queue.descriptor_address + limit_cache);
 	block -> queue.device_address = (struct MODULE_VIRTIO_STRUCTURE_DEVICE *) ((uintptr_t) block -> queue.descriptor_address + limit_cache + limit_available);
 
 	// register queue
-	driver_port_out_dword( module_virtio[ block -> id ].base_address + MODULE_VIRTIO_REGISTER_queue_address, ((uintptr_t) block -> queue.descriptor_address & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE );
+	driver_port_out_dword( module_virtio[ block -> id ].base_address + MODULE_VIRTIO_REGISTER_queue_address, ((uintptr_t) block -> queue.descriptor_address & ~KERNEL_PAGE_mirror) >> STD_SHIFT_PAGE );
 
 	//----------------------------------------------------------------------
 
@@ -126,7 +126,7 @@ void module_virtio_block( void ) {
 
 void module_virtio_block_transfer( uint8_t type, uint64_t id, uint64_t sector, uint8_t *data, uint64_t length ) {
 	// properties of request
-	struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST *request = (struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST *) ((uintptr_t) kernel -> memory_alloc_page() | KERNEL_MEMORY_mirror);
+	struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST *request = (struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST *) ((uintptr_t) kernel -> memory_alloc_page() | KERNEL_PAGE_mirror);
 
 	// read data from device
 	request -> type = type;
@@ -141,19 +141,19 @@ void module_virtio_block_transfer( uint8_t type, uint64_t id, uint64_t sector, u
 		struct MODULE_VIRTIO_BLOCK_STRUCTURE *block = (struct MODULE_VIRTIO_BLOCK_STRUCTURE *) module_virtio[ id ].device;
 
 		// set first descriptor
-		block -> queue.descriptor_address[ 0 ].address = (uintptr_t) request & ~KERNEL_MEMORY_mirror;
+		block -> queue.descriptor_address[ 0 ].address = (uintptr_t) request & ~KERNEL_PAGE_mirror;
 		block -> queue.descriptor_address[ 0 ].limit = offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST, data );
 		block -> queue.descriptor_address[ 0 ].flags = MODULE_VIRTIO_DESCRIPTOR_FLAG_NEXT;
 		block -> queue.descriptor_address[ 0 ].next = 1;
 
 		// second descriptor
-		block -> queue.descriptor_address[ 1 ].address = ((uintptr_t) data & ~KERNEL_MEMORY_mirror);
+		block -> queue.descriptor_address[ 1 ].address = ((uintptr_t) data & ~KERNEL_PAGE_mirror);
 		block -> queue.descriptor_address[ 1 ].limit = 512;	// Bytes
 		block -> queue.descriptor_address[ 1 ].flags = flag | MODULE_VIRTIO_DESCRIPTOR_FLAG_NEXT;
 		block -> queue.descriptor_address[ 1 ].next = 2;
 
 		// third descriptor
-		block -> queue.descriptor_address[ 2 ].address = ((uintptr_t) request & ~KERNEL_MEMORY_mirror) + offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST, status );
+		block -> queue.descriptor_address[ 2 ].address = ((uintptr_t) request & ~KERNEL_PAGE_mirror) + offsetof( struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST, status );
 		block -> queue.descriptor_address[ 2 ].limit = MACRO_SIZEOF( struct MODULE_VIRTIO_BLOCK_STRUCTURE_REQUEST, status );
 		block -> queue.descriptor_address[ 2 ].flags = MODULE_VIRTIO_DESCRIPTOR_FLAG_WRITE;
 

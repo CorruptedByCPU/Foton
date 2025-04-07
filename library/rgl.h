@@ -75,7 +75,7 @@
 	void lib_rgl_flush( struct LIB_RGL_STRUCTURE *rgl );
 
 	// returns default matrix content
-	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_identity( void );
+	struct LIB_RGL_STRUCTURE_MATRIX lib_rgl_return_matrix_identity();
 
 	// multiply triangle by matrix
 	void lib_rgl_multiply( struct LIB_RGL_STRUCTURE_TRIANGLE *triangle, struct LIB_RGL_STRUCTURE_MATRIX *matrix );

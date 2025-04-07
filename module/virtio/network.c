@@ -88,12 +88,12 @@ void module_virtio_network( void ) {
 		uint64_t limit_used = MACRO_PAGE_ALIGN_UP( (sizeof( struct MODULE_VIRTIO_STRUCTURE_RING ) * network -> queue_limit[ i ]) + (3 * sizeof( uint16_t )) );
 
 		// acquire area for queue
-		network -> queue[ i ].descriptor_address = (struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR *) (kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( limit_cache + limit_available + limit_used ) >> STD_SHIFT_PAGE ) | KERNEL_MEMORY_mirror);
+		network -> queue[ i ].descriptor_address = (struct MODULE_VIRTIO_STRUCTURE_DESCRIPTOR *) (kernel -> memory_alloc_low( MACRO_PAGE_ALIGN_UP( limit_cache + limit_available + limit_used ) >> STD_SHIFT_PAGE ) | KERNEL_PAGE_mirror);
 		network -> queue[ i ].driver_address = (struct MODULE_VIRTIO_STRUCTURE_DRIVER *) ((uintptr_t) network -> queue[ i ].descriptor_address + limit_cache);
 		network -> queue[ i ].device_address = (struct MODULE_VIRTIO_STRUCTURE_DEVICE *) ((uintptr_t) network -> queue[ i ].descriptor_address + limit_cache + limit_available);
 
 		// register queue
-		driver_port_out_dword( module_virtio[ network -> id ].base_address + MODULE_VIRTIO_REGISTER_queue_address, ((uintptr_t) network -> queue[ i ].descriptor_address & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE );
+		driver_port_out_dword( module_virtio[ network -> id ].base_address + MODULE_VIRTIO_REGISTER_queue_address, ((uintptr_t) network -> queue[ i ].descriptor_address & ~KERNEL_PAGE_mirror) >> STD_SHIFT_PAGE );
 	}
 
 	//----------------------------------------------------------------------
@@ -177,7 +177,7 @@ void module_virtio_network( void ) {
 		// kernel -> log( (uint8_t *) "Tx\n" );
 
 		// resolve properties
-		uint8_t *data = (uint8_t *) (frame & STD_PAGE_mask | KERNEL_MEMORY_mirror);
+		uint8_t *data = (uint8_t *) (frame & STD_PAGE_mask | KERNEL_PAGE_mirror);
 		uint64_t length = frame & ~STD_PAGE_mask;
 
 		// move packet content behind header
@@ -196,8 +196,8 @@ void module_virtio_network( void ) {
 		uint16_t *network_driver_ring				= (uint16_t *) ((uintptr_t) network_driver + offsetof( struct MODULE_VIRTIO_STRUCTURE_DRIVER, ring ));
 
 		// copy packet content to descriptor
-		uint8_t *source = (uint8_t *) ((uintptr_t) data | KERNEL_MEMORY_mirror);
-		uint8_t *target = (uint8_t *) (descriptor -> address | KERNEL_MEMORY_mirror);
+		uint8_t *source = (uint8_t *) ((uintptr_t) data | KERNEL_PAGE_mirror);
+		uint8_t *target = (uint8_t *) (descriptor -> address | KERNEL_PAGE_mirror);
 		for( int64_t i = 0; i < length; i++ ) target[ i + sizeof( struct MODULE_VIRTIO_NETWORK_STRUCTURE_HEADER ) ] = source[ i ];
 
 		// set descriptor

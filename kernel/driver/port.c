@@ -3,10 +3,13 @@
 ===============================================================================*/
 
 	//----------------------------------------------------------------------
-	// variables, structures, definitions
+	// variables, structures, definitions of driver
 	//----------------------------------------------------------------------
 	#ifndef	DRIVER_PORT
 		#include	"./port.h"
+	#endif
+	#ifndef	DRIVER_PCI
+		#include	"./pci.h"
 	#endif
 
 inline void driver_port_out_byte( uint16_t port, uint8_t value ) {
