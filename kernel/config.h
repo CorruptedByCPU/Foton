@@ -23,7 +23,7 @@ struct KERNEL {
 	uint16_t					framebuffer_width_pixel;
 	uint16_t					framebuffer_height_pixel;
 	uint32_t					framebuffer_pitch_byte;
-	int64_t						framebuffer_pid;
+	uint64_t					framebuffer_pid;
 
 	struct KERNEL_STRUCTURE_GDT_HEADER		gdt_header;
 
@@ -41,6 +41,8 @@ struct KERNEL {
 	uint64_t					page_available;
 	uint64_t					page_limit;
 	uint64_t					page_total;
+	uint64_t					page_shared;
+	uint64_t					page_structure;
 
 	struct KERNEL_STRUCTURE_STORAGE			*storage_base_address;
 	uint64_t					storage_limit;
@@ -50,6 +52,7 @@ struct KERNEL {
 	struct KERNEL_STRUCTURE_TASK			*task_base_address;
 	uint64_t					task_limit;
 	uint8_t						task_lock;
+	uint8_t						task_lock_ap;
 	uint64_t					task_id;
 
 	struct LIB_TERMINAL_STRUCTURE			terminal;

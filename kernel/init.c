@@ -79,12 +79,16 @@
 	// variables, structures, definitions of Kernel initialization routines
 	//----------------------------------------------------------------------
 	#include	"init/acpi.h"
+	#include	"init/ap.h"
+	#include	"init/apic.h"
 	//======================================================================
 
 	//----------------------------------------------------------------------
 	// kernel environment initialization routines, procedures
 	//----------------------------------------------------------------------
 	#include	"init/acpi.c"
+	#include	"init/ap.c"
+	#include	"init/apic.c"
 	#include	"init/env.c"
 	#include	"init/exec.c"
 	#include	"init/gdt.c"
@@ -145,7 +149,10 @@ void _entry( void ) {
 	// execute initial software
 	kernel_init_exec();
 
-	//----------------------------------------------------------------------
+	// FINISH --------------------------------------------------------------
+
+	// reload BSP configuration
+	kernel_init_ap();
 
 	// debug
 	__asm__ volatile( "sti" );

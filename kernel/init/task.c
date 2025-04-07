@@ -17,10 +17,10 @@ void kernel_init_task( void ) {
 	//----------------------------------------------------------------------
 
 	// id of BS Processor
-	uint8_t bsp = kernel_apic_id();
+	uint8_t id = kernel_apic_id();
 
 	// mark first entry of task queue as secured (in use)
-	kernel -> task_base_address[ bsp ].flags = STD_TASK_FLAG_secured;
+	kernel -> task_base_address[ id ].flags = STD_TASK_FLAG_secured;
 
 	// prepare area for APs
 	kernel -> task_ap_address = (uint64_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( limine_smp_request.response -> cpu_count << STD_SHIFT_PTR ) >> STD_SHIFT_PAGE );
@@ -29,17 +29,17 @@ void kernel_init_task( void ) {
 	// that information is stored on AP list
 
 	// BS CPU is currently executing Kernel initialization routines
-	kernel -> task_ap_address[ bsp ] = INIT;
+	kernel -> task_ap_address[ id ] = INIT;
 
 	//----------------------------------------------------------------------
 	// every child will inherit this parameters:
 	//----------------------------------------------------------------------
 
 	// storage id and directory knot
-	kernel -> task_base_address[ kernel -> task_ap_address[ bsp ] ].storage = INIT;
+	kernel -> task_base_address[ kernel -> task_ap_address[ id ] ].storage = INIT;
 
 	// root directory of that storage
-	kernel -> task_base_address[ kernel -> task_ap_address[ bsp ] ].directory = kernel -> storage_base_address[ kernel -> task_base_address[ kernel -> task_ap_address[ bsp ] ].storage ].block;
+	kernel -> task_base_address[ kernel -> task_ap_address[ id ] ].directory = kernel -> storage_base_address[ kernel -> task_base_address[ kernel -> task_ap_address[ id ] ].storage ].block;
 
 	//----------------------------------------------------------------------
 

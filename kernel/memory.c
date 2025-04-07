@@ -63,6 +63,17 @@ uintptr_t kernel_memory_alloc( uint64_t n ) {
 	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_MEMORY_mirror;
 }
 
+uintptr_t kernel_memory_alloc_page( void ) {
+	// acquire single physical page
+	uintptr_t page = kernel_memory_alloc( TRUE ) & ~KERNEL_MEMORY_mirror;
+
+	// page intended for structures
+	kernel -> page_structure++;
+
+	// return physical address
+	return page;
+}
+
 void kernel_memory_clean( uint64_t *address, uint64_t n ) { for( uint64_t i = INIT; i < n << STD_SHIFT_512; i++ ) address[ i ] = EMPTY; }
 
 void kernel_memory_dispose( uint32_t *memory, uint64_t p, uint64_t n ) {
@@ -76,4 +87,12 @@ void kernel_memory_release( uintptr_t address, uint64_t n ) {
 
 	// more available pages
 	kernel -> page_available += n;
+}
+
+void kernel_memory_release_page( uintptr_t address ) {
+	// release single physical page
+	kernel_memory_release( address | KERNEL_MEMORY_mirror, TRUE );
+
+	// page released from structure
+	kernel -> page_structure--;
 }

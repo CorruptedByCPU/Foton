@@ -14,6 +14,10 @@
 		struct KERNEL_STRUCTURE_VFS_SOCKET	*socket;
 		uintptr_t				workbench;
 		struct KERNEL_STRUCTURE_TASK		*task;
+		uint8_t					*stack;
+		uint64_t				stack_byte;
+		uint64_t				page;
+		uintptr_t				base;
 	};
 
 	// process id

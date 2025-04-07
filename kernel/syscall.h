@@ -5,9 +5,6 @@
 #ifndef	KERNEL_SYSCALL
 	#define	KERNEL_SYSCALL
 
-	// fill in file properties
-	void kernel_syscall_file( struct STD_STRUCTURE_FILE *file );
-
 	// release socket id
 	void kernel_syscall_file_close( uint64_t socket_id );
 

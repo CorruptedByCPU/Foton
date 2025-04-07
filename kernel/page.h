@@ -12,7 +12,7 @@
 	#define	KERNEL_PAGE_FLAG_write		(1 << 1)
 	#define	KERNEL_PAGE_FLAG_write_through	(1 << 3)
 	// Cyjon/Foton definied
-	#define	KERNEL_PAGE_TYPE_mask		0b0000111000000000
+	#define	KERNEL_PAGE_TYPE_mask		0x0E00	// 0b0000111000000000
 	#define	KERNEL_PAGE_TYPE_offset		9
 	#define	KERNEL_PAGE_TYPE_KERNEL		0x00
 	#define	KERNEL_PAGE_TYPE_MODULE		0x01
@@ -32,6 +32,8 @@
 
 	uintptr_t kernel_page_address( uint64_t *pml4, uintptr_t source );
 	uint8_t kernel_page_alloc( uint64_t *pml4, uintptr_t target, uint64_t n, uint16_t flags );
+	void kernel_page_deconstruct( uint64_t *pml4, uint8_t type );
 	uint8_t kernel_page_disconnect( uint64_t *pml4, uint64_t source, uint64_t n );
 	uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t n, uint16_t flags );
+	void kernel_page_merge( uint64_t *pml4_parent, uint64_t *pml4_child );
 #endif

@@ -408,7 +408,7 @@
 		uint16_t	width_pixel;
 		uint16_t	height_pixel;
 		uint64_t	pitch_byte;
-		int64_t		pid;
+		uint64_t	pid;
 	};
 
 	#define	STD_TASK_FLAG_active				0x0001	// 0b0000000000000001
@@ -690,7 +690,6 @@
 	float sqrtf( float x );
 	double minf( double first, double second );
 	double maxf( double first, double second );
-	void log( const char *string, ... );
 	void print( const char *string );
 	void printf( const char *string, ... );
 	void sprintf( const char *string, ... );

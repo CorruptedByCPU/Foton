@@ -85,14 +85,6 @@ uint64_t std_uptime( void ) {
 	return std_syscall_value_unsigned();
 }
 
-void std_log( uint8_t *string, uint64_t length ) {
-	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_LOG), "D" (string), "S" (length) );
-
-	// return nothing
-	std_syscall_empty();
-}
-
 int64_t std_thread( uintptr_t function, uint8_t *string, uint64_t length ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_THREAD), "D" (function), "S" (string), "d" (length) );

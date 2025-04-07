@@ -33,6 +33,9 @@
 
 	#define	KERNEL_TASK_NAME_limit		(STD_PAGE_byte - TRUE)
 
+	#define	KERNEL_TASK_STACK_pointer	KERNEL_LIBRARY_base_address
+	#define	KERNEL_TASK_STACK_limit		STD_PAGE_byte
+
 	struct	KERNEL_STRUCTURE_TASK {
 		uint64_t 			*cr3;
 		uintptr_t			rsp;
@@ -44,6 +47,9 @@
 		uint8_t				*name;
 		uint64_t			storage;
 		uint64_t			directory;
+		uint64_t			stack_page;
+		uint32_t			*memory;
+		uint64_t			page;
 	};
 
 	// external routine (assembly language)

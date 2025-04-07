@@ -37,4 +37,7 @@
 
 	// load all libraries, required by this ELF executable
 	uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf );
+
+	// connect libraries to executable
+	void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t base_address, uint8_t is_library );
 #endif

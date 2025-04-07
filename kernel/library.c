@@ -6,7 +6,7 @@ void kernel_library_cancel( struct KERNEL_STRUCTURE_LIBRARY_INIT *lib ) {
 	// undo performed operations depending on cavity
 	switch( lib -> level ) {
 		case 6: {
-			// cannot foresee an error at this level and above
+			// cannot foresee any error at this level and above
 		}
 		
 		case 5: {
@@ -306,9 +306,6 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t limit ) {
 
 	// close file
 	kernel_vfs_socket_delete( lib.socket );
-
-	// debug
-	kernel_log( (uint8_t *) "%s at 0x%16X\n", name, lib.base_address );
 
 	// library loaded
 	return TRUE;
