@@ -14,12 +14,22 @@ void kernel_syscall_exit( void ) {
 	__asm__ volatile( "int $0x20" );
 }
 
-void kernel_syscall_file_close( uint64_t socket_id ) {
-	// properties of opened file
-	struct KERNEL_STRUCTURE_VFS_SOCKET *socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ];
+void kernel_syscall_file( struct STD_STRUCTURE_FILE *file ) {
+	// properties of socket
+	struct KERNEL_STRUCTURE_VFS_SOCKET *socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ file -> socket ];
 
+	// share important values
+
+	// type of file
+	file -> type = socket -> file.type;
+
+	// file size in Bytes
+	file -> byte = socket -> file.limit;
+}
+
+void kernel_syscall_file_close( uint64_t socket_id ) {
 	// close connection to file
-	kernel_vfs_socket_delete( socket );
+	kernel_vfs_socket_delete( (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ] );
 }
 
 uint64_t kernel_syscall_file_open( uint8_t *path, uint64_t limit ) {
@@ -76,12 +86,11 @@ uint64_t kernel_syscall_file_open( uint8_t *path, uint64_t limit ) {
 
 	// return socket id
 	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_STRUCTURE_VFS_SOCKET );
-}
+}	
 
 void kernel_syscall_file_read( uint64_t socket_id, uint8_t *target, uint64_t seek, uint64_t limit ) {
-	// properties of opened file
-	struct KERNEL_STRUCTURE_VFS_SOCKET *socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ];
-
+	// pass content of file
+	((struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ ((struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ]) -> storage ]) -> vfs -> file_read( (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ], target, seek, limit );
 }
 
 void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer ) {
@@ -141,4 +150,51 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
 
 	// return the address of the first page in the collection
 	return p << STD_SHIFT_PAGE;
+}
+
+void kernel_syscall_memory_release( uintptr_t address, uint64_t n ) {
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *task = kernel_task_current();
+
+	// remove page from paging structure
+	if( ! kernel_page_release( (uint64_t *) task -> cr3, address, n ) ) {
+		// debug
+		kernel_log( (uint8_t *) "%s: memory release voidness!\n" );
+
+		// no asssignment
+		return;
+	}
+
+	// reload paging structure
+	kernel_page_flush();
+
+	// release page in binary memory map of process
+	kernel_memory_dispose( task -> memory, address >> STD_SHIFT_PAGE, n );
+
+	// process memory usage
+	task -> page -= n;
+}
+
+uint64_t kernel_syscall_pid( void ) {
+	// task pid
+	return kernel_task_current() -> pid;
+}
+
+uint8_t kernel_syscall_pid_exist( uint64_t pid ) {
+	// find an entry with selected ID
+	for( uint64_t i = INIT; i < kernel -> task_limit; i++ ) {
+		// entry occupied?
+		if( ! kernel -> task_base_address[ i ].flags ) continue;	// no
+
+		// found?
+		if( kernel -> task_base_address[ i ].pid == pid ) return TRUE;
+	}
+
+	// process not found
+	return FALSE;
+}
+
+uint64_t kernel_syscall_uptime( void ) {
+	// units of time
+	return kernel -> time_units;
 }

@@ -269,9 +269,9 @@ void std_file( struct STD_STRUCTURE_FILE *file ) {
 	std_syscall_empty();
 }
 
-void std_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target, uint64_t byte ) {
+void std_file_read( uint64_t socket_id, uint8_t *target, uint64_t seek, uint64_t byte ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_READ), "D" (file), "S" (target), "d" (byte) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_FILE_READ), "D" (socket_id), "S" (target), "d" (seek), "c" (byte) );
 
 	// return nothing
 	std_syscall_empty();

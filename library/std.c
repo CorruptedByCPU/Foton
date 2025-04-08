@@ -578,7 +578,7 @@ void fclose( FILE *file ) {
 
 void fread( FILE *file, uint8_t *cache, uint64_t byte ) {
 	// read N Bytes into provided cache
-	std_file_read( file, cache, byte );
+	std_file_read( file -> socket, cache, file -> seek, byte );
 }
 
 void fwrite( FILE *file, uint8_t *cache, uint64_t byte ) {

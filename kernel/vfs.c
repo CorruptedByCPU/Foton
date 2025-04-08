@@ -79,7 +79,7 @@ struct KERNEL_STRUCTURE_VFS_SOCKET *kernel_vfs_socket( uint64_t pid ) {
 	struct KERNEL_STRUCTURE_VFS_SOCKET *socket = EMPTY;
 
 	// search thru all sockets
-	for( uint64_t i = INIT; i < kernel -> vfs_limit; i++ )
+	for( uint64_t i = 1; i < kernel -> vfs_limit; i++ )
 		// available for use?
 		if( ! kernel -> vfs_base_address[ i ].pid ) {
 			// yes

@@ -192,12 +192,9 @@ int64_t	kernel_syscall_exec( uint8_t *name, uint64_t length, uint8_t stream_flow
 	return kernel_exec( name, length, stream_flow, detach );
 }
 
-uint8_t kernel_syscall_pid_check( int64_t pid ) {
+uint8_t kernel_syscall_pid_exist( uint64_t pid ) {
 	// find an entry with selected ID
-	for( uint64_t i = 0; i < KERNEL_TASK_limit; i++ ) {
-		// ignore kernels ID
-		if( ! pid ) return FALSE;
-
+	for( uint64_t i = INIT; i < kernel -> task_limit; i++ ) {
 		// entry occupied?
 		if( ! kernel -> task_base_address[ i ].flags ) continue;	// no
 

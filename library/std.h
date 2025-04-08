@@ -141,8 +141,7 @@
 		uint64_t	socket;
 		uint64_t	byte;
 		uint64_t	seek;
-		uint8_t		name_limit;
-		uint8_t		name[ STD_FILE_NAME_limit + 1 ];
+		uint8_t		type;
 	};
 
 	#define	STD_IPC_SIZE_byte				40
@@ -568,7 +567,7 @@
 	void std_file( struct STD_STRUCTURE_FILE *file );
 
 	// read file content into memory
-	void std_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target, uint64_t byte );
+	void std_file_read( uint64_t socket_id, uint8_t *target, uint64_t seek, uint64_t byte );
 
 	// write content of memory into file
 	void std_file_write( struct STD_STRUCTURE_FILE *file, uint8_t *source, uint64_t byte );

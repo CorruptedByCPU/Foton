@@ -194,7 +194,7 @@ void kernel_init_vfs( void ) {
 		kernel_init_vfs_setup( vfs, vfs );
 
 		// take a look inside VFS for special file
-		if( ! kernel_init_vfs_check( vfs, (uint8_t *) "/etc/hostname" ) ) {
+		if( ! kernel_init_vfs_check( vfs, (uint8_t *) "/etc/version" ) ) {
 			// release created superblock
 			kernel_memory_release( (uintptr_t) vfs, MACRO_PAGE_ALIGN_UP( LIB_VFS_BLOCK_byte ) >> STD_SHIFT_PAGE );
 
