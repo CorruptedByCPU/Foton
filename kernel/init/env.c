@@ -33,16 +33,8 @@ void kernel_init_env( void ) {
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;
 	kernel -> framebuffer_pid		= EMPTY;	// by default: kernel
 
-	// initialize terminal library
-	kernel -> terminal.width		= kernel -> framebuffer_width_pixel;
-	kernel -> terminal.height		= kernel -> framebuffer_height_pixel;
-	kernel -> terminal.base_address		= kernel -> framebuffer_base_address;
-	kernel -> terminal.scanline_pixel	= kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift;
-	kernel -> terminal.alpha		= EMPTY;
-	kernel -> terminal.color_foreground	= lib_color( 47 );	// not white
-	kernel -> terminal.color_background	= lib_color( 232 );	// not black
-	lib_terminal( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal );
+	//----------------------------------------------------------------------
 
-	// disable cursor
-	lib_terminal_cursor_disable( (struct LIB_TERMINAL_STRUCTURE *) &kernel -> terminal );
+	// sleep function for kernel/modules
+	kernel -> time_sleep			= kernel_time_sleep;
 }

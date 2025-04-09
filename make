@@ -76,37 +76,37 @@ gzip -k build/kernel
 
 #===============================================================================
 
-# for submodules in `(cd module && ls *.asm)`; do
-# 	# module name
-# 	submodule=${submodules%.*}
+for submodules in `(cd module && ls *.asm)`; do
+	# module name
+	submodule=${submodules%.*}
 
-# 	# build
-# 	${ASM} -f elf64 module/${submodule}.asm -o build/${submodule}.ao
+	# build
+	${ASM} -f elf64 module/${submodule}.asm -o build/${submodule}.ao
 
-# 	# information
-# 	submodule_size=`ls -lh build/${submodule}.ao | cut -d ' ' -f 5`
-# 	echo -e "${green}\xE2\x9C\x94${default}|[submodule of ${submodule}.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-# done
+	# information
+	submodule_size=`ls -lh build/${submodule}.ao | cut -d ' ' -f 5`
+	echo -e "${green}\xE2\x9C\x94${default}|[submodule of ${submodule}.ko]|${submodule_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+done
 
-# for modules in `(cd module && ls *.c)`; do
-# 	# module name
-# 	module=${modules%.*}
+for modules in `(cd module && ls *.c)`; do
+	# module name
+	module=${modules%.*}
 
-# 	# build
-# 	${C} -c -fpic -DMODULE module/${module}.c -o build/${module}.o ${CFLAGS} || exit 1
+	# build
+	${C} -c -fpic -DMODULE module/${module}.c -o build/${module}.o ${CFLAGS} || exit 1
 
-# 	# connect with libraries (if necessery)
-# 	SUB=""
-# 	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
-# 	${LD} ${SUB} build/${module}.o -o build/root/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
+	# connect with libraries (if necessery)
+	SUB=""
+	if [ -f build/${module}.ao ]; then SUB="build/${module}.ao"; fi
+	${LD} ${SUB} build/${module}.o -o build/root/lib/modules/${module}.ko -T tools/module.ld ${LDFLAGS}
 
-# 	# we do not need any additional information
-# 	strip -s build/root/lib/modules/${module}.ko
+	# we do not need any additional information
+	strip -s build/root/lib/modules/${module}.ko
 
-# 	# information
-# 	module_size=`ls -lh build/root/lib/modules/${module}.ko | cut -d ' ' -f 5`
-# 	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
-# done
+	# information
+	module_size=`ls -lh build/root/lib/modules/${module}.ko | cut -d ' ' -f 5`
+	echo -e "${green}\xE2\x9C\x94${default}|Module: ${module}.ko|${module_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+done
 
 #===============================================================================
 

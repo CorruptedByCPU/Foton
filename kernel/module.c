@@ -2,213 +2,191 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_module_load( uint8_t *name, uint64_t length ) {
-	// default location of modules
-	uint64_t path_length = 0;
-	uint8_t path_default[ 13 ] = "/lib/modules/";
+struct KERNEL_STRUCTURE_MODULE {
+	uint8_t					level;
+	uint8_t					*path;
+	uint64_t				limit;
+	struct KERNEL_STRUCTURE_VFS_SOCKET	*socket;
+	uintptr_t				workbench;
+	struct KERNEL_STRUCTURE_TASK		*task;
+	uint8_t					*stack;
+	uint64_t				stack_byte;
+	uint64_t				page;
+	uintptr_t				base;
+};
 
-	// set file path name
-	uint8_t path[ 13 + LIB_VFS_NAME_limit ];
-	for( uint64_t i = 0; i < 13; i++ ) path[ path_length++ ] = path_default[ i ];
-	for( uint64_t i = 0; i < length; i++ ) path[ path_length++ ] = name[ i ];
+static void kernel_module_cancel( struct KERNEL_STRUCTURE_MODULE *module ) {
+	// undo performed operations depending on cavity
+	switch( module -> level ) {
+		case 5: {
+			// cannot foresee any error at this level and above
+		}
 
-	// retrieve information about module file
-	struct KERNEL_STRUCTURE_VFS *socket = (struct KERNEL_STRUCTURE_VFS *) kernel_vfs_file_open( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ kernel -> storage_root ], path, path_length, EMPTY );
+		case 4: {
+			// release paging structure
+			kernel_page_deconstruct( module -> task -> cr3, module -> task -> type );
+		}
 
-	// if module does not exist
-	if( ! socket ) return;	// ignore
+		case 3: {
+			// release task entry
+			module -> task -> flags = EMPTY;
+		}
 
-	// gather information about file
-	struct LIB_VFS_STRUCTURE vfs;
-	vfs = kernel_vfs_file_properties( socket );
+		case 2: {
+			// release temporary area
+			kernel_memory_release( module -> workbench, MACRO_PAGE_ALIGN_UP( module -> socket -> file.limit ) >> STD_SHIFT_PAGE );
+		}
 
-	// assign area for workbench
-	uintptr_t workbench;
-	if( ! (workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( vfs.limit ) >> STD_SHIFT_PAGE )) ) {
-		// close file
-		kernel_vfs_file_close( socket );
-
-		// done
-		return;
+		case 1: {
+			// close file
+			kernel_vfs_socket_delete( module -> socket );
+		}
 	}
-
-	// load module into workbench space
-	kernel_vfs_file_read( socket, (uint8_t *) workbench, EMPTY, vfs.limit );
-
-	// close file
-	kernel_vfs_file_close( socket );
-
-	//----------------------------------------------------------------------
-
-	// ELF structure properties
-	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) workbench;
-
-	// create a new job in task queue
-	struct KERNEL_STRUCTURE_TASK *module = kernel_task_add( name, length );
-
-	// mark task as module
-	module -> flags |= STD_TASK_FLAG_module;
-
-	//----------------------------------------------------------------------
-
-	// prepare Paging table for new process
-	module -> cr3 = kernel_memory_alloc( TRUE );
-
-	// page used for structure
-	kernel -> page_structure++;
-
-	// all allocated pages, mark as type of MODULE
-	module -> page_type = KERNEL_PAGE_TYPE_MODULE;
-
-	//----------------------------------------------------------------------
-
-	// insert into paging, context stack
-	kernel_page_alloc( (uint64_t *) module -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
-
-	// set initial startup configuration for new process
-	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( (uint64_t *) module -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
-
-	// code descriptor
-	context -> cs = offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring0 );
-
-	// basic processor state flags
-	context -> eflags = KERNEL_TASK_EFLAGS_default;
-
-	// current top-of-stack pointer for module
-	context -> rsp = KERNEL_STACK_pointer;
-
-	// stack descriptor
-	context -> ss = offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring0 );
-
-	// set process entry address
-	context -> rip = elf -> entry_ptr;
-
-	//----------------------------------------------------------------------
-
-	// context stack top pointer
-	module -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
-
-	//----------------------------------------------------------------------
-
-	// calculate unpacked module size in Pages
-	uint64_t module_page = EMPTY;
-
-	// ELF header properties
-	struct LIB_ELF_STRUCTURE_HEADER *elf_h = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> headers_offset);
-
-	// calculate memory space of segments used by module
-	for( uint16_t i = 0; i < elf -> h_entry_count; i++ ) {
-		// ignore blank entry or not loadable
- 		if( elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_h[ i ].memory_size ) continue;
-
-		// update executable space size?
-		if( module_page < MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].memory_size ) >> STD_SHIFT_PAGE ) module_page = MACRO_PAGE_ALIGN_UP( elf_h[ i ].virtual_address + elf_h[ i ].memory_size ) >> STD_SHIFT_PAGE;
-	}
-
-	// allocate module space
-	uintptr_t module_content = kernel_memory_alloc( module_page );
-
-	// debug
-	// kernel_log( (uint8_t *) "Module %s at 0x%X\n", name, module_content );
-
-	// load module segments in place
-	for( uint16_t i = 0; i < elf -> h_entry_count; i++ ) {
-		// ignore blank entry or not loadable
- 		if( ! elf_h[ i ].type || ! elf_h[ i ].memory_size || elf_h[ i ].type != LIB_ELF_HEADER_TYPE_load ) continue;
-
-		// segment destination
-		uint8_t *destination = (uint8_t *) (elf_h[ i ].virtual_address + module_content);
-
-		// segment source
-		uint8_t *source = (uint8_t *) ((uintptr_t) elf + elf_h[ i ].segment_offset);
-
-		// copy segment content into place
-		for( uint64_t j = 0; j < elf_h[ i ].memory_size; j++ ) destination[ j ] = source[ j ];
-	}
-
-	// insert into paging, module area
-	// uintptr_t module_memory = KERNEL_MODULE_base_address + (kernel_memory_acquire( kernel -> module_map_address, module_page, KERNEL_MEMORY_HIGH, kernel -> page_limit ) << STD_SHIFT_PAGE);
-	// kernel_page_map( (uint64_t *) module -> cr3, module_content & ~KERNEL_PAGE_mirror, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
-
-	// map module space to kernel space
-	// kernel_page_map( (uint64_t *) kernel -> page_base_address, module_content & ~KERNEL_PAGE_mirror, module_memory, module_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module -> page_type << KERNEL_PAGE_TYPE_offset) );
-
-	// update module entry address
-	context -> rip += module_content;	// module_memory
-
-	//----------------------------------------------------------------------
-
-	// module uses same memory map as kernel
-	module -> memory_map = kernel -> memory_base_address;
-
-	//----------------------------------------------------------------------
-
-	// release workbench
-	kernel_memory_release( workbench, MACRO_PAGE_ALIGN_UP( vfs.limit ) >> STD_SHIFT_PAGE );
-
-	// map kernel space to process
-	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) module -> cr3 );
-
-	// module ready to run
-	module -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
 }
 
-int64_t kernel_module_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
-	// create a new thread in task queue
-	struct KERNEL_STRUCTURE_TASK *thread = kernel_task_add( name, length );
+uint64_t kernel_module( uint8_t *name, uint64_t limit ) {
+	// module state
+	struct KERNEL_STRUCTURE_MODULE module = { INIT };
 
-	//----------------------------------------------------------------------
+	// default location of modules
+	uint8_t path_default[ 13 ] = "/lib/modules/";
 
-	// prepare Paging table for new process
-	thread -> cr3 = kernel_memory_alloc_page() | KERNEL_PAGE_mirror;
+	// combine default path with module name
+	module.path = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + limit ) >> STD_SHIFT_PAGE ); for( uint8_t i = INIT; i < sizeof( path_default ); i++ ) module.path[ module.limit++ ] = path_default[ i ]; for( uint64_t i = INIT; i < lib_string_word_end( name, limit, STD_ASCII_SPACE ); i++ ) module.path[ module.limit++ ] = name[ i ];
 
-	// all allocated pages, mark as type of THREAD
-	thread -> page_type = KERNEL_PAGE_TYPE_THREAD;
+	// open file
+	module.socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ kernel_syscall_file_open( module.path, module.limit ) ];
 
-	//----------------------------------------------------------------------
+	// release path, no more needed
+	kernel_memory_release( (uintptr_t) module.path, MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + limit ) >> STD_SHIFT_PAGE );
 
-	// describe space under thread context stack
-	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> page_type << KERNEL_PAGE_TYPE_offset) );
+	// file doesn't exist?
+	if( ! module.socket ) return EMPTY;	// yep
+
+	// checkpoint: socket --------------------------------------------------
+	module.level++;
+
+	// assign temporary area for parsing file content
+	if( ! (module.workbench = kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( module.socket -> file.limit ) >> STD_SHIFT_PAGE )) ) { kernel_module_cancel( (struct KERNEL_STRUCTURE_MODULE *) &module ); return EMPTY; };
+
+	// checkpoint: workbench -----------------------------------------------
+	module.level++;
+
+	// load content of file
+	kernel -> storage_base_address[ module.socket -> storage ].vfs -> file_read( module.socket, (uint8_t *) module.workbench, EMPTY, module.socket -> file.limit );
+
+	// file contains ELF header?
+	if( ! lib_elf_identify( module.workbench ) ) { kernel_module_cancel( (struct KERNEL_STRUCTURE_MODULE *) &module ); return EMPTY; };	// no
+
+	// ELF file properties
+	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) module.workbench;
+
+	// executable?
+	if( elf -> type != LIB_ELF_TYPE_executable ) { kernel_module_cancel( (struct KERNEL_STRUCTURE_MODULE *) &module ); return EMPTY; }	// no
+
+	// add new task entry
+	if( ! (module.task = kernel_task_add( name, limit )) ) { kernel_module_cancel( (struct KERNEL_STRUCTURE_MODULE *) &module ); return EMPTY; }	// end of resources
+
+	// mark task as module
+	module.task -> flags |= STD_TASK_FLAG_module;
+	module.task -> type = KERNEL_TASK_TYPE_MODULE;
+
+	// checkpoint: task ----------------------------------------------------
+	module.level++;
+
+	// create paging table
+	if( ! (module.task -> cr3 = (uint64_t *) (kernel_memory_alloc_page() | KERNEL_MEMORY_mirror)) ) { kernel_module_cancel( (struct KERNEL_STRUCTURE_MODULE *) &module ); return EMPTY; }
+
+	// checkpoint: paging --------------------------------------------------
+	module.level++;
+
+	// describe area under context stack
+	if( ! kernel_page_alloc( module.task -> cr3, KERNEL_STACK_address, KERNEL_STACK_LIMIT_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (module.task -> type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_module_cancel( (struct KERNEL_STRUCTURE_MODULE *) &module ); return EMPTY; }
 
 	// set initial startup configuration for new process
-	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_PAGE_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
+	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( module.task -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_MEMORY_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
+
+	// set the process entry address
+	context -> rip		= elf -> entry_ptr;
 
 	// code descriptor
-	context -> cs = offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring0 );
+	context -> cs		= offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring0 );
 
 	// basic processor state flags
-	context -> eflags = KERNEL_TASK_EFLAGS_default;
+	context -> eflags	= KERNEL_TASK_EFLAGS_default;
+
+	// stack top pointer
+	context -> rsp		= KERNEL_STACK_pointer;
 
 	// stack descriptor
-	context -> ss = offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring0 );
-
-	// current top-of-stack pointer for module
-	context -> rsp = KERNEL_STACK_pointer;
-
-	// set thread entry address
-	context -> rip = function;
+	context -> ss		= offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring0 );
 
 	//----------------------------------------------------------------------
 
 	// context stack top pointer
-	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
+	module.task -> rsp	= KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
 
 	//----------------------------------------------------------------------
 
-	// aquire parent task properties
-	struct KERNEL_STRUCTURE_TASK *parent = kernel_task_active();
+	// ELF header properties
+	struct LIB_ELF_STRUCTURE_HEADER *elf_header = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> header_offset);
 
-	// threads use same memory map as parent
-	thread -> memory_map = parent -> memory_map;
+	// find furthest position in page of initialized module
+	for( uint16_t i = INIT; i < elf -> header_count; i++ ) {
+		// ignore blank entry or not loadable
+		if( elf_header[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_header[ i ].segment_size  || ! elf_header[ i ].memory_size ) continue;
+
+		// update module area limit?
+		if( module.page < MACRO_PAGE_ALIGN_UP( elf_header[ i ].virtual_address + elf_header[ i ].memory_size ) >> STD_SHIFT_PAGE ) module.page = MACRO_PAGE_ALIGN_UP( elf_header[ i ].virtual_address + elf_header[ i ].memory_size ) >> STD_SHIFT_PAGE;
+	}
+
+	// acquire area for module
+	if( ! (module.base = kernel_memory_alloc( module.page )) ) { kernel_module_cancel( (struct KERNEL_STRUCTURE_MODULE *) &module ); return EMPTY; }
+
+	// load executable segments in place
+	for( uint16_t i = INIT; i < elf -> header_count; i++ ) {
+		// ignore blank entry or not loadable
+ 		if( elf_header[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_header[ i ].segment_size || ! elf_header[ i ].memory_size ) continue;
+
+		// segment source
+		uint8_t *source = (uint8_t *) ((uintptr_t) elf + elf_header[ i ].segment_offset);
+
+		// segment destination
+		uint8_t *destination = (uint8_t *) (elf_header[ i ].virtual_address + module.base);
+
+		// copy segment content into place
+		for( uint64_t j = INIT; j < elf_header[ i ].memory_size; j++ ) destination[ j ] = source[ j ];
+	}
+
+	// process memory usage
+	module.task -> page += module.page;
 
 	//----------------------------------------------------------------------
 
-	// map parent space to thread
-	kernel_page_merge( (uint64_t *) parent -> cr3, (uint64_t *) thread -> cr3 );
+	// update module entry address
+	context -> rip += module.base;
 
-	// thread ready to run
-	thread -> flags |= STD_TASK_FLAG_active | STD_TASK_FLAG_module | STD_TASK_FLAG_thread | STD_TASK_FLAG_init;
+	// //----------------------------------------------------------------------
 
-	// return process ID of new thread
-	return thread -> pid;
+	// module use same memory map as kernel
+	module.task -> memory = kernel -> memory_base_address;
+
+	//----------------------------------------------------------------------
+
+	// map kernel
+	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) module.task -> cr3 );
+
+	// release workbench
+	kernel_memory_release( module.workbench, MACRO_PAGE_ALIGN_UP( module.socket -> file.limit ) >> STD_SHIFT_PAGE );
+
+	// close file
+	kernel_vfs_socket_delete( module.socket );
+
+	//----------------------------------------------------------------------
+
+	// process ready to run
+	module.task -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
+
+	// PID of new task
+	return module.task -> pid;
 }

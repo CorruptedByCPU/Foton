@@ -16,6 +16,13 @@
 #define	KERNEL_STACK_address	(uintptr_t) -(KERNEL_STACK_LIMIT_page << STD_SHIFT_PAGE)
 #define	KERNEL_STACK_pointer	0xFFFFFFFFFFFFF000
 
+#ifndef	KERNEL_GDT
+	#include	"gdt.h"
+#endif
+#ifndef	KERNEL_TSS
+	#include	"tss.h"
+#endif
+
 struct KERNEL {
 	volatile struct KERNEL_STRUCTURE_APIC		*apic_base_address;
 
@@ -55,10 +62,11 @@ struct KERNEL {
 	uint8_t						task_lock_ap;
 	uint64_t					task_id;
 
-	struct LIB_TERMINAL_STRUCTURE			terminal;
+	// struct LIB_TERMINAL_STRUCTURE			terminal;
 
 	uint32_t					time_hz;
 	uint64_t					time_units;
+	void						(*time_sleep)( uint64_t u );
 
 	struct KERNEL_STRUCTURE_TSS			tss;
 

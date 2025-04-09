@@ -19,12 +19,12 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 			break;
 		}
 
-		default: { kernel_log( (uint8_t *) "ERROR!" ); }
+		// default: { kernel_log( (uint8_t *) "ERROR!" ); }
 	}
 
 	// time to hunt some BUGs
 	MACRO_DEBUF();
-	kernel_log( (uint8_t *) ":[\n" );
+	// kernel_log( (uint8_t *) ":[\n" );
 	volatile uint8_t ok = FALSE;
 	while( ! ok ) { MACRO_DEBUF(); }
 	MACRO_DEBUF();

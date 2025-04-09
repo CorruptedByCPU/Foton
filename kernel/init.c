@@ -11,11 +11,11 @@
 	//----------------------------------------------------------------------
 	// Build-in libraries
 	//----------------------------------------------------------------------
-	#include	"../library/color.c"
+	// #include	"../library/color.c"
 	#include	"../library/elf.c"
-	#include	"../library/font.c"
+	// #include	"../library/font.c"
 	#include	"../library/string.c"
-	#include	"../library/terminal.c"
+	// #include	"../library/terminal.c"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -39,6 +39,7 @@
 	#include	"storage.h"
 	#include	"syscall.h"
 	#include	"task.h"
+	// #include	"time.h"
 	#include	"tss.h"
 	#include	"vfs.h"
 	// --- always at end
@@ -66,12 +67,14 @@
 	#include	"idt.c"
 	#include	"io_apic.c"
 	#include	"library.c"
-	#include	"log.c"
+	// #include	"log.c"
 	#include	"memory.c"
+	#include	"module.c"
 	#include	"page.c"
 	#include	"storage.c"
 	#include	"syscall.c"
 	#include	"task.c"
+	#include	"time.c"
 	#include	"vfs.c"
 	//======================================================================
 
@@ -95,6 +98,7 @@
 	#include	"init/idt.c"
 	#include	"init/library.c"
 	#include	"init/memory.c"
+	#include	"init/module.c"
 	#include	"init/page.c"
 	#include	"init/storage.c"
 	#include	"init/task.c"
@@ -143,6 +147,9 @@ void _entry( void ) {
 	// create Task queue
 	kernel_init_task();
 
+	// load essential modules
+	kernel_init_module();
+
 	// prepare library management area
 	kernel_init_library();
 
@@ -153,8 +160,4 @@ void _entry( void ) {
 
 	// reload BSP configuration
 	kernel_init_ap();
-
-	// debug
-	__asm__ volatile( "sti" );
-	while( TRUE ) kernel_log( (uint8_t *) "\rkernel -> time_units: %u/%u Hz (Uptime: %u second/s)", kernel -> time_units, kernel -> time_hz, kernel -> time_units / kernel -> time_hz );
 }

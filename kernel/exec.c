@@ -89,10 +89,7 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 	exec.level++;
 
 	// create paging table
-	if( ! (exec.task -> cr3 = (uint64_t *) kernel_memory_alloc( TRUE )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
-
-	// page used for structure
-	kernel -> page_structure++;
+	if( ! (exec.task -> cr3 = (uint64_t *) (kernel_memory_alloc_page() | KERNEL_MEMORY_mirror)) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
 
 	// checkpoint: paging --------------------------------------------------
 	exec.level++;
@@ -206,13 +203,13 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 	// release workbench
 	kernel_memory_release( exec.workbench, MACRO_PAGE_ALIGN_UP( exec.socket -> file.limit ) >> STD_SHIFT_PAGE );
 
+	// close file
+	kernel_vfs_socket_delete( exec.socket );
+
 	//----------------------------------------------------------------------
 
 	// process ready to run
 	exec.task -> flags |= KERNEL_TASK_FLAG_active | KERNEL_TASK_FLAG_init;
-
-	// close file
-	kernel_vfs_socket_delete( exec.socket );
 
 	// PID of new task
 	return exec.task -> pid;;
