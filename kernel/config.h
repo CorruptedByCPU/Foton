@@ -75,5 +75,3 @@ struct KERNEL {
 	uint64_t					vfs_limit;
 	uint8_t						vfs_lock;
 };
-
-void kernel_log( uint8_t *string, ... );

@@ -131,13 +131,7 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
 	uintptr_t p = INIT;
 
 	// acquired N continuous pages?
-	if( ! (p = kernel_memory_acquire( current -> memory, n, KERNEL_MEMORY_HIGH, kernel -> page_limit )) ) {
-		// debug
-		// kernel_log( (uint8_t *) "%s: low memory.\n", current -> name );
-
-		// no free space
-		return EMPTY;
-	}
+	if( ! (p = kernel_memory_acquire( current -> memory, n, KERNEL_MEMORY_HIGH, kernel -> page_limit )) ) return EMPTY;	// no
 
 	// allocate acquired area
 	if( ! kernel_page_alloc( (uint64_t *) current -> cr3, p << STD_SHIFT_PAGE, n, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (current -> type << KERNEL_PAGE_TYPE_offset) ) ) return EMPTY;	// conflict
@@ -157,13 +151,7 @@ void kernel_syscall_memory_release( uintptr_t address, uint64_t n ) {
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_current();
 
 	// remove page from paging structure
-	if( ! kernel_page_release( (uint64_t *) task -> cr3, address, n ) ) {
-		// debug
-		// kernel_log( (uint8_t *) "%s: memory release voidness!\n" );
-
-		// no asssignment
-		return;
-	}
+	if( ! kernel_page_release( (uint64_t *) task -> cr3, address, n ) ) return;	// no asssignment
 
 	// reload paging structure
 	kernel_page_flush();
