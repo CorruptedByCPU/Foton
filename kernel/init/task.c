@@ -45,4 +45,7 @@ void kernel_init_task( void ) {
 
 	// attach task switch routine to APIC timer - interrupt handler
 	kernel_idt_attach( KERNEL_IDT_IRQ_offset, KERNEL_IDT_TYPE_gate_interrupt, (uintptr_t) kernel_task );
+
+	// attach task switch routine to Software - interrupt handler
+	kernel_idt_attach( KERNEL_TASK_IRQ_software, KERNEL_IDT_TYPE_isr, (uintptr_t) kernel_task );
 }

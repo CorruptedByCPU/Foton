@@ -127,8 +127,13 @@ void module_usb_uhci_descriptor( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t
 	// insert Transfer Descriptors on Queue
 	uint64_t entry = module_usb_uhci_queue_insert( 1, EMPTY, (uintptr_t) td_pointer );
 
+	// MACRO_DEBUF();
+
 	// wait for device
-	while( td -> status & 0b10000000 );
+	while( td -> status & 0x80 ) {
+		__asm__ volatile( "nop" );
+	}
+	// while( *((uint8_t *) td + 0x30) == 0x80 );
 
 	// remove Transfer Descriptors from Queue
 	module_usb_uhci_queue_remove( 1, entry );
@@ -178,7 +183,7 @@ uint8_t module_usb_uhci_descriptor_io( struct MODULE_USB_STRUCTURE_PORT *port, u
 	uint64_t entry = module_usb_uhci_queue_insert( queue, EMPTY, (uintptr_t) td );
 
 	// wait for device
-	while( td -> status & 0b10000000 ) kernel -> time_sleep( 1 );
+	while( td -> status & 0x80 ) kernel -> time_sleep( 1 );
 
 	// remember status of Transfer Descriptor
 	volatile uint8_t status = td -> status;
@@ -347,7 +352,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 			descriptor_configuration = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_CONFIGURATION *) parse;
 
 			// debug
-			// kernel -> log( (uint8_t *) "[USB].%u Port%u - Configuration ID:%u, %u Interface/s", port -> id_controller, port -> id_port, descriptor_configuration -> config_value, descriptor_configuration -> interface_count ); if( (descriptor_configuration -> attributes >> 5) & TRUE ) kernel -> log( (uint8_t *) ", Remote Wakeup" ); if( (descriptor_configuration -> attributes >> 6) & TRUE ) kernel -> log( (uint8_t *) ", Self Powered" ); kernel -> log( (uint8_t *) ", Maximum Power Consumption %umA\n", descriptor_configuration -> max_power << STD_SHIFT_2 );
+			kernel -> serial( (uint8_t *) "[USB].%u Port%u - Configuration ID:%u, %u Interface/s", port -> id_controller, port -> id_port, descriptor_configuration -> config_value, descriptor_configuration -> interface_count ); if( (descriptor_configuration -> attributes >> 5) & TRUE ) kernel -> serial( (uint8_t *) ", Remote Wakeup" ); if( (descriptor_configuration -> attributes >> 6) & TRUE ) kernel -> serial( (uint8_t *) ", Self Powered" ); kernel -> serial( (uint8_t *) ", Maximum Power Consumption %umA\n", descriptor_configuration -> max_power << STD_SHIFT_2 );
 		} else
 
 		// interface descriptor
@@ -356,7 +361,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 			descriptor_interface = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_INTERFACE *) parse;
 
 			// debug
-			// kernel -> log( (uint8_t *) "[USB].%u Port%u - Interface ID:%u, %u Endpoint/s", port -> id_controller, port -> id_port, descriptor_interface -> interface_id, descriptor_interface -> endpoint_count ); kernel -> log( (uint8_t *) ", Class: " ); switch( descriptor_interface -> class ) { case 0x03: { kernel -> log( (uint8_t *) "HID" ); if( descriptor_interface -> protocol == 0x01 ) kernel -> log( (uint8_t *) " (Protocol: Keyboard)" ); if( descriptor_interface -> protocol == 0x02 ) kernel -> log( (uint8_t *) " (Protocol: Mouse)" ); if( descriptor_interface -> subclass == 1 ) kernel -> log( (uint8_t *) ", Subclass: Boot Interface" ); else kernel -> log( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x07: { kernel -> log( (uint8_t *) "Printer" ); break; } case 0x08: { kernel -> log( (uint8_t *) "Mass Storage" ); if( descriptor_interface -> subclass == 0x06 ) kernel -> log( (uint8_t *) ", Subclass: SCSI transparent command set" ); else kernel -> log( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x09: { kernel -> log( (uint8_t *) "HUB" ); break; } default: kernel -> log( (uint8_t *) "{unknown}" ); } kernel -> log( (uint8_t *) "\n" );
+			kernel -> serial( (uint8_t *) "[USB].%u Port%u - Interface ID:%u, %u Endpoint/s", port -> id_controller, port -> id_port, descriptor_interface -> interface_id, descriptor_interface -> endpoint_count ); kernel -> serial( (uint8_t *) ", Class: " ); switch( descriptor_interface -> class ) { case 0x03: { kernel -> serial( (uint8_t *) "HID" ); if( descriptor_interface -> protocol == 0x01 ) kernel -> serial( (uint8_t *) " (Protocol: Keyboard)" ); if( descriptor_interface -> protocol == 0x02 ) kernel -> serial( (uint8_t *) " (Protocol: Mouse)" ); if( descriptor_interface -> subclass == 1 ) kernel -> serial( (uint8_t *) ", Subclass: Boot Interface" ); else kernel -> serial( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x07: { kernel -> serial( (uint8_t *) "Printer" ); break; } case 0x08: { kernel -> serial( (uint8_t *) "Mass Storage" ); if( descriptor_interface -> subclass == 0x06 ) kernel -> serial( (uint8_t *) ", Subclass: SCSI transparent command set" ); else kernel -> serial( (uint8_t *) ", Subclass: {unknown}" ); break; } case 0x09: { kernel -> serial( (uint8_t *) "HUB" ); break; } default: kernel -> serial( (uint8_t *) "{unknown}" ); } kernel -> serial( (uint8_t *) "\n" );
 		} else
 
 		// endpoint descriptor
@@ -365,7 +370,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 			descriptor_endpoint = (struct MODULE_USB_STRUCTURE_UHCI_DESCRIPTOR_ENDPOINT *) parse;
 
 			// debug
-			// kernel -> log( (uint8_t *) "[USB].%u Port%u - Endpoint ID:%u", port -> id_controller, port -> id_port, descriptor_endpoint -> address & 0x1111 ); if( descriptor_endpoint -> address >> 7 ) kernel -> log( (uint8_t *) ", In" ); else kernel -> log( (uint8_t *) ", Out" ); switch( descriptor_endpoint -> attributes & 0x11 ) { case 0x01: { kernel -> log( (uint8_t *) ", Isochronous" ); break; } case 0x02: { kernel -> log( (uint8_t *) ", Bulk" ); break; } case 0x03: { kernel -> log( (uint8_t *) ", Interrupt" ); break; } default: kernel -> log( (uint8_t *) ", Control" ); } kernel -> log( (uint8_t *) ", Max Packet Size %u Byte/s", descriptor_endpoint -> max_packet_size ); kernel -> log( (uint8_t *) "\n" );
+			kernel -> serial( (uint8_t *) "[USB].%u Port%u - Endpoint ID:%u", port -> id_controller, port -> id_port, descriptor_endpoint -> address & 0x1111 ); if( descriptor_endpoint -> address >> 7 ) kernel -> serial( (uint8_t *) ", In" ); else kernel -> serial( (uint8_t *) ", Out" ); switch( descriptor_endpoint -> attributes & 0x11 ) { case 0x01: { kernel -> serial( (uint8_t *) ", Isochronous" ); break; } case 0x02: { kernel -> serial( (uint8_t *) ", Bulk" ); break; } case 0x03: { kernel -> serial( (uint8_t *) ", Interrupt" ); break; } default: kernel -> serial( (uint8_t *) ", Control" ); } kernel -> serial( (uint8_t *) ", Max Packet Size %u Byte/s", descriptor_endpoint -> max_packet_size ); kernel -> serial( (uint8_t *) "\n" );
 		}
 
 		// next
@@ -431,7 +436,7 @@ void module_usb_uhci_init( uint8_t c ) {
 		module_usb_uhci_queue( (uint32_t *) (module_usb_controller[ c ].frame_base_address | KERNEL_MEMORY_mirror) );
 
 		// clear status register
-		uhci -> status = 0b00111111;
+		uhci -> status = 0x3F;
 
 		// enable controller
 		uhci -> command = TRUE;
@@ -456,7 +461,7 @@ void module_usb_uhci_init( uint8_t c ) {
 	module_usb_uhci_queue( (uint32_t *) (module_usb_controller[ c ].frame_base_address | KERNEL_MEMORY_mirror) );
 
 	// clear status register
-	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, status ), 0b00111111 );
+	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, status ), 0x3F );
 
 	// enable controller
 	driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, command ), TRUE );

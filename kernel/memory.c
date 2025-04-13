@@ -48,12 +48,29 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t n, uint64_t p, uint64
 
 uintptr_t kernel_memory_alloc( uint64_t n ) {
 	// initialize page ID
-	uintptr_t p = EMPTY;
+	uintptr_t p = INIT;
 
 	// search for requested length of area
 	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, n, KERNEL_MEMORY_HIGH, kernel -> page_limit )) ) return EMPTY;
 
 	// less memory available
+	kernel -> page_available -= n;
+
+	// we guarantee clean memory area at first use
+	kernel_memory_clean( (uint64_t *) ((p << STD_SHIFT_PAGE) | KERNEL_MEMORY_mirror), n );
+
+	// convert page ID to logical address and return
+	return (uintptr_t) (p << STD_SHIFT_PAGE) | KERNEL_MEMORY_mirror;
+}
+
+uintptr_t kernel_memory_alloc_low( uint64_t n ) {
+	// initialize value
+	uintptr_t p = INIT;
+
+	// search for requested length of area
+	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, n, KERNEL_MEMORY_LOW, KERNEL_MEMORY_HIGH )) ) return EMPTY;
+
+	// less available pages
 	kernel -> page_available -= n;
 
 	// we guarantee clean memory area at first use

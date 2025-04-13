@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_ap( void ) {
+void kernel_init_ap( struct limine_smp_info *info ) {
 	// reload kernel environment paging array
 	__asm__ volatile( "movq %0, %%cr3" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_MEMORY_mirror) );
 
@@ -70,8 +70,8 @@ void kernel_init_ap( void ) {
 	// accept current interrupt call (if exist)
 	kernel_apic_accept();
 
-	// // BS/A initialized
-	// kernel -> cpu_count++;
+	// BS/A initialized
+	kernel -> cpu_limit++;
 
 	// enable interrupt handling
 	__asm__ volatile( "sti" );

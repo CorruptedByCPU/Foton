@@ -613,6 +613,6 @@ void sleep( uint64_t ms ) {
 	// set release in future
 	uint64_t wait = std_microtime() + ms;
 
-	// release CPU time until we are ready
+	// release BS/A time until we are ready
 	while( wait > std_microtime() ) __asm__ volatile( "int $0x40" );
 }

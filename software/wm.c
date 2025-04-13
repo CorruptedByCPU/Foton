@@ -13,7 +13,7 @@
 	//----------------------------------------------------------------------
 	// functions / procedures
 	//----------------------------------------------------------------------
-	// #include	"./wm/event.c"
+	#include	"./wm/event.c"
 	#include	"./wm/sync.c"
 	#include	"./wm/fill.c"
 	#include	"./wm/zone.c"
@@ -33,7 +33,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// hold the door
 	while( TRUE ) {
 		// check for incomming events
-		// wm_event();
+		wm_event();
 
 		// which objects have been recently updated?
 		wm_object();
@@ -54,6 +54,6 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		wm_sync();
 
 		// free up AP time
-		// sleep( TRUE );
+		sleep( TRUE );
 	}
 }

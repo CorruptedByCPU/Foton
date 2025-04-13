@@ -11,11 +11,8 @@
 	//----------------------------------------------------------------------
 	// Build-in libraries
 	//----------------------------------------------------------------------
-	// #include	"../library/color.c"
 	#include	"../library/elf.c"
-	// #include	"../library/font.c"
 	#include	"../library/string.c"
-	// #include	"../library/terminal.c"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -23,6 +20,7 @@
 	//----------------------------------------------------------------------
 	#include	"driver/port.h"
 	#include	"driver/rtc.h"
+	#include	"driver/serial.h"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -57,6 +55,7 @@
 	//----------------------------------------------------------------------
 	#include	"driver/port.c"
 	#include	"driver/rtc.c"
+	#include	"driver/serial.c"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -100,6 +99,7 @@
 	#include	"init/memory.c"
 	#include	"init/module.c"
 	#include	"init/page.c"
+	#include	"init/smp.c"
 	#include	"init/storage.c"
 	#include	"init/task.c"
 	#include	"init/vfs.c"
@@ -107,6 +107,11 @@
 
 // start of kernel initialization
 void _entry( void ) {
+	// DEBUG ---------------------------------------------------------------
+
+	// debug purpose only
+	driver_serial_init();
+
 	// BASE ----------------------------------------------------------------
 
 	// initialize kernel environment pointer and variables/functions/rountines
@@ -156,8 +161,13 @@ void _entry( void ) {
 	// execute initial software
 	kernel_init_exec();
 
+	// EXTRA ---------------------------------------------------------------
+
+	// initialize other APs
+	kernel_init_smp();
+
 	// FINISH --------------------------------------------------------------
 
 	// reload BSP configuration
-	kernel_init_ap();
+	kernel_init_ap( (struct limine_smp_info *) EMPTY );
 }

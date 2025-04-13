@@ -8,16 +8,19 @@ struct KERNEL_STRUCTURE_TASK *kernel_task_select( uint64_t i ) {
 		// search in task queue for a ready-to-do task
 		for( ++i ; i < kernel -> task_limit; i++ ) {
 			// task available for processing?
-			if( kernel -> task_base_address[ i ].flags & STD_TASK_FLAG_active && ! (kernel -> task_base_address[ i ].flags & STD_TASK_FLAG_exec) ) {	// yes
-				// mark task as performed by current logical processor
-				kernel -> task_base_address[ i ].flags |= STD_TASK_FLAG_exec;
+			if( ! (kernel -> task_base_address[ i ].flags & STD_TASK_FLAG_active) ) continue;	// no
+			
+			// task already taken by different AP?
+			if( kernel -> task_base_address[ i ].flags & STD_TASK_FLAG_exec ) continue;	// yes
+	
+			// mark task as performed by current logical processor
+			kernel -> task_base_address[ i ].flags |= STD_TASK_FLAG_exec;
 
-				// inform BS/A about task to execute as next
-				kernel -> task_ap_address[ kernel_apic_id() ] = i;
+			// inform BS/A about task to execute as next
+			kernel -> task_ap_address[ kernel_apic_id() ] = i;
 
-				// return address of selected task from queue
-				return (struct KERNEL_STRUCTURE_TASK *) &kernel -> task_base_address[ i ];
-			}
+			// return address of selected task from queue
+			return (struct KERNEL_STRUCTURE_TASK *) &kernel -> task_base_address[ i ];
 		}
 
 		// start from begining
@@ -96,7 +99,7 @@ struct KERNEL_STRUCTURE_TASK *kernel_task_add( uint8_t *name, uint16_t limit ) {
 	MACRO_LOCK( kernel -> task_lock );
 
 	// find an available entry
-	for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
+	for( uint64_t i = INIT; i < kernel -> task_limit; i++ ) {
 		// available?
 		if( kernel -> task_base_address[ i ].flags ) continue;	// no
 

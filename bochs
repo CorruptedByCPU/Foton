@@ -17,7 +17,7 @@ sed -e "s|SMP|${SMP}|g" -i build/linux.bxrc
 sed -e "s|MEM|${MEM}|g" -i build/linux.bxrc
 
 # start Bochs Debugger with predefinied configuration file
-/opt/bochs-dbg/bin/bochs -f build/linux.bxrc -q -rc tools/bochs.rc
+/opt/bochs-dbg/bin/bochs -f build/linux.bxrc -q -rc tools/bochs.rc -dbg_gui
 
 # show debug output
 cat serial.log

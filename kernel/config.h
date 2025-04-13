@@ -25,6 +25,15 @@
 
 struct KERNEL {
 	volatile struct KERNEL_STRUCTURE_APIC		*apic_base_address;
+	uint64_t									apic_id_last;
+
+	volatile uint64_t				cpu_limit;
+
+	uint8_t						device_mouse_status;
+	uint16_t					device_mouse_x;
+	uint16_t					device_mouse_y;
+	uint16_t					device_mouse_z;
+	uint16_t					device_keyboard[ 8 ];
 
 	uint32_t					*framebuffer_base_address;
 	uint16_t					framebuffer_width_pixel;
@@ -43,6 +52,10 @@ struct KERNEL {
 	uint32_t					*library_memory_address;
 
 	uint32_t					*memory_base_address;
+	uintptr_t					(*memory_alloc)( uint64_t n );
+	uintptr_t					(*memory_alloc_low)( uint64_t n );
+	void						(*memory_clean)( uint64_t *address, uint64_t n );
+	void						(*memory_release)( uintptr_t address, uint64_t n );
 
 	uint64_t					*page_base_address;
 	uint64_t					page_available;
@@ -50,6 +63,9 @@ struct KERNEL {
 	uint64_t					page_total;
 	uint64_t					page_shared;
 	uint64_t					page_structure;
+	uint8_t						(*page_map)( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t n, uint16_t flags );
+
+	void						(*serial)( uint8_t *string, ... );
 
 	struct KERNEL_STRUCTURE_STORAGE			*storage_base_address;
 	uint64_t					storage_limit;

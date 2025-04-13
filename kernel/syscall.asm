@@ -75,7 +75,7 @@ kernel_syscall_list:
 	dq	0x00	;dq	kernel_syscall_ipc_send			; 0x0A
 	dq	0x00	;dq	kernel_syscall_ipc_receive		; 0x0B
 	dq	0x00	;dq	kernel_syscall_memory_share		; 0x0C
-	dq	0x00	;dq	kernel_syscall_mouse			; 0x0D
+	dq	kernel_syscall_mouse			; 0x0D
 	dq	0x00	;dq	kernel_syscall_framebuffer_change	; 0x0E
 	dq	0x00	;dq	kernel_syscall_ipc_receive_by_pid	; 0x0F
 	dq	0x00	;dq	kernel_syscall_stream_out		; 0x10
@@ -89,7 +89,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_file_close		; 0x18
 	dq	0x00	;dq	kernel_syscall_cd			; 0x19
 	dq	0x00	;dq	kernel_syscall_ipc_receive_by_type	; 0x1A
-	dq	0x00	;dq	kernel_syscall_microtime		; 0x1B
+	dq	kernel_syscall_microtime		; 0x1B
 	dq	0x00	;dq	kernel_syscall_time			; 0x1C
 	dq	kernel_syscall_file_read		; 0x1D
 	dq	kernel_syscall_file			; 0x1E

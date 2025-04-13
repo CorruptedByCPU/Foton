@@ -106,7 +106,7 @@ uint8_t kernel_page_alloc( uint64_t *pml4, uintptr_t target, uint64_t n, uint16_
 
 uint8_t kernel_page_empty( uint64_t *target, uint64_t n ) {
 	// check every entry
-	for( uint64_t i = 0; i < (n << STD_SHIFT_512); i++ ) if( target[ i ] ) return FALSE;
+	for( uint64_t i = INIT; i < (n << STD_SHIFT_512); i++ ) if( target[ i ] ) return FALSE;
 
 	// page is empty
 	return TRUE;
@@ -338,7 +338,7 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 
 void kernel_page_merge( uint64_t *pml4_parent, uint64_t *pml4_child ) {
 	// start with PML4 level of both arrays
-	for( uint16_t p4 = 0; p4 < KERNEL_PAGE_PMLx_entry; p4++ ) {
+	for( uint16_t p4 = INIT; p4 < KERNEL_PAGE_PMLx_entry; p4++ ) {
 		// source entry exists?
 		if( ! pml4_parent[ p4 ] ) continue;	// no
 
@@ -354,7 +354,7 @@ void kernel_page_merge( uint64_t *pml4_parent, uint64_t *pml4_child ) {
 		// PML3
 		uint64_t *pml3_parent = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4_parent[ p4 ] ) | KERNEL_MEMORY_mirror);
 		uint64_t *pml3_child = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml4_child[ p4 ] ) | KERNEL_MEMORY_mirror);
-		for( uint16_t p3 = 0; p3 < KERNEL_PAGE_PMLx_entry; p3++ ) {
+		for( uint16_t p3 = INIT; p3 < KERNEL_PAGE_PMLx_entry; p3++ ) {
 			// source entry exists?
 			if( ! pml3_parent[ p3 ] ) continue;	// no
 
@@ -370,7 +370,7 @@ void kernel_page_merge( uint64_t *pml4_parent, uint64_t *pml4_child ) {
 			// PML2
 			uint64_t *pml2_parent = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3_parent[ p3 ] ) | KERNEL_MEMORY_mirror);
 			uint64_t *pml2_child = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml3_child[ p3 ] ) | KERNEL_MEMORY_mirror);
-			for( uint16_t p2 = 0; p2 < KERNEL_PAGE_PMLx_entry; p2++ ) {
+			for( uint16_t p2 = INIT; p2 < KERNEL_PAGE_PMLx_entry; p2++ ) {
 				// source entry exists?
 				if( ! pml2_parent[ p2 ] ) continue;	// no
 
@@ -386,7 +386,7 @@ void kernel_page_merge( uint64_t *pml4_parent, uint64_t *pml4_child ) {
 				// PML1
 				uint64_t *pml1_parent = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2_parent[ p2 ] ) | KERNEL_MEMORY_mirror);
 				uint64_t *pml1_child = (uint64_t *) (MACRO_PAGE_ALIGN_DOWN( pml2_child[ p2 ] ) | KERNEL_MEMORY_mirror);
-				for( uint16_t p1 = 0; p1 < KERNEL_PAGE_PMLx_entry; p1++ ) {
+				for( uint16_t p1 = INIT; p1 < KERNEL_PAGE_PMLx_entry; p1++ ) {
 					// source entry exist?
 					if( ! pml1_parent[ p1 ] ) continue;	// no
 

@@ -11,7 +11,7 @@ uint8_t *module_list[ KERNEL_INIT_MODULE_count ] = {
 
 void kernel_init_module( void ) {
 	// for every required module
-	for( uint64_t i = 0; i < KERNEL_INIT_MODULE_count; i++ )
+	for( uint64_t i = INIT; i < KERNEL_INIT_MODULE_count; i++ )
 		// load
 		kernel_module( module_list[ i ], lib_string_length( module_list[ i ] ) );
 }

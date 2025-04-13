@@ -163,6 +163,19 @@ void kernel_syscall_memory_release( uintptr_t address, uint64_t n ) {
 	task -> page -= n;
 }
 
+uint64_t kernel_syscall_microtime( void ) {
+	// elapsed time units
+	return kernel -> time_units;
+}
+
+void kernel_syscall_mouse( struct STD_STRUCTURE_MOUSE_SYSCALL *mouse ) {
+	// return information about mouse device
+	mouse -> x	= kernel -> device_mouse_x;
+	mouse -> y	= kernel -> device_mouse_y;
+	mouse -> z	= kernel -> device_mouse_z;
+	mouse -> status	= kernel -> device_mouse_status;
+}
+
 uint64_t kernel_syscall_pid( void ) {
 	// task pid
 	return kernel_task_current() -> pid;

@@ -46,15 +46,15 @@
 		uint8_t	toggle;
 	};
 
-	#define	MODULE_USB_PACKET_TYPE_direction_device_to_host			0b10000000
-	#define	MODULE_USB_PACKET_TYPE_direction_host_to_device			0b00000000
-	#define	MODULE_USB_PACKET_TYPE_subtype_standard				0b00000000
-	#define	MODULE_USB_PACKET_TYPE_subtype_vendor				0b01000000
-	#define	MODULE_USB_PACKET_TYPE_subtype_class				0b00100000
-	#define	MODULE_USB_PACKET_TYPE_recipient_device				0b00000000
-	#define	MODULE_USB_PACKET_TYPE_recipient_interface			0b00000001
-	#define	MODULE_USB_PACKET_TYPE_recipient_endpoint			0b00000010
-	#define	MODULE_USB_PACKET_TYPE_recipient_other				0b00000011
+	#define	MODULE_USB_PACKET_TYPE_direction_device_to_host			0x80
+	#define	MODULE_USB_PACKET_TYPE_direction_host_to_device			0x00
+	#define	MODULE_USB_PACKET_TYPE_subtype_standard				0x00
+	#define	MODULE_USB_PACKET_TYPE_subtype_vendor				0x40
+	#define	MODULE_USB_PACKET_TYPE_subtype_class				0x20
+	#define	MODULE_USB_PACKET_TYPE_recipient_device				0x00
+	#define	MODULE_USB_PACKET_TYPE_recipient_interface			0x01
+	#define	MODULE_USB_PACKET_TYPE_recipient_endpoint			0x02
+	#define	MODULE_USB_PACKET_TYPE_recipient_other				0x03
 
 	#define	MODULE_USB_PACKET_REQUEST_status_get				0x00
 	#define	MODULE_USB_PACKET_REQUEST_feature_clear				0x01
@@ -79,11 +79,11 @@
 	#define	MODULE_USB_PACKET_VALUE_descriptor_type_interface_power		0x0800
 	#define	MODULE_USB_PACKET_VALUE_descriptor_type_report			0x2200
 
-	#define MODULE_USB_HID_KEYBOARD_KEY_CODE_CTRL_LEFT			0b00000001
-	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_LEFT			0b00000010
-	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_ALT_LEFT			0b00000100
-	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_MENU_LEFT			0b00001000
-	#define MODULE_USB_HID_KEYBOARD_KEY_CODE_CTRL_RIGHT			0b00010000
-	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_RIGHT			0b00100000
-	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_ALT_RIGHT			0b01000000
+	#define MODULE_USB_HID_KEYBOARD_KEY_CODE_CTRL_LEFT			0x01
+	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_LEFT			0x02
+	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_ALT_LEFT			0x04
+	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_MENU_LEFT			0x08
+	#define MODULE_USB_HID_KEYBOARD_KEY_CODE_CTRL_RIGHT			0x10
+	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_SHIFT_RIGHT			0x20
+	#define	MODULE_USB_HID_KEYBOARD_KEY_CODE_ALT_RIGHT			0x40
 #endif

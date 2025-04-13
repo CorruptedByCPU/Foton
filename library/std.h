@@ -98,6 +98,7 @@
 	#define	STD_ASCII_DELETE				0x7F
 
 	#define	STD_BIT_CONTROL_DWORD_bit			31	// or 0b00011111
+	#define	STD_BIT_CONTROL_WORD_bit			15	// or 0b00001111
 
 	#define	STD_COLOR_mask					0xFF000000
 	#define	STD_COLOR_BLACK					0xFF000000

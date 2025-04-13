@@ -33,8 +33,20 @@ void kernel_init_env( void ) {
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;
 	kernel -> framebuffer_pid		= EMPTY;	// by default: kernel
 
+	// initial position of mouse device
+	kernel -> device_mouse_x		= kernel -> framebuffer_width_pixel >> STD_SHIFT_2;
+	kernel -> device_mouse_y		= kernel -> framebuffer_height_pixel >> STD_SHIFT_2;
+
 	//----------------------------------------------------------------------
 
-	// sleep function for kernel/modules
+	// kernel -> memory_alloc			= kernel_memory_alloc;
+	kernel -> memory_alloc_low			= kernel_memory_alloc_low;
+	kernel -> memory_clean				= kernel_memory_clean;
+	kernel -> memory_release			= kernel_memory_release;
+
+	kernel -> page_map					= kernel_page_map;
+
+	kernel -> serial				= driver_serial;
+
 	kernel -> time_sleep			= kernel_time_sleep;
 }

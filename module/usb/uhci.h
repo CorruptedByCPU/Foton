@@ -5,17 +5,17 @@
 #ifndef	MODULE_USB_UHCI
 	#define	MODULE_USB_UHCI
 
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_current_connect_status		0b0000000000000001
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_connect_status_change		0b0000000000000010
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enabled			0b0000000000000100
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enable_change		0b0000000000001000
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_line_status			0b0000000000110000
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_resume_detect			0b0000000001000000
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_reserved_should_be_one		0b0000000010000000
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_high_speed_device_attached	0b0000000100000000
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_reset			0b0000001000000000
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_reserved			0b0000110000000000
-	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_suspend				0b0001000000000000
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_current_connect_status		0x0001
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_connect_status_change		0x0002
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enabled			0x0004
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enable_change		0x0008
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_line_status			0x0010
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_resume_detect			0x0020
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_reserved_should_be_one		0x0040
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_high_speed_device_attached	0x0080
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_reset			0x0100
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_reserved			0x0C00
+	#define	MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_suspend				0x1000
 
 	struct MODULE_USB_STRUCTURE_UHCI_REGISTER {
 		uint16_t	command;
@@ -36,7 +36,7 @@
 		uint16_t		length;
 	} __attribute__( (packed) );
 
-	#define	MODULE_USB_UHCI_TD_STATUS_active		0b10000000
+	#define	MODULE_USB_UHCI_TD_STATUS_active		0x80
 
 	#define	MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_setup	0x2D
 	#define	MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in	0x69
@@ -64,10 +64,10 @@
 		uint32_t		reserved[ 4 ];
 	} __attribute__( (packed) );
 
-	#define	MODULE_USB_UHCI_QTD_FLAG_mask					0x0F
-	#define	MODULE_USB_UHCI_QTD_FLAG_terminate				0b0001
-	#define	MODULE_USB_UHCI_QTD_FLAG_queue					0b0010
-	#define	MODULE_USB_UHCI_QTD_FLAG_depth_first				0b0100
+	#define	MODULE_USB_UHCI_QTD_FLAG_mask				0x0F
+	#define	MODULE_USB_UHCI_QTD_FLAG_terminate			0x01
+	#define	MODULE_USB_UHCI_QTD_FLAG_queue				0x02
+	#define	MODULE_USB_UHCI_QTD_FLAG_depth_first			0x04
 
 	struct MODULE_USB_STRUCTURE_UHCI_QUEUE {
 		uint32_t		head_link_pointer_and_flags;
