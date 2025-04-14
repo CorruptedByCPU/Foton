@@ -184,53 +184,53 @@
 // 	}
 // }
 
-// void module_usb_hid_mouse( void ) {
-// 	// prepare mouse input cache
-// 	int8_t *cache = (int8_t *) kernel -> memory_alloc_low( TRUE );
+void module_usb_hid_mouse( void ) {
+	// prepare mouse input cache
+	int8_t *cache = (int8_t *) kernel -> memory_alloc_low( TRUE );
 
-// 	// receive properties
-// 	while( TRUE ) {
-// 		// from any available mouse
-// 		for( uint8_t p = 0; p < MODULE_USB_PORT_limit; p++ ) {
-// 			// registered controller with definied protocol?
-// 			if( module_usb_port[ p ].type != MODULE_USB_DEVICE_TYPE_HID_MOUSE ) continue;	// no
+	// receive properties
+	while( TRUE ) {
+		// from any available mouse
+		for( uint8_t p = 0; p < MODULE_USB_PORT_limit; p++ ) {
+			// registered controller with definied protocol?
+			if( module_usb_port[ p ].type != MODULE_USB_DEVICE_TYPE_HID_MOUSE ) continue;	// no
 
-// 			// clean up cache
-// 			kernel -> memory_clean( (uint64_t *) cache, TRUE );
+			// clean up cache
+			kernel -> memory_clean( (uint64_t *) cache, TRUE );
 
-// 			// create input Transfer Descriptor
-// 			module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x04, (uintptr_t) cache & ~KERNEL_MEMORY_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 8 );
+			// create input Transfer Descriptor
+			module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x04, (uintptr_t) cache & ~KERNEL_MEMORY_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 8 );
 
-// 			// Buttons status
-// 			kernel -> device_mouse_status = cache[ 0 ];
+			// Buttons status
+			kernel -> device_mouse_status = cache[ 0 ];
 
-// 			// X axis
+			// X axis
 
-// 			// overflow from left?
-// 			if( kernel -> device_mouse_x + cache[ 1 ] < 0 ) kernel -> device_mouse_x = EMPTY;
+			// overflow from left?
+			if( kernel -> device_mouse_x + cache[ 1 ] < 0 ) kernel -> device_mouse_x = EMPTY;
 
-// 			// overflow from right?
-// 			else if( kernel -> device_mouse_x + cache[ 1 ] > kernel -> framebuffer_width_pixel - 1 ) kernel -> device_mouse_x = kernel -> framebuffer_width_pixel - 1;
+			// overflow from right?
+			else if( kernel -> device_mouse_x + cache[ 1 ] > kernel -> framebuffer_width_pixel - 1 ) kernel -> device_mouse_x = kernel -> framebuffer_width_pixel - 1;
 				
-// 			// compound new position
-// 			else kernel -> device_mouse_x += cache[ 1 ];
+			// compound new position
+			else kernel -> device_mouse_x += cache[ 1 ];
 
-// 			// Y axis
+			// Y axis
 
-// 			// overflow from top?
-// 			if( kernel -> device_mouse_y + cache[ 2 ] < 0 ) kernel -> device_mouse_y = EMPTY;
+			// overflow from top?
+			if( kernel -> device_mouse_y + cache[ 2 ] < 0 ) kernel -> device_mouse_y = EMPTY;
 
-// 			// overflow from bottom?
-// 			else if( kernel -> device_mouse_y + cache[ 2 ] > kernel -> framebuffer_height_pixel - 1 ) kernel -> device_mouse_y = kernel -> framebuffer_height_pixel - 1;
+			// overflow from bottom?
+			else if( kernel -> device_mouse_y + cache[ 2 ] > kernel -> framebuffer_height_pixel - 1 ) kernel -> device_mouse_y = kernel -> framebuffer_height_pixel - 1;
 
-// 			// compound new position
-// 			else kernel -> device_mouse_y += cache[ 2 ];
-// 		}
+			// compound new position
+			else kernel -> device_mouse_y += cache[ 2 ];
+		}
 
-// 		// release CPU time
-// 		kernel -> time_sleep( TRUE );
-// 	}
-// }
+		// release CPU time
+		kernel -> time_sleep( TRUE );
+	}
+}
 
 struct MODULE_USB_STRUCTURE_PORT *module_usb_port_register( uint8_t c, uint8_t p ) {
 	// locate already existing port configuration
@@ -345,7 +345,7 @@ void _entry( uintptr_t kernel_ptr ) {
 						module_usb_controller[ module_usb_controller_limit ].base_address |= (uint64_t) driver_pci_read( module_usb_controller[ module_usb_controller_limit ].pci, bar_high ) << STD_MOVE_DWORD;
 
 					// map MMIO controller area
-					kernel -> page_map( kernel -> page_base_address, module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask, (module_usb_controller[ module_usb_controller_limit ].base_address & STD_PAGE_mask) | KERNEL_MEMORY_mirror, MACRO_PAGE_ALIGN_UP( TRUE ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+					kernel -> page_map( kernel -> page_base_address, MACRO_PAGE_ALIGN_DOWN( module_usb_controller[ module_usb_controller_limit ].base_address ), MACRO_PAGE_ALIGN_DOWN( module_usb_controller[ module_usb_controller_limit ].base_address ) | KERNEL_MEMORY_mirror, MACRO_PAGE_ALIGN_UP( (module_usb_controller[ module_usb_controller_limit ].base_address & ~STD_PAGE_mask) + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port ) + (module_usb_controller[ module_usb_controller_limit ].limit << STD_SHIFT_16) ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 				}
 
 				// reset flags
@@ -429,60 +429,13 @@ void _entry( uintptr_t kernel_ptr ) {
 		}
 	}
 
-	// // enable mouse thread
-	// uint8_t module_usb_string_hid_mouse[] = "usb.ko - mouse";
-	// kernel -> module_thread( (uintptr_t) &module_usb_hid_mouse, (uint8_t *) &module_usb_string_hid_mouse, sizeof( module_usb_string_hid_mouse ) - 1 );
+	// enable mouse thread
+	uint8_t module_usb_string_hid_mouse[] = "usb.ko - mouse";
+	kernel -> module_thread( (uintptr_t) &module_usb_hid_mouse, (uint8_t *) &module_usb_string_hid_mouse, sizeof( module_usb_string_hid_mouse ) - 1 );
 
 	// // enable keyboard thread
 	// uint8_t module_usb_string_hid_keyboard[] = "usb.ko - keyboard";
 	// kernel -> module_thread( (uintptr_t) &module_usb_hid_keyboard, (uint8_t *) &module_usb_string_hid_keyboard, sizeof( module_usb_string_hid_keyboard ) - 1 );
-
-	// prepare mouse input cache
-	int8_t *cache = (int8_t *) kernel -> memory_alloc_low( TRUE );
-
-	// receive properties
-	while( TRUE ) {
-		// from any available mouse
-		for( uint8_t p = 0; p < MODULE_USB_PORT_limit; p++ ) {
-			// registered controller with definied protocol?
-			if( module_usb_port[ p ].type != MODULE_USB_DEVICE_TYPE_HID_MOUSE ) continue;	// no
-
-			// clean up cache
-			kernel -> memory_clean( (uint64_t *) cache, TRUE );
-
-			// create input Transfer Descriptor
-			module_usb_uhci_descriptor_io( (struct MODULE_USB_STRUCTURE_PORT *) &module_usb_port[ p ], 0x04, (uintptr_t) cache & ~KERNEL_MEMORY_mirror, MODULE_USB_UHCI_TD_PACKET_IDENTIFICATION_in, 8 );
-
-			// Buttons status
-			kernel -> device_mouse_status = cache[ 0 ];
-
-			// X axis
-
-			// overflow from left?
-			if( kernel -> device_mouse_x + cache[ 1 ] < 0 ) kernel -> device_mouse_x = EMPTY;
-
-			// overflow from right?
-			else if( kernel -> device_mouse_x + cache[ 1 ] > kernel -> framebuffer_width_pixel - 1 ) kernel -> device_mouse_x = kernel -> framebuffer_width_pixel - 1;
-				
-			// compound new position
-			else kernel -> device_mouse_x += cache[ 1 ];
-
-			// Y axis
-
-			// overflow from top?
-			if( kernel -> device_mouse_y + cache[ 2 ] < 0 ) kernel -> device_mouse_y = EMPTY;
-
-			// overflow from bottom?
-			else if( kernel -> device_mouse_y + cache[ 2 ] > kernel -> framebuffer_height_pixel - 1 ) kernel -> device_mouse_y = kernel -> framebuffer_height_pixel - 1;
-
-			// compound new position
-			else kernel -> device_mouse_y += cache[ 2 ];
-		}
-
-		// release CPU time
-		kernel -> time_sleep( TRUE );
-	}
-
 
 	// hold the door
 	while( TRUE ) kernel -> time_sleep( TRUE );

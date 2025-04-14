@@ -57,6 +57,8 @@ struct KERNEL {
 	void						(*memory_clean)( uint64_t *address, uint64_t n );
 	void						(*memory_release)( uintptr_t address, uint64_t n );
 
+	uint64_t					(*module_thread)( uintptr_t function, uint8_t *name, uint64_t length );
+
 	uint64_t					*page_base_address;
 	uint64_t					page_available;
 	uint64_t					page_limit;

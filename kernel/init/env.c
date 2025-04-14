@@ -40,13 +40,15 @@ void kernel_init_env( void ) {
 	//----------------------------------------------------------------------
 
 	// kernel -> memory_alloc			= kernel_memory_alloc;
-	kernel -> memory_alloc_low			= kernel_memory_alloc_low;
-	kernel -> memory_clean				= kernel_memory_clean;
-	kernel -> memory_release			= kernel_memory_release;
+	kernel -> memory_alloc_low		= kernel_memory_alloc_low;
+	kernel -> memory_clean			= kernel_memory_clean;
+	kernel -> memory_release		= kernel_memory_release;
 
-	kernel -> page_map					= kernel_page_map;
+	kernel -> module_thread			= kernel_module_thread;
 
-	kernel -> serial				= driver_serial;
+	kernel -> page_map			= kernel_page_map;
+
+	kernel -> serial			= driver_serial;
 
 	kernel -> time_sleep			= kernel_time_sleep;
 }

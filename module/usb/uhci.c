@@ -124,10 +124,13 @@ void module_usb_uhci_descriptor( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t
 
 	//----------------------------------------------------------------------
 
+	// MACRO_DEBUF();
+
+	uint8_t *block_data = (uint8_t *) td_pointer;
+	for( uint8_t i = 0; i < 8; i ++ ) { kernel -> serial( (uint8_t *) "0x%16X", (uintptr_t) block_data + (16 * i) ); for( uint8_t j = 0; j < 16; j++ ) kernel -> serial( (uint8_t *) " %2X", block_data[ (16 * i) + j ] ); kernel -> serial( (uint8_t *) "\n" ); }
+
 	// insert Transfer Descriptors on Queue
 	uint64_t entry = module_usb_uhci_queue_insert( 1, EMPTY, (uintptr_t) td_pointer );
-
-	// MACRO_DEBUF();
 
 	// wait for device
 	while( td -> status & 0x80 ) {
@@ -268,7 +271,7 @@ uint8_t module_usb_uhci_device_setup( struct MODULE_USB_STRUCTURE_PORT *port ) {
 	// DEFAULT DESCRIPTOR --------------------------------------------------
 
 	// prepare packet
-	struct MODULE_USB_STRUCTURE_UHCI_PACKET *packet = (struct MODULE_USB_STRUCTURE_UHCI_PACKET *) kernel -> memory_alloc_low( TRUE );
+	volatile struct MODULE_USB_STRUCTURE_UHCI_PACKET *packet = (struct MODULE_USB_STRUCTURE_UHCI_PACKET *) kernel -> memory_alloc_low( TRUE );
 	packet -> type		= MODULE_USB_PACKET_TYPE_direction_device_to_host;
 	packet -> request	= MODULE_USB_PACKET_REQUEST_descriptor_get;
 	packet -> value		= MODULE_USB_PACKET_VALUE_descriptor_type_device;

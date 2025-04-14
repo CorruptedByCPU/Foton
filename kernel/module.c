@@ -190,3 +190,64 @@ uint64_t kernel_module( uint8_t *name, uint64_t limit ) {
 	// PID of new task
 	return module.task -> pid;
 }
+
+uint64_t kernel_module_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
+	// create a new thread in task queue
+	struct KERNEL_STRUCTURE_TASK *thread = kernel_task_add( name, length );
+
+	//----------------------------------------------------------------------
+
+	// prepare Paging table for new process
+	thread -> cr3 = (uint64_t *) (kernel_memory_alloc_page() | KERNEL_MEMORY_mirror);
+
+	// mark task as thread
+	thread -> flags |= STD_TASK_FLAG_thread;
+	thread -> type = KERNEL_TASK_TYPE_THREAD;
+
+	//----------------------------------------------------------------------
+
+	// describe space under thread context stack
+	kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_LIMIT_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> type << KERNEL_PAGE_TYPE_offset) );
+
+	// set initial startup configuration for new process
+	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_MEMORY_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
+
+	// set the process entry address
+	context -> rip		= function;
+
+	// code descriptor
+	context -> cs		= offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring0 );
+
+	// basic processor state flags
+	context -> eflags	= KERNEL_TASK_EFLAGS_default;
+
+	// stack top pointer
+	context -> rsp		= KERNEL_STACK_pointer;
+
+	// stack descriptor
+	context -> ss		= offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring0 );
+
+	//----------------------------------------------------------------------
+
+	// context stack top pointer
+	thread -> rsp		= KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
+
+	//----------------------------------------------------------------------
+
+	// aquire parent task properties
+	struct KERNEL_STRUCTURE_TASK *current = kernel_task_current();
+
+	// threads use same memory map as parent
+	thread -> memory = current -> memory;
+
+	//----------------------------------------------------------------------
+
+	// map kernel
+	kernel_page_merge( (uint64_t *) current -> cr3, (uint64_t *) thread -> cr3 );
+
+	// thread ready to run
+	thread -> flags |= STD_TASK_FLAG_active | STD_TASK_FLAG_module | STD_TASK_FLAG_thread | STD_TASK_FLAG_init;
+
+	// PID of new thread
+	return thread -> pid;
+}
