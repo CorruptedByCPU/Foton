@@ -31,7 +31,7 @@
 	// #define	KERNEL_TASK_TYPE_		0b110
 	// #define	KERNEL_TASK_TYPE_		0b111
 
-	#define	KERNEL_TASK_limit		(STD_PAGE_byte / sizeof( struct KERNEL_STRUCTURE_TASK ))
+	#define	KERNEL_TASK_limit		256
 
 	#define	KERNEL_TASK_NAME_limit		(STD_PAGE_byte - TRUE)
 

@@ -26,18 +26,17 @@ void kernel_init_env( void ) {
 	// clean'up, there will be binary memory map too!
 	kernel_memory_clean( (uint64_t *) kernel, limit >> STD_SHIFT_PAGE );
 
-	// retrieve properties of framebuffer
+	//----------------------------------------------------------------------
+
 	kernel -> framebuffer_base_address	= (uint32_t *) ((uintptr_t) limine_framebuffer_request.response -> framebuffers[ 0 ] -> address | KERNEL_MEMORY_mirror);
 	kernel -> framebuffer_width_pixel	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> width;
 	kernel -> framebuffer_height_pixel	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> height;
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;
 	kernel -> framebuffer_pid		= EMPTY;	// by default: kernel
 
-	// initial position of mouse device
-	kernel -> device_mouse_x		= kernel -> framebuffer_width_pixel >> STD_SHIFT_2;
-	kernel -> device_mouse_y		= kernel -> framebuffer_height_pixel >> STD_SHIFT_2;
+	kernel -> idt_attach			= kernel_idt_attach;
 
-	//----------------------------------------------------------------------
+	kernel -> io_apic_attach		= kernel_io_apic_attach;
 
 	// kernel -> memory_alloc			= kernel_memory_alloc;
 	kernel -> memory_alloc_low		= kernel_memory_alloc_low;

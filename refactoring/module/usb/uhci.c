@@ -32,6 +32,24 @@ void module_usb_uhci_descriptor( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t
 	// location of packet properties
 	td -> buffer_pointer = packet;
 
+	// kernel -> serial( (uint8_t *) "\n========================================\n" );
+	// kernel -> serial( (uint8_t *) "|Link Pointer                   |R|D|Q|T\n" );
+	// kernel -> serial( (uint8_t *) "|---------------------------------------\n" );
+	// kernel -> serial( (uint8_t *) "|0x%8X                     |x|%b|%b|%b\n", td_pointer -> link_pointer << 4, (td_pointer -> flags >> 2) & TRUE, (td_pointer -> flags >> 1) & TRUE, td_pointer -> flags & TRUE );
+	// kernel -> serial( (uint8_t *) "----------------------------------------\n" );
+	// kernel -> serial( (uint8_t *) "|R|SPD|CERR|LS|ISO|IOC|Status  |R|ActLen\n" );
+	// kernel -> serial( (uint8_t *) "----------------------------------------\n" );
+	// kernel -> serial( (uint8_t *) "|x| %b | %2b |%b | %b | %b |%8b|x|%u\n", td_pointer -> short_packet, td_pointer -> error_counter, td_pointer -> low_speed, td_pointer -> iso, td_pointer -> ioc, td_pointer -> status, td_pointer -> actual_length );
+	// kernel -> serial( (uint8_t *) "----------------------------------------\n" );
+	// kernel -> serial( (uint8_t *) "|MaxLen|R|D|EndPt|DevAddr|PID\n" );
+	// kernel -> serial( (uint8_t *) "----------------------------------------\n" );
+	// kernel -> serial( (uint8_t *) "| %4u |x|%b|%2X   |%2X     |%2X\n", td_pointer -> max_length, td_pointer -> data_toggle, td_pointer -> endpoint, td_pointer -> device_address, td_pointer -> packet_identification );
+	// kernel -> serial( (uint8_t *) "----------------------------------------\n" );
+	// kernel -> serial( (uint8_t *) "|Buffer Pointer\n" );
+	// kernel -> serial( (uint8_t *) "----------------------------------------\n" );
+	// kernel -> serial( (uint8_t *) "|0x%8X\n", td_pointer -> buffer_pointer );
+	// kernel -> serial( (uint8_t *) "========================================\n" );
+
 	//----------------------------------------------------------------------
 
 	// TD semaphore
@@ -124,19 +142,11 @@ void module_usb_uhci_descriptor( struct MODULE_USB_STRUCTURE_PORT *port, uint8_t
 
 	//----------------------------------------------------------------------
 
-	// MACRO_DEBUF();
-
-	uint8_t *block_data = (uint8_t *) td_pointer;
-	for( uint8_t i = 0; i < 8; i ++ ) { kernel -> serial( (uint8_t *) "0x%16X", (uintptr_t) block_data + (16 * i) ); for( uint8_t j = 0; j < 16; j++ ) kernel -> serial( (uint8_t *) " %2X", block_data[ (16 * i) + j ] ); kernel -> serial( (uint8_t *) "\n" ); }
-
 	// insert Transfer Descriptors on Queue
 	uint64_t entry = module_usb_uhci_queue_insert( 1, EMPTY, (uintptr_t) td_pointer );
 
 	// wait for device
-	while( td -> status & 0x80 ) {
-		__asm__ volatile( "nop" );
-	}
-	// while( *((uint8_t *) td + 0x30) == 0x80 );
+	while( td -> status & 0x80 );
 
 	// remove Transfer Descriptors from Queue
 	module_usb_uhci_queue_remove( 1, entry );
@@ -214,14 +224,17 @@ uint16_t module_usb_uhci_device_init( uint8_t c, uint8_t p ) {
 	}
 
 	// try to enable attached device
-	for( uint8_t i = 0; i < 7; i++ ) {
+	for( uint8_t i = 0; i < 16; i++ ) {
+		// w8
+		kernel -> time_sleep( 10 );
+
 		// undefinied status
 		uint16_t status;
 
 		// type of access
 		if( module_usb_controller[ c ].mmio_semaphore )
 			// retrieve port status
-			status = uhci-> port[ p ];
+			status = uhci -> port[ p ];
 		else
 			// retrieve port status
 			status = driver_port_in_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ) );
@@ -240,7 +253,7 @@ uint16_t module_usb_uhci_device_init( uint8_t c, uint8_t p ) {
 				uhci -> port[ p ] = MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_connect_status_change | MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enable_change; kernel -> time_sleep( 1 );
 			} else
 				// clean it
-				driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_connect_status_change | MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enable_change ); kernel -> time_sleep( 1 );
+				driver_port_out_word( module_usb_controller[ c ].base_address + offsetof( struct MODULE_USB_STRUCTURE_UHCI_REGISTER, port[ p ] ), MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_connect_status_change | MODULE_USB_UHCI_PORT_STATUS_AND_CONTROL_port_enable_change );
 
 			// try again
 			continue;
@@ -475,16 +488,16 @@ void module_usb_uhci_queue( uint32_t *frame_list ) {
 	module_usb_uhci_queue_1u = (struct MODULE_USB_STRUCTURE_UHCI_QUEUE *) module_usb_uhci_queue_empty();
 
 	// acquire 8/1024u query
-	module_usb_uhci_queue_8u = (struct MODULE_USB_STRUCTURE_UHCI_QUEUE *) module_usb_uhci_queue_empty();
+	// module_usb_uhci_queue_8u = (struct MODULE_USB_STRUCTURE_UHCI_QUEUE *) module_usb_uhci_queue_empty();
 
 	// acquire 16/1024u query
-	module_usb_uhci_queue_16u = (struct MODULE_USB_STRUCTURE_UHCI_QUEUE *) module_usb_uhci_queue_empty();
+	// module_usb_uhci_queue_16u = (struct MODULE_USB_STRUCTURE_UHCI_QUEUE *) module_usb_uhci_queue_empty();
 
 	// connect 8u > 1u
-	module_usb_uhci_queue_insert( 8, MODULE_USB_UHCI_QTD_FLAG_queue, (uintptr_t) module_usb_uhci_queue_1u );
+	// module_usb_uhci_queue_insert( 8, MODULE_USB_UHCI_QTD_FLAG_queue, (uintptr_t) module_usb_uhci_queue_1u );
 
 	// connect 16u > 8u
-	module_usb_uhci_queue_insert( 16, MODULE_USB_UHCI_QTD_FLAG_queue, (uintptr_t) module_usb_uhci_queue_8u );
+	// module_usb_uhci_queue_insert( 16, MODULE_USB_UHCI_QTD_FLAG_queue, (uintptr_t) module_usb_uhci_queue_8u );
 
 	// insert queues
 	for( uint64_t i = 0; i < STD_PAGE_byte >> STD_SHIFT_4; i++ ) {
@@ -492,10 +505,10 @@ void module_usb_uhci_queue( uint32_t *frame_list ) {
 		frame_list[ i ] = (uintptr_t) module_usb_uhci_queue_1u | MODULE_USB_UHCI_QTD_FLAG_queue;
 
 		// 8u
-		if( ! ((i + 1) % 8) ) frame_list[ i ] = (uintptr_t) module_usb_uhci_queue_8u | MODULE_USB_UHCI_QTD_FLAG_queue;
+		// if( ! ((i + 1) % 8) ) frame_list[ i ] = (uintptr_t) module_usb_uhci_queue_8u | MODULE_USB_UHCI_QTD_FLAG_queue;
 
 		// 16u
-		if( ! ((i + 1) % 16) ) frame_list[ i ] = (uintptr_t) module_usb_uhci_queue_16u | MODULE_USB_UHCI_QTD_FLAG_queue;
+		// if( ! ((i + 1) % 16) ) frame_list[ i ] = (uintptr_t) module_usb_uhci_queue_16u | MODULE_USB_UHCI_QTD_FLAG_queue;
 	}
 }
 
@@ -525,14 +538,15 @@ uint64_t module_usb_uhci_queue_insert( uint8_t unit, uint8_t type, uintptr_t sou
 	struct MODULE_USB_STRUCTURE_UHCI_QUEUE *queue = EMPTY;
 
 	// select target queue
-	switch( unit ) {
+	// switch( unit ) {
 		// queue 1u
-		case 1: { queue = module_usb_uhci_queue_1u; break; }
+		// case 1: { queue = module_usb_uhci_queue_1u; break; }
 		// queue 8u
-		case 8: { queue = module_usb_uhci_queue_8u; break; }
+		// case 8: { queue = module_usb_uhci_queue_8u; break; }
 		// queue 16u
-		case 16: { queue = module_usb_uhci_queue_16u; break; }
-	}
+		// case 16: { queue = module_usb_uhci_queue_16u; break; }
+	// }
+	queue = module_usb_uhci_queue_1u;
 
 	// search every entry
 	while( TRUE ) for( uint64_t i = 0; i < STD_PAGE_byte / sizeof( struct MODULE_USB_STRUCTURE_UHCI_QUEUE ); i++ ) {

@@ -9,16 +9,16 @@ ata0: enabled=true, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 ata0-master: type=cdrom, path="build/foton.iso", status=inserted, model="Generic 1234", biosdetect=auto
 pci: enabled=1, chipset=i440fx, slot1=pcivga, slot2=e1000, slot3=voodoo #, slot4=usb_xhci, slot5=none
 vga: extension=vbe, update_freq=30, realtime=0, ddc=builtin
-cpu: count=1:SMP:1, ips=64000000, model=ryzen, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
+cpu: count=1:CORE:1, ips=50000000, model=core2_penryn_t9600, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
 magic_break: enabled=1
-#clock: sync=realtime, time0=local, rtc_sync=1
-#keyboard: type=mf, serial_delay=250, paste_delay=100000, user_shortcut=none
-#mouse: type=imps2, enabled=false, toggle=ctrl+mbutton
-usb_uhci: enabled=1, port1=keyboard, options1="speed:low", port2=mouse, options2="speed:low"
+clock: sync=none, time0=local, rtc_sync=1
+keyboard: type=mf, serial_delay=250, paste_delay=100000, user_shortcut=none
+mouse: type=imps2, enabled=false, toggle=ctrl+mbutton
+#usb_uhci: enabled=1, port1=keyboard, options1="speed:low", port2=mouse, options2="speed:low"
 #usb_ehci: enabled=1, companion=uhci, port1=keyboard, options1="speed:low", port2=mouse, options2="speed:low"
 #usb_xhci: port3=keyboard, options3="speed:low", port4=mouse, options4="speed:low"
 #usb_xhci: port1="speed:super, disk:build/foton.iso"
-usb_debug: type=uhci, reset=false, enable=false, start_frame=0, doorbell=false, data=false, event=false, non_exist=false
+#usb_debug: type=uhci, reset=false, enable=false, start_frame=0, doorbell=false, data=false, event=false, non_exist=false
 #sound: waveoutdrv=alsa, waveout=none, waveindrv=alsa, wavein=none, midioutdrv=alsa, midiout=none
 #voodoo: enabled=true, model=voodoo1
 com1: enabled=true, mode=file, dev="serial.log"

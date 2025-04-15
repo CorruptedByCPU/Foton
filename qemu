@@ -27,9 +27,9 @@ qemu-system-x86_64								\
 	-device virtio-blk-pci-transitional,drive=vfs,id=vfs			\
 	-drive format=raw,file=build/storage.vfs,if=none,id=vfs			\
 	-serial stdio								\
-	-usb									\
-        -device usb-kbd,bus=usb-bus.0,port=1					\
-        -device usb-mouse,bus=usb-bus.0,port=2					\
+#	-usb									\
+#        -device usb-kbd,bus=usb-bus.0,port=1					\
+#        -device usb-mouse,bus=usb-bus.0,port=2					\
 
 #	-readconfig tools/qemu-ehci-uhci.cfg			\
 #	-device usb-kbd,bus=ehci.0				\

@@ -11,7 +11,8 @@ void kernel_syscall_exit( void ) {
 	current -> flags |= STD_TASK_FLAG_close;
 
 	// release left of BS/A time
-	__asm__ volatile( "int $0x20" );
+	kernel -> apic_base_address -> tic = TRUE;
+	__asm__ volatile( "hlt" ); while( TRUE );
 }
 
 void kernel_syscall_file( struct STD_STRUCTURE_FILE *file ) {

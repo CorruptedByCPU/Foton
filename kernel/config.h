@@ -44,8 +44,10 @@ struct KERNEL {
 	struct KERNEL_STRUCTURE_GDT_HEADER		gdt_header;
 
 	struct KERNEL_STRUCTURE_IDT_HEADER		idt_header;
+	void						(*idt_attach)( uint8_t irq, uint16_t type, uintptr_t address );
 
 	volatile struct KERNEL_STRUCTURE_IO_APIC	*io_apic_base_address;
+	void						(*io_apic_attach)( uint8_t line, uint32_t io_apic_register );
 
 	struct KERNEL_STRUCTURE_LIBRARY			*library_base_address;
 	uint64_t					library_limit;

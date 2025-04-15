@@ -6,7 +6,7 @@
 
 uint8_t *module_list[ KERNEL_INIT_MODULE_count ] = {
 	(uint8_t *) "idle.ko",
-	(uint8_t *) "usb.ko"
+	(uint8_t *) "ps2.ko"
 };
 
 void kernel_init_module( void ) {
