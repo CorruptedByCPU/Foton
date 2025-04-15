@@ -21,6 +21,7 @@
 	#include	"driver/port.h"
 	#include	"driver/rtc.h"
 	#include	"driver/serial.h"
+	#include	"driver/vmware.h"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -56,6 +57,7 @@
 	#include	"driver/port.c"
 	#include	"driver/rtc.c"
 	#include	"driver/serial.c"
+	#include	"driver/vmware.c"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -162,6 +164,9 @@ void _entry( void ) {
 	kernel_init_exec();
 
 	// EXTRA ---------------------------------------------------------------
+
+	// initialize VMware driver, if possible
+	driver_vmware_init();
 
 	// initialize other APs
 	kernel_init_smp();

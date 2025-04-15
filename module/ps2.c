@@ -82,6 +82,18 @@ void module_ps2_mouse( void ) {
 		// retrieve package from PS2 controller
 		int8_t package = module_ps2_data_read();
 
+		// VMware absolute pointer enabled?
+		if( (uintptr_t) kernel -> device_mouse )  {
+			// ignore PS2 interrupt, and change behavior
+			kernel -> device_mouse();
+
+			// tell APIC of current logical processor that hardware interrupt was handled, propely
+			kernel -> apic_base_address -> eoi = EMPTY;
+
+			// done
+			return;
+		}
+
 		// perform operation depending on number of package
 		switch( module_ps2_mouse_package_id ) {
 			case 0: {

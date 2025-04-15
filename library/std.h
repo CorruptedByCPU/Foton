@@ -256,9 +256,9 @@
 
 	#define	STD_MAX_unsigned				-1
 
-	#define	STD_MOUSE_BUTTON_left				0b00000001
-	#define	STD_MOUSE_BUTTON_right				0b00000010
-	#define	STD_MOUSE_BUTTON_middle				0b00000100
+	#define	STD_MOUSE_BUTTON_left				0x01
+	#define	STD_MOUSE_BUTTON_right				0x02
+	#define	STD_MOUSE_BUTTON_middle				0x04
 
 	struct STD_STRUCTURE_MOUSE_SYSCALL {
 		uint16_t	x;
