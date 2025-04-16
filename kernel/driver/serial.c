@@ -81,6 +81,7 @@ uint8_t driver_serial_value( uint64_t value, uint8_t base, uint8_t prefix, uint8
 }
 
 void driver_serial( uint8_t *string, ... ) {
+	#ifndef	RELEASE
 	// properties of argument list
 	va_list argv;
 
@@ -196,4 +197,5 @@ void driver_serial( uint8_t *string, ... ) {
 
 	// end of arguemnt list
 	va_end( argv );
+	#endif
 }

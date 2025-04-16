@@ -316,6 +316,7 @@
 	#define	STD_SHIFT_2048					11
 	#define	STD_SHIFT_4096					12
 	#define	STD_SHIFT_PAGE					STD_SHIFT_4096
+	#define	STD_SHIFT_32768					15
 	#define	STD_SHIFT_65536					16
 
 	#define	STD_SIZE_BYTE_byte				1

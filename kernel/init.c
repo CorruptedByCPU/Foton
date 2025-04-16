@@ -111,8 +111,10 @@
 void _entry( void ) {
 	// DEBUG ---------------------------------------------------------------
 
-	// debug purpose only
-	driver_serial_init();
+	#ifndef RELEASE
+		// debug purpose only
+		driver_serial_init();
+	#endif
 
 	// BASE ----------------------------------------------------------------
 
@@ -168,8 +170,10 @@ void _entry( void ) {
 	// initialize VMware driver, if possible
 	driver_vmware_init();
 
-	// initialize other APs
-	kernel_init_smp();
+	#ifndef RELEASE
+		// initialize other APs
+		kernel_init_smp();
+	#endif
 
 	// FINISH --------------------------------------------------------------
 

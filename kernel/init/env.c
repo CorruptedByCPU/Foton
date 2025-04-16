@@ -3,19 +3,26 @@
 ===============================================================================*/
 
 void kernel_init_env( void ) {
-	// look for address of the largest chunk of physical memory (RAM)
+	// look for address of the largest chunk of physical memory (RAM) and the furthest
 	uint64_t limit = INIT;
+	uint64_t max = INIT;
 
 	// search through all memory map entries provided by Limine Bootloader
 	for( uint64_t i = INIT; i < limine_memmap_request.response -> entry_count; i++ ) {
+		// ignore irrelevant entries
+		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_KERNEL_AND_MODULES && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_ACPI_RECLAIMABLE ) continue;
+
+		// the farthest part of memory area?
+		if( limit < (limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length) >> STD_SHIFT_PAGE ) limit = (limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length) >> STD_SHIFT_PAGE;
+
 		// unUSABLE memory?
 		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE ) continue;	// yes
 
 		// this area is larger than previous one?
-		if( limit > limine_memmap_request.response -> entries[ i ] -> length ) continue;	// no
+		if( max > limine_memmap_request.response -> entries[ i ] -> length ) continue;	// no
 
 		// remember size for later use
-		limit = limine_memmap_request.response -> entries[ i ] -> length;
+		max = limine_memmap_request.response -> entries[ i ] -> length;
 
 		// set kernel environment global variables/functions/rountines inside largest contiguous memory area (reflected in Higher Half)
 		kernel = (struct KERNEL *) (limine_memmap_request.response -> entries[ i ] -> base | KERNEL_MEMORY_mirror);
@@ -23,8 +30,9 @@ void kernel_init_env( void ) {
 
 	//----------------------------------------------------------------------
 
-	// clean'up, there will be binary memory map too!
-	kernel_memory_clean( (uint64_t *) kernel, limit >> STD_SHIFT_PAGE );
+	// clean'up, area required by kernel environment global variables/functions/rountines and binary memory map
+	if( limit % 32768 ) limit += 32768 - (limit % 32767);
+	kernel_memory_clean( (uint64_t *) kernel, limit >> STD_SHIFT_32768 );
 
 	//----------------------------------------------------------------------
 
