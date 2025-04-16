@@ -16,6 +16,9 @@ void kernel_syscall_exit( void ) {
 }
 
 void kernel_syscall_file( struct STD_STRUCTURE_FILE *file ) {
+	// incorrect socket number?
+	if( file -> socket >= KERNEL_VFS_limit ) return;	// yes, ignore
+
 	// properties of socket
 	struct KERNEL_STRUCTURE_VFS_SOCKET *socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ file -> socket ];
 
@@ -29,6 +32,9 @@ void kernel_syscall_file( struct STD_STRUCTURE_FILE *file ) {
 }
 
 void kernel_syscall_file_close( uint64_t socket_id ) {
+	// valid socket number?
+	if( socket_id >= KERNEL_VFS_limit ) return;	// no, ignore
+
 	// close connection to file
 	kernel_vfs_socket_delete( (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ] );
 }
@@ -90,8 +96,20 @@ uint64_t kernel_syscall_file_open( uint8_t *path, uint64_t limit ) {
 }	
 
 void kernel_syscall_file_read( uint64_t socket_id, uint8_t *target, uint64_t seek, uint64_t limit ) {
+	// valid socket number?
+	if( socket_id >= KERNEL_VFS_limit ) return;	// no, ignore
+
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *current = (struct KERNEL_STRUCTURE_TASK *) kernel_task_current();
+
+	// properties of socket
+	struct KERNEL_STRUCTURE_VFS_SOCKET *socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ];
+
+	// socket belongs to process?
+	if( current -> pid != socket -> pid ) return;	// no, ignore
+
 	// pass content of file
-	((struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ ((struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ]) -> storage ]) -> vfs -> file_read( (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ], target, seek, limit );
+	((struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ socket -> storage ]) -> vfs -> file_read( socket, target, seek, limit );
 }
 
 void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer ) {
@@ -100,6 +118,7 @@ void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *frame
 	framebuffer -> width_pixel	= kernel -> framebuffer_width_pixel;
 	framebuffer -> height_pixel	= kernel -> framebuffer_height_pixel;
 	framebuffer -> pitch_byte	= kernel -> framebuffer_pitch_byte;
+	framebuffer -> pid		= INIT;	// kernel, by default
 
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *current = (struct KERNEL_STRUCTURE_TASK *) kernel_task_current();
@@ -110,7 +129,16 @@ void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *frame
 		uintptr_t n = INIT;
 		if( (n = kernel_memory_acquire( current -> memory, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, EMPTY, kernel -> page_limit )) ) {
 			// alloc memory inside current task
-			kernel_page_map( (uint64_t *) current -> cr3, (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_MEMORY_mirror, (uintptr_t) (n << STD_SHIFT_PAGE), MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) );
+			if( ! kernel_page_map( (uint64_t *) current -> cr3, (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_MEMORY_mirror, (uintptr_t) (n << STD_SHIFT_PAGE), MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) ) ) {
+				// release acquired pages
+				kernel_memory_dispose( current -> memory, n, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE );
+
+				// do not share information about framebuffer location
+				framebuffer -> base_address = EMPTY;
+
+				// done
+				return;
+			}
 
 			// shared pages
 			kernel -> page_shared += MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE;
@@ -126,7 +154,7 @@ void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *frame
 
 uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
 	// current task properties
-	struct KERNEL_STRUCTURE_TASK *current = kernel_task_current();
+	struct KERNEL_STRUCTURE_TASK *current = (struct KERNEL_STRUCTURE_TASK *) kernel_task_current();
 
 	// id of first logical page
 	uintptr_t p = INIT;
@@ -135,7 +163,13 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
 	if( ! (p = kernel_memory_acquire( current -> memory, n, KERNEL_MEMORY_HIGH, kernel -> page_limit )) ) return EMPTY;	// no
 
 	// allocate acquired area
-	if( ! kernel_page_alloc( (uint64_t *) current -> cr3, p << STD_SHIFT_PAGE, n, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (current -> type << KERNEL_PAGE_TYPE_offset) ) ) return EMPTY;	// conflict
+	if( ! kernel_page_alloc( (uint64_t *) current -> cr3, p << STD_SHIFT_PAGE, n, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (current -> type << KERNEL_PAGE_TYPE_offset) ) ) {
+		// release acquired pages
+		kernel_memory_dispose( current -> memory, p, n );
+
+		// conflict
+		return EMPTY;
+	}
 
 	// reload paging structure
 	kernel_page_flush();
@@ -148,20 +182,23 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
 }
 
 void kernel_syscall_memory_release( uintptr_t address, uint64_t n ) {
+	// memory area inside software environment?
+	if( address + (n << STD_SHIFT_PAGE) >= KERNEL_TASK_STACK_pointer ) return;	// no, ignore
+
 	// current task properties
-	struct KERNEL_STRUCTURE_TASK *task = kernel_task_current();
+	struct KERNEL_STRUCTURE_TASK *current = (struct KERNEL_STRUCTURE_TASK *) kernel_task_current();
 
 	// remove page from paging structure
-	if( ! kernel_page_release( (uint64_t *) task -> cr3, address, n ) ) return;	// no asssignment
+	if( ! kernel_page_release( (uint64_t *) current -> cr3, address, n ) ) return;	// no asssignment
 
 	// reload paging structure
 	kernel_page_flush();
 
 	// release page in binary memory map of process
-	kernel_memory_dispose( task -> memory, address >> STD_SHIFT_PAGE, n );
+	kernel_memory_dispose( current -> memory, address >> STD_SHIFT_PAGE, n );
 
 	// process memory usage
-	task -> page -= n;
+	current -> page -= n;
 }
 
 uint64_t kernel_syscall_microtime( void ) {
@@ -171,10 +208,10 @@ uint64_t kernel_syscall_microtime( void ) {
 
 void kernel_syscall_mouse( struct STD_STRUCTURE_MOUSE_SYSCALL *mouse ) {
 	// return information about mouse device
+	mouse -> status	= kernel -> device_mouse_status;
 	mouse -> x	= kernel -> device_mouse_x;
 	mouse -> y	= kernel -> device_mouse_y;
 	mouse -> z	= kernel -> device_mouse_z;
-	mouse -> status	= kernel -> device_mouse_status;
 }
 
 uint64_t kernel_syscall_pid( void ) {

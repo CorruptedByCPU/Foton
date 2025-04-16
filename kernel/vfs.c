@@ -100,6 +100,12 @@ struct KERNEL_STRUCTURE_VFS_SOCKET *kernel_vfs_socket( uint64_t pid ) {
 }
 
 void kernel_vfs_socket_delete( struct KERNEL_STRUCTURE_VFS_SOCKET *socket ) {
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *current = (struct KERNEL_STRUCTURE_TASK *) kernel_task_current();
+
+	// socket belongs to process?
+	if( current -> pid != socket -> pid ) return;	// no, ignore
+
 	// close connection to file
 	socket -> pid = EMPTY;
 }

@@ -484,7 +484,7 @@
 	#define	STD_MASK_byte			0x00000000000000FF
 	#define	STD_MASK_word			0x000000000000FFFF
 
-	// returns properties of available framebuffer ()
+	// returns properties of available framebuffer
 	void std_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer );
 
 	// returns current miliseconds from system initialization
