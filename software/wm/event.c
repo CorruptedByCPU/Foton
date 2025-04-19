@@ -57,7 +57,7 @@ void wm_event( void ) {
 	// 	struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
 
 	// 	// different button than required?
-	// 	if( ! wm_mouse_button_left_semaphore || ! (mouse -> button & STD_IPC_MOUSE_BUTTON_left) ) continue;	// yes
+	// 	if( ! wm_keyboard_status_ctrl_left || ! (mouse -> button & STD_IPC_MOUSE_BUTTON_left) ) continue;	// yes
 
 	// 	// select object under cursor position
 	// 	struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse.x, mouse.y, FALSE );
@@ -68,11 +68,11 @@ void wm_event( void ) {
 	// 		std_exec( (uint8_t *) object -> descriptor -> name, object -> descriptor -> name_length, EMPTY, TRUE );
 	// }
 
-	// // check keyboard cache
-	// uint16_t key = std_keyboard();
+	// check keyboard cache
+	uint16_t key = std_keyboard();
 
-	// // incomming key?
-	// if( key ) {
+	// incomming key?
+	if( key ) {
 	// 	// properties of keyboard message
 	// 	struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &data;
 
@@ -80,16 +80,34 @@ void wm_event( void ) {
 	// 	keyboard -> ipc.type = STD_IPC_TYPE_keyboard;
 	// 	keyboard -> key = key;	// and key code
 
-	// 	// action taken state
-	// 	uint8_t send = TRUE;
 
-	// 	// remember state of special behavior - key, or take action immediately
-	// 	switch( key ) {
-	// 		// left alt pressed
-	// 		case STD_KEY_ALT_LEFT: { wm_keyboard_status_alt_left = TRUE; break; }
 
-	// 		// left alt released
-	// 		case STD_KEY_ALT_LEFT | 0x80: { wm_keyboard_status_alt_left = FALSE; break; }
+	// create taskbar object
+	struct WM_STRUCTURE_OBJECT *debug_object = wm_object_create( 128, 0, 128, 128 );
+
+	// properties of workbench area content
+	uint32_t *debug_pixel = (uint32_t *) ((uintptr_t) debug_object -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+
+	// fill taskbar with default background color
+	for( uint16_t y = 0; y < debug_object -> height; y++ )
+		for( uint16_t x = 0; x < debug_object -> width; x++ )
+			debug_pixel[ (y * debug_object -> width) + x ] = 0xFFFF0000;
+
+	// object content ready for display
+	debug_object -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+
+
+
+		// action taken state
+		uint8_t send = TRUE;
+
+		// remember state of special behavior - key, or take action immediately
+		switch( key ) {
+			// left alt pressed
+			case STD_KEY_ALT_LEFT: { wm_keyboard_status_alt_left = TRUE; break; }
+
+			// left alt released
+			case STD_KEY_ALT_LEFT | 0x80: { wm_keyboard_status_alt_left = FALSE; break; }
 
 	// 		// shift left pressed
 	// 		case STD_KEY_SHIFT_LEFT: { wm_keyboard_status_shift_left = TRUE; break; }
@@ -97,11 +115,11 @@ void wm_event( void ) {
 	// 		// shift left released
 	// 		case STD_KEY_SHIFT_LEFT | 0x80: { wm_keyboard_status_shift_left = FALSE; break; }
 
-	// 		// ctrl left pressed
-	// 		case STD_KEY_CTRL_LEFT: { wm_keyboard_status_ctrl_left = TRUE; break; }
+			// ctrl left pressed
+			case STD_KEY_CTRL_LEFT: { wm_keyboard_status_ctrl_left = TRUE; break; }
 
-	// 		// ctrl left released
-	// 		case STD_KEY_CTRL_LEFT | 0x80: { wm_keyboard_status_ctrl_left = FALSE; break; }
+			// ctrl left released
+			case STD_KEY_CTRL_LEFT | 0x80: { wm_keyboard_status_ctrl_left = FALSE; break; }
 
 	// 		// menu pressed
 	// 		case STD_KEY_MENU: {
@@ -206,42 +224,61 @@ void wm_event( void ) {
 	// 			// done
 	// 			break;
 	// 		}
-	// 	}
+		}
 
-	// 	// send event to active object process
+		// send event to active object process
 	// 	if( send ) std_ipc_send( wm_object_active -> pid, (uint8_t *) keyboard );
-	// }
+	}
 
 	// calculate delta of cursor new position
 	int16_t delta_x = mouse.x - wm_object_cursor -> x;
 	int16_t delta_y = mouse.y - wm_object_cursor -> y;
 	int16_t delta_z = mouse.z - wm_mouse_z; wm_mouse_z = mouse.z;
 
-	// //--------------------------------------------------------------------------
+	//--------------------------------------------------------------------------
 
-	// // select object under cursor position
-	// struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse.x, mouse.y, FALSE );
+	// select object under cursor position
+	struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse.x, mouse.y, FALSE );
 
-	// // update pointer position
-	// object -> descriptor -> x = (wm_object_cursor -> x + delta_x) - object -> x;
-	// object -> descriptor -> y = (wm_object_cursor -> y + delta_y) - object -> y;
+	// update pointer position
+	object -> descriptor -> x = (wm_object_cursor -> x + delta_x) - object -> x;
+	object -> descriptor -> y = (wm_object_cursor -> y + delta_y) - object -> y;
 
-	// //--------------------------------------------------------------------------
+	//--------------------------------------------------------------------------
 
-	// // left mouse button pressed?
-	// if( mouse.status & STD_MOUSE_BUTTON_left ) {
-	// 	// isn't holded down?
-	// 	if( ! wm_mouse_button_left_semaphore ) {
-	// 		// remember mouse button state
-	// 		wm_mouse_button_left_semaphore = TRUE;
+	// left mouse button pressed?
+	if( mouse.status & STD_MOUSE_BUTTON_left ) {
+		// isn't holded down?
+		if( ! wm_keyboard_status_ctrl_left ) {
+			// remember mouse button state
+			wm_keyboard_status_ctrl_left = TRUE;
 
-	// 		// select object under cursor position
-	// 		wm_object_selected = wm_object_find( mouse.x, mouse.y, FALSE );
+			// select object under cursor position
+			wm_object_selected = wm_object_find( mouse.x, mouse.y, FALSE );
 
-	// 		// if cursor over selected object is in place of possible header
-	// 		if( wm_object_selected -> descriptor -> y > 0 && wm_object_selected -> descriptor -> y < LIB_INTERFACE_HEADER_HEIGHT_pixel && wm_object_selected -> descriptor -> x < wm_object_selected -> width - ((LIB_INTERFACE_HEADER_HEIGHT_pixel * 0x03)) ) wm_object_drag_semaphore = TRUE;
+			// if cursor over selected object is in place of possible header
+			if( wm_object_selected -> descriptor -> y > 0 && wm_object_selected -> descriptor -> y < LIB_INTERFACE_HEADER_HEIGHT_pixel && wm_object_selected -> descriptor -> x < wm_object_selected -> width - ((LIB_INTERFACE_HEADER_HEIGHT_pixel * 0x03)) ) wm_object_drag_semaphore = TRUE;
 
-	// 		// check if object can be moved along Z axis
+
+
+
+	// create taskbar object
+	struct WM_STRUCTURE_OBJECT *debug_object = wm_object_create( 0, 0, 128, 128 );
+
+	// properties of workbench area content
+	uint32_t *debug_pixel = (uint32_t *) ((uintptr_t) debug_object -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+
+	// fill taskbar with default background color
+	for( uint16_t y = 0; y < debug_object -> height; y++ )
+		for( uint16_t x = 0; x < debug_object -> width; x++ )
+			debug_pixel[ (y * debug_object -> width) + x ] = 0xFF00FF00;
+
+	// object content ready for display
+	debug_object -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+
+
+
+			// check if object can be moved along Z axis
 	// 		if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_status_alt_left ) {
 	// 			// move object up inside list
 	// 			if( wm_object_move_up( wm_object_selected ) ) {
@@ -253,8 +290,8 @@ void wm_event( void ) {
 	// 			}
 	// 		}
 
-	// 		// if left ALT key is not on hold
-	// 		if( ! wm_keyboard_status_alt_left ) {
+			// if left ALT key is not on hold
+			if( ! wm_keyboard_status_alt_left ) {
 	// 			// selected object is menu?
 	// 			if( wm_object_selected == wm_object_menu )
 	// 				// check incomming interface events
@@ -300,11 +337,11 @@ void wm_event( void ) {
 	// 				if( ! (wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible) )
 	// 					// show/hide menu window
 	// 					wm_menu_switch( FALSE );
-	// 		}
-	// 	}
-	// } else {
-	// 	// left mouse button was held?
-	// 	if( wm_mouse_button_left_semaphore ) {
+			}
+		}
+	} else {
+		// left mouse button was held?
+		// if( wm_keyboard_status_ctrl_left ) {
 	// 		// properties of mouse message
 	// 		struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
 
@@ -319,12 +356,12 @@ void wm_event( void ) {
 	// 		std_ipc_send( wm_object_selected -> pid, (uint8_t *) mouse );
 	// 	}
 
-	// 	// release mouse button state
-	// 	wm_mouse_button_left_semaphore = FALSE;
+		// release mouse button state
+		wm_keyboard_status_ctrl_left = FALSE;
 
-	// 	// by default object is not draggable
-	// 	wm_object_drag_semaphore = FALSE;
-	// }
+		// by default object is not draggable
+		wm_object_drag_semaphore = FALSE;
+	}
 
 	// //--------------------------------------------------------------------------
 
@@ -400,7 +437,7 @@ void wm_event( void ) {
 	// 	}
 	// }
 
-	// // scroll movement?
+	// scroll movement?
 	// if( delta_z ) {
 	// 	// properties of mouse message
 	// 	struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
@@ -429,10 +466,10 @@ void wm_event( void ) {
 		// redisplay cursor at new location
 		wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
-	// 	// if object selected and left mouse button is held with left ALT key
-	// 	if( wm_object_drag_semaphore || (wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_alt_left) )
-	// 		// move object along with cursor pointer
-	// 		wm_object_move( delta_x, delta_y );
+		// if object selected and left mouse button is held with left ALT key
+		if( wm_object_drag_semaphore || (wm_object_selected && wm_keyboard_status_ctrl_left && wm_keyboard_status_alt_left) )
+			// move object along with cursor pointer
+			wm_object_move( delta_x, delta_y );
 
 	// 	// if hover object is created
 	// 	if( wm_object_hover_semaphore && wm_object_hover ) {

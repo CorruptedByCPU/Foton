@@ -32,6 +32,7 @@
 	#include	"gdt.h"
 	#include	"idt.h"
 	#include	"io_apic.h"
+	#include	"ipc.h"
 	#include	"library.h"
 	#include	"memory.h"
 	#include	"page.h"
@@ -97,6 +98,7 @@
 	#include	"init/exec.c"
 	#include	"init/gdt.c"
 	#include	"init/idt.c"
+	#include	"init/ipc.c"
 	#include	"init/library.c"
 	#include	"init/memory.c"
 	#include	"init/module.c"
@@ -161,6 +163,9 @@ void _entry( void ) {
 
 	// prepare library management area
 	kernel_init_library();
+
+	// create Inter Process Communication
+	kernel_init_ipc();
 
 	// execute initial software
 	kernel_init_exec();

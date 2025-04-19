@@ -89,7 +89,11 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 	exec.level++;
 
 	// create paging table
-	if( ! (exec.task -> cr3 = (uint64_t *) (kernel_memory_alloc_page() | KERNEL_MEMORY_mirror)) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+	uint64_t cr3 = EMPTY;
+	if( ! (cr3 = kernel_memory_alloc_page()) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+
+	// set paging address
+	exec.task -> cr3 = (uint64_t *) (cr3 | KERNEL_MEMORY_mirror);
 
 	// checkpoint: paging --------------------------------------------------
 	exec.level++;

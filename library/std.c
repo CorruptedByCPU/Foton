@@ -609,9 +609,9 @@ FILE *touch( uint8_t *path, uint8_t type ) {
 	return file;
 }
 
-void sleep( uint64_t ms ) {
+void sleep( uint64_t units ) {
 	// set release in future
-	uint64_t wait = std_microtime() + ms;
+	uint64_t wait = std_microtime() + units;
 
 	// release BS/A time until we are ready
 	while( wait > std_microtime() ) __asm__ volatile( "int $0x40" );

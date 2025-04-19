@@ -68,7 +68,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_memory_release		; 0x03
 	dq	kernel_syscall_uptime			; 0x04
 	dq	0x00					; 0x05
-	dq	0x00	;dq	kernel_syscall_thread			; 0x06
+	dq	kernel_syscall_thread			; 0x06
 	dq	kernel_syscall_pid			; 0x07
 	dq	0x00	;dq	kernel_syscall_exec			; 0x08
 	dq	kernel_syscall_pid_exist		; 0x09
@@ -80,7 +80,7 @@ kernel_syscall_list:
 	dq	0x00	;dq	kernel_syscall_ipc_receive_by_pid	; 0x0F
 	dq	0x00	;dq	kernel_syscall_stream_out		; 0x10
 	dq	0x00	;dq	kernel_syscall_stream_in		; 0x11
-	dq	0x00	;dq	kernel_syscall_keyboard			; 0x12
+	dq	kernel_syscall_keyboard			; 0x12
 	dq	0x00	;dq	kernel_syscall_stream_set		; 0x13
 	dq	0x00	;dq	kernel_syscall_stream_get		; 0x14
 	dq	0x00	;dq	kernel_syscall_memory			; 0x15
@@ -90,7 +90,7 @@ kernel_syscall_list:
 	dq	0x00	;dq	kernel_syscall_cd			; 0x19
 	dq	0x00	;dq	kernel_syscall_ipc_receive_by_type	; 0x1A
 	dq	kernel_syscall_microtime		; 0x1B
-	dq	0x00	;dq	kernel_syscall_time			; 0x1C
+	dq	kernel_syscall_time			; 0x1C
 	dq	kernel_syscall_file_read		; 0x1D
 	dq	kernel_syscall_file			; 0x1E
 	; dq	kernel_syscall_file_write		; 0x1F

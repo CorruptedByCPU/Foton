@@ -50,6 +50,8 @@ struct KERNEL {
 	volatile struct KERNEL_STRUCTURE_IO_APIC	*io_apic_base_address;
 	void						(*io_apic_attach)( uint8_t line, uint32_t io_apic_register );
 
+	struct STD_STRUCTURE_IPC			*ipc_base_address;
+
 	struct KERNEL_STRUCTURE_LIBRARY			*library_base_address;
 	uint64_t					library_limit;
 	uint32_t					*library_memory_address;

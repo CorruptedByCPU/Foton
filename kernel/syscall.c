@@ -40,6 +40,9 @@ void kernel_syscall_file_close( uint64_t socket_id ) {
 }
 
 uint64_t kernel_syscall_file_open( uint8_t *path, uint64_t limit ) {
+	// path outside of software environment?
+	// if( ((uintptr_t) path + limit) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// yes, ignore
+
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *task = kernel_task_current();
 
@@ -99,6 +102,9 @@ void kernel_syscall_file_read( uint64_t socket_id, uint8_t *target, uint64_t see
 	// valid socket number?
 	if( socket_id >= KERNEL_VFS_limit ) return;	// no, ignore
 
+	// target outside of software environment?
+	if( ((uintptr_t) target + limit) >= KERNEL_TASK_STACK_pointer ) return;	// yes, ignore
+
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *current = (struct KERNEL_STRUCTURE_TASK *) kernel_task_current();
 
@@ -150,6 +156,26 @@ void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *frame
 
 	// return information about framebuffer owner
 	framebuffer -> pid = kernel -> framebuffer_pid;
+}
+
+uint16_t kernel_syscall_keyboard( void ) {
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *current = kernel_task_current();
+
+	// am I framebuffer manager?
+	if( current -> pid != kernel -> framebuffer_pid ) return EMPTY;	// no, return no key
+
+	// get first key code from buffer
+	uint16_t key = kernel -> device_keyboard[ 0 ];
+
+	// move all characters inside buffer, forward one position
+	for( uint8_t i = 0; i < 7; i++ ) kernel -> device_keyboard[ i ] = kernel -> device_keyboard[ i + 1 ];
+
+	// drain last key
+	kernel -> device_keyboard[ 7 ] = EMPTY;
+
+	// return key code
+	return key;
 }
 
 uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
@@ -231,6 +257,87 @@ uint8_t kernel_syscall_pid_exist( uint64_t pid ) {
 
 	// process not found
 	return FALSE;
+}
+
+uint64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
+	// name or function outside of software environment?
+	if( (function + sizeof( uintptr_t )) >= KERNEL_TASK_STACK_pointer || ((uintptr_t) name + length) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// no, ignore
+
+	// create a new thread
+	struct KERNEL_STRUCTURE_TASK *thread = (struct KERNEL_STRUCTURE_TASK *) kernel_task_add( name, length );
+
+	// couldn't create new task?
+	if( ! thread ) return EMPTY;	// that's lame :)
+
+	// mark task type
+	thread -> page = KERNEL_TASK_TYPE_THREAD;
+
+	//----------------------------------------------------------------------
+
+	// create Paging table
+	uint64_t cr3 = EMPTY;
+	if( ! (cr3 = kernel_memory_alloc_page()) ) { thread -> flags = EMPTY; return EMPTY; }
+
+	// set paging address
+	thread -> cr3 = (uint64_t *) (cr3 | KERNEL_MEMORY_mirror);
+
+	//----------------------------------------------------------------------
+
+	// describe area under thread context stack
+	if( ! kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_STACK_address, KERNEL_STACK_LIMIT_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | (thread -> type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_page_deconstruct( thread -> cr3, thread -> type ); thread -> flags = EMPTY; return EMPTY; }
+
+	// set initial startup configuration for new process
+	struct KERNEL_STRUCTURE_IDT_RETURN *context = (struct KERNEL_STRUCTURE_IDT_RETURN *) (kernel_page_address( (uint64_t *) thread -> cr3, KERNEL_STACK_pointer - STD_PAGE_byte ) + KERNEL_MEMORY_mirror + (STD_PAGE_byte - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN )));
+
+	// set thread entry address
+	context -> rip = function;
+
+	// code descriptor
+	context -> cs = offsetof( struct KERNEL_STRUCTURE_GDT, cs_ring3 ) | 0x03;
+
+	// basic processor state flags
+	context -> eflags = KERNEL_TASK_EFLAGS_default;
+
+	// stack pointer of process
+	context -> rsp = KERNEL_TASK_STACK_pointer - 0x18;	// no args
+
+	// stack descriptor
+	context -> ss = offsetof( struct KERNEL_STRUCTURE_GDT, ds_ring3 ) | 0x03;
+
+	//----------------------------------------------------------------------
+
+	// map stack space to thread paging array
+	if( ! kernel_page_alloc( (uint64_t *) thread -> cr3, KERNEL_TASK_STACK_pointer - KERNEL_TASK_STACK_limit, KERNEL_TASK_STACK_limit >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (thread -> type << KERNEL_PAGE_TYPE_offset) ) ) { kernel_page_deconstruct( thread -> cr3, thread -> type ); thread -> flags = EMPTY; return EMPTY; }
+
+	// pages used for stack
+	thread -> stack_page++;
+
+	// context stack top pointer
+	thread -> rsp = KERNEL_STACK_pointer - sizeof( struct KERNEL_STRUCTURE_IDT_RETURN );
+
+	//----------------------------------------------------------------------
+
+	// aquire parent task properties
+	struct KERNEL_STRUCTURE_TASK *current = kernel_task_current();
+
+	// threads use same memory map as parent
+	thread -> memory = current -> memory;
+
+	//----------------------------------------------------------------------
+
+	// map parent space to thread
+	kernel_page_merge( (uint64_t *) current -> cr3, (uint64_t *) thread -> cr3 );
+
+	// thread ready to run
+	thread -> flags |= STD_TASK_FLAG_active | STD_TASK_FLAG_thread | STD_TASK_FLAG_init;
+
+	// return process ID of new thread
+	return thread -> pid;
+}
+
+uint64_t kernel_syscall_time( void ) {
+	// current date and time
+	return driver_rtc_time();
 }
 
 uint64_t kernel_syscall_uptime( void ) {

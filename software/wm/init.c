@@ -18,7 +18,7 @@ uint8_t wm_init( void ) {
 	wm_object_base_address = (struct WM_STRUCTURE_OBJECT *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE_OBJECT ) * WM_OBJECT_LIMIT ) >> STD_SHIFT_PAGE );
 
 	// prepare area for a list of objects
-	wm_list_base_address = (struct WM_STRUCTURE_OBJECT **) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE_OBJECT * ) * (WM_LIST_LIMIT + 1) ) >> STD_SHIFT_PAGE );	// blank entry at the end of object list
+	wm_list_base_address = (struct WM_STRUCTURE_OBJECT **) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE_OBJECT * ) * (WM_LIST_LIMIT + TRUE) ) >> STD_SHIFT_PAGE );	// blank entry at the end of object list
 
 	// prepare area for a list of zones
 	wm_zone_base_address = (struct WM_STRUCTURE_ZONE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE_ZONE ) * WM_ZONE_LIMIT ) >> STD_SHIFT_PAGE );
@@ -90,10 +90,6 @@ uint8_t wm_init( void ) {
 			for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
 				workbench_pixel[ (y * wm_object_workbench -> width) + x ] = 0xFF101010;
 
-	// show debug information
-	// uint8_t build_version[] = "Foton v"KERNEL_version"."KERNEL_revision" (x86-64) build on "__DATE__" "__TIME__;
-	// lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, build_version, sizeof( build_version ) - 1, STD_COLOR_GRAY, workbench_pixel, wm_object_workbench -> width, LIB_FONT_ALIGN_right );
-
 	// object content ready for display
 	wm_object_workbench -> descriptor -> flags |= STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
@@ -105,28 +101,23 @@ uint8_t wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
-	// // create taskbar object
-	// wm_object_taskbar = wm_object_create( 0, wm_object_workbench -> height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_workbench -> width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
+	// create taskbar object
+	wm_object_taskbar = wm_object_create( 0, wm_object_workbench -> height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_workbench -> width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
 
-	// // mark object as taskbar and unmovable
-	// wm_object_taskbar -> descriptor -> flags = STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
+	// mark object as taskbar and unmovable
+	wm_object_taskbar -> descriptor -> flags = STD_WINDOW_FLAG_taskbar;// | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
 
-	// // fill taskbar with default background color
-	// uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
-	// for( uint16_t y = 0; y < wm_object_taskbar -> height; y++ )
-	// 	for( uint16_t x = 0; x < wm_object_taskbar -> width; x++ )
-	// 		taskbar_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;
+	// properties of workbench area content
+	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 
-	// // show menu buton on taskbar
-	// uint8_t test[ 3 ] = "|||";
-	// lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), 0xFFFFFFFF, taskbar_pixel + (((WM_OBJECT_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) * wm_object_taskbar -> width) + (22 >> STD_SHIFT_2), wm_object_taskbar -> width, LIB_FONT_ALIGN_center );
-
-	// // object content ready for display
-	// wm_object_taskbar -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+	// fill taskbar with default background color
+	for( uint16_t y = 0; y < wm_object_taskbar -> height; y++ )
+		for( uint16_t x = 0; x < wm_object_taskbar -> width; x++ )
+			taskbar_pixel[ (y * wm_object_taskbar -> width) + x ] = WM_TASKBAR_BG_default;
 
 	// execute taskbar function as thread
-	// uint8_t wm_string_taskbar[] = "wm taskbar";
-	// wm_object_taskbar -> pid = std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
+	uint8_t wm_string_taskbar[ 10 ] = "wm taskbar";
+	wm_object_taskbar -> pid = std_thread( (uintptr_t) &wm_taskbar, (uint8_t *) &wm_string_taskbar, sizeof( wm_string_taskbar ) );
 
 	//----------------------------------------------------------------------
 
@@ -137,8 +128,8 @@ uint8_t wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// execute clock function as thread
-	// uint8_t wm_string_clock[] = "wm clock";
-	// std_thread( (uintptr_t) &wm_clock, (uint8_t *) &wm_string_clock, sizeof( wm_string_clock ) );
+	uint8_t wm_string_clock[] = "wm clock";
+	std_thread( (uintptr_t) &wm_clock, (uint8_t *) &wm_string_clock, sizeof( wm_string_clock ) );
 
 	//----------------------------------------------------------------------
 

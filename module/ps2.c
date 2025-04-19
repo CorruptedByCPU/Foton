@@ -240,7 +240,6 @@ void module_ps2_keyboard( void ) {
 		if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = module_ps2_scancode; break; }
 
 	// key processed
-	// kernel -> log( (uint8_t *) "PS2: 0x%X\n", module_ps2_scancode );
 	module_ps2_scancode = EMPTY;
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely
@@ -341,5 +340,5 @@ void _entry( uintptr_t kernel_ptr ) {
 	module_ps2_init();
 
 	// hold the door
-	while( TRUE ) kernel -> time_sleep( TRUE );
+	while( TRUE ) kernel -> time_sleep( (uint64_t) STD_MAX_unsigned );
 }
