@@ -70,11 +70,11 @@ kernel_syscall_list:
 	dq	kernel_syscall_log			; 0x05
 	dq	kernel_syscall_thread			; 0x06
 	dq	kernel_syscall_pid			; 0x07
-	dq	0x00	;dq	kernel_syscall_exec			; 0x08
+	dq	kernel_syscall_exec			; 0x08
 	dq	kernel_syscall_pid_exist		; 0x09
 	dq	kernel_syscall_ipc_send			; 0x0A
 	dq	kernel_syscall_ipc_receive		; 0x0B
-	dq	0x00	;dq	kernel_syscall_memory_share		; 0x0C
+	dq	kernel_syscall_memory_share		; 0x0C
 	dq	kernel_syscall_mouse			; 0x0D
 	dq	0x00	;dq	kernel_syscall_framebuffer_change	; 0x0E
 	dq	kernel_syscall_ipc_receive_by_pid	; 0x0F

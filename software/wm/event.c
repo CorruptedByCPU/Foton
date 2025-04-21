@@ -10,6 +10,8 @@ void wm_event( void ) {
 	// incomming message
 	uint8_t data[ STD_IPC_SIZE_byte ]; int64_t source = EMPTY;
 	while( (source = std_ipc_receive_by_type( (uint8_t *) &data, STD_IPC_TYPE_event )) ) {
+		MACRO_DEBUF();
+
 		// properties of request
 		struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &data;
 
@@ -22,25 +24,25 @@ void wm_event( void ) {
 		// pointer to shared object descriptor
 		uintptr_t descriptor = EMPTY;
 
-	// 	// if request is valid
-	// 	if( request -> width && request -> height ) {
-	// 		// try to create new object
-	// 		object = wm_object_create( request -> x, request -> y, request -> width, request -> height );
+		// if request is valid
+		if( request -> width && request -> height ) {
+			// try to create new object
+			object = wm_object_create( request -> x, request -> y, request -> width, request -> height );
 
-	// 		// if created properly
-	// 		if( object )
-	// 			// try to share object descriptor with process
-	// 			descriptor = std_memory_share( source, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE );
-	// 	}
+			// if created properly
+			if( object )
+				// try to share object descriptor with process
+				descriptor = std_memory_share( source, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE );
+		}
 
-	// 	// if everything was done properly
-	// 	if( object && descriptor ) {
-	// 		// update PID of object
-	// 		object -> pid = source;
+		// if everything was done properly
+		if( object && descriptor ) {
+			// update PID of object
+			object -> pid = source;
 
-	// 		// and return object descriptor
-	// 		answer -> descriptor = descriptor;
-	// 	} else
+			// and return object descriptor
+			answer -> descriptor = descriptor;
+		} else
 			// reject window creation
 			answer -> descriptor = EMPTY;
 
@@ -153,41 +155,41 @@ void wm_event( void ) {
 				break;
 			}
 
-	// 		// tab pressed
-	// 		case STD_KEY_TAB: {
-	// 			// ignore if workbench locked
-	// 			if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
+			// tab pressed
+			case STD_KEY_TAB: {
+				// ignore if workbench locked
+				// if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
 
-	// 			// if left alt key is holded
-	// 			if( ! wm_keyboard_status_alt_left ) break;	// nope
+				// if left alt key is holded
+				if( ! wm_keyboard_status_alt_left ) break;	// nope
 
-	// 			// search forward for object to show
-	// 			for( uint16_t i = 0; i < wm_list_limit; i++ ) if( wm_list_base_address[ i ] -> pid != wm_pid ) { wm_object_selected = wm_list_base_address[ i ]; break; }
+				// search forward for object to show
+				for( uint16_t i = 0; i < wm_list_limit; i++ ) if( wm_list_base_address[ i ] -> pid != wm_pid ) { wm_object_selected = wm_list_base_address[ i ]; break; }
 
-	// 			// move it up
-	// 			if( wm_object_move_up( wm_object_selected ) ) {
-	// 				// force object to be visible
-	// 				wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_visible;
+				// move it up
+				if( wm_object_move_up( wm_object_selected ) ) {
+					// force object to be visible
+					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_visible;
 
-	// 				// redraw object
-	// 				wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+					// redraw object
+					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
-	// 				// cursor pointer may be obscured, redraw
-	// 				wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+					// cursor pointer may be obscured, redraw
+					wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
-	// 				// set as active
-	// 				wm_object_active = wm_object_selected;
+					// set as active
+					wm_object_active = wm_object_selected;
 
-	// 				// update taskbar status
-	// 				wm_taskbar_modified = TRUE;
-	// 			}
+					// update taskbar status
+					wm_taskbar_modified = TRUE;
+				}
 
-	// 			// ignore key
-	// 			send = FALSE;
+				// ignore key
+				send = FALSE;
 
-	// 			// done
-	// 			break;
-	// 		}
+				// done
+				break;
+			}
 
 	// 		// return pressed
 	// 		case STD_ASCII_RETURN: {
@@ -331,7 +333,7 @@ void wm_event( void ) {
 	// right mouse button pressed?
 	if( mouse_syscall.status & STD_IPC_MOUSE_BUTTON_right ) {
 		// Menu key is on hold
-		if( wm_keyboard_status_menu && ! wm_object_hover_semaphore ) {
+		if( wm_keyboard_status_alt_left && ! wm_object_hover_semaphore ) {
 			// first initialization executed
 			wm_object_hover_semaphore = TRUE;
 
@@ -430,7 +432,7 @@ void wm_event( void ) {
 		wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 		// if object selected and left mouse button is held with Menu key
-		if( wm_object_drag_semaphore || (wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_menu) )
+		if( wm_object_drag_semaphore || (wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_alt_left) )
 			// move object along with cursor pointer
 			wm_object_move( delta_x, delta_y );
 

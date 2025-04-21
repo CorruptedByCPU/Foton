@@ -116,7 +116,7 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t wid
 	MACRO_LOCK( wm_object_semaphore );
 
 	// find available entry
-	for( uint64_t i = 0; i < WM_OBJECT_LIMIT; i++ ) {
+	for( uint64_t i = INIT; i < WM_OBJECT_LIMIT; i++ ) {
 		// entry in use?
 		if( wm_object_base_address[ i ].descriptor ) continue;	// yes
 

@@ -60,6 +60,9 @@
 	// properties of created task
 	struct KERNEL_STRUCTURE_TASK *kernel_task_add( uint8_t *name, uint16_t limit );
 
+	// properties of task identified by ID
+	struct KERNEL_STRUCTURE_TASK *kernel_task_by_id( uint64_t pid );
+
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *kernel_task_current( void );
 #endif

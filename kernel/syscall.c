@@ -2,6 +2,14 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+uint64_t kernel_syscall_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t init ) {
+	// software name outside of software environment?
+	if( ((uintptr_t) name + limit) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// yes, ignore
+
+	// return new process ID
+	return kernel_exec( name, limit, stream, init );
+}
+
 void kernel_syscall_exit( void ) {
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *current = kernel_task_current();
@@ -357,6 +365,33 @@ void kernel_syscall_memory_release( uintptr_t address, uint64_t n ) {
 
 	// process memory usage
 	current -> page -= n;
+}
+
+uintptr_t kernel_syscall_memory_share( uint64_t pid, uintptr_t source, uint64_t n ) {
+	// memory area inside software environment?
+	if( source + (n << STD_SHIFT_PAGE) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// no, ignore
+
+	// properties of target task
+	struct KERNEL_STRUCTURE_TASK *target = (struct KERNEL_STRUCTURE_TASK *) kernel_task_by_id( pid );
+
+	// process not found?
+	if( ! target ) return EMPTY;	// yep, ignore
+
+	// acquire space from target task
+	uintptr_t memory = kernel_memory_acquire( target -> memory, n, KERNEL_MEMORY_HIGH, kernel -> page_limit ) << STD_SHIFT_PAGE;
+
+	// such large memory not available?
+	if( ! memory ) return EMPTY;	// abort mission
+
+	// connect memory space of parent process with child
+	if( ! kernel_page_clang( (uint64_t *) target -> cr3, source, memory, n, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_TASK_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) ) ) {
+		// do something nasty
+
+		// discipline!
+	}
+
+	// return address of first page in the collection
+	return memory;
 }
 
 uint64_t kernel_syscall_microtime( void ) {
