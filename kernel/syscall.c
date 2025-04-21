@@ -158,6 +158,130 @@ void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *frame
 	framebuffer -> pid = kernel -> framebuffer_pid;
 }
 
+void kernel_syscall_ipc_send( uint64_t pid, uint8_t *data ) {
+	// data outside of software environment?
+	if( ((uintptr_t) data + STD_IPC_SIZE_byte) >= KERNEL_TASK_STACK_pointer ) return;	// yes, ignore
+
+	// deny access, only one logical processor at a time
+	MACRO_LOCK( kernel -> ipc_lock );
+
+	// wait for free stack area
+	while( TRUE ) {
+		// scan whole IPC area
+		for( uint64_t i = INIT; i < KERNEL_IPC_limit; i++ ) {
+			// free entry found?
+			if( kernel -> ipc_base_address[ i ].ttl > kernel -> time_units ) continue;	// no
+
+			// send to
+			kernel -> ipc_base_address[ i ].target = pid;
+
+			// sent from
+			kernel -> ipc_base_address[ i ].source = kernel_task_current() -> pid;
+
+			// load data into message
+			for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+				kernel -> ipc_base_address[ i ].data[ j ] = data[ j ];
+
+			// set message timeout
+			kernel -> ipc_base_address[ i ].ttl = kernel -> time_units + KERNEL_IPC_ttl;
+
+			// unlock access to IPC area
+			MACRO_UNLOCK( kernel -> ipc_lock );
+
+			// message sent
+			return;
+		}
+	}
+}
+
+uint64_t kernel_syscall_ipc_receive( uint8_t *data ) {
+	// data outside of software environment?
+	if( ((uintptr_t) data + STD_IPC_SIZE_byte) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// yes, ignore
+
+	// scan whole IPC area
+	for( uint64_t i = INIT; i < KERNEL_IPC_limit; i++ ) {
+		// message alive?
+		if( kernel -> time_units > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
+	
+		// message for us?
+		if( kernel -> ipc_base_address[ i ].target != kernel_task_current() -> pid ) continue;	// no
+
+		// load data into message
+		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+			data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
+
+		// mark entry as free
+		kernel -> ipc_base_address[ i ].ttl = EMPTY;
+
+		// message acquired
+		return kernel -> ipc_base_address[ i ].source;
+	}
+
+	// no message for process
+	return EMPTY;
+}
+
+uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, uint64_t pid ) {
+	// data outside of software environment?
+	if( ((uintptr_t) data + STD_IPC_SIZE_byte) >= KERNEL_TASK_STACK_pointer ) return FALSE;	// yes, ignore
+
+	// scan whole IPC area
+	for( uint64_t i = INIT; i < KERNEL_IPC_limit; i++ ) {
+		// message alive?
+		if( kernel -> time_units > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
+	
+		// message for us?
+		if( kernel -> ipc_base_address[ i ].target != kernel_task_current() -> pid ) continue;	// no
+
+		// message from specific process?
+		if( kernel -> ipc_base_address[ i ].source != pid ) continue;	// no
+
+		// load data into message
+		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+			data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
+
+		// mark entry as free
+		kernel -> ipc_base_address[ i ].ttl = EMPTY;
+
+		// message acquired
+		return TRUE;
+	}
+
+	// no message for process
+	return FALSE;
+}
+
+uint64_t kernel_syscall_ipc_receive_by_type( uint8_t *data, uint8_t type ) {
+	// data outside of software environment?
+	if( ((uintptr_t) data + STD_IPC_SIZE_byte) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// yes, ignore
+
+	// scan whole IPC area
+	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
+		// message alive?
+		if( kernel -> time_units > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
+	
+		// message for us?
+		if( kernel -> ipc_base_address[ i ].target != kernel_task_current() -> pid ) continue;	// no
+
+		// message of requested type?
+		struct STD_STRUCTURE_IPC_DEFAULT *ipc = (struct STD_STRUCTURE_IPC_DEFAULT *) &kernel -> ipc_base_address[ i ].data;
+		if( ipc -> type != type ) continue;	// no
+
+		// load data into message
+		for( uint8_t j = 0; j < STD_IPC_SIZE_byte; j++ )
+			data[ j ] = kernel -> ipc_base_address[ i ].data[ j ];
+
+		// mark entry as free
+		kernel -> ipc_base_address[ i ].ttl = EMPTY;
+
+		// message acquired
+		return kernel -> ipc_base_address[ i ].source;
+	}
+
+	// no message for process
+	return EMPTY;
+}
+
 uint16_t kernel_syscall_keyboard( void ) {
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *current = kernel_task_current();
@@ -176,6 +300,14 @@ uint16_t kernel_syscall_keyboard( void ) {
 
 	// return key code
 	return key;
+}
+
+void kernel_syscall_log( uint8_t *string, uint64_t length ) {
+	// if string pointer is above software environment memory area
+	if( (uintptr_t) string > KERNEL_MEMORY_mirror || ((uintptr_t) string + length) > KERNEL_MEMORY_mirror ) return;	// do not allow it
+
+	// show content of string
+	driver_serial( string, length );
 }
 
 uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {

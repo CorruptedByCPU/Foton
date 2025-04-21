@@ -83,10 +83,9 @@ void drvier_vmware_mouse( void ) {
 	// update properties of mouse device
 
 	// buttons
-	uint16_t buttons = (mouse -> status & 0xFFFF0000) >> STD_SHIFT_16;
-	if( buttons & 0x20 ) kernel -> device_mouse_status |= STD_MOUSE_BUTTON_left; else kernel -> device_mouse_status &= ~STD_MOUSE_BUTTON_left;
-	if( buttons & 0x10 ) kernel -> device_mouse_status |= STD_MOUSE_BUTTON_right; else kernel -> device_mouse_status &= ~STD_MOUSE_BUTTON_right;
-	if( buttons & 0x08 ) kernel -> device_mouse_status |= STD_MOUSE_BUTTON_middle; else kernel -> device_mouse_status &= ~STD_MOUSE_BUTTON_middle;
+	if( mouse -> status & 0x20 ) kernel -> device_mouse_status |= STD_MOUSE_BUTTON_left; else kernel -> device_mouse_status &= ~STD_MOUSE_BUTTON_left;
+	if( mouse -> status & 0x10 ) kernel -> device_mouse_status |= STD_MOUSE_BUTTON_right; else kernel -> device_mouse_status &= ~STD_MOUSE_BUTTON_right;
+	if( mouse -> status & 0x08 ) kernel -> device_mouse_status |= STD_MOUSE_BUTTON_middle; else kernel -> device_mouse_status &= ~STD_MOUSE_BUTTON_middle;
 
 	// coordinates
 	kernel -> device_mouse_x = driver_vmware_convert( mouse -> x, kernel -> framebuffer_width_pixel );

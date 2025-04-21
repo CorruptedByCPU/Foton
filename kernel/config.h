@@ -51,6 +51,7 @@ struct KERNEL {
 	void						(*io_apic_attach)( uint8_t line, uint32_t io_apic_register );
 
 	struct STD_STRUCTURE_IPC			*ipc_base_address;
+	uint8_t						ipc_lock;
 
 	struct KERNEL_STRUCTURE_LIBRARY			*library_base_address;
 	uint64_t					library_limit;

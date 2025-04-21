@@ -158,9 +158,9 @@
 
 	struct	STD_STRUCTURE_IPC {
 		volatile uint64_t	ttl;
-		int64_t		source;
-		int64_t		target;
-		uint8_t		data[ STD_IPC_SIZE_byte ];	// first Byte of data defines TYPE
+		uint64_t		source;
+		uint64_t		target;
+		uint8_t			data[ STD_IPC_SIZE_byte ];	// first Byte of data defines TYPE
 	} __attribute__( (packed) );
 
 	struct	STD_STRUCTURE_IPC_DEFAULT {
@@ -169,26 +169,26 @@
 
 	struct	STD_STRUCTURE_IPC_KEYBOARD {
 		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
-		uint16_t	key;
+		uint16_t				key;
 	} __attribute__( (packed) );
 
 	struct	STD_STRUCTURE_IPC_MOUSE {
 		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
-		uint8_t		button;
-		int16_t		scroll;
+		uint8_t					button;
+		int16_t					scroll;
 	} __attribute__( (packed) );
 
 	struct STD_STRUCTURE_IPC_WINDOW {
 		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
-		int16_t		x;
-		int16_t		y;
-		uint16_t	width;
-		uint16_t	height;
+		int16_t					x;
+		int16_t					y;
+		uint16_t				width;
+		uint16_t				height;
 	} __attribute__( (packed) );
 
 	struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR {
 		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
-		uintptr_t	descriptor;
+		uintptr_t				descriptor;
 	} __attribute__( (packed) );
 
 	#define	STD_KEY_BACKSPACE				0x0008
@@ -610,6 +610,8 @@
 	// return content of directory (in VFS structure)
 	uintptr_t std_dir( uint8_t *path );
 
+	void std_log( uint8_t *string, uint64_t length );
+
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
 			uint64_t	length;
@@ -703,4 +705,5 @@
 	void fwrite( FILE *file, uint8_t *cache, uint64_t byte );
 	FILE *touch( uint8_t *path, uint8_t type );
 	void sleep( uint64_t ms );
+	void log( const char *string, ... );
 #endif

@@ -105,7 +105,7 @@ uint8_t wm_init( void ) {
 	wm_object_taskbar = wm_object_create( 0, wm_object_workbench -> height - WM_OBJECT_TASKBAR_HEIGHT_pixel, wm_object_workbench -> width, WM_OBJECT_TASKBAR_HEIGHT_pixel );
 
 	// mark object as taskbar and unmovable
-	wm_object_taskbar -> descriptor -> flags = STD_WINDOW_FLAG_taskbar;// | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
+	wm_object_taskbar -> descriptor -> flags = STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
 
 	// properties of workbench area content
 	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) wm_object_taskbar -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
