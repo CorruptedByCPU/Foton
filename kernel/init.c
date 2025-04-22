@@ -146,9 +146,6 @@ void _entry( void ) {
 	// configure RTC as our only source of passing time, for now
 	driver_rtc_init();
 
-	// assign area for streams
-	// kernel -> stream_base_address = (struct KERNEL_STRUCTURE_STREAM *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_STREAM_limit * sizeof( struct KERNEL_STRUCTURE_STREAM ) ) >> STD_SHIFT_PAGE );
-
 	// create storage container
 	kernel_init_storage();
 

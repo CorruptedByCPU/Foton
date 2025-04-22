@@ -9,9 +9,6 @@ void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object ) {
 	if( zone -> x + zone -> width < 0 ) return;
 	if( zone -> y + zone -> height < 0 ) return;
 
-	// block access to zone list
-	MACRO_LOCK( wm_zone_semaphore );
-
 	// inset zone
 
 	// truncate X axis
@@ -51,18 +48,9 @@ void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object ) {
 
 	// zone inserted
 	wm_zone_limit++;
-
-	// release access to zone list
-	MACRO_UNLOCK( wm_zone_semaphore );
 }
 
 void wm_zone( void ) {
-	// block access to object array
-	MACRO_LOCK( wm_object_semaphore );
-
-	// block access to object list
-	MACRO_LOCK( wm_list_semaphore );
-
 	// parse zones on list
 	for( uint64_t i = 0; i < wm_zone_limit; i++ ) {
 		// object assigned to zone?
@@ -112,10 +100,4 @@ void wm_zone( void ) {
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone, TRUE );
 		}
 	}
-
-	// release access to object list
-	MACRO_UNLOCK( wm_list_semaphore );
-
-	// release access to object array
-	MACRO_UNLOCK( wm_object_semaphore );
 }

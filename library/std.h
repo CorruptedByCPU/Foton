@@ -475,6 +475,10 @@
 		int16_t		new_y;
 		uint16_t	new_width;
 		uint16_t	new_height;
+		// header properties, used by window movement
+		uint8_t		header_offset;
+		uint8_t		header_height;
+		uint16_t	header_width;
 		// window name, it will appear at header and taskbar
 		uint8_t		name_length;
 		uint8_t		name[ 64 ];

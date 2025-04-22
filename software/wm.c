@@ -6,6 +6,7 @@
 	// structures, definitions
 	//----------------------------------------------------------------------
 	#include	"./wm/config.h"
+	#include	"./wm/object.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -14,25 +15,25 @@
 	// functions / procedures
 	//----------------------------------------------------------------------
 	#include	"./wm/event.c"
-	#include	"./wm/sync.c"
-	#include	"./wm/fill.c"
-	#include	"./wm/zone.c"
-	#include	"./wm/object.c"
-	#include	"./wm/taskbar.c"
-	#include	"./wm/release.c"
-	#include	"./wm/clock.c"
-	#include	"./wm/init.c"
 	#include	"./wm/cursor.c"
-	// #include	"./wm/menu.c"
-	// #include	"./wm/workbench.c"
+	#include	"./wm/fill.c"
+	#include	"./wm/init.c"
+	#include	"./wm/object.c"
+	#include	"./wm/release.c"
+	#include	"./wm/sync.c"
+	#include	"./wm/zone.c"
+	//----------------------------------------------------------------------
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	// initialize environment
-	if( ! wm_init() ) return -1;
+	// initialize Window Manager environment
+	if( wm_init() ) return STD_ERROR_locked;
+
+	// debug
+	std_exec( (uint8_t *) "debug", 5, EMPTY, TRUE );
 
 	// hold the door
 	while( TRUE ) {
-		// check for incomming events
+		// parse incomming events from input devices
 		wm_event();
 
 		// which objects have been recently updated?
@@ -53,7 +54,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// synchronize workbench with framebuffer
 		wm_sync();
 
-		// free up AP time
+		// release CPU
 		sleep( TRUE );
 	}
 }
