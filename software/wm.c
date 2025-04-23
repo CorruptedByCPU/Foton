@@ -29,7 +29,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	if( wm_init() ) return STD_ERROR_locked;
 
 	// debug
-	std_exec( (uint8_t *) "debug", 5, EMPTY, TRUE );
+	std_exec( (uint8_t *) "de", 2, EMPTY, TRUE );
 
 	// hold the door
 	while( TRUE ) {

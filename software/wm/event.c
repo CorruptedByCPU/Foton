@@ -69,6 +69,36 @@ void wm_event( void ) {
 
 			// left ctrl released
 			case STD_KEY_CTRL_LEFT | 0x80: { wm_keyboard_ctrl_left = FALSE; break; }
+
+			// // tab pressed
+			// case STD_KEY_TAB: {
+			// 	// if left ctrl key is on hold
+			// 	if( ! wm_keyboard_ctrl_left ) break;	// nope
+
+			// 	// search forward for object to show
+			// 	for( uint16_t i = INIT; i < wm_list_limit; i++ ) { wm_object_selected = wm_list_base_address[ i ]; break; }
+
+			// 	// move it up
+			// 	if( wm_object_move_up( wm_object_selected ) ) {
+			// 		// force object to be visible
+			// 		wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_visible;
+
+			// 		// redraw object
+			// 		wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+			// 		// cursor pointer may be obscured, redraw
+			// 		if( wm_object_cursor ) wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+			// 		// set as active
+			// 		wm_object_active = wm_object_selected;
+			// 	}
+
+			// 	// ignore key
+			// 	send = FALSE;
+
+			// 	// done
+			// 	break;
+			// }
 		}
 
 		// send event to active object process

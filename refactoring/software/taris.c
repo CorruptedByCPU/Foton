@@ -39,7 +39,7 @@ void close( void ) {
 	exit();
 }
 
-int64_t _main( uint64_t argc, uint8_t *argv[] ) {
+uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize gameplay
 	taris_init();
 
