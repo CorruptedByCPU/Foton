@@ -21,15 +21,6 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	uint32_t *pixel_c = (uint32_t *) ((uintptr_t) window_c + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = 0; y < HEIGHT; y++ ) for( uint16_t x = 0; x < WIDTH; x++ ) pixel_c[ (y * WIDTH) + x ] = 0xFF0000FF;
 
-	window_a -> header_width = window_a -> width;
-	window_a -> header_height = window_a -> height;
-
-	window_b -> header_width = window_b -> width;
-	window_b -> header_height = window_b -> height;
-
-	window_c -> header_width = window_c -> width;
-	window_c -> header_height = window_c -> height;
-
 	window_a -> flags = STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
 	window_b -> flags = STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
 	window_c -> flags = STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
@@ -40,8 +31,6 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			window_a = window_a_new;
 			pixel_a = (uint32_t *) ((uintptr_t) window_a + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 			for( uint16_t y = 0; y < window_a -> height; y++ ) for( uint16_t x = 0; x < window_a -> width; x++ ) pixel_a[ (y * window_a -> width) + x ] = 0xFFFF0000;
-			window_a -> header_width = window_a_new -> width;
-			window_a -> header_height = window_a_new -> height;
 			window_a -> flags = STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
 		}
 
@@ -50,8 +39,6 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			window_b = window_b_new;
 			pixel_b = (uint32_t *) ((uintptr_t) window_b + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 			for( uint16_t y = 0; y < window_b -> height; y++ ) for( uint16_t x = 0; x < window_b -> width; x++ ) pixel_b[ (y * window_b -> width) + x ] = 0xFF00FF00;
-			window_b -> header_width = window_b_new -> width;
-			window_b -> header_height = window_b_new -> height;
 			window_b -> flags = STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
 		}
 
@@ -60,10 +47,15 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			window_c = window_c_new;
 			pixel_c = (uint32_t *) ((uintptr_t) window_c + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 			for( uint16_t y = 0; y < window_c -> height; y++ ) for( uint16_t x = 0; x < window_c -> width; x++ ) pixel_c[ (y * window_c -> width) + x ] = 0xFF0000FF;
-			window_c -> header_width = window_c_new -> width;
-			window_c -> header_height = window_c_new -> height;
 			window_c -> flags = STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
 		}
+
+		window_a -> header_width = WIDTH;
+		window_a -> header_height = 22;
+		window_b -> header_width = WIDTH;
+		window_b -> header_height = 22;
+		window_c -> header_width = WIDTH;
+		window_c -> header_height = 22;
 
 		sleep( TRUE );
 	}

@@ -5,8 +5,17 @@
 void wm_object( void ) {
 	// search whole list for object flush
 	for( uint16_t i = INIT; i < wm_list_limit; i++ ) {
-		// ignore cursor object
-		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
+		// found cursor object?
+		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) {
+			// primary cursor object already selected?
+			if( wm_object_cursor ) continue;	// yes
+
+			// select primary cursor object
+			wm_object_cursor = wm_list_base_address[ i ];
+
+			// done
+			continue;
+		}
 
 		// requested flush?
 		if( wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
@@ -17,7 +26,7 @@ void wm_object( void ) {
 			wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_flush;
 
 			// always redraw cursor object (it might be covered)
-			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			if( wm_object_cursor ) wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
 	}
 }

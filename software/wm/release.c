@@ -35,6 +35,6 @@ void wm_release( void ) {
 		release -> descriptor = EMPTY;
 
 		// redisplay cursor
-		wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		if( wm_object_cursor ) wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 	}
 }

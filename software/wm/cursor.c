@@ -4,7 +4,7 @@
 
 void wm_cursor( void ) {
 	// requested redraw?
-	if( ! (wm_object_cursor -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) return;	// no
+	if( ! wm_object_cursor || ! (wm_object_cursor -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) return;	// no
 
 	// remove current cursor position from workbench, because of shadows
 	wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_cursor, FALSE );

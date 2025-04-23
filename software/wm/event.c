@@ -64,11 +64,11 @@ void wm_event( void ) {
 
 		// remember state of special behavior - key, or take action immediately
 		switch( key ) {
-			// left alt pressed
-			case STD_KEY_ALT_LEFT: { wm_keyboard_alt_left = TRUE; break; }
+			// left ctrl pressed
+			case STD_KEY_CTRL_LEFT: { wm_keyboard_ctrl_left = TRUE; break; }
 
-			// left alt released
-			case STD_KEY_ALT_LEFT | 0x80: { wm_keyboard_alt_left = FALSE; break; }
+			// left ctrl released
+			case STD_KEY_CTRL_LEFT | 0x80: { wm_keyboard_ctrl_left = FALSE; break; }
 		}
 
 		// send event to active object process
@@ -82,43 +82,51 @@ void wm_event( void ) {
 	std_mouse( (struct STD_STRUCTURE_MOUSE_SYSCALL *) &mouse );
 
 	// calculate delta of cursor new position
-	int16_t delta_x = mouse.x - wm_object_cursor -> x;
-	int16_t delta_y = mouse.y - wm_object_cursor -> y;
-	int16_t delta_z = mouse.z - wm_mouse_z; wm_mouse_z = mouse.z;
-
-	//----------------------------------------------------------------------
+	int16_t delta_x = EMPTY;
+	int16_t delta_y = EMPTY;
+	int16_t delta_z = EMPTY;
 
 	// select object under cursor position
 	struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse.x, mouse.y, FALSE );
 
-	// update pointer position
-	object -> descriptor -> x = (wm_object_cursor -> x + delta_x) - object -> x;
-	object -> descriptor -> y = (wm_object_cursor -> y + delta_y) - object -> y;
+	// if cursor object exist
+	if( wm_object_cursor ) { 
+		// calculate delta of cursor new position
+		delta_x = mouse.x - wm_object_cursor -> x;
+		delta_y = mouse.y - wm_object_cursor -> y;
+		delta_z = mouse.z - wm_mouse_z; wm_mouse_z = mouse.z;
+
+		//--------------------------------------------------------------
+
+		// update pointer position
+		object -> descriptor -> x = (wm_object_cursor -> x + delta_x) - object -> x;
+		object -> descriptor -> y = (wm_object_cursor -> y + delta_y) - object -> y;
+	}
 
 	//----------------------------------------------------------------------
 
 	// left mouse button pressed?
 	if( mouse.status & STD_MOUSE_BUTTON_left ) {
-		// on hold?
-		if( ! wm_mouse_button_left ) {	// no
+		// isn't holded down?
+		if( ! wm_mouse_button_left ) {
 			// remember mouse button state
 			wm_mouse_button_left = TRUE;
 
-			// set current object
+			// select object under cursor position
 			wm_object_selected = object;
 
 			// if cursor over selected object is in place of possible header
-			if( wm_object_selected -> descriptor -> y < wm_object_selected -> descriptor -> height ) wm_object_drag_allow = TRUE;
+			if( wm_object_selected -> descriptor -> y < wm_object_selected -> descriptor -> header_height ) wm_object_drag_allow = TRUE;
 
 			// check if object can be moved along Z axis
-			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_alt_left ) {
+			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_ctrl_left ) {
 				// move object up inside list
 				if( wm_object_move_up( wm_object_selected ) ) {
 					// redraw object
 					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 					// cursor pointer may be obscured, redraw
-					wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+					if( wm_object_cursor ) wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 				}
 			}
 
@@ -155,8 +163,8 @@ void wm_event( void ) {
 			}
 		}
 	} else {
-		// left mouse button was held?
-		if( wm_mouse_button_left ) {
+		// left mouse button was on hold, but no left CTRL key?
+		if( wm_mouse_button_left && ! wm_keyboard_ctrl_left ) {
 			// properties of mouse message
 			struct STD_STRUCTURE_IPC_MOUSE *ipc_mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
 	
@@ -185,8 +193,7 @@ void wm_event( void ) {
 		// current object resizable?
 		if( object -> descriptor -> flags & STD_WINDOW_FLAG_resizable ) {	// yes
 			// left ALT key is hold and first occurence
-			if( ! wm_object_resize_init ) {	// yes
-			// if( wm_keyboard_alt_left && ! wm_object_resize_init ) {	// yes
+			if( wm_keyboard_ctrl_left && ! wm_object_resize_init ) {	// yes
 				// start resize procedure
 				wm_object_resize_init = TRUE;
 
@@ -281,7 +288,7 @@ void wm_event( void ) {
 
 		// with left mouse button
 		// left ALT key is on hold or not required?
-		if( wm_mouse_button_left && (wm_keyboard_alt_left || wm_object_drag_allow) )
+		if( wm_mouse_button_left && (wm_keyboard_ctrl_left || wm_object_drag_allow) )
 			// move object along with cursor pointer
 			wm_object_move( delta_x, delta_y );
 

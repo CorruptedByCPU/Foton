@@ -51,31 +51,6 @@ uint64_t wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
-	// create cursor object
-	wm_object_cursor = wm_object_create( wm_object_workbench -> width >> STD_SHIFT_2, wm_object_workbench -> height >> STD_SHIFT_2, 16, 32 );
-
-	// mark it as our
-	wm_object_cursor -> pid = wm_pid;
-
-	// properties of cursor area content
-	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm_object_cursor -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
-
-	// fill cursor with default color
-	for( uint16_t y = 0; y < wm_object_cursor -> height; y++ )
-		for( uint16_t x = 0; x < wm_object_cursor -> width; x++ )
-			cursor_pixel[ (y * wm_object_cursor -> width) + x ] = STD_COLOR_WHITE;
-
-	// mark window as cursor, so Window Manager will treat it different than others
-	wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_cursor;
-
-	// yep, any object can be a cursor :) but only 1 with highest internal ID will be treated as
-	// so before you assign a flag to another object, make sure no other objects have it
-
-	// object content ready for display
-	wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
-
-	//----------------------------------------------------------------------
-
 	// done
 	return EMPTY;
 }

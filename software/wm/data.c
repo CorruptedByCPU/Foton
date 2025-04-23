@@ -13,7 +13,7 @@ struct WM_STRUCTURE_ZONE *wm_zone_base_address;
 struct WM_STRUCTURE_OBJECT wm_object_cache = { EMPTY };
 
 struct WM_STRUCTURE_OBJECT *wm_object_workbench;
-struct WM_STRUCTURE_OBJECT *wm_object_cursor;
+struct WM_STRUCTURE_OBJECT *wm_object_cursor = EMPTY;
 
 struct WM_STRUCTURE_OBJECT *wm_object_active = EMPTY;
 struct WM_STRUCTURE_OBJECT *wm_object_hover = EMPTY;
@@ -36,4 +36,4 @@ uint8_t wm_object_resize_init = FALSE;
 uint8_t wm_mouse_button_left = FALSE;
 uint8_t wm_mouse_button_right = FALSE;
 
-uint8_t wm_keyboard_alt_left = FALSE;
+uint8_t wm_keyboard_ctrl_left = FALSE;
