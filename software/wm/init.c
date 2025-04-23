@@ -42,13 +42,9 @@ uint64_t wm_init( void ) {
 	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm_object_workbench -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
 
 	// fill workbench with default color
-	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ ) {
-		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ ) {
-			uint32_t color = 0xFFFFFFFF;
-			if( x % 2 ) color = 0xFF000000;
-			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = color;
-		}
-	}
+	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
+		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
+			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = STD_COLOR_BLACK;
 
 	// object content ready for display
 	wm_object_workbench -> descriptor -> flags |= STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;

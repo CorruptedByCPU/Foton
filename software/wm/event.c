@@ -104,13 +104,11 @@ void wm_event( void ) {
 			// remember mouse button state
 			wm_mouse_button_left = TRUE;
 
-			//------------------------------------------------------
-
 			// set current object
 			wm_object_selected = object;
 
 			// if cursor over selected object is in place of possible header
-			if( wm_object_selected -> descriptor -> y > 0 && wm_object_selected -> descriptor -> y < wm_object_selected -> descriptor -> header_height && wm_object_selected -> descriptor -> x + wm_object_selected -> descriptor -> header_offset < wm_object_selected -> descriptor -> header_width ) wm_object_drag_allow = TRUE;
+			if( wm_object_selected -> descriptor -> y < wm_object_selected -> descriptor -> height ) wm_object_drag_allow = TRUE;
 
 			// check if object can be moved along Z axis
 			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_alt_left ) {
