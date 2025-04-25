@@ -20,7 +20,7 @@
 	#define	KERNEL_PAGE_TYPE_THREAD		0x03
 	#define	KERNEL_PAGE_TYPE_LIBRARY	0x04
 	#define	KERNEL_PAGE_TYPE_SHARED		0x05
-	// #define	KERNEL_PAGE_TYPE_		0x06
+	#define	KERNEL_PAGE_TYPE_EXTERNAL	0x06	// injected memory type by other software (requested via IPC), can be released without consequences
 	// #define	KERNEL_PAGE_TYPE_		0x07
 
 	#define	KERNEL_PAGE_PMLx_entry		512

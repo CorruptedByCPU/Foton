@@ -39,7 +39,6 @@
 	#include	"storage.h"
 	#include	"syscall.h"
 	#include	"task.h"
-	// #include	"time.h"
 	#include	"tss.h"
 	#include	"vfs.h"
 	// --- always at end
@@ -69,7 +68,6 @@
 	#include	"idt.c"
 	#include	"io_apic.c"
 	#include	"library.c"
-	// #include	"log.c"
 	#include	"memory.c"
 	#include	"module.c"
 	#include	"page.c"
@@ -114,7 +112,7 @@ void _entry( void ) {
 	// DEBUG ---------------------------------------------------------------
 
 	#ifndef RELEASE
-		// debug purpose only
+		// debug purposes only
 		driver_serial_init();
 	#endif
 

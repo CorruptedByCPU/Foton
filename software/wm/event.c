@@ -7,44 +7,94 @@ void wm_event( void ) {
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
 
 	// check every incomming message
-	uint64_t pid_source = EMPTY;
-	while( (pid_source = std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_event )) ) {
+	uint64_t source_pid = EMPTY;
+	while( (source_pid = std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_default )) ) {
 		// properties of request
 		struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &ipc_data;
 
-		// properties of answer
-		struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &ipc_data;
+		// choose behavior
+		switch( request -> properties ) {
+			case STD_IPC_WINDOW_create: {
+				// properties of window create request
+				struct STD_STRUCTURE_IPC_WINDOW_CREATE *create = (struct STD_STRUCTURE_IPC_WINDOW_CREATE *) &ipc_data;
 
-		// properties of new object
-		struct WM_STRUCTURE_OBJECT *object = EMPTY;
+				// properties of answer
+				struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &ipc_data;
 
-		// pointer to shared object descriptor
-		uintptr_t descriptor = EMPTY;
+				// properties of new object
+				struct WM_STRUCTURE_OBJECT *object = EMPTY;
 
-		// if request is valid
-		if( request -> width && request -> height ) {
-			// try to create new object
-			object = wm_object_create( request -> x, request -> y, request -> width, request -> height );
+				// pointer to shared object descriptor
+				uintptr_t descriptor = EMPTY;
 
-			// if created properly
-			if( object )
-				// try to share object descriptor with process
-				descriptor = std_memory_share( pid_source, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE );
+				// if request is valid
+				if( create -> width && create -> height ) {
+					// try to create new object
+					object = wm_object_create( create -> x, create -> y, create -> width, create -> height );
+
+					// if created properly
+					if( object )
+						// try to share object descriptor with process
+						descriptor = std_memory_share( source_pid, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE, TRUE );
+				}
+
+				// if everything was done properly
+				if( object && descriptor ) {
+					// update PID of object
+					object -> pid = source_pid;
+
+					// and return object descriptor
+					answer -> descriptor = descriptor;
+				} else
+					// reject window creation
+					answer -> descriptor = EMPTY;
+
+				// send answer
+				std_ipc_send( source_pid, (uint8_t *) answer );
+
+				// done
+				break;
+			}
+
+			case STD_IPC_WINDOW_list: {
+				// properties of window list request
+				struct STD_STRUCTURE_IPC_WINDOW_CREATE *list = (struct STD_STRUCTURE_IPC_WINDOW_CREATE *) &ipc_data;
+
+				// properties of answer
+				struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &ipc_data;
+
+				// prepare object list
+				struct LIB_WINDOW_STRUCTURE_LIST *entry = (struct LIB_WINDOW_STRUCTURE_LIST *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm_list_limit + TRUE) * sizeof( struct LIB_WINDOW_STRUCTURE_LIST ) ) >> STD_SHIFT_PAGE );	// last list element is empty
+				if( ! entry )
+					// return empty list
+					answer -> descriptor = EMPTY;
+				else {
+					// fill up will all existing objects
+					for( uint64_t i = TRUE; i < wm_list_limit; i++ ) {
+						// ignore entries of source
+						if( wm_list_base_address[ i ] -> pid == source_pid ) continue;
+
+						// object id
+						entry[ i ].id = (uintptr_t) wm_list_base_address[ i ] - (uintptr_t) wm_object_base_address;
+
+						// its flags
+						entry[ i ].flags = wm_list_base_address[ i ] -> descriptor -> flags;
+
+						// and name
+						for( uint8_t n = INIT; n < wm_list_base_address[ i ] -> descriptor -> name_length; ) entry[ i ].name[ entry[ i ].name_limit++ ] = wm_list_base_address[ i ] -> descriptor -> name[ n ]; entry[ i ].name[ entry -> name_limit ] = STD_ASCII_TERMINATOR;
+					}
+
+					// move list area to process environment
+					answer -> descriptor = std_memory_move( source_pid, (uintptr_t) entry, MACRO_PAGE_ALIGN_UP( (wm_list_limit + TRUE) * sizeof( struct LIB_WINDOW_STRUCTURE_LIST ) ) >> STD_SHIFT_PAGE );
+				}
+
+				// send answer
+				std_ipc_send( source_pid, (uint8_t *) answer );
+
+				// done
+				break;
+			}
 		}
-
-		// if everything was done properly
-		if( object && descriptor ) {
-			// update PID of object
-			object -> pid = pid_source;
-
-			// and return object descriptor
-			answer -> descriptor = descriptor;
-		} else
-			// reject window creation
-			answer -> descriptor = EMPTY;
-
-		// send answer
-		std_ipc_send( pid_source, (uint8_t *) answer );
 	}
 
 	// check keyboard cache
@@ -253,7 +303,7 @@ void wm_event( void ) {
 				wm_object_hover -> pid = wm_pid;
 
 				// fill object with default pattern/color
-				uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+				uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 				for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
 					for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
 						hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x80008000;
@@ -353,17 +403,17 @@ void wm_event( void ) {
 			if( wm_object_hover -> height < TRUE ) wm_object_hover -> height = TRUE;
 
 			// and larger than current screen properties
-			if( wm_object_hover -> width > wm_object_workbench -> width ) wm_object_hover -> width = wm_object_workbench -> width;
-			if( wm_object_hover -> height > wm_object_workbench -> height ) wm_object_hover -> height = wm_object_workbench -> height;
+			if( wm_object_hover -> width > wm_object_cache.width ) wm_object_hover -> width = wm_object_cache.width;
+			if( wm_object_hover -> height > wm_object_cache.height ) wm_object_hover -> height = wm_object_cache.height;
 
 			// calculate new object area size in Bytes
-			wm_object_hover -> size_byte = ( wm_object_hover -> width * wm_object_hover -> height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR );
+			wm_object_hover -> size_byte = ( wm_object_hover -> width * wm_object_hover -> height * STD_VIDEO_DEPTH_byte) + sizeof( struct LIB_WINDOW_DESCRIPTOR );
 
 			// assign new area for object
-			wm_object_hover -> descriptor = (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
+			wm_object_hover -> descriptor = (struct LIB_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
 
 			// fill object with default pattern/color
-			uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+			uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 			for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
 				for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
 					hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x80008000;

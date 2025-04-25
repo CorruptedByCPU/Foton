@@ -13,4 +13,7 @@
 
 	// transfer content of socket id
 	void kernel_syscall_file_read( uint64_t socket_id, uint8_t *target, uint64_t seek, uint64_t limit );
+
+	// 
+	void kernel_syscall_memory_release( uintptr_t address, uint64_t n );
 #endif

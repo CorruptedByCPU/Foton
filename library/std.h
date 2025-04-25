@@ -147,14 +147,17 @@
 
 	#define	STD_IPC_SIZE_byte				40
 
-	#define	STD_IPC_TYPE_keyboard				0x00
-	#define	STD_IPC_TYPE_mouse				0x01
-	#define	STD_IPC_TYPE_event				0xFF
+	#define	STD_IPC_TYPE_default				0x00
+	#define	STD_IPC_TYPE_keyboard				0x01
+	#define	STD_IPC_TYPE_mouse				0x02
 
 	#define	STD_IPC_MOUSE_BUTTON_left			0x01
 	#define	STD_IPC_MOUSE_BUTTON_right			0x02
 	#define	STD_IPC_MOUSE_BUTTON_middle			0x04
 	#define	STD_IPC_MOUSE_BUTTON_release			0x80
+
+	#define	STD_IPC_WINDOW_create				0x00
+	#define	STD_IPC_WINDOW_list				0x01
 
 	struct	STD_STRUCTURE_IPC {
 		volatile uint64_t	ttl;
@@ -180,6 +183,12 @@
 
 	struct STD_STRUCTURE_IPC_WINDOW {
 		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
+		uint8_t					properties;
+	} __attribute__( (packed) );
+
+	struct STD_STRUCTURE_IPC_WINDOW_CREATE {
+		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
+		uint8_t					properties;
 		int16_t					x;
 		int16_t					y;
 		uint16_t				width;
@@ -381,7 +390,7 @@
 	#define	STD_SYSCALL_STREAM_SET				0x13
 	#define	STD_SYSCALL_STREAM_GET				0x14
 	#define	STD_SYSCALL_MEMORY				0x15
-	// #define	STD_SYSCALL_SLEEP				0x16
+	#define	STD_SYSCALL_MEMORY_MOVE				0x16
 	#define	STD_SYSCALL_FILE_OPEN				0x17
 	#define	STD_SYSCALL_FILE_CLOSE				0x18
 	#define	STD_SYSCALL_CD					0x19
@@ -435,55 +444,6 @@
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
 
-	#define	STD_WINDOW_FLAG_active		(1 << 0)
-	#define	STD_WINDOW_FLAG_visible		(1 << 1)
-	#define	STD_WINDOW_FLAG_fixed_xy	(1 << 2)
-	#define	STD_WINDOW_FLAG_fixed_z		(1 << 3)
-	#define	STD_WINDOW_FLAG_release		(1 << 4)	// window marked as ready to be removed
-	#define	STD_WINDOW_FLAG_name		(1 << 5)
-	#define	STD_WINDOW_FLAG_minimize	(1 << 6)
-	#define	STD_WINDOW_FLAG_unstable	(1 << 7)	// hide window on any mouse button press
-	#define	STD_WINDOW_FLAG_resizable	(1 << 8)
-	#define	STD_WINDOW_FLAG_properties	(1 << 9)	// Window Manager proposed new window properties
-	#define	STD_WINDOW_FLAG_maximize	(1 << 10)
-	#define	STD_WINDOW_FLAG_icon		(1 << 11)
-	#define	STD_WINDOW_FLAG_workbench	(1 << 12)
-	#define	STD_WINDOW_FLAG_flush		(1 << 13)
-	#define	STD_WINDOW_FLAG_taskbar		(1 << 14)
-	#define	STD_WINDOW_FLAG_cursor		(1 << 15)
-	#define	STD_WINDOW_FLAG_lock		(1 << 16)
-
-	#define	STD_WINDOW_REQUEST_create	0b00000001
-	#define	STD_WINDOW_REQUEST_active	0b00000010
-
-	#define	STD_WINDOW_ANSWER_create	0b10000000 | STD_WINDOW_REQUEST_create
-	#define	STD_WINDOW_ANSWER_active	0b10000000 | STD_WINDOW_REQUEST_active
-
-	struct	STD_STRUCTURE_WINDOW_DESCRIPTOR {
-		uint32_t	flags;
-		// pointer position inside window
-		uint16_t	x;
-		uint16_t	y;
-		// assigned window dimension
-		uint16_t	width;
-		uint16_t	height;
-		// minimal dimension of window allowed
-		uint16_t	width_limit;
-		uint16_t	height_limit;
-		// proposed window properties
-		int16_t		new_x;
-		int16_t		new_y;
-		uint16_t	new_width;
-		uint16_t	new_height;
-		// header properties, used by window movement
-		uint8_t		header_offset;
-		uint8_t		header_height;
-		uint16_t	header_width;
-		// window name, it will appear at header and taskbar
-		uint8_t		name_length;
-		uint8_t		name[ 64 ];
-	} __attribute__( (aligned( STD_PAGE_byte )) );
-
 	#define	STD_MASK_byte_half		0x000000000000000F
 	#define	STD_MASK_byte			0x00000000000000FF
 	#define	STD_MASK_word			0x000000000000FFFF
@@ -519,7 +479,9 @@
 	int64_t std_ipc_receive( uint8_t *data );
 
 	// connect source memory area with targets and inform about target pointer address
-	uintptr_t std_memory_share( int64_t pid, uintptr_t address, uint64_t page );
+	uintptr_t std_memory_share( uint64_t pid, uintptr_t address, uint64_t page, uint8_t write );
+
+	uintptr_t std_memory_move( uint64_t pid, uintptr_t address, uint64_t page );
 
 	// returns properties of mouse pointing device
 	void std_mouse( struct STD_STRUCTURE_MOUSE_SYSCALL *mouse );
@@ -614,6 +576,7 @@
 	// return content of directory (in VFS structure)
 	uintptr_t std_dir( uint8_t *path );
 
+	// debug purposes only
 	void std_log( uint8_t *string, uint64_t length );
 
 	#ifdef	SOFTWARE

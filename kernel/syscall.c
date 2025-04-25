@@ -312,10 +312,10 @@ uint16_t kernel_syscall_keyboard( void ) {
 
 void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 	// if string pointer is above software environment memory area
-	if( (uintptr_t) string > KERNEL_MEMORY_mirror || ((uintptr_t) string + length) > KERNEL_MEMORY_mirror ) return;	// do not allow it
+	if( (uintptr_t) string > KERNEL_STACK_pointer || ((uintptr_t) string + length) > KERNEL_STACK_pointer ) return;	// do not allow it
 
 	// show content of string
-	driver_serial( string, length );
+	for( uint64_t i = INIT; i < length; i++ ) driver_serial_char( string[ i ] );
 }
 
 uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
@@ -347,6 +347,42 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
 	return p << STD_SHIFT_PAGE;
 }
 
+uintptr_t kernel_syscall_memory_move( uint64_t pid, uintptr_t source, uint64_t n ) {
+	// always aligned
+	source &= STD_PAGE_mask;
+
+	// memory area inside software environment?
+	if( source + (n << STD_SHIFT_PAGE) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// no, ignore
+
+	// properties of target task
+	struct KERNEL_STRUCTURE_TASK *target = (struct KERNEL_STRUCTURE_TASK *) kernel_task_by_id( pid );
+
+	// process not found?
+	if( ! target ) return EMPTY;	// yep, ignore
+
+	// acquire area from target task
+	uintptr_t memory = kernel_memory_acquire( target -> memory, n, KERNEL_MEMORY_HIGH, kernel -> page_limit ) << STD_SHIFT_PAGE;
+
+	// such large memory not available?
+	if( ! memory ) return EMPTY;	// abort mission
+
+	// connect memory area of parent process with child
+	if( ! kernel_page_clang( (uint64_t *) target -> cr3, source, memory, n, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_EXTERNAL << KERNEL_PAGE_TYPE_offset) ) ) {
+		// memory not moved
+		memory = EMPTY;
+
+		// do something nasty
+
+		// discipline!
+	}
+
+	// release source memory
+	kernel_syscall_memory_release( source, n );
+
+	// return address of first page in the collection
+	return memory;
+}
+
 void kernel_syscall_memory_release( uintptr_t address, uint64_t n ) {
 	// memory area inside software environment?
 	if( address + (n << STD_SHIFT_PAGE) >= KERNEL_TASK_STACK_pointer ) return;	// no, ignore
@@ -367,7 +403,7 @@ void kernel_syscall_memory_release( uintptr_t address, uint64_t n ) {
 	current -> page -= n;
 }
 
-uintptr_t kernel_syscall_memory_share( uint64_t pid, uintptr_t source, uint64_t n ) {
+uintptr_t kernel_syscall_memory_share( uint64_t pid, uintptr_t source, uint64_t n, uint8_t write ) {
 	// memory area inside software environment?
 	if( source + (n << STD_SHIFT_PAGE) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// no, ignore
 
@@ -377,14 +413,18 @@ uintptr_t kernel_syscall_memory_share( uint64_t pid, uintptr_t source, uint64_t 
 	// process not found?
 	if( ! target ) return EMPTY;	// yep, ignore
 
-	// acquire space from target task
+	// acquire area from target task
 	uintptr_t memory = kernel_memory_acquire( target -> memory, n, KERNEL_MEMORY_HIGH, kernel -> page_limit ) << STD_SHIFT_PAGE;
 
 	// such large memory not available?
 	if( ! memory ) return EMPTY;	// abort mission
 
-	// connect memory space of parent process with child
-	if( ! kernel_page_clang( (uint64_t *) target -> cr3, source, memory, n, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_TASK_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) ) ) {
+	// default flags
+	uint16_t flags = KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset);
+	if( write ) flags |= KERNEL_PAGE_FLAG_write;	// allow modification by target
+
+	// connect memory area of parent process with child
+	if( ! kernel_page_clang( (uint64_t *) target -> cr3, source, memory, n, flags ) ) {
 		// do something nasty
 
 		// discipline!

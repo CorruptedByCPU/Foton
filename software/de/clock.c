@@ -23,7 +23,7 @@ uint64_t de_clock( void ) {
 		uint8_t clock_string[ 5 ] = "00 00";
 
 		// fill clock area with default background color
-		uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) de_window_taskbar + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (de_window_taskbar -> width - DE_TASKBAR_CLOCK_pixel);
+		uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) de_window_taskbar + sizeof( struct LIB_WINDOW_DESCRIPTOR )) + (de_window_taskbar -> width - DE_TASKBAR_CLOCK_pixel);
 		for( uint16_t y = 0; y < de_window_taskbar -> height; y++ )
 			for( uint16_t x = 0; x < DE_TASKBAR_CLOCK_pixel; x++ )
 				clock_pixel[ (y * de_window_taskbar -> width) + x ] = DE_TASKBAR_BACKGROUND_default;

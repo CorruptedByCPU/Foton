@@ -4,8 +4,8 @@
 
 void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object ) {
 	// discard zone if outside of workbench area
-	if( zone -> x > wm_object_workbench -> width - 1 ) return;
-	if( zone -> y > wm_object_workbench -> height - 1 ) return;
+	if( zone -> x > wm_object_cache.width - 1 ) return;
+	if( zone -> y > wm_object_cache.height - 1 ) return;
 	if( zone -> x + zone -> width < 0 ) return;
 	if( zone -> y + zone -> height < 0 ) return;
 
@@ -16,10 +16,10 @@ void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object ) {
 		// left side
 		wm_zone_base_address[ wm_zone_limit ].width = zone -> width - (~zone -> x + 1);
 		wm_zone_base_address[ wm_zone_limit ].x = 0;
-	} else if( zone -> x + zone -> width > wm_object_workbench -> width ) {
+	} else if( zone -> x + zone -> width > wm_object_cache.width ) {
 		// right side
 		wm_zone_base_address[ wm_zone_limit ].x = zone -> x;
-		wm_zone_base_address[ wm_zone_limit ].width = zone -> width - ((zone -> x + zone -> width) - (int16_t) wm_object_workbench -> width);
+		wm_zone_base_address[ wm_zone_limit ].width = zone -> width - ((zone -> x + zone -> width) - (int16_t) wm_object_cache.width);
 	} else {
 		// whole zone
 		wm_zone_base_address[ wm_zone_limit ].x = zone -> x;
@@ -31,10 +31,10 @@ void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object ) {
 		// up side
 		wm_zone_base_address[ wm_zone_limit ].height = zone -> height - (~zone -> y + 1);
 		wm_zone_base_address[ wm_zone_limit ].y = 0;
-	} else if( zone -> y + zone -> height > wm_object_workbench -> height ) {
+	} else if( zone -> y + zone -> height > wm_object_cache.height ) {
 		// bottom side
 		wm_zone_base_address[ wm_zone_limit ].y = zone -> y;
-		wm_zone_base_address[ wm_zone_limit ].height = zone -> height - ((zone -> y + zone -> height) - (int16_t) wm_object_workbench -> height);
+		wm_zone_base_address[ wm_zone_limit ].height = zone -> height - ((zone -> y + zone -> height) - (int16_t) wm_object_cache.height);
 	} else {
 		// whole zone
 		wm_zone_base_address[ wm_zone_limit ].y = zone -> y;

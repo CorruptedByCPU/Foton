@@ -9,8 +9,8 @@ void wm_fill( void ) {
 		if( ! wm_zone_base_address[ i ].object ) continue;	// no
 
 		// fill zone with selected object
-		uint32_t *source = (uint32_t *) ((uintptr_t) wm_zone_base_address[ i ].object -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
-		uint32_t *target = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+		uint32_t *source = (uint32_t *) ((uintptr_t) wm_zone_base_address[ i ].object -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+		uint32_t *target = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 		for( uint64_t y = wm_zone_base_address[ i ].y; y < wm_zone_base_address[ i ].height + wm_zone_base_address[ i ].y; y++ )
 			for( uint64_t x = wm_zone_base_address[ i ].x; x < wm_zone_base_address[ i ].width + wm_zone_base_address[ i ].x; x++ ) {
 				// color properties

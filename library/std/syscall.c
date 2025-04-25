@@ -141,9 +141,17 @@ int64_t std_ipc_receive( uint8_t *data ) {
 	return std_syscall_value();
 }
 
-uintptr_t std_memory_share( int64_t pid, uintptr_t address, uint64_t page ) {
+uintptr_t std_memory_share( uint64_t pid, uintptr_t address, uint64_t page, uint8_t write ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_SHARE), "D" (pid), "S" (address), "d" (page) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_SHARE), "D" (pid), "S" (address), "d" (page), "c" (write) );
+
+	// return pointer
+	return std_syscall_pointer();
+}
+
+uintptr_t std_memory_move( uint64_t pid, uintptr_t address, uint64_t page ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_MOVE), "D" (pid), "S" (address), "d" (page) );
 
 	// return pointer
 	return std_syscall_pointer();

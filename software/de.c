@@ -55,7 +55,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	de_window_wallpaper = lib_window( 0, 0, framebuffer.width_pixel, framebuffer.height_pixel );
 
 	// properties of wallpaper area content
-	uint32_t *wallpaper_pixel = (uint32_t *) ((uintptr_t) de_window_wallpaper + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+	uint32_t *wallpaper_pixel = (uint32_t *) ((uintptr_t) de_window_wallpaper + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 
 	// if default wallpaper file found
 	if( wallpaper_image ) {
@@ -96,7 +96,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	de_window_taskbar -> flags = STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy;
 
 	// fill taskbar with default background color
-	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) de_window_taskbar + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+	uint32_t *taskbar_pixel = (uint32_t *) ((uintptr_t) de_window_taskbar + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = 0; y < de_window_taskbar -> height; y++ )
 		for( uint16_t x = 0; x < de_window_taskbar -> width; x++ )
 			taskbar_pixel[ (y * de_window_taskbar -> width) + x ] = DE_TASKBAR_BACKGROUND_default;
@@ -137,7 +137,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		de_window_cursor = lib_window( framebuffer.width_pixel >> STD_SHIFT_2, framebuffer.height_pixel >> STD_SHIFT_2, 16, 32 );
 
 	// properties of cursor area content
-	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) de_window_cursor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) de_window_cursor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 
 	// fill cursor with default color
 	for( uint16_t y = 0; y < de_window_cursor -> height; y++ )
@@ -167,7 +167,63 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	//----------------------------------------------------------------------
 
-	while( TRUE ) sleep( TRUE );
+	// move taskbar pointer at position of first possible window
+	taskbar_pixel += DE_TASKBAR_HEIGHT_pixel;
+
+	while( TRUE ) {
+		// release CPU time
+		sleep( 128 );
+
+		// allocate message container
+		uint8_t ipc_data[ STD_IPC_SIZE_byte ] = { EMPTY };
+
+		// properties of messages
+		struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &ipc_data;
+		struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &ipc_data;
+
+		// window properties
+		request -> ipc.type = STD_IPC_TYPE_default;
+		request -> properties = STD_IPC_WINDOW_list;
+
+		// send request to Window Manager
+		std_ipc_send( framebuffer.pid, (uint8_t *) request );
+
+		// wait for answer
+		uint64_t timeout = std_microtime() + 32768;
+		while( (! std_ipc_receive( (uint8_t *) answer ) || answer -> ipc.type != STD_IPC_TYPE_default) && timeout > std_microtime() );
+
+		// descriptor received?
+		if( ! answer -> descriptor ) continue;	// no
+
+		// properties of window list
+		if( ! de_taskbar_base_address ) de_taskbar_base_address = (struct LIB_WINDOW_STRUCTURE_LIST *) answer -> descriptor;
+		else {
+			// properties of new list
+			struct LIB_WINDOW_STRUCTURE_LIST *list = (struct LIB_WINDOW_STRUCTURE_LIST *) answer -> descriptor;
+
+			// is there difference between lists?
+			for( uint64_t i = INIT; i < de_taskbar_limit + TRUE; i++ ) {
+				
+			}
+		}
+
+		// calculate new amount of entries
+		while( de_taskbar_base_address[ de_taskbar_limit ].id ) de_taskbar_limit++;
+
+		// clear taskbar window list
+		for( uint16_t y = 0; y < de_window_taskbar -> height; y++ )
+			for( uint16_t x = 0; x < (de_window_taskbar -> width - DE_TASKBAR_HEIGHT_pixel - DE_TASKBAR_CLOCK_pixel) ; x++ )
+				taskbar_pixel[ (y * de_window_taskbar -> width) + x ] = DE_TASKBAR_BACKGROUND_default;
+
+		// empty list?
+		if( ! de_taskbar_limit ) {
+			// release acquired list
+			std_memory_release( (uintptr_t) de_taskbar_base_address, MACRO_PAGE_ALIGN_UP( sizeof( struct LIB_WINDOW_STRUCTURE_LIST *) * (de_taskbar_limit + TRUE) ) >> STD_SHIFT_PAGE );
+
+			// done
+			continue;
+		}
+	}
 
 	return 0;
 }

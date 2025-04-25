@@ -80,7 +80,7 @@ void lib_interface_border( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) { color = LIB_INTERFACE_BORDER_COLOR_inactive; color_shadow = LIB_INTERFACE_BORDER_COLOR_inactive_shadow; }
 
 	// and point border
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = 0; y < interface -> height; y++ )
 		for( uint16_t x = 0; x < interface -> width; x++ ) {
 			if( ! x || ! y ) { pixel[ (y * interface -> width) + x ] = color; }
@@ -94,7 +94,7 @@ void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( interface -> background_color ) background_color = interface -> background_color;	// change to choosen one
 
 	// fill window with default background
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 	for( int64_t i = 0; i < interface -> width * interface -> height; i++ )
 		// draw pixel
 		pixel[ i ] = background_color;
@@ -620,7 +620,7 @@ void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, st
 	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, element -> label_or_button.width );
 
 	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
 
 	// select background color
 	uint32_t color = LIB_INTERFACE_COLOR_background_button_default;
@@ -665,7 +665,7 @@ void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, 
 	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, (element -> checkbox.width - element -> checkbox.height) );
 
 	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> checkbox.y * interface -> width) + element -> checkbox.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR )) + (element -> checkbox.y * interface -> width) + element -> checkbox.x;
 
 	// select background color
 	uint32_t color = LIB_INTERFACE_COLOR_background_checkbox_default;
@@ -701,7 +701,7 @@ void lib_interface_element_checkbox( struct LIB_INTERFACE_STRUCTURE *interface, 
 
 void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *element ) {
 	// properties of control buttons of window
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + interface -> width - LIB_INTERFACE_HEADER_HEIGHT_pixel - (element -> control.x * LIB_INTERFACE_HEADER_HEIGHT_pixel) - LIB_INTERFACE_BORDER_pixel;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR )) + interface -> width - LIB_INTERFACE_HEADER_HEIGHT_pixel - (element -> control.x * LIB_INTERFACE_HEADER_HEIGHT_pixel) - LIB_INTERFACE_BORDER_pixel;
 
 	// choose background color
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
@@ -757,7 +757,7 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 	// compute absolute address of first pixel of element space
 	if( element -> input.x == STD_MAX_unsigned ) element -> input.x = (interface -> width >> STD_SHIFT_2) - (element -> input.x >> STD_SHIFT_2);
 	if( element -> input.y == STD_MAX_unsigned ) element -> input.y = (interface -> height >> STD_SHIFT_2) - (element -> input.y >> STD_SHIFT_2);
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> input.y * interface -> width) + element -> input.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR )) + (element -> input.y * interface -> width) + element -> input.x;
 
 	// select background color
 	uint32_t color = LIB_INTERFACE_COLOR_background_input_default;
@@ -790,7 +790,7 @@ void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, str
 	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, element -> label_or_button.width );
 
 	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR )) + (element -> label_or_button.y * interface -> width) + element -> label_or_button.x;
 
 	// fill element with background color
 	for( uint16_t y = 0; y < element -> label_or_button.height; y++ )
@@ -813,7 +813,7 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, element -> menu.width );
 
 	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> menu.y * interface -> width) + element -> menu.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR )) + (element -> menu.y * interface -> width) + element -> menu.x;
 
 	// choose background color
 	uint32_t color = LIB_INTERFACE_COLOR_background_menu_default;
@@ -849,7 +849,7 @@ void lib_interface_element_radio( struct LIB_INTERFACE_STRUCTURE *interface, str
 	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> name, element -> name_length, (element -> radio.width - element -> radio.height) );
 
 	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> radio.y * interface -> width) + element -> radio.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR )) + (element -> radio.y * interface -> width) + element -> radio.x;
 
 	// select background color
 	uint32_t color = LIB_INTERFACE_COLOR_background_radio_default;
@@ -895,7 +895,7 @@ void lib_interface_element_radio( struct LIB_INTERFACE_STRUCTURE *interface, str
 
 void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element ) {
 	// compute absolute address of first pixel of element space
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR )) + (element -> file.y * interface -> width) + element -> file.x;
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR )) + (element -> file.y * interface -> width) + element -> file.x;
 
 	// dimensions of element
 	uint16_t width = element -> file.width;
@@ -1753,7 +1753,7 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( ! interface -> name_length ) return;	// no
 
 	// clear window header with default background
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 	for( uint16_t y = TRUE; y < LIB_INTERFACE_HEADER_HEIGHT_pixel; y++ )
 		for( uint16_t x = TRUE; x < interface -> width - (1 + (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel)); x++ )
 			// draw pixel
