@@ -49,6 +49,7 @@ extern	kernel_syscall_storage
 extern	kernel_syscall_storage_select
 extern	kernel_syscall_dir
 extern	kernel_syscall_storage_id
+extern	kernel_syacall_memory_purge
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -93,19 +94,20 @@ kernel_syscall_list:
 	dq	kernel_syscall_time			; 0x1C
 	dq	kernel_syscall_file_read		; 0x1D
 	dq	kernel_syscall_file			; 0x1E
-	; dq	kernel_syscall_file_write		; 0x1F
-	; dq	kernel_syscall_file_touch		; 0x20
-	; dq	kernel_syscall_task			; 0x21
-	; dq	kernel_syscall_kill			; 0x22
-	; dq	kernel_syscall_network_interface	; 0x23
-	; dq	kernel_syscall_network_open		; 0x24
-	; dq	kernel_syscall_network_send		; 0x25
-	; dq	kernel_syscall_network_interface_set	; 0x26
-	; dq	kernel_syscall_network_receive		; 0x27
-	; dq	kernel_syscall_storage			; 0x28
-	; dq	kernel_syscall_storage_select		; 0x29
-	; dq	kernel_syscall_dir			; 0x2A
-	; dq	kernel_syscall_storage_id		; 0x2B
+	dq	0x00	;; dq	kernel_sycall_file_write		; 0x1F
+	dq	0x00	;; dq	kernel_syscall_file_touch		; 0x20
+	dq	0x00	;; dq	kernel_syscall_task			; 0x21
+	dq	0x00	;; dq	kernel_syscall_kill			; 0x22
+	dq	0x00	;; dq	kernel_syscall_network_interface	; 0x23
+	dq	0x00	;; dq	kernel_syscall_network_open		; 0x24
+	dq	0x00	;; dq	kernel_syscall_network_send		; 0x25
+	dq	0x00	;; dq	kernel_syscall_network_interface_set	; 0x26
+	dq	0x00	;; dq	kernel_syscall_network_receive		; 0x27
+	dq	0x00	;; dq	kernel_syscall_storage			; 0x28
+	dq	0x00	;; dq	kernel_syscall_storage_select		; 0x29
+	dq	0x00	;; dq	kernel_syscall_dir			; 0x2A
+	dq	0x00	;; dq	kernel_syscall_storage_id		; 0x2B
+	dq	kernel_syacall_memory_purge		; 0x2C
 kernel_syscall_list_end:
 
 ; 64 bit code

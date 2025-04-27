@@ -69,6 +69,14 @@ uintptr_t std_memory_alloc( uint64_t page ) {
 	return std_syscall_pointer();
 }
 
+void std_memory_purge( void ) {
+	// request syscall
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_PURGE) );
+
+	// return nothing
+	std_syscall_empty();
+}
+
 void std_memory_release( uintptr_t target, uint64_t page ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_MEMORY_RELEASE), "D" (target), "S" (page) );

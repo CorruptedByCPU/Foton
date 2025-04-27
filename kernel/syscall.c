@@ -403,6 +403,11 @@ void kernel_syscall_memory_release( uintptr_t address, uint64_t n ) {
 	current -> page -= n;
 }
 
+void kernel_syacall_memory_purge( void ) {
+	// release all obsolete pages
+	kernel_page_deconstruct( kernel_task_current() -> cr3, KERNEL_PAGE_TYPE_EXTERNAL );
+}
+
 uintptr_t kernel_syscall_memory_share( uint64_t pid, uintptr_t source, uint64_t n, uint8_t write ) {
 	// memory area inside software environment?
 	if( source + (n << STD_SHIFT_PAGE) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// no, ignore

@@ -412,6 +412,7 @@
 	#define	STD_SYSCALL_STORAGE_SELECT			0x29
 	#define	STD_SYSCALL_DIR					0x2A
 	#define	STD_SYSCALL_STORAGE_ID				0x2B
+	#define	STD_SYSCALL_MEMORY_PURGE			0x2C
 
 	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER {
 		uint32_t	*base_address;
@@ -488,6 +489,9 @@
 
 	// modify properties of kernels framebuffer
 	void std_framebuffer_change( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer );
+
+	// release memory marked as EXTERNAL
+	void std_memory_purge( void );
 
 	// check for message from process of ID
 	uint8_t std_ipc_receive_by_pid( uint8_t *data, int64_t pid );
