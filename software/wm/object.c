@@ -14,13 +14,13 @@ void wm_object( void ) {
 		// requested flush?
 		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse object area
-		// 	wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
+			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
 
 			// request parsed
 			list[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_flush;
 
 			// always redraw cursor object (it might be covered)
-		// 	if( wm_object_cursor ) wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
 	}
 }
@@ -59,6 +59,32 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 	}
 
 	// cancel
+	return EMPTY;
+}
+
+struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t hidden ) {
+	// properties of object list
+	struct WM_STRUCTURE_OBJECT **list = wm_list_base_address;
+
+	// find object at current cursor coordinates
+	for( uint16_t i = wm_list_limit - 1; i >= 0; i-- ) {
+		// object marked as cursor?
+		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// ignore
+
+		// object is visible? (or include hidden ones too)
+		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible || hidden ) {
+			// coordinates at object area?
+			if( list[ i ] -> x > x ) continue;	// no
+			if( list[ i ] -> y > y ) continue;	// no
+			if( (list[ i ] -> x + list[ i ] -> width) < x ) continue;	// no
+			if( (list[ i ] -> y + list[ i ] -> height) < y ) continue;	// no
+
+			// return a pointer to an object
+			return list[ i ];;
+		}
+	}
+
+	// nothing under specified coordinates
 	return EMPTY;
 }
 

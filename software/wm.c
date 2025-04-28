@@ -6,14 +6,18 @@
 	// required libraries
 	//----------------------------------------------------------------------
 	#include	"../library/color.h"
+	#include	"../library/image.h"
 	#include	"../library/window.h"
 	//----------------------------------------------------------------------
 
 	//----------------------------------------------------------------------
 	// structures, definitions
 	//----------------------------------------------------------------------
-	#include	"wm/object.h"
 	#include	"wm/config.h"
+	#include	"wm/event.h"
+	#include	"wm/fill.h"
+	#include	"wm/object.h"
+	#include	"wm/zone.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -21,9 +25,13 @@
 	//----------------------------------------------------------------------
 	// functions / procedures
 	//----------------------------------------------------------------------
+	#include	"wm/cursor.c"
+	#include	"wm/event.c"
+	#include	"wm/fill.c"
 	#include	"wm/init.c"
 	#include	"wm/object.c"
 	#include	"wm/sync.c"
+	#include	"wm/zone.c"
 	//----------------------------------------------------------------------
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
@@ -32,17 +40,20 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// hold the door
 	while( TRUE ) {
+		// check for incomming events
+		wm_event();
+
 		// which objects have been recently updated?
 		wm_object();
 
-		// // assign objects to zones
-		// wm_zone();
+		// assign objects to zones
+		wm_zone();
 
-		// // fill zones with fragments of objects
-		// wm_fill();
+		// fill zones with fragments of objects
+		wm_fill();
 
-		// // show cursor
-		// wm_cursor();
+		// show cursor
+		wm_cursor();
 
 		// synchronize workbench with framebuffer
 		wm_sync();
