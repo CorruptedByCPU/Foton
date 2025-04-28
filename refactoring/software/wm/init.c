@@ -41,7 +41,7 @@ uint64_t wm_init( void ) {
 	// fill workbench with default color
 	for( uint16_t y = 0; y < wm_object_workbench -> height; y++ )
 		for( uint16_t x = 0; x < wm_object_workbench -> width; x++ )
-			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = STD_COLOR_RED;
+			workbench_pixel[ (y * wm_object_workbench -> width) + x ] = STD_COLOR_BLACK;
 
 	// object content ready for display
 	wm_object_workbench -> descriptor -> flags |= STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;

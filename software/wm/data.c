@@ -4,36 +4,23 @@
 
 uint64_t wm_pid;
 
-struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER wm_framebuffer;
+struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER	wm_framebuffer;
 
-struct WM_STRUCTURE_OBJECT *wm_object_base_address;
-struct WM_STRUCTURE_OBJECT **wm_list_base_address;
-struct WM_STRUCTURE_ZONE *wm_zone_base_address;
+struct WM_STRUCTURE_OBJECT			*wm_object_base_address;	uint8_t wm_object_lock = FALSE;
+struct WM_STRUCTURE_OBJECT			**wm_list_base_address;
+struct WM_STRUCTURE_ZONE			*wm_zone_base_address;
 
-struct WM_STRUCTURE_OBJECT wm_object_cache = { EMPTY };
+struct WM_STRUCTURE_OBJECT			wm_object_cache = { EMPTY };
 
-struct WM_STRUCTURE_OBJECT *wm_object_workbench;
-struct WM_STRUCTURE_OBJECT *wm_object_cursor = EMPTY;
+struct WM_STRUCTURE_OBJECT			*wm_object_workbench;
+struct WM_STRUCTURE_OBJECT			*wm_object_taskbar;
+struct WM_STRUCTURE_OBJECT			*wm_object_cursor;
 
-struct WM_STRUCTURE_OBJECT *wm_object_active = EMPTY;
-struct WM_STRUCTURE_OBJECT *wm_object_hover = EMPTY;
-struct WM_STRUCTURE_OBJECT *wm_object_selected = EMPTY;
-struct WM_STRUCTURE_OBJECT *wm_object_resize = EMPTY;
+uint64_t wm_list_limit				= 0;
+uint64_t wm_zone_limit				= 0;
 
-struct WM_STRUCTURE_ZONE wm_zone_modify = { EMPTY };
+struct WM_STRUCTURE_OBJECT			*wm_object_active;
 
-uint64_t wm_object_limit = EMPTY;
-uint64_t wm_list_limit = EMPTY;
-uint64_t wm_zone_limit = EMPTY;
-
-int64_t wm_mouse_x = INIT;
-int64_t wm_mouse_y = INIT;
-int64_t wm_mouse_z = INIT;
-
-uint8_t wm_object_drag_allow = FALSE;
-uint8_t wm_object_resize_init = FALSE;
-
-uint8_t wm_mouse_button_left = FALSE;
-uint8_t wm_mouse_button_right = FALSE;
-
-uint8_t wm_keyboard_ctrl_left = FALSE;
+int64_t wm_mouse_x				= 0;
+int64_t wm_mouse_y				= 0;
+int64_t wm_mouse_z				= 0;
