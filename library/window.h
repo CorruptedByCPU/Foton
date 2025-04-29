@@ -25,7 +25,7 @@
 	#define	STD_WINDOW_FLAG_icon		(1 << 11)
 	#define	STD_WINDOW_FLAG_workbench	(1 << 12)
 	#define	STD_WINDOW_FLAG_flush		(1 << 13)
-	#define	STD_WINDOW_FLAG_taskbar		(1 << 14)
+	#define	STD_WINDOW_FLAG_panel		(1 << 14)
 	#define	STD_WINDOW_FLAG_cursor		(1 << 15)
 	#define	STD_WINDOW_FLAG_lock		(1 << 16)
 
@@ -55,7 +55,7 @@
 		uint8_t		header_offset;
 		uint8_t		header_height;
 		uint16_t	header_width;
-		// window name, it will appear at header/taskbar
+		// window name, it will appear at header/panel
 		uint8_t		name_length;
 		uint8_t		name[ 32 + TRUE ];
 	} __attribute__( (aligned( STD_PAGE_byte )) );

@@ -2,6 +2,6 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void wm_zone( void );
+void tiwyn_event( void );
 
-void wm_zone_insert( struct WM_STRUCTURE_ZONE *current, uint8_t object );
+void tiwyn_event_mouse( void );

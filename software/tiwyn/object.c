@@ -2,35 +2,35 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void wm_object( void ) {
+void tiwyn_object( void ) {
 	// properties of object list
-	struct WM_STRUCTURE_OBJECT **list = wm_list_base_address;
+	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn_list_base_address;
 
 	// search whole list for flush request on any object
-	for( uint16_t i = 0; i < wm_list_limit; i++ ) {
+	for( uint16_t i = 0; i < tiwyn_list_limit; i++ ) {
 		// found cursor object?
 		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// done
 
 		// requested flush?
 		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse object area
-			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_list_base_address[ i ], FALSE );
+			tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn_list_base_address[ i ], FALSE );
 
 			// request parsed
 			list[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_flush;
 
 			// always redraw cursor object (it might be covered)
-			wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			tiwyn_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
 	}
 }
 
-struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height ) {
+struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height ) {
 	// properties of object array
-	struct WM_STRUCTURE_OBJECT *object = wm_object_base_address;
+	struct TIWYN_STRUCTURE_OBJECT *object = tiwyn_object_base_address;
 
 	// find available entry
-	for( uint64_t i = 0; i < WM_OBJECT_LIMIT; i++ ) {
+	for( uint64_t i = 0; i < TIWYN_OBJECT_LIMIT; i++ ) {
 		// record in use?
 		if( object -> descriptor ) { object++; continue; }	// yes, next
 
@@ -49,10 +49,10 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 			return EMPTY;
 
 		// register object on list
-		wm_object_insert( object );
+		tiwyn_object_insert( object );
 
 		// newly created object becomes active
-		wm_object_active = object;
+		tiwyn_object_active = object;
 
 		// ready
 		return object;
@@ -62,12 +62,12 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 	return EMPTY;
 }
 
-struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t hidden ) {
+struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_find( uint16_t x, uint16_t y, uint8_t hidden ) {
 	// properties of object list
-	struct WM_STRUCTURE_OBJECT **list = wm_list_base_address;
+	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn_list_base_address;
 
 	// find object at current cursor coordinates
-	for( uint16_t i = wm_list_limit - 1; i >= 0; i-- ) {
+	for( uint16_t i = tiwyn_list_limit - 1; i >= 0; i-- ) {
 		// object marked as cursor?
 		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// ignore
 
@@ -88,25 +88,25 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t hidd
 	return EMPTY;
 }
 
-void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
+void tiwyn_object_insert( struct TIWYN_STRUCTURE_OBJECT *object ) {
 	// properties of object list
-	struct WM_STRUCTURE_OBJECT **list = wm_list_base_address;
+	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn_list_base_address;
 
-	// find taskbar object on list
-	for( uint64_t i = 0; i < wm_list_limit; i++ ) {
-		// if not a taskbar
-		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_taskbar ) { list++; continue; }	// next entry
+	// find panel object on list
+	uint64_t i = 0; for( ; i < tiwyn_list_limit; i++ ) {
+		// if not a panel
+		if( ! (list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_panel) ) continue;	// next entry
 
 		// move all objects one position further
-		for( uint64_t j = wm_list_limit; j > i; j-- ) list[ j ] = list[ j - 1 ];
+		for( uint64_t j = tiwyn_list_limit; j > i; j-- ) list[ j ] = list[ j - 1 ];
 
 		// entry prepared
 		break;
 	}
 
 	// insert object on list
-	*list = object;
+	list[ i ] = object;
 
 	// amount of objects on list
-	wm_list_limit++;
+	tiwyn_list_limit++;
 }
