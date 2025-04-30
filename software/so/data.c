@@ -2,6 +2,6 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void tiwyn_event( void );
+struct LIB_WINDOW_DESCRIPTOR *so_window;
 
-void tiwyn_event_mouse( void );
+uint8_t so_window_name[] = "System Information";

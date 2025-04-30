@@ -40,6 +40,7 @@
 		// pointer position inside window
 		uint16_t	x;
 		uint16_t	y;
+		uint16_t	z;
 		// assigned window dimension
 		uint16_t	width;
 		uint16_t	height;

@@ -4,30 +4,30 @@
 
 void tiwyn_cursor( void ) {
 	// requested redraw?
-	if( ! (tiwyn_object_cursor -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) return;	// no
+	if( ! (tiwyn -> cursor -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) return;	// no
 
 	// remove current cursor position from workbench
-	tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn_object_cursor, FALSE );
+	tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn -> cursor, FALSE );
 
 	// assign objects to cursor zone and redraw on screen
 	tiwyn_zone(); tiwyn_fill();
 
 	// properties of areas
-	uint32_t *source = (uint32_t *) ((uintptr_t) tiwyn_object_cursor -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
-	uint32_t *target = (uint32_t *) ((uintptr_t) tiwyn_object_cache.descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+	uint32_t *source = (uint32_t *) ((uintptr_t) tiwyn -> cursor -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+	uint32_t *target = (uint32_t *) ((uintptr_t) tiwyn -> canvas.descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 
 	// calculate overflows
-	uint16_t width = tiwyn_object_cursor -> width;
-	uint16_t height = tiwyn_object_cursor -> height;
-	if( tiwyn_object_cursor -> x + tiwyn_object_cursor -> width > tiwyn_object_cache.width ) width -= (tiwyn_object_cursor -> x + tiwyn_object_cursor -> width) - tiwyn_object_cache.width;
-	if( tiwyn_object_cursor -> y + tiwyn_object_cursor -> height > tiwyn_object_cache.height ) height -= (tiwyn_object_cursor -> y + tiwyn_object_cursor -> height) - tiwyn_object_cache.height;
+	uint16_t width = tiwyn -> cursor -> width;
+	uint16_t height = tiwyn -> cursor -> height;
+	if( tiwyn -> cursor -> x + tiwyn -> cursor -> width > tiwyn -> canvas.width ) width -= (tiwyn -> cursor -> x + tiwyn -> cursor -> width) - tiwyn -> canvas.width;
+	if( tiwyn -> cursor -> y + tiwyn -> cursor -> height > tiwyn -> canvas.height ) height -= (tiwyn -> cursor -> y + tiwyn -> cursor -> height) - tiwyn -> canvas.height;
 
 	// fill zone with current object
 	for( uint64_t y = 0; y < height; y++ )
 		for( uint64_t x = 0; x < width; x++ ) {
 			// calculate position of both pixels
-			uint32_t *source_pixel = (uint32_t *) &source[ (y * tiwyn_object_cursor -> width) + x ];
-			uint32_t *target_pixel = (uint32_t *) &target[ ((y + tiwyn_object_cursor -> y) * tiwyn_object_cache.width) + (x + tiwyn_object_cursor -> x) ];
+			uint32_t *source_pixel = (uint32_t *) &source[ (y * tiwyn -> cursor -> width) + x ];
+			uint32_t *target_pixel = (uint32_t *) &target[ ((y + tiwyn -> cursor -> y) * tiwyn -> canvas.width) + (x + tiwyn -> cursor -> x) ];
 
 			// perform the operation based on the alpha channel
 			switch( *source_pixel >> 24 ) {
@@ -43,8 +43,8 @@ void tiwyn_cursor( void ) {
 		}
 
 	// cursor parsed
-	tiwyn_object_cursor -> descriptor -> flags ^= STD_WINDOW_FLAG_flush;
+	tiwyn -> cursor -> descriptor -> flags ^= STD_WINDOW_FLAG_flush;
 
 	// synchronize workbench with framebuffer
-	tiwyn_object_cache.descriptor -> flags |= STD_WINDOW_FLAG_flush;
+	tiwyn -> canvas.descriptor -> flags |= STD_WINDOW_FLAG_flush;
 }

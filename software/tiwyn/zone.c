@@ -2,71 +2,20 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void tiwyn_zone_insert( struct TIWYN_STRUCTURE_ZONE *current, uint8_t object ) {
-	// discard zone if outside of cache area
-	if( current -> x > tiwyn_object_cache.width - 1 ) return;
-	if( current -> y > tiwyn_object_cache.height - 1 ) return;
-	if( current -> x + current -> width < 0 ) return;
-	if( current -> y + current -> height < 0 ) return;
-
-	// inset new zone
-
-	// properties of last entry inside zone list
-	struct TIWYN_STRUCTURE_ZONE *zone = &tiwyn_zone_base_address[ tiwyn_zone_limit ];
-
-	// truncate X axis
-	if( current -> x < 0 ) {
-		// left side
-		zone -> width = current -> width - (~current -> x + TRUE);
-		zone -> x = 0;
-	} else if( current -> x + current -> width > tiwyn_object_cache.width ) {
-		// right side
-		zone -> x = current -> x;
-		zone -> width = current -> width - ((current -> x + current -> width) - (int16_t) tiwyn_object_cache.width);
-	} else {
-		// whole zone
-		zone -> x = current -> x;
-		zone -> width = current -> width;
-	}
-
-	// truncate Y axis
-	if( current -> y < 0 ) {
-		// up side
-		zone -> height = current -> height - (~current -> y + TRUE);
-		zone -> y = 0;
-	} else if( current -> y + current -> height > tiwyn_object_cache.height ) {
-		// bottom side
-		zone -> y = current -> y;
-		zone -> height = current -> height - ((current -> y + current -> height) - (int16_t) tiwyn_object_cache.height);
-	} else {
-		// whole zone
-		zone -> y = current -> y;
-		zone -> height = current -> height;
-	}
-
-	// object selected for zone?
-	if( object ) zone -> object = current -> object;
-	else	// no
-		zone -> object = EMPTY;
-
-	// zone inserted
-	tiwyn_zone_limit++;
-}
-
 void tiwyn_zone( void ) {
 	// properties of first entry inside zone list
-	struct TIWYN_STRUCTURE_ZONE *zone = tiwyn_zone_base_address;
+	struct TIWYN_STRUCTURE_ZONE *zone = tiwyn -> zone;
 
 	// properties of object list
-	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn_list_base_address;
+	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn -> list;
 
 	// parse zones on list
-	for( uint64_t i = 0; i < tiwyn_zone_limit; i++ ) {
+	for( uint64_t i = 0; i < tiwyn -> zone_limit; i++ ) {
 		// object already assigned to zone?
 		if( zone[ i ].object ) continue;	// yes
 
 		// analyze zone against each object
-		for( uint64_t j = 0; j < tiwyn_list_limit; j++ ) {
+		for( uint64_t j = 0; j < tiwyn -> list_limit; j++ ) {
 			// ignore cursor object
 			if( list[ j ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
 
@@ -109,4 +58,55 @@ void tiwyn_zone( void ) {
 			tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) &parse, TRUE );
 		}
 	}
+}
+
+void tiwyn_zone_insert( struct TIWYN_STRUCTURE_ZONE *current, uint8_t object ) {
+	// discard zone if outside of cache area
+	if( current -> x > tiwyn -> canvas.width - 1 ) return;
+	if( current -> y > tiwyn -> canvas.height - 1 ) return;
+	if( current -> x + current -> width < 0 ) return;
+	if( current -> y + current -> height < 0 ) return;
+
+	// inset new zone
+
+	// properties of last entry inside zone list
+	struct TIWYN_STRUCTURE_ZONE *zone = &tiwyn -> zone[ tiwyn -> zone_limit ];
+
+	// truncate X axis
+	if( current -> x < 0 ) {
+		// left side
+		zone -> width = current -> width - (~current -> x + TRUE);
+		zone -> x = 0;
+	} else if( current -> x + current -> width > tiwyn -> canvas.width ) {
+		// right side
+		zone -> x = current -> x;
+		zone -> width = current -> width - ((current -> x + current -> width) - (int16_t) tiwyn -> canvas.width);
+	} else {
+		// whole zone
+		zone -> x = current -> x;
+		zone -> width = current -> width;
+	}
+
+	// truncate Y axis
+	if( current -> y < 0 ) {
+		// up side
+		zone -> height = current -> height - (~current -> y + TRUE);
+		zone -> y = 0;
+	} else if( current -> y + current -> height > tiwyn -> canvas.height ) {
+		// bottom side
+		zone -> y = current -> y;
+		zone -> height = current -> height - ((current -> y + current -> height) - (int16_t) tiwyn -> canvas.height);
+	} else {
+		// whole zone
+		zone -> y = current -> y;
+		zone -> height = current -> height;
+	}
+
+	// object selected for zone?
+	if( object ) zone -> object = current -> object;
+	else	// no
+		zone -> object = EMPTY;
+
+	// zone inserted
+	tiwyn -> zone_limit++;
 }

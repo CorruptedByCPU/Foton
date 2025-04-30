@@ -4,30 +4,30 @@
 
 void tiwyn_object( void ) {
 	// properties of object list
-	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn_list_base_address;
+	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn -> list;
 
 	// search whole list for flush request on any object
-	for( uint16_t i = 0; i < tiwyn_list_limit; i++ ) {
+	for( uint16_t i = 0; i < tiwyn -> list_limit; i++ ) {
 		// found cursor object?
 		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// done
 
 		// requested flush?
 		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse object area
-			tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn_list_base_address[ i ], FALSE );
+			tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn -> list[ i ], FALSE );
 
 			// request parsed
 			list[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_flush;
 
 			// always redraw cursor object (it might be covered)
-			tiwyn_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			tiwyn -> cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 		}
 	}
 }
 
 struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height ) {
 	// properties of object array
-	struct TIWYN_STRUCTURE_OBJECT *object = tiwyn_object_base_address;
+	struct TIWYN_STRUCTURE_OBJECT *object = tiwyn -> object;
 
 	// find available entry
 	for( uint64_t i = 0; i < TIWYN_OBJECT_LIMIT; i++ ) {
@@ -37,6 +37,7 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint
 		// fill object properties
 		object -> x		= x;
 		object -> y		= y;
+		object -> z		= 0;	// no movement
 		object -> width		= width;
 		object -> height	= height;
 
@@ -52,7 +53,7 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint
 		tiwyn_object_insert( object );
 
 		// newly created object becomes active
-		tiwyn_object_active = object;
+		tiwyn -> active = object;
 
 		// ready
 		return object;
@@ -64,10 +65,10 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint
 
 struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_find( uint16_t x, uint16_t y, uint8_t hidden ) {
 	// properties of object list
-	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn_list_base_address;
+	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn -> list;
 
 	// find object at current cursor coordinates
-	for( uint16_t i = tiwyn_list_limit - 1; i >= 0; i-- ) {
+	for( uint16_t i = tiwyn -> list_limit - 1; i >= 0; i-- ) {
 		// object marked as cursor?
 		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// ignore
 
@@ -90,15 +91,15 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_find( uint16_t x, uint16_t y, uint8_
 
 void tiwyn_object_insert( struct TIWYN_STRUCTURE_OBJECT *object ) {
 	// properties of object list
-	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn_list_base_address;
+	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn -> list;
 
 	// find panel object on list
-	uint64_t i = 0; for( ; i < tiwyn_list_limit; i++ ) {
+	uint64_t i = 0; for( ; i < tiwyn -> list_limit; i++ ) {
 		// if not a panel
 		if( ! (list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_panel) ) continue;	// next entry
 
 		// move all objects one position further
-		for( uint64_t j = tiwyn_list_limit; j > i; j-- ) list[ j ] = list[ j - 1 ];
+		for( uint64_t j = tiwyn -> list_limit; j > i; j-- ) list[ j ] = list[ j - 1 ];
 
 		// entry prepared
 		break;
@@ -108,5 +109,5 @@ void tiwyn_object_insert( struct TIWYN_STRUCTURE_OBJECT *object ) {
 	list[ i ] = object;
 
 	// amount of objects on list
-	tiwyn_list_limit++;
+	tiwyn -> list_limit++;
 }

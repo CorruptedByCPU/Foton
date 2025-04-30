@@ -3,41 +3,84 @@
 ===============================================================================*/
 
 void tiwyn_event( void ) {
-	// mouse
-	tiwyn_event_mouse();
-}
+	// incomming/outgoing messages
+	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
 
-void tiwyn_event_mouse( void ) {
+	// check every incomming request
+	uint64_t pid; while( (pid = std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_default )) ) {
+		// properties of request
+		struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &ipc_data;
+
+		// choose behavior
+		switch( request -> properties ) {
+			case STD_IPC_WINDOW_create: {
+				// properties of window create request
+				struct STD_STRUCTURE_IPC_WINDOW_CREATE *create = (struct STD_STRUCTURE_IPC_WINDOW_CREATE *) &ipc_data;
+				
+				// invalid request?
+				if( ! create -> width || ! create -> height ) break;	// done
+
+				// properties of answer
+				struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &ipc_data;
+
+				// properties of new object
+				struct TIWYN_STRUCTURE_OBJECT *new = tiwyn_object_create( create -> x, create -> y, create -> width, create -> height );
+
+				// by default, couldn't create object
+				answer -> descriptor = EMPTY;
+
+				// if created properly, try to share object descriptor with process
+				if( new ) answer -> descriptor = std_memory_share( pid, (uintptr_t) new -> descriptor, MACRO_PAGE_ALIGN_UP( new -> limit ) >> STD_SHIFT_PAGE, TRUE );
+
+				// if everything was done properly
+				if( answer -> descriptor )
+					// set object owner
+					new -> pid = pid;
+
+				// send answer
+				std_ipc_send( pid, (uint8_t *) answer );
+
+				// done
+				break;
+			}
+		}
+	}
+
+	//----------------------------------------------------------------------
+
 	// retrieve current mouse status and position
 	struct STD_STRUCTURE_MOUSE_SYSCALL mouse;
 	std_mouse( (struct STD_STRUCTURE_MOUSE_SYSCALL *) &mouse );
 
+	//----------------------------------------------------------------------
+
 	// select object under cursor position
-	struct TIWYN_STRUCTURE_OBJECT *object = tiwyn_object_find( mouse.x, mouse.y, FALSE );
+	struct TIWYN_STRUCTURE_OBJECT *current = tiwyn_object_find( mouse.x, mouse.y, FALSE );
 
 	// calculate delta of cursor new position
-	int16_t delta_x = mouse.x - tiwyn_object_cursor -> x;
-	int16_t delta_y = mouse.y - tiwyn_object_cursor -> y;
-	int16_t delta_z = mouse.z - tiwyn_mouse_z; tiwyn_mouse_z = mouse.z;
-
-	//--------------------------------------------------------------
+	int16_t delta_x = mouse.x - tiwyn -> cursor -> x;
+	int16_t delta_y = mouse.y - tiwyn -> cursor -> y;
+	int16_t delta_z = mouse.z - tiwyn -> cursor -> z;
 
 	// update pointer position inside current object
-	object -> descriptor -> x = (tiwyn_object_cursor -> x + delta_x) - object -> x;
-	object -> descriptor -> y = (tiwyn_object_cursor -> y + delta_y) - object -> y;
+	current -> descriptor -> x = (tiwyn -> cursor -> x + delta_x) - current -> x;
+	current -> descriptor -> y = (tiwyn -> cursor -> y + delta_y) - current -> y;
+	current -> descriptor -> z = delta_z;
 
 	//--------------------------------------------------------------
 
-	// if cursor pointer movement doesn't occur
+	//--------------------------------------------------------------
+
+	// if cursor pointer movement didn't occur
 	if( ! delta_x && ! delta_y ) return;	// done
 
 	// remove current cursor position from workbench
-	tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn_object_cursor, FALSE );
+	tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn -> cursor, FALSE );
 
 	// update cursor position
-	tiwyn_object_cursor -> x = mouse.x;
-	tiwyn_object_cursor -> y = mouse.y;
+	tiwyn -> cursor -> x = mouse.x;
+	tiwyn -> cursor -> y = mouse.y;
 
 	// redisplay cursor at new location
-	tiwyn_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+	tiwyn -> cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 }

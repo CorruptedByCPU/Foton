@@ -5,59 +5,39 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
-	#include	"../library/color.h"
 	#include	"../library/window.h"
 	//----------------------------------------------------------------------
 
 	//----------------------------------------------------------------------
 	// structures, definitions
 	//----------------------------------------------------------------------
-	#include	"tiwyn/config.h"
-	#include	"tiwyn/fill.h"
-	#include	"tiwyn/object.h"
-	#include	"tiwyn/zone.h"
+	#include	"so/config.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
-	#include	"tiwyn/data.c"
-	//----------------------------------------------------------------------
-	// functions / procedures
-	//----------------------------------------------------------------------
-	#include	"tiwyn/cursor.c"
-	#include	"tiwyn/desktop.c"
-	#include	"tiwyn/event.c"
-	#include	"tiwyn/fill.c"
-	#include	"tiwyn/init.c"
-	#include	"tiwyn/object.c"
-	#include	"tiwyn/sync.c"
-	#include	"tiwyn/zone.c"
+	#include	"so/data.c"
 	//----------------------------------------------------------------------
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	// initialize Desktop environment
-	tiwyn_init();
+	// create window
+	so_window = (struct LIB_WINDOW_DESCRIPTOR *) lib_window( -1, -1, SO_WINDOW_WIDTH, SO_WINDOW_HEIGHT );
 
-	// hold the door
+	// set window name
+	for( uint8_t i = 0; i < sizeof( so_window_name ); i++ ) so_window -> name[ so_window -> name_length++ ] = so_window_name[ i ];
+
+	// debug
+	uint32_t *pixel_a = (uint32_t *) ((uintptr_t) so_window + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+	for( uint16_t y = 0; y < SO_WINDOW_HEIGHT; y++ ) for( uint16_t x = 0; x < SO_WINDOW_WIDTH; x++ ) pixel_a[ (y * SO_WINDOW_WIDTH) + x ] = 0xFFFF0000;
+
+	// window ready, flush!
+	so_window -> flags = STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
+
+	// main loop
 	while( TRUE ) {
-		// check for incomming events
-		tiwyn_event();
-
-		// which objects have been recently updated?
-		tiwyn_object();
-
-		// assign objects to zones
-		tiwyn_zone();
-
-		// fill zones with fragments of objects
-		tiwyn_fill();
-
-		// show cursor
-		tiwyn_cursor();
-
-		// synchronize workbench with framebuffer
-		tiwyn_sync();
-
-		// release CPU
+		// release CPU ticks
 		sleep( TRUE );
 	}
+
+	// done
+	return 0;
 }
