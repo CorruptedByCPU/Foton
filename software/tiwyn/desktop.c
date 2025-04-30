@@ -11,7 +11,7 @@
 	#include	"../../library/integer.h"
 	//----------------------------------------------------------------------
 
-#define	TIWYN_DESKTOP_PANEL_COLOR_default	0xFF080808
+#define	TIWYN_DESKTOP_PANEL_COLOR_default	0xC0080808
 #define	TIWYN_DESKTOP_PANEL_CLOCK_WIDTH_pixel	50
 #define	TIWYN_DESKTOP_PANEL_HEIGHT_pixel	22
 
@@ -134,7 +134,7 @@ void tiwyn_desktop_init( void ) {
 	// fill panel with default color
 	for( uint16_t y = 0; y < tiwyn_desktop_object_panel -> height; y++ )
 		for( uint16_t x = 0; x < tiwyn_desktop_object_panel -> width; x++ )
-			panel_pixel[ (y * tiwyn_desktop_object_panel -> width) + x ] = 0xFF101010;
+			panel_pixel[ (y * tiwyn_desktop_object_panel -> width) + x ] = TIWYN_DESKTOP_PANEL_COLOR_default;
 
 	// show menu button on panel
 	uint8_t test[ 3 ] = "|||";
@@ -199,7 +199,7 @@ void tiwyn_desktop( void ) {
 	//----------------------------------------------------------------------
 
 	// debug
-	// std_exec( (uint8_t *) "so", 2, EMPTY, TRUE );
+	std_exec( (uint8_t *) "so", 2, EMPTY, TRUE );
 
 	// hold the door
 	while( TRUE ) {

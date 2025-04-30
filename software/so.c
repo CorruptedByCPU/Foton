@@ -27,7 +27,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// debug
 	uint32_t *pixel_a = (uint32_t *) ((uintptr_t) so_window + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
-	for( uint16_t y = 0; y < SO_WINDOW_HEIGHT; y++ ) for( uint16_t x = 0; x < SO_WINDOW_WIDTH; x++ ) pixel_a[ (y * SO_WINDOW_WIDTH) + x ] = 0xFFFF0000;
+	for( uint16_t y = 0; y < SO_WINDOW_HEIGHT; y++ ) for( uint16_t x = 0; x < SO_WINDOW_WIDTH; x++ ) pixel_a[ (y * SO_WINDOW_WIDTH) + x ] = STD_COLOR_GREEN;
 
 	// window ready, flush!
 	so_window -> flags = STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;

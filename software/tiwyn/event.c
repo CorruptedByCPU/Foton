@@ -69,6 +69,52 @@ void tiwyn_event( void ) {
 
 	//--------------------------------------------------------------
 
+	// check keyboard cache
+	uint16_t key = std_keyboard();
+
+	// remember state of special key, or take action immediately
+	switch( key ) {
+		// left ctrl pressed
+		case STD_KEY_CTRL_LEFT: { tiwyn -> key_ctrl_left = TRUE; break; }
+
+		// left ctrl released
+		case STD_KEY_CTRL_LEFT | 0x80: { tiwyn -> key_ctrl_left = FALSE; break; }
+	}
+
+	//--------------------------------------------------------------
+
+	// left mouse button pressed? and not on hold
+	if( (mouse.status & STD_MOUSE_BUTTON_left) ) { if( ! tiwyn -> mouse_button_left ) {
+		// remember mouse button state
+		tiwyn -> mouse_button_left = TRUE;
+
+		// current object under cursor pointer set as selected
+		tiwyn -> selected = current;
+
+		// cursor in position of object header
+		if( tiwyn -> selected -> descriptor -> y < tiwyn -> selected -> descriptor -> header_height ) tiwyn -> drag_allow = TRUE;
+
+		// can we move object on top of object list?
+		if( ! (tiwyn -> selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! tiwyn -> key_ctrl_left && wm_object_move_up( tiwyn -> selected ) )
+			// object moved on top, redraw
+			tiwyn -> selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+		// make object as active if not a panel
+		if( ! (tiwyn -> selected -> descriptor -> flags & STD_WINDOW_FLAG_panel) ) tiwyn -> active = tiwyn -> selected;
+	} } else {
+		// release mouse button state
+		tiwyn -> mouse_button_left = FALSE;
+
+		// disable object drag
+		tiwyn -> drag_allow = FALSE;
+	}
+
+	// right mouse button pressed? and not on hold
+	if( (mouse.status & STD_MOUSE_BUTTON_right) ) { if( ! tiwyn -> mouse_button_right ) {
+	}} else {
+		
+	}
+
 	//--------------------------------------------------------------
 
 	// if cursor pointer movement didn't occur
@@ -83,4 +129,7 @@ void tiwyn_event( void ) {
 
 	// redisplay cursor at new location
 	tiwyn -> cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+
+	// move object along with cursor pointer?
+	if( tiwyn -> mouse_button_left && (tiwyn -> key_ctrl_left || tiwyn -> drag_allow) && ! (tiwyn -> selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_xy) ) tiwyn_object_move( delta_x, delta_y );
 }

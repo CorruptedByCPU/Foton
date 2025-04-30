@@ -51,7 +51,14 @@ struct	TIWYN_STRUCTURE {
 
 	// currently active object, which will receive keyboard/mouse input
 	struct TIWYN_STRUCTURE_OBJECT			*active;
+	struct TIWYN_STRUCTURE_OBJECT			*selected;
 
 	// integral part of Tiwyn
 	struct TIWYN_STRUCTURE_OBJECT			*cursor;
+
+	// semaphores
+	uint8_t						drag_allow;
+	uint8_t 					key_ctrl_left;
+	uint8_t						mouse_button_left;
+	uint8_t						mouse_button_right;
 };

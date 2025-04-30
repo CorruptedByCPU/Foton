@@ -111,3 +111,85 @@ void tiwyn_object_insert( struct TIWYN_STRUCTURE_OBJECT *object ) {
 	// amount of objects on list
 	tiwyn -> list_limit++;
 }
+
+void tiwyn_object_move( int16_t x, int16_t y ) {
+	// properties of zone for truncate operation
+	struct TIWYN_STRUCTURE_ZONE zone;
+
+	// initial values
+	zone.x		= tiwyn -> selected -> x;
+	zone.y		= tiwyn -> selected -> y;
+	zone.width	= tiwyn -> selected -> width;
+	zone.height	= tiwyn -> selected -> height;
+
+	// a movement on X axis occurred?
+	if( x ) {
+		// new position of selected object
+		tiwyn -> selected -> x += x;
+
+		// X axis shift is positive?
+		if( x > 0 )	// yes
+			// width of exposed zone
+			zone.width = x;
+		else {
+			// position and width of exposed zone
+			zone.x = tiwyn -> selected -> x + tiwyn -> selected -> width;
+			zone.width = ~x + 1;
+		}
+
+		// register zone
+		tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) &zone, FALSE );
+
+		// update zone properties
+		zone.x = tiwyn -> selected -> x;
+		zone.width = tiwyn -> selected -> width;
+	}
+
+	// a movement on Y axis occured?
+	if( y ) {
+		// new position of selected object
+		tiwyn -> selected -> y += y;
+
+		// Y axis shift is positive?
+		if( y > 0 )	// yes
+			// height of exposed fragment
+			zone.height = y;
+		else {
+			// position and height of exposed fragment
+			zone.y = tiwyn -> selected -> y + tiwyn -> selected -> height;
+			zone.height = ~y + 1;
+		}
+
+		// register zone
+		tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) &zone, FALSE );
+	}
+
+	// object has been moved
+	tiwyn -> selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+}
+
+uint8_t wm_object_move_up( struct TIWYN_STRUCTURE_OBJECT *object ) {
+	// find object on list
+	for( uint64_t i = 0; i < tiwyn -> list_limit; i++ ) {
+		// object located?
+		if( tiwyn -> list[ i ] != object ) continue;	// no
+
+		// move all objects in place of selected
+		for( uint64_t j = i; j < tiwyn -> list_limit - TRUE; j++ ) {
+			// next object, panel?
+			if( tiwyn -> list[ j + 1 ] -> descriptor -> flags & STD_WINDOW_FLAG_panel ) break;	// done
+
+			// no, move next object to current position
+			tiwyn -> list[ i++ ] = tiwyn -> list[ j + 1 ];
+		}
+
+		// put object back on its new position
+		tiwyn -> list[ i ] = object;
+
+		// object changed position
+		return TRUE;
+	}
+
+	// object not found
+	return FALSE;
+}
