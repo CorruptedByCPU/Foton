@@ -130,8 +130,8 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	for( uint8_t i = 0; i < image_window -> name_length; i++ ) image_window -> name[ i ] = lib_string_basename( argv[ 1 ] )[ i ];
 
 	// set minimal window size
-	image_window -> width_limit = LIB_INTERFACE_HEADER_HEIGHT_pixel;
-	image_window -> height_limit = LIB_INTERFACE_HEADER_HEIGHT_pixel;
+	image_window -> width_minimal = LIB_INTERFACE_HEADER_HEIGHT_pixel;
+	image_window -> height_minimal = LIB_INTERFACE_HEADER_HEIGHT_pixel;
 
 	//----------------------------------------------------------------------
 

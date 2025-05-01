@@ -132,7 +132,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// if requested
 		if( ! detach ) {
 			// wait for child end
-			while( shell_exec_pid && std_pid_check( shell_exec_pid ) ) {
+			while( shell_exec_pid && std_pid_exist( shell_exec_pid ) ) {
 				// pass all incomming messages to child
 				uint8_t data[ STD_IPC_SIZE_byte ];
 				while( std_ipc_receive( (uint8_t *) &data ) )

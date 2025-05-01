@@ -11,6 +11,10 @@ void tiwyn_object( void ) {
 		// found cursor object?
 		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// done
 
+		// active window selected?
+		if( list[ i ] == tiwyn -> active ) tiwyn -> active -> descriptor -> flags |= STD_WINDOW_FLAG_active;
+		else list[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_active;
+
 		// requested flush?
 		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
 			// parse object area
@@ -44,6 +48,9 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint
 		// calculate object area size in Bytes
 		object -> limit = ((width * height) << STD_VIDEO_DEPTH_shift) + sizeof( struct LIB_WINDOW_DESCRIPTOR );
 
+		// by default all object belong to Tiwyn
+		object -> pid = tiwyn -> pid;
+
 		// assign area for object
 		if( ! (object -> descriptor = (struct LIB_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( object -> limit ) >> STD_SHIFT_PAGE )) )
 			// no enough memory
@@ -61,6 +68,17 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint
 
 	// cancel
 	return EMPTY;
+}
+
+void tiwyn_object_current( void ) {
+	// search thru object list as far as to panel type object
+	for( uint16_t i = 0; i < tiwyn -> list_limit; i++ ) {
+		// panel or cursor object?
+		if( tiwyn -> list[ i ] -> descriptor -> flags & (STD_WINDOW_FLAG_panel | STD_WINDOW_FLAG_cursor) ) break;	// yes
+
+		// object is visible?
+		if( tiwyn -> list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) tiwyn -> active = tiwyn -> list[ i ];
+	}
 }
 
 struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_find( uint16_t x, uint16_t y, uint8_t hidden ) {

@@ -29,6 +29,7 @@
 	#include	"tiwyn/fill.c"
 	#include	"tiwyn/init.c"
 	#include	"tiwyn/object.c"
+	#include	"tiwyn/release.c"
 	#include	"tiwyn/sync.c"
 	#include	"tiwyn/zone.c"
 	//----------------------------------------------------------------------
@@ -39,6 +40,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// hold the door
 	while( TRUE ) {
+		// remove obsolete objects
+		tiwyn_release();
+
 		// check for incomming events
 		tiwyn_event();
 

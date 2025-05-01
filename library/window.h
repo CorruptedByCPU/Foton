@@ -45,8 +45,8 @@
 		uint16_t	width;
 		uint16_t	height;
 		// minimal dimension of window allowed
-		uint16_t	width_limit;
-		uint16_t	height_limit;
+		uint16_t	width_minimal;
+		uint16_t	height_minimal;
 		// proposed window properties
 		int16_t		new_x;
 		int16_t		new_y;

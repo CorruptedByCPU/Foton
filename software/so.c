@@ -5,6 +5,7 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
+	#include	"../library/interface.h"
 	#include	"../library/window.h"
 	//----------------------------------------------------------------------
 
@@ -19,21 +20,46 @@
 	//----------------------------------------------------------------------
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	// create window
-	so_window = (struct LIB_WINDOW_DESCRIPTOR *) lib_window( -1, -1, SO_WINDOW_WIDTH, SO_WINDOW_HEIGHT );
+	// create interface instance
+	struct LIB_INTERFACE_STRUCTURE *so_interface = (struct LIB_INTERFACE_STRUCTURE *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
 
-	// set window name
-	for( uint8_t i = 0; i < sizeof( so_window_name ); i++ ) so_window -> name[ so_window -> name_length++ ] = so_window_name[ i ];
+	// set default properties of our interface
+	so_interface -> x = STD_MAX_unsigned;	// window at center of desktop
+	so_interface -> y = STD_MAX_unsigned;
+	so_interface -> width = 320;
+	so_interface -> height = 240;
 
-	// debug
-	uint32_t *pixel_a = (uint32_t *) ((uintptr_t) so_window + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
-	for( uint16_t y = 0; y < SO_WINDOW_HEIGHT; y++ ) for( uint16_t x = 0; x < SO_WINDOW_WIDTH; x++ ) pixel_a[ (y * SO_WINDOW_WIDTH) + x ] = STD_COLOR_GREEN;
+	// initialize interface
+	lib_interface( so_interface );
 
-	// window ready, flush!
-	so_window -> flags = STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_flush;
+	// add window name
+	for( uint8_t i = 0; i < sizeof( so_window_name ) - 1; i++ ) so_interface -> descriptor -> name[ so_interface -> descriptor -> name_length++ ] = so_window_name[ i ];
+	lib_interface_name_rewrite( so_interface );
+
+	// allow window to be resiable
+	so_interface -> descriptor -> flags = STD_WINDOW_FLAG_resizable;
+
+	// update window content on screen
+	so_interface -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 
 	// main loop
 	while( TRUE ) {
+		// check incomming events
+		struct LIB_INTERFACE_STRUCTURE *new = EMPTY;
+		if( (new = lib_interface_event( so_interface )) ) {
+			// update interface pointer
+			so_interface = new;
+
+			// update window content on screen
+			so_interface -> descriptor -> flags |= STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+		}
+
+		// recieve key
+		uint16_t key = getkey();
+
+		// exit game?
+		if( key == STD_ASCII_ESC ) return 0;	// yes
+
 		// release CPU ticks
 		sleep( TRUE );
 	}

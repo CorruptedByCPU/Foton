@@ -6,7 +6,7 @@ void wm_release( void ) {
 	// check every object inside array
 	for( uint64_t i = INIT; i < wm_list_limit; i++ ) {
 		// object loose connection with process or marked for release?
-		if( std_pid_check( wm_list_base_address[ i ] -> pid ) && ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_release) ) continue;	// no
+		if( std_pid_exist( wm_list_base_address[ i ] -> pid ) && ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_release) ) continue;	// no
 
 		// mark object as invisible
 		wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;

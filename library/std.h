@@ -471,7 +471,7 @@
 	int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow, uint8_t detach );
 
 	// returns TRUE/FALSE, task exist?
-	uint8_t std_pid_check( int64_t pid );
+	uint8_t std_pid_exist( int64_t pid );
 
 	// send data string to process with ID
 	void std_ipc_send( int64_t pid, uint8_t *data );

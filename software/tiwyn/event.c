@@ -2,6 +2,19 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+void tiwyn_event_shade_fill( void ) {
+	// fill object with default pattern/color
+	uint32_t *shade = (uint32_t *) ((uintptr_t) tiwyn -> shade -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+	for( uint16_t y = 0; y < tiwyn -> shade -> height; y++ )
+		for( uint16_t x = 0; x < tiwyn -> shade -> width; x++ )
+			shade[ (y * tiwyn -> shade -> width) + x ] = TIWYN_OBJECT_OVERSHADE_COLOR;
+
+	// and border
+	for( uint16_t y = 0; y < tiwyn -> shade -> height; y++ )
+		for( uint16_t x = 0; x < tiwyn -> shade -> width; x++ )
+			if( ! x || ! y || x == tiwyn -> shade -> width - 1 || y == tiwyn -> shade -> height - 1 ) shade[ (y * tiwyn -> shade -> width) + x ] = TIWYN_OBJECT_OVERSHADE_COLOR_BORDER;
+}
+
 void tiwyn_event( void ) {
 	// incomming/outgoing messages
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
@@ -109,10 +122,62 @@ void tiwyn_event( void ) {
 		tiwyn -> drag_allow = FALSE;
 	}
 
-	// right mouse button pressed? and not on hold
-	if( (mouse.status & STD_MOUSE_BUTTON_right) ) { if( ! tiwyn -> mouse_button_right ) {
-	}} else {
-		
+	// create shade object?
+	if( (mouse.status & STD_MOUSE_BUTTON_right) ) { if( ! tiwyn -> mouse_button_right ) { if( tiwyn -> key_ctrl_left && ! tiwyn -> shade_initialized && current -> descriptor -> flags & STD_WINDOW_FLAG_resizable ) {
+		// current object under cursor pointer selected for resize
+		tiwyn -> resized = current;
+
+		//--------------------------------------------------------------
+
+		// by default, user holds right or bottom side
+		tiwyn -> direction.width = TRUE;
+		tiwyn -> direction.height = TRUE;
+
+		// is it left side?
+		if( tiwyn -> resized -> descriptor -> x < (tiwyn -> resized -> width >> STD_SHIFT_2) ) tiwyn -> direction.x = TRUE;	// yes
+		else tiwyn -> direction.x = FALSE;	// no
+
+		// is it top side?
+		if( tiwyn -> resized -> descriptor -> y < (tiwyn -> resized -> height >> STD_SHIFT_2) ) tiwyn -> direction.y = TRUE;	// yes
+		else tiwyn -> direction.y = FALSE;	// no
+
+		//--------------------------------------------------------------
+
+		// create initial shade object
+		if( (tiwyn -> shade = tiwyn_object_create( tiwyn -> resized -> x, tiwyn -> resized -> y, tiwyn -> resized -> width, tiwyn -> resized -> height )) ) {
+			// set gradient
+			tiwyn_event_shade_fill();
+
+			// show object
+			tiwyn -> shade -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;	
+
+			// done
+			tiwyn -> shade_initialized = TRUE;
+		}
+	} } } else {
+		// if shade object exist
+		if( tiwyn -> shade && tiwyn -> shade -> descriptor ) {
+			// copy hover object properties to selected object
+			tiwyn -> resized -> descriptor -> new_x		= tiwyn -> shade -> x;
+			tiwyn -> resized -> descriptor -> new_y		= tiwyn -> shade -> y;
+			tiwyn -> resized -> descriptor -> new_width	= tiwyn -> shade -> width;
+			tiwyn -> resized -> descriptor -> new_height	= tiwyn -> shade -> height;
+
+			// inform application interface about requested properties
+			tiwyn -> resized -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
+
+			// remove shade object
+			tiwyn -> shade -> descriptor -> flags = STD_WINDOW_FLAG_release;
+
+			// debug
+			tiwyn -> shade = EMPTY;
+		}
+
+		// uninitialize shade
+		tiwyn -> shade_initialized = FALSE;
+
+		// release mouse button state
+		tiwyn -> mouse_button_right = FALSE;
 	}
 
 	//--------------------------------------------------------------
@@ -132,4 +197,56 @@ void tiwyn_event( void ) {
 
 	// move object along with cursor pointer?
 	if( tiwyn -> mouse_button_left && (tiwyn -> key_ctrl_left || tiwyn -> drag_allow) && ! (tiwyn -> selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_xy) ) tiwyn_object_move( delta_x, delta_y );
+
+	//----------------------------------------------------------------------
+
+	// if shade object doesn't exist
+	if( ! tiwyn -> shade_initialized ) return;	// done
+
+	// remove object visualization
+	tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn -> shade, FALSE );
+
+	// release object content
+	std_memory_release( (uintptr_t) tiwyn -> shade -> descriptor, MACRO_PAGE_ALIGN_UP( tiwyn -> shade -> limit ) >> STD_SHIFT_PAGE );
+
+	//----------------------------------------------------------------------
+
+	// which part of shade should be changed
+
+	// left zone?
+	if( tiwyn -> direction.x && tiwyn -> direction.width ) {
+		// do not move hover zone
+		if( tiwyn -> shade -> x + delta_x < tiwyn -> shade -> x + tiwyn -> shade -> width ) {
+			tiwyn -> shade -> x += delta_x;
+			tiwyn -> shade -> width -= delta_x;
+		}
+	} else tiwyn -> shade -> width += delta_x;	// right
+
+	// up zone?
+	if( tiwyn -> direction.y && tiwyn -> direction.height ) {
+		// do not move hover zone
+		if( tiwyn -> shade -> y + delta_y < tiwyn -> shade -> y + tiwyn -> shade -> height ) {
+			tiwyn -> shade -> y += delta_y;
+			tiwyn -> shade -> height -= delta_y;
+		}
+	} else tiwyn -> shade -> height += delta_y;	// down
+
+	// do not allow object width/height less than 1 pixel
+	if( tiwyn -> shade -> width < TRUE ) tiwyn -> shade -> width = TRUE;
+	if( tiwyn -> shade -> height < TRUE ) tiwyn -> shade -> height = TRUE;
+
+	// and larger than current screen properties
+	if( tiwyn -> shade -> width > tiwyn -> canvas.width ) tiwyn -> shade -> width = tiwyn -> canvas.width;
+	if( tiwyn -> shade -> height > tiwyn -> canvas.height ) tiwyn -> shade -> height = tiwyn -> canvas.height;
+
+	//----------------------------------------------------------------------
+
+	// calculate new object area size in Bytes
+	tiwyn -> shade -> limit = ((tiwyn -> shade -> width * tiwyn -> shade -> height) << STD_VIDEO_DEPTH_shift) + sizeof( struct LIB_WINDOW_DESCRIPTOR );
+
+	// assign new area for object
+	tiwyn -> shade -> descriptor = (struct LIB_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( tiwyn -> shade -> limit ) >> STD_SHIFT_PAGE ); tiwyn_event_shade_fill();
+
+	// show refresh object content
+	tiwyn -> shade -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 }

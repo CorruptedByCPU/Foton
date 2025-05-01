@@ -12,38 +12,44 @@
 		#include	"./string.h"
 	#endif
 
-struct LIB_WINDOW_DESCRIPTOR *lib_window_event( struct LIB_WINDOW_DESCRIPTOR *descriptor ) {
+struct LIB_WINDOW_DESCRIPTOR *lib_window_event( struct LIB_WINDOW_DESCRIPTOR *current ) {
 	// acquired new descriptor properties?
-	if( ! (descriptor -> flags & STD_WINDOW_FLAG_properties) ) return EMPTY;	// no
+	if( ! (current -> flags & STD_WINDOW_FLAG_properties) ) return EMPTY;	// no
 
 	// disable flag
-	descriptor -> flags ^= STD_WINDOW_FLAG_properties;
+	current -> flags ^= STD_WINDOW_FLAG_properties;
 
 	// minimal dimesions are preserved?
-	if( descriptor -> width_limit > descriptor -> new_width ) descriptor -> new_width = descriptor -> width_limit;	// no, set correction
-	if( descriptor -> height_limit > descriptor -> new_height ) descriptor -> new_height = descriptor -> height_limit;	// no, set correction
+	if( current -> width_minimal > current -> new_width ) current -> new_width = current -> width_minimal;	// no, set correction
+	if( current -> height_minimal > current -> new_height ) current -> new_height = current -> height_minimal;	// no, set correction
 
 	// new descriptor properties
-	struct LIB_WINDOW_DESCRIPTOR *window = lib_window( descriptor -> new_x, descriptor -> new_y, descriptor -> new_width, descriptor -> new_height );
-	if( ! window ) return EMPTY;	// cannot create new descriptor
+	struct LIB_WINDOW_DESCRIPTOR *new = lib_window( current -> new_x, current -> new_y, current -> new_width, current -> new_height );
+	if( ! new ) return EMPTY;	// cannot create new descriptor
 
 	// spread descriptor name
-	window -> name_length = descriptor -> name_length;
-	for( uint64_t i = 0; i < descriptor -> name_length; i++ ) window -> name[ i ] = descriptor -> name[ i ];
+	for( uint64_t i = 0; i < current -> name_length; i++ ) new -> name[ new -> name_length++ ] = current -> name[ i ];
 
+	// set new descriptor properties
+	//----------------------------------------------------------------------
+	new -> x = current -> new_x;
+	new -> y = current -> new_y;
+	new -> width = current -> new_width;
+	new -> height = current -> new_height;
+	//----------------------------------------------------------------------
 	// copy required descriptor properties from old one
 	//----------------------------------------------------------------------
-	window -> width_limit = descriptor -> width_limit;
-	window -> height_limit = descriptor -> height_limit;
+	new -> width_minimal = current -> width_minimal;
+	new -> height_minimal = current -> height_minimal;
 	//----------------------------------------------------------------------
-	window -> flags = descriptor -> flags;
+	new -> flags = current -> flags;
 	//----------------------------------------------------------------------
 
 	// release old descriptor
-	descriptor -> flags |= STD_WINDOW_FLAG_release;
+	current -> flags |= STD_WINDOW_FLAG_release;
 
 	// new descriptor created
-	return window;
+	return new;
 }
 
 void lib_window_name( struct LIB_WINDOW_DESCRIPTOR *descriptor, uint8_t *name ) {

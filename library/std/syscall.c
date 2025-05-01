@@ -125,7 +125,7 @@ int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow, uint8_t
 	return std_syscall_value();
 }
 
-uint8_t std_pid_check( int64_t pid ) {
+uint8_t std_pid_exist( int64_t pid ) {
 	// request syscall
 	__asm__ volatile( "" :: "a" (STD_SYSCALL_PID_CHECK), "D" (pid) );
 

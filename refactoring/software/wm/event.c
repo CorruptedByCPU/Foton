@@ -278,40 +278,30 @@ void wm_event( void ) {
 				wm_object_resize_init = TRUE;
 
 				// set current object
-				wm_object_resize = object;
+				tiwyn -> resized = object;
 
 				// select zone modification
 
-				// by default
-				wm_zone_modify.width = TRUE;
-				wm_zone_modify.height = TRUE;
+				// by default, user holds right or bottom side
+				tiwyn -> direction.width = TRUE;
+				tiwyn -> direction.height = TRUE;
 
-				// X axis
-				if( wm_object_resize -> descriptor -> x < (wm_object_resize -> width >> STD_SHIFT_2) ) wm_zone_modify.x = TRUE;	// yes
-				else wm_zone_modify.x = FALSE;	// no
+				// is it left side?
+				if( tiwyn -> resized -> descriptor -> x < (tiwyn -> resized -> width >> STD_SHIFT_2) ) tiwyn -> direction.x = TRUE;	// yes
+				else tiwyn -> direction.x = FALSE;	// no
 
 				// Y axis
-				if( wm_object_resize -> descriptor -> y < (wm_object_resize -> height >> STD_SHIFT_2) ) wm_zone_modify.y = TRUE;	// yes
-				else wm_zone_modify.y = FALSE;	// no
+				if( tiwyn -> resized -> descriptor -> y < (tiwyn -> resized -> height >> STD_SHIFT_2) ) tiwyn -> direction.y = TRUE;	// yes
+				else tiwyn -> direction.y = FALSE;	// no
 
 				// initialize hover object
 
 				// create initial resize object
-				wm_object_hover = wm_object_create( wm_object_resize -> x, wm_object_resize -> y, wm_object_resize -> width, wm_object_resize -> height );
+				wm_object_hover = wm_object_create( tiwyn -> resized -> x, tiwyn -> resized -> y, tiwyn -> resized -> width, tiwyn -> resized -> height );
 
 				// mark it as our
 				wm_object_hover -> pid = wm_pid;
 
-				// fill object with default pattern/color
-				uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
-				for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
-					for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
-						hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x80008000;
-
-				// and point border
-				for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
-					for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
-						if( ! x || ! y || x == wm_object_hover -> width - 1 || y == wm_object_hover -> height - 1 ) hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x80008000;
 
 				// show object
 				wm_object_hover -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
@@ -324,13 +314,13 @@ void wm_event( void ) {
 		// if enabled
 		if( wm_object_hover && wm_object_hover -> descriptor ) {
 			// copy hover object properties to selected object
-			wm_object_resize -> descriptor -> new_x		= wm_object_hover -> x;
-			wm_object_resize -> descriptor -> new_y		= wm_object_hover -> y;
-			wm_object_resize -> descriptor -> new_width	= wm_object_hover -> width;
-			wm_object_resize -> descriptor -> new_height	= wm_object_hover -> height;
+			tiwyn -> resized -> descriptor -> new_x		= wm_object_hover -> x;
+			tiwyn -> resized -> descriptor -> new_y		= wm_object_hover -> y;
+			tiwyn -> resized -> descriptor -> new_width	= wm_object_hover -> width;
+			tiwyn -> resized -> descriptor -> new_height	= wm_object_hover -> height;
 
 			// inform application interface about requested properties
-			wm_object_resize -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
+			tiwyn -> resized -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
 
 			// remove hover object
 			wm_object_hover -> descriptor -> flags = STD_WINDOW_FLAG_release;
@@ -381,7 +371,7 @@ void wm_event( void ) {
 			std_memory_release( (uintptr_t) wm_object_hover -> descriptor, MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
 
 			// left zone?
-			if( wm_zone_modify.x && wm_zone_modify.width ) {
+			if( tiwyn -> direction.x && tiwyn -> direction.width ) {
 				// do not move hover zone
 				if( wm_object_hover -> x + delta_x < wm_object_hover -> x + wm_object_hover -> width ) {
 					wm_object_hover -> x += delta_x;
@@ -390,7 +380,7 @@ void wm_event( void ) {
 			} else wm_object_hover -> width += delta_x;	// right
 
 			// up zone?
-			if( wm_zone_modify.y && wm_zone_modify.height ) {
+			if( tiwyn -> direction.y && tiwyn -> direction.height ) {
 				// do not move hover zone
 				if( wm_object_hover -> y + delta_y < wm_object_hover -> y + wm_object_hover -> height ) {
 					wm_object_hover -> y += delta_y;

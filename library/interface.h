@@ -120,9 +120,6 @@
 		uint8_t		key_alt_semaphore;
 		uint8_t		key_ctrl_semaphore;
 		uint8_t		key_shift_semaphore;
-		//--------------------------------------------------
-		uint8_t		name_length;
-		uint8_t		name[ LIB_INTERFACE_NAME_limit ];
 	};
 
 	struct	LIB_INTERFACE_STRUCTURE_ELEMENT {

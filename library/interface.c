@@ -5,9 +5,6 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions
 	//----------------------------------------------------------------------
-	#ifndef	LIB_JSON
-		#include	"./json.h"
-	#endif
 	#ifndef	LIB_INTERFACE
 		#include	"./interface.h"
 	#endif
@@ -15,42 +12,7 @@
 		#include	"./window.h"
 	#endif
 
-const uint8_t lib_interface_string_window[] = "window";
-const uint8_t lib_interface_string_x[] = "x";
-const uint8_t lib_interface_string_y[] = "y";
-const uint8_t lib_interface_string_width[] = "width";
-const uint8_t lib_interface_string_height[] = "height";
-const uint8_t lib_interface_string_name[] = "name";
-const uint8_t lib_interface_string_label[] = "label";
-const uint8_t lib_interface_string_button[] = "button";
-const uint8_t lib_interface_string_id[] = "id";
-const uint8_t lib_interface_string_align[] = "align";
-const uint8_t lib_interface_string_center[] = "center";
-const uint8_t lib_interface_string_right[] = "right";
-const uint8_t lib_interface_string_justify[] = "justify";
-const uint8_t lib_interface_string_type[] = "type";
-const uint8_t lib_interface_string_control[] = "control";
-const uint8_t lib_interface_string_close[] = "close";
-const uint8_t lib_interface_string_minimize[] = "minimize";
-const uint8_t lib_interface_string_maximize[] = "maximize";
-const uint8_t lib_interface_string_menu[] = "menu";
-const uint8_t lib_interface_string_command[] = "command";
-const uint8_t lib_interface_string_icon[] = "icon";
-const uint8_t lib_interface_string_input[] = "input";
-const uint8_t lib_interface_string_limit[] = "limit";
-const uint8_t lib_interface_string_checkbox[] = "checkbox";
-const uint8_t lib_interface_string_group[] = "group";
-const uint8_t lib_interface_string_radio[] = "radio";
-const uint8_t lib_interface_string_selected[] = "selected";
-const uint8_t lib_interface_string_list[] = "list";
-
 uint8_t lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
-	// prepare JSON structure for parsing
-	lib_json_squeeze( interface -> properties );
-
-	// convert interface properties to a more accessible format
-	lib_interface_convert( interface );
-
 	// if dimensions aquired from JSON structure
 	if( interface -> width && interface -> height ) {
 		// create window
@@ -63,7 +25,7 @@ uint8_t lib_interface( struct LIB_INTERFACE_STRUCTURE *interface ) {
 		lib_interface_name( interface );
 
 		// show interface elements
-		lib_interface_draw( interface );
+		// lib_interface_draw( interface );
 	// no
 	} else return FALSE;
 
@@ -91,7 +53,7 @@ void lib_interface_border( struct LIB_INTERFACE_STRUCTURE *interface ) {
 void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// by default, color
 	uint32_t background_color = LIB_INTERFACE_COLOR_background;
-	if( interface -> background_color ) background_color = interface -> background_color;	// change to choosen one
+	if( interface -> background_color & STD_COLOR_mask ) background_color = interface -> background_color;	// change to choosen one
 
 	// fill window with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
@@ -101,488 +63,6 @@ void lib_interface_clear( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 	// show default border
 	lib_interface_border( interface );
-}
-
-void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
-	// properties of new interface format
-	uint64_t i = EMPTY;	// properties index
-	uint8_t *properties = (uint8_t *) malloc( TRUE );	// alloc default area
-
-	// properties of JSON structure
-	struct LIB_JSON_STRUCTURE json = lib_json( interface -> properties );
-
-	// parse elements inside JSON structure
-	do {
-		// window object?
-		if( lib_json_key( json, (uint8_t *) &lib_interface_string_window ) ) {
-			// window object properties
-			struct LIB_JSON_STRUCTURE window = lib_json( (uint8_t *) json.value );
-
-			// parse all keys of this object
-			do {
-				// retrieve x value
-				if( lib_json_key( window, (uint8_t *) &lib_interface_string_x ) ) interface -> x = window.value;
-	
-				// retrieve y value
-				if( lib_json_key( window, (uint8_t *) &lib_interface_string_y ) ) interface -> y = window.value;
-
-				// retrieve width value
-				if( lib_json_key( window, (uint8_t *) &lib_interface_string_width ) ) interface -> width = window.value;
-	
-				// retrieve height value
-				if( lib_json_key( window, (uint8_t *) &lib_interface_string_height ) ) interface -> height = window.value;
-
-				// retrieve name value
-				if( lib_json_key( window, (uint8_t *) &lib_interface_string_name ) ) {
-					// set name length
-					interface -> name_length = window.length;
-					if( window.length > LIB_INTERFACE_NAME_limit ) interface -> name_length = LIB_INTERFACE_NAME_limit;
-
-					// copy name
-					uint8_t *name = (uint8_t *) window.value;
-					for( uint64_t i = 0; i < interface -> name_length; i++ ) interface -> name[ i ] = name[ i ];
-				}
-			// next key
-			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &window ) );
-		}
-
-		// control?
-		if( lib_json_key( json, (uint8_t *) &lib_interface_string_control ) ) {
-			// alloc space for element
-			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL ) );
-
-			// element structure position
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) &properties[ i ];
-	
-			// control properties
-			struct LIB_JSON_STRUCTURE control = lib_json( (uint8_t *) json.value );
-
-			// default properties of control
-			element -> control.x = interface -> controls;	// order from right, not position
-			element -> control.y = EMPTY;
-			element -> control.width = LIB_INTERFACE_HEADER_HEIGHT_pixel;
-			element -> control.height = LIB_INTERFACE_HEADER_HEIGHT_pixel;
-			element -> control.flags = EMPTY;
-			element -> control.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL );
-
-			// parse all keys
-			do {
-				// id
-				if( lib_json_key( control, (uint8_t *) &lib_interface_string_id ) ) element -> control.id = control.value;
-
-				// type
-				if( lib_json_key( control, (uint8_t *) &lib_interface_string_type ) ) {
-					// close
-					if( lib_string_compare( (uint8_t *) control.value, (uint8_t *) "close", control.length ) ) element -> control.type = LIB_INTERFACE_ELEMENT_TYPE_control_close;
-
-					// maximize
-					if( lib_string_compare( (uint8_t *) control.value, (uint8_t *) "maximize", control.length ) ) element -> control.type = LIB_INTERFACE_ELEMENT_TYPE_control_maximize;
-
-					// minimize
-					if( lib_string_compare( (uint8_t *) control.value, (uint8_t *) "minimize", control.length ) ) element -> control.type = LIB_INTERFACE_ELEMENT_TYPE_control_minimize;
-				}
-			// next key
-			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &control ) );
-
-			// window interface contains additional control element
-			interface -> controls++;
-
-			// change interface structure index
-			i += element -> control.size_byte;
-		}
-
-		// check element type
-		uint8_t type = EMPTY;
-		if( lib_json_key( json, (uint8_t *) &lib_interface_string_label ) ) type = LIB_INTERFACE_ELEMENT_TYPE_label;
-		if( lib_json_key( json, (uint8_t *) &lib_interface_string_button ) ) type = LIB_INTERFACE_ELEMENT_TYPE_button;
-
-		// label or button?
-		if( type == LIB_INTERFACE_ELEMENT_TYPE_label || type == LIB_INTERFACE_ELEMENT_TYPE_button ) {
-			// alloc space for element
-			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON ) );
-
-			// element structure position
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON *) &properties[ i ];
-	
-			// label or button properties
-			struct LIB_JSON_STRUCTURE label_or_button = lib_json( (uint8_t *) json.value );
-
-			// default properties of label and button
-			element -> label_or_button.type = type;
-			element -> label_or_button.flags = EMPTY;
-			element -> label_or_button.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_LABEL_OR_BUTTON );
-
-			// parse all keys
-			do {
-				// element name alignment
-				uint16_t element_name_align = EMPTY;
-
-				// id
-				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_id ) ) element -> label_or_button.id = label_or_button.value;
-
-				// x
-				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_x ) ) element -> label_or_button.x = label_or_button.value;
-
-				// y
-				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_y ) ) element -> label_or_button.y = label_or_button.value;
-
-				// width
-				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_width ) ) element -> label_or_button.width = label_or_button.value;
-
-				// height
-				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_height ) ) element -> label_or_button.height = label_or_button.value;
-		
-				// align
-				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_align ) ) {
-					// by default
-					element -> label_or_button.flags = LIB_FONT_ALIGN_left;
-
-					// center?
-					if( lib_string_compare( (uint8_t *) label_or_button.value, (uint8_t *) &lib_interface_string_center, label_or_button.length ) )
-						element -> label_or_button.flags = LIB_FONT_ALIGN_center;
-
-					// right?
-					if( lib_string_compare( (uint8_t *) label_or_button.value, (uint8_t *) &lib_interface_string_right, label_or_button.length ) )
-						element -> label_or_button.flags = LIB_FONT_ALIGN_right;
-				}
-
-				// name
-				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_name ) ) {
-					// length if proper
-					element -> name_length = label_or_button.length;
-
-					// alloc area for element name
-					uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
-
-					// copy element name
-					uint8_t *name_source = (uint8_t *) label_or_button.value;
-					for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = name_source[ i ];
-
-					// update element name pointer
-					element -> name = name_target;
-				}
-
-			// next key
-			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &label_or_button ) );
-
-			// change interface structure index
-			i += element -> label_or_button.size_byte;
-		}
-
-		// menu?
-		if( lib_json_key( json, (uint8_t *) &lib_interface_string_menu ) ) {
-			// alloc space for element
-			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU ) );
-
-			// element structure position
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) &properties[ i ];
-	
-			// menu properties
-			struct LIB_JSON_STRUCTURE menu = lib_json( (uint8_t *) json.value );
-
-			// default properties of menu entry
-			element -> menu.type = LIB_INTERFACE_ELEMENT_TYPE_menu;
-			element -> menu.flags = EMPTY;
-			element -> menu.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU );
-
-			// parse all keys
-			do {
-				// id
-				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_id ) ) element -> menu.id = menu.value;
-
-				// x
-				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_x ) ) element -> menu.x = menu.value;
-
-				// y
-				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_y ) ) element -> menu.y = menu.value;
-
-				// width
-				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_width ) ) element -> menu.width = menu.value;
-
-				// height
-				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_height ) ) element -> menu.height = menu.value;
-
-				// name
-				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_name ) ) {
-					// length if proper
-					element -> name_length = menu.length;
-
-					// alloc area for element name
-					uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
-
-					// copy element name
-					uint8_t *name_source = (uint8_t *) menu.value;
-					for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = name_source[ i ];
-
-					// update element name pointer
-					element -> name = name_target;
-				}
-
-				// command
-				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_command ) ) {
-					// alloc area for element name
-					uint8_t *command_target = (uint8_t *) calloc( menu.length + 1 );
-
-					// copy element name
-					uint8_t *command_source = (uint8_t *) menu.value;
-					for( uint64_t i = 0; i < menu.length; i++ ) command_target[ i ] = command_source[ i ];
-
-					// update element command pointer
-					element -> command = command_target;
-				}
-
-				// icon
-				if( lib_json_key( menu, (uint8_t *) &lib_interface_string_icon ) ) {
-					// load icon
-					uint8_t *icon_file_string = (uint8_t *) menu.value; icon_file_string[ menu.length ] = STD_ASCII_TERMINATOR;
-					element -> icon = lib_interface_icon( icon_file_string );
-				}
-			// next key
-			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &menu ) );
-
-			// change interface structure index
-			i += element -> menu.size_byte;
-		}
-
-		// input?
-		if( lib_json_key( json, (uint8_t *) &lib_interface_string_input ) ) {
-			// alloc space for element
-			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT ) );
-
-			// element structure position
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) &properties[ i ];
-	
-			// input properties
-			struct LIB_JSON_STRUCTURE input = lib_json( (uint8_t *) json.value );
-
-			// default properties of input
-			element -> input.type = LIB_INTERFACE_ELEMENT_TYPE_input;
-			element -> input.flags = EMPTY;
-			element -> input.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT );
-
-			// parse all keys
-			do {
-				// id
-				if( lib_json_key( input, (uint8_t *) &lib_interface_string_id ) ) element -> input.id = input.value;
-
-				// x
-				if( lib_json_key( input, (uint8_t *) &lib_interface_string_x ) ) element -> input.x = input.value;
-
-				// y
-				if( lib_json_key( input, (uint8_t *) &lib_interface_string_y ) ) element -> input.y = input.value;
-
-				// width
-				if( lib_json_key( input, (uint8_t *) &lib_interface_string_width ) ) element -> input.width = input.value;
-
-				// height
-				if( lib_json_key( input, (uint8_t *) &lib_interface_string_height ) ) element -> input.height = input.value;
-		
-				// length
-				if( lib_json_key( input, (uint8_t *) &lib_interface_string_limit ) ) element -> name_length = input.value;
-
-				// name
-				if( lib_json_key( input, (uint8_t *) &lib_interface_string_name ) ) {
-					// alloc area for element content
-					uint8_t *name = (uint8_t *) calloc( element -> name_length + 1 );
-					
-					// set element content
-					uint8_t *source = (uint8_t *) input.value;
-					for( uint64_t i = 0; i < input.length; i++ ) name[ i ] = source[ i ];
-
-					// set element content properties
-					element -> name		= name;
-					element -> offset	= EMPTY;
-					element -> index	= EMPTY;
-				}
-			// next key
-			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &input ) );
-
-			// change interface structure index
-			i += element -> input.size_byte;
-		}
-
-		// checkbox?
-		if( lib_json_key( json, (uint8_t *) &lib_interface_string_checkbox ) ) {
-			// alloc space for element
-			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX ) );
-
-			// element structure position
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX *) &properties[ i ];
-	
-			// checkbox properties
-			struct LIB_JSON_STRUCTURE checkbox = lib_json( (uint8_t *) json.value );
-
-			// default properties of checkbox
-			element -> checkbox.type = LIB_INTERFACE_ELEMENT_TYPE_checkbox;
-			element -> checkbox.flags = EMPTY;
-			element -> checkbox.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CHECKBOX );
-
-			// parse all keys
-			do {
-				// element name alignment
-				uint16_t element_name_align = EMPTY;
-
-				// id
-				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_id ) ) element -> checkbox.id = checkbox.value;
-
-				// x
-				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_x ) ) element -> checkbox.x = checkbox.value;
-
-				// y
-				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_y ) ) element -> checkbox.y = checkbox.value;
-
-				// width
-				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_width ) ) element -> checkbox.width = checkbox.value;
-
-				// height
-				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_height ) ) element -> checkbox.height = checkbox.value;
-
-				// selected
-				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_selected ) ) element -> checkbox.selected = checkbox.value;
-		
-				// name
-				if( lib_json_key( checkbox, (uint8_t *) &lib_interface_string_name ) ) {
-					// length if proper
-					element -> name_length = checkbox.length;
-
-					// alloc area for element name
-					uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
-
-					// copy element name
-					uint8_t *name_source = (uint8_t *) checkbox.value;
-					for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = name_source[ i ];
-
-					// update element name pointer
-					element -> name = name_target;
-				}
-
-			// next key
-			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &checkbox ) );
-
-			// change interface structure index
-			i += element -> checkbox.size_byte;
-		}
-
-		// radio?
-		if( lib_json_key( json, (uint8_t *) &lib_interface_string_radio ) ) {
-			// alloc space for element
-			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO ) );
-
-			// element structure position
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO *) &properties[ i ];
-	
-			// radio properties
-			struct LIB_JSON_STRUCTURE radio = lib_json( (uint8_t *) json.value );
-
-			// default properties of radio
-			element -> radio.type = LIB_INTERFACE_ELEMENT_TYPE_radio;
-			element -> radio.flags = EMPTY;
-			element -> radio.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_RADIO );
-
-			// parse all keys
-			do {
-				// element name alignment
-				uint16_t element_name_align = EMPTY;
-
-				// id
-				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_id ) ) element -> radio.id = radio.value;
-
-				// x
-				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_x ) ) element -> radio.x = radio.value;
-
-				// y
-				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_y ) ) element -> radio.y = radio.value;
-
-				// width
-				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_width ) ) element -> radio.width = radio.value;
-
-				// height
-				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_height ) ) element -> radio.height = radio.value;
-		
-				// group
-				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_group ) ) element -> radio.group = radio.value;
-
-				// selected
-				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_selected ) ) element -> radio.selected = radio.value;
-
-				// name
-				if( lib_json_key( radio, (uint8_t *) &lib_interface_string_name ) ) {
-					// length if proper
-					element -> name_length = radio.length;
-
-					// alloc area for element name
-					uint8_t *name_target = (uint8_t *) calloc( element -> name_length + 1 );
-
-					// copy element name
-					uint8_t *name_source = (uint8_t *) radio.value;
-					for( uint64_t i = 0; i < element -> name_length; i++ ) name_target[ i ] = name_source[ i ];
-
-					// update element name pointer
-					element -> name = name_target;
-				}
-
-			// next key
-			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &radio ) );
-
-			// change interface structure index
-			i += element -> radio.size_byte;
-		}
-
-		// list?
-		if( lib_json_key( json, (uint8_t *) &lib_interface_string_list ) ) {
-			// alloc space for element
-			properties = (uint8_t *) realloc( properties, i + sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE ) );
-
-			// element structure position
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *element = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) &properties[ i ];
-	
-			// list properties
-			struct LIB_JSON_STRUCTURE list = lib_json( (uint8_t *) json.value );
-
-			// default properties of list
-			element -> file.type = LIB_INTERFACE_ELEMENT_TYPE_list;
-			element -> file.flags = EMPTY;
-			element -> file.size_byte = sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE );
-
-			// parse all keys
-			do {
-				// id
-				if( lib_json_key( list, (uint8_t *) &lib_interface_string_id ) ) element -> file.id = list.value;
-
-				// x
-				if( lib_json_key( list, (uint8_t *) &lib_interface_string_x ) ) element -> file.x = list.value;
-
-				// y
-				if( lib_json_key( list, (uint8_t *) &lib_interface_string_y ) ) element -> file.y = list.value;
-
-				// width
-				if( lib_json_key( list, (uint8_t *) &lib_interface_string_width ) ) element -> file.width = list.value;
-
-				// height
-				if( lib_json_key( list, (uint8_t *) &lib_interface_string_height ) ) element -> file.height = list.value;		
-			// next key
-			} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &list ) );
-
-			// set additional default values
-			element -> color_default = LIB_INTERFACE_COLOR_background_file_default;
-			element -> color_odd = LIB_INTERFACE_COLOR_background_file_odd;
-			element -> color_selected = LIB_INTERFACE_COLOR_background_file_selected;
-
-			// change interface structure index
-			i += element -> file.size_byte;
-
-			// list type is always selected by default and first one only
-			if( ! interface -> element_select ) interface -> element_select = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) element;
-		}
-	// until no more elements
-	} while( lib_json_next( (struct LIB_JSON_STRUCTURE *) &json ) );
-
-	// last element must be NULL
-	properties = (uint8_t *) realloc( properties, i + TRUE );
-	properties[ i ] = LIB_INTERFACE_ELEMENT_TYPE_null;
-
-	// store new properties pointer
-	interface -> properties = properties;
 }
 
 void lib_interface_draw( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -1017,19 +497,19 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 	// message properties
 	struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
 
-	// receive pending messages
-	if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
-		// pressed left mouse button?
-		if( mouse -> button == (uint8_t) STD_IPC_MOUSE_BUTTON_left ) lib_interface_event_handler_press( interface );
+	// // receive pending messages
+	// if( std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse ) ) {
+	// 	// pressed left mouse button?
+	// 	if( mouse -> button == (uint8_t) STD_IPC_MOUSE_BUTTON_left ) lib_interface_event_handler_press( interface );
 
-		// released left mouse button?
-		if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) lib_interface_event_handler_release( interface );
-	}
+	// 	// released left mouse button?
+	// 	if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) lib_interface_event_handler_release( interface );
+	// }
 
-	//--------------------------------------------------------------------------------
-	// "hover over elements"
-	//--------------------------------------------------------------------------------
-	lib_interface_active_or_hover( interface, mouse -> scroll );
+	// //--------------------------------------------------------------------------------
+	// // "hover over elements"
+	// //--------------------------------------------------------------------------------
+	// lib_interface_active_or_hover( interface, mouse -> scroll );
 
 	// acquired new window properties?
 	if( interface -> descriptor -> flags & STD_WINDOW_FLAG_properties ) {
@@ -1066,10 +546,6 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		new_interface -> width	= interface -> descriptor -> new_width;
 		new_interface -> height	= interface -> descriptor -> new_height;
 
-		// copy window name
-		new_interface -> name_length = EMPTY;
-		for( uint64_t i = 0; i < interface -> name_length; i++ ) new_interface -> name[ new_interface -> name_length++ ] = interface -> name[ i ];
-
 		// create new window
 		if( ! (new_interface -> descriptor = lib_window( new_interface -> x, new_interface -> y, new_interface -> width, new_interface -> height )) ) {
 			// release new interface area
@@ -1083,10 +559,11 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		lib_interface_clear( new_interface );
 
 		// show window name in header if set
-		lib_interface_name( new_interface );
+		for( uint8_t i = 0; i < interface -> descriptor -> name_length; i++ ) new_interface -> descriptor -> name[ new_interface -> descriptor -> name_length++ ] = interface -> descriptor -> name[ i ];
+		lib_interface_name_rewrite( new_interface );
 
 		// show interface elements
-		lib_interface_draw( new_interface );
+		// lib_interface_draw( new_interface );
 
 		// copy required interface properties from old one
 		//----------------------------------------------------------------------
@@ -1735,11 +1212,7 @@ uint32_t *lib_interface_icon( uint8_t *path ) {
 
 void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// window name set?
-	if( ! interface -> name_length ) return;	// no
-
-	// synchronize header name with window
-	interface -> descriptor -> name_length = interface -> name_length;
-	for( uint8_t i = 0; i < interface -> name_length; i++ ) interface -> descriptor -> name[ i ] = interface -> name[ i ];
+	if( ! interface -> descriptor -> name_length ) return;	// no
 
 	// draw new header name
 	lib_interface_name_rewrite( interface );
@@ -1750,7 +1223,7 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 
 void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	// window name set?
-	if( ! interface -> name_length ) return;	// no
+	if( ! interface -> descriptor -> name_length ) return;	// no
 
 	// clear window header with default background
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
@@ -1760,9 +1233,7 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 			pixel[ (y * interface -> width) + x ] = LIB_INTERFACE_COLOR_background;
 
 	// limit name length to header width
-	uint8_t *string = (uint8_t *) calloc( interface -> name_length + 1);
-	for( uint64_t i = 0; i < interface -> name_length; i++ ) string[ i ] = interface -> name[ i ];
-	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, string, interface -> name_length, interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) );
+	uint64_t limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, interface -> descriptor -> name, interface -> descriptor -> name_length, interface -> width - (interface -> controls * LIB_INTERFACE_HEADER_HEIGHT_pixel) );
 
 	// default border color
 	uint32_t color = 0xFFFFFFFF;
@@ -1771,8 +1242,7 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = 0xFF808080;
 
 	// print new header
-	lib_font( LIB_FONT_FAMILY_ROBOTO, string, limit, color, pixel + (5 * interface -> width) + 5, interface -> width, LIB_FONT_ALIGN_left );
-	free( string );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, interface -> descriptor -> name, limit, color, pixel + (5 * interface -> width) + 5, interface -> width, LIB_FONT_ALIGN_left );
 }
 
 uint64_t lib_interface_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t pixel ) {

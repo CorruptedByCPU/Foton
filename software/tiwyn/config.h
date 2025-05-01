@@ -2,9 +2,12 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#define	TIWYN_OBJECT_LIMIT		64
-#define	TIWYN_LIST_LIMIT		(TIWYN_OBJECT_LIMIT + TRUE)
-#define	TIWYN_ZONE_LIMIT		(TIWYN_OBJECT_LIMIT << STD_SHIFT_4)	// 4 edges per window
+#define	TIWYN_OBJECT_LIMIT			64
+#define	TIWYN_LIST_LIMIT			(TIWYN_OBJECT_LIMIT + TRUE)
+#define	TIWYN_ZONE_LIMIT			(TIWYN_OBJECT_LIMIT << STD_SHIFT_4)	// 4 edges per window
+
+#define	TIWYN_OBJECT_OVERSHADE_COLOR		0x20008000
+#define	TIWYN_OBJECT_OVERSHADE_COLOR_BORDER	TIWYN_OBJECT_OVERSHADE_COLOR + 0x80707070
 
 struct	TIWYN_STRUCTURE_OBJECT {
 	int16_t		x;
@@ -52,13 +55,18 @@ struct	TIWYN_STRUCTURE {
 	// currently active object, which will receive keyboard/mouse input
 	struct TIWYN_STRUCTURE_OBJECT			*active;
 	struct TIWYN_STRUCTURE_OBJECT			*selected;
+	struct TIWYN_STRUCTURE_OBJECT			*resized;
+	struct TIWYN_STRUCTURE_OBJECT			*shade;
 
 	// integral part of Tiwyn
 	struct TIWYN_STRUCTURE_OBJECT			*cursor;
+
+	struct TIWYN_STRUCTURE_ZONE			direction;
 
 	// semaphores
 	uint8_t						drag_allow;
 	uint8_t 					key_ctrl_left;
 	uint8_t						mouse_button_left;
 	uint8_t						mouse_button_right;
+	uint8_t						shade_initialized;
 };
