@@ -37,10 +37,10 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	lib_interface_name_rewrite( so_interface );
 
 	// allow window to be resiable
-	so_interface -> descriptor -> flags = STD_WINDOW_FLAG_resizable;
+	so_interface -> descriptor -> flags = LIB_WINDOW_FLAG_resizable;
 
 	// update window content on screen
-	so_interface -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+	so_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 
 	// main loop
 	while( TRUE ) {
@@ -51,7 +51,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			so_interface = new;
 
 			// update window content on screen
-			so_interface -> descriptor -> flags |= STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+			so_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_resizable | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 		}
 
 		// recieve key

@@ -11,20 +11,74 @@
 	#include	"../../library/integer.h"
 	//----------------------------------------------------------------------
 
-#define	TIWYN_DESKTOP_PANEL_COLOR_default	0xC0080808
+#define	TIWYN_DESKTOP_PANEL_COLOR_default	0xFF101010
 #define	TIWYN_DESKTOP_PANEL_CLOCK_WIDTH_pixel	50
 #define	TIWYN_DESKTOP_PANEL_HEIGHT_pixel	22
 
 void tiwyn_desktop_panel_clock( void );
+
+uint64_t tiwyn_desktop_pid = EMPTY;
 
 struct TIWYN_STRUCTURE_OBJECT	*tiwyn_desktop_object_workbench;
 struct TIWYN_STRUCTURE_OBJECT	*tiwyn_desktop_object_panel;
 
 uint64_t tiwyn_clock_state = EMPTY;
 
+uint64_t tiwyn_desktop_panel_task_limit_old = EMPTY;
+
 void tiwyn_desktop_panel( void ) {
 	// check clock status
 	tiwyn_desktop_panel_clock();
+
+	// properties of task list area
+	uint32_t *task_pixel = (uint32_t *) ((uintptr_t) tiwyn_desktop_object_panel -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+
+	// empty panel by default
+	uint64_t task_limit = EMPTY;
+
+	// nothing changed
+	uint8_t task_altered = FALSE;
+
+	// count amount of object to show
+	for( uint64_t i = 0; i < tiwyn -> list_limit; i++ ) {
+		// it's not our object? and visible?
+		if( tiwyn -> list[ i ] -> pid != tiwyn_desktop_pid && tiwyn -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) task_limit++;	// yes, count it
+		
+		// altered object?
+		if( tiwyn -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_altered ) task_altered = TRUE;
+	}
+
+	// nothing to show?
+	if( task_limit == tiwyn_desktop_panel_task_limit_old && ! task_altered ) return;	// done
+
+	// update task limit
+	tiwyn_desktop_panel_task_limit_old = task_limit;
+
+	// clean'up panel with default color
+	for( uint16_t y = 0; y < tiwyn_desktop_object_panel -> height; y++ )
+		for( uint16_t x = TIWYN_DESKTOP_PANEL_HEIGHT_pixel; x < tiwyn_desktop_object_panel -> width - TIWYN_DESKTOP_PANEL_CLOCK_WIDTH_pixel; x++ )
+			task_pixel[ (y * tiwyn_desktop_object_panel -> width) + x ] = TIWYN_DESKTOP_PANEL_COLOR_default;
+
+	// entry width
+	uint64_t task_width_pixel = (tiwyn_desktop_object_panel -> width - (TIWYN_DESKTOP_PANEL_HEIGHT_pixel + TIWYN_DESKTOP_PANEL_CLOCK_WIDTH_pixel)) / task_limit;
+
+	// move pointer to first entry of panel task list
+	task_pixel += TIWYN_DESKTOP_PANEL_HEIGHT_pixel;
+
+	// first entry position
+	uint16_t x = 0;
+
+	// count amount of object to show
+	for( uint64_t i = 0; i < tiwyn -> list_limit; i++ ) {	
+		// it's our object? or invisible?
+		if( tiwyn -> list[ i ] -> pid == tiwyn_desktop_pid || ! (tiwyn -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) continue;	// yes, omit
+
+		// show entry name
+		lib_font( LIB_FONT_FAMILY_ROBOTO, tiwyn -> list[ i ] -> descriptor -> name, tiwyn -> list[ i ] -> descriptor -> name_length, 0xFFFFFFFF, task_pixel + (4 * tiwyn_desktop_object_panel -> width) + 4, tiwyn_desktop_object_panel -> width, LIB_FONT_ALIGN_left );
+
+		// object parsed
+		tiwyn -> list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_altered;
+	}	
 }
 
 void tiwyn_desktop_panel_clock( void ) {
@@ -68,10 +122,15 @@ void tiwyn_desktop_panel_clock( void ) {
 	else lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) ":", TRUE, STD_COLOR_WHITE, clock_pixel + ((((TIWYN_DESKTOP_PANEL_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2)) * tiwyn_desktop_object_panel -> width) + (TIWYN_DESKTOP_PANEL_CLOCK_WIDTH_pixel >> STD_SHIFT_2), tiwyn_desktop_object_panel -> width, LIB_FONT_ALIGN_center );
 
 	// update taskbar content on screen
-	tiwyn_desktop_object_panel -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+	tiwyn_desktop_object_panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 }
 
 void tiwyn_desktop_init( void ) {
+	// acquire our PID number
+	tiwyn_desktop_pid = std_pid();
+
+	//----------------------------------------------------------------------
+
 	// properties of file
 	FILE *workbench_file = EMPTY;
 
@@ -89,6 +148,9 @@ void tiwyn_desktop_init( void ) {
 
 	// create workbench object
 	tiwyn_desktop_object_workbench = tiwyn_object_create( 0, 0, tiwyn -> canvas.width, tiwyn -> canvas.height );
+
+	// mark object as own
+	tiwyn_desktop_object_workbench -> pid = tiwyn_desktop_pid;
 
 	// properties of workbench area content
 	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) tiwyn_desktop_object_workbench -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
@@ -121,12 +183,15 @@ void tiwyn_desktop_init( void ) {
 				workbench_pixel[ (y * tiwyn_desktop_object_workbench -> width) + x ] = TIWYN_DESKTOP_PANEL_COLOR_default;
 
 	// object content ready for display
-	tiwyn_desktop_object_workbench -> descriptor -> flags = STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+	tiwyn_desktop_object_workbench -> descriptor -> flags = LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 
 	//----------------------------------------------------------------------
 
 	// create panel object
 	tiwyn_desktop_object_panel = tiwyn_object_create( 0, tiwyn -> canvas.height - TIWYN_DESKTOP_PANEL_HEIGHT_pixel, tiwyn -> canvas.width, TIWYN_DESKTOP_PANEL_HEIGHT_pixel );
+
+	// mark object as own
+	tiwyn_desktop_object_panel -> pid = tiwyn_desktop_pid;
 
 	// properties of panel area content
 	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) tiwyn_desktop_object_panel -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
@@ -141,7 +206,7 @@ void tiwyn_desktop_init( void ) {
 	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), STD_COLOR_WHITE, panel_pixel + (((tiwyn_desktop_object_panel -> height - LIB_FONT_HEIGHT_pixel) / 2) * tiwyn_desktop_object_panel -> width) + (tiwyn_desktop_object_panel -> height >> STD_SHIFT_2), tiwyn_desktop_object_panel -> width, LIB_FONT_ALIGN_center );
 
 	// object content ready for display
-	tiwyn_desktop_object_panel -> descriptor -> flags = STD_WINDOW_FLAG_panel | STD_WINDOW_FLAG_fixed_z | STD_WINDOW_FLAG_fixed_xy | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+	tiwyn_desktop_object_panel -> descriptor -> flags = LIB_WINDOW_FLAG_panel | LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 
 	//----------------------------------------------------------------------
 
@@ -165,6 +230,9 @@ void tiwyn_desktop_init( void ) {
 		// create default object
 		tiwyn -> cursor = tiwyn_object_create( tiwyn_desktop_object_workbench -> width >> STD_SHIFT_2, tiwyn_desktop_object_workbench -> height >> STD_SHIFT_2, 16, 32 );
 
+	// mark object as own
+	tiwyn -> cursor -> pid = tiwyn_desktop_pid;
+
 	// properties of cursor area content
 	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) tiwyn -> cursor -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 
@@ -186,7 +254,7 @@ void tiwyn_desktop_init( void ) {
 	}
 
 	// object content ready for display
-	tiwyn -> cursor -> descriptor -> flags = STD_WINDOW_FLAG_cursor | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+	tiwyn -> cursor -> descriptor -> flags = LIB_WINDOW_FLAG_cursor | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 }
 
 void tiwyn_desktop( void ) {

@@ -4,7 +4,7 @@
 
 void tiwyn_cursor( void ) {
 	// requested redraw?
-	if( ! (tiwyn -> cursor -> descriptor -> flags & STD_WINDOW_FLAG_flush) ) return;	// no
+	if( ! (tiwyn -> cursor -> descriptor -> flags & LIB_WINDOW_FLAG_flush) ) return;	// no
 
 	// remove current cursor position from workbench
 	tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn -> cursor, FALSE );
@@ -43,8 +43,8 @@ void tiwyn_cursor( void ) {
 		}
 
 	// cursor parsed
-	tiwyn -> cursor -> descriptor -> flags ^= STD_WINDOW_FLAG_flush;
+	tiwyn -> cursor -> descriptor -> flags ^= LIB_WINDOW_FLAG_flush;
 
 	// synchronize workbench with framebuffer
-	tiwyn -> canvas.descriptor -> flags |= STD_WINDOW_FLAG_flush;
+	tiwyn -> canvas.descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 }

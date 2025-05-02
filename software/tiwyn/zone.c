@@ -17,10 +17,10 @@ void tiwyn_zone( void ) {
 		// analyze zone against each object
 		for( uint64_t j = 0; j < tiwyn -> list_limit; j++ ) {
 			// ignore cursor object
-			if( list[ j ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;
+			if( list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;
 
 			// invisible object?
-			if( ! (list[ j ] -> descriptor -> flags & STD_WINDOW_FLAG_visible) ) continue;	// yes
+			if( ! (list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) continue;	// yes
 
 			// zone and object share area?
 			if( list[ j ] -> x + list[ j ] -> width < zone[ i ].x ) continue;	// no

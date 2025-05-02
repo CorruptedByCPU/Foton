@@ -14,10 +14,10 @@
 
 struct LIB_WINDOW_DESCRIPTOR *lib_window_event( struct LIB_WINDOW_DESCRIPTOR *current ) {
 	// acquired new descriptor properties?
-	if( ! (current -> flags & STD_WINDOW_FLAG_properties) ) return EMPTY;	// no
+	if( ! (current -> flags & LIB_WINDOW_FLAG_properties) ) return EMPTY;	// no
 
 	// disable flag
-	current -> flags ^= STD_WINDOW_FLAG_properties;
+	current -> flags ^= LIB_WINDOW_FLAG_properties;
 
 	// minimal dimesions are preserved?
 	if( current -> width_minimal > current -> new_width ) current -> new_width = current -> width_minimal;	// no, set correction
@@ -46,7 +46,7 @@ struct LIB_WINDOW_DESCRIPTOR *lib_window_event( struct LIB_WINDOW_DESCRIPTOR *cu
 	//----------------------------------------------------------------------
 
 	// release old descriptor
-	current -> flags |= STD_WINDOW_FLAG_release;
+	current -> flags |= LIB_WINDOW_FLAG_release;
 
 	// new descriptor created
 	return new;
@@ -58,7 +58,7 @@ void lib_window_name( struct LIB_WINDOW_DESCRIPTOR *descriptor, uint8_t *name ) 
 	for( uint8_t i = 0; i < descriptor -> name_length; i++ ) descriptor -> name[ i ] = name[ i ];
 
 	// inform Window Manager about new window name
-	descriptor -> flags |= STD_WINDOW_FLAG_name;
+	descriptor -> flags |= LIB_WINDOW_FLAG_name;
 }
 
 struct LIB_WINDOW_DESCRIPTOR *lib_window( int16_t x, int16_t y, uint16_t width, uint16_t height ) {

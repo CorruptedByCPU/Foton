@@ -46,9 +46,7 @@ void tiwyn_event( void ) {
 				if( new ) answer -> descriptor = std_memory_share( pid, (uintptr_t) new -> descriptor, MACRO_PAGE_ALIGN_UP( new -> limit ) >> STD_SHIFT_PAGE, TRUE );
 
 				// if everything was done properly
-				if( answer -> descriptor )
-					// set object owner
-					new -> pid = pid;
+				if( answer -> descriptor ) new -> pid = pid;
 
 				// send answer
 				std_ipc_send( pid, (uint8_t *) answer );
@@ -108,12 +106,12 @@ void tiwyn_event( void ) {
 		if( tiwyn -> selected -> descriptor -> y < tiwyn -> selected -> descriptor -> header_height ) tiwyn -> drag_allow = TRUE;
 
 		// can we move object on top of object list?
-		if( ! (tiwyn -> selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! tiwyn -> key_ctrl_left && wm_object_move_up( tiwyn -> selected ) )
+		if( ! (tiwyn -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_z) && ! tiwyn -> key_ctrl_left && wm_object_move_up( tiwyn -> selected ) )
 			// object moved on top, redraw
-			tiwyn -> selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			tiwyn -> selected -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 		// make object as active if not a panel
-		if( ! (tiwyn -> selected -> descriptor -> flags & STD_WINDOW_FLAG_panel) ) tiwyn -> active = tiwyn -> selected;
+		if( ! (tiwyn -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_panel) ) tiwyn -> active = tiwyn -> selected;
 	} } else {
 		// release mouse button state
 		tiwyn -> mouse_button_left = FALSE;
@@ -123,7 +121,7 @@ void tiwyn_event( void ) {
 	}
 
 	// create shade object?
-	if( (mouse.status & STD_MOUSE_BUTTON_right) ) { if( ! tiwyn -> mouse_button_right ) { if( tiwyn -> key_ctrl_left && ! tiwyn -> shade_initialized && current -> descriptor -> flags & STD_WINDOW_FLAG_resizable ) {
+	if( (mouse.status & STD_MOUSE_BUTTON_right) ) { if( ! tiwyn -> mouse_button_right ) { if( tiwyn -> key_ctrl_left && ! tiwyn -> shade_initialized && current -> descriptor -> flags & LIB_WINDOW_FLAG_resizable ) {
 		// current object under cursor pointer selected for resize
 		tiwyn -> resized = current;
 
@@ -149,7 +147,7 @@ void tiwyn_event( void ) {
 			tiwyn_event_shade_fill();
 
 			// show object
-			tiwyn -> shade -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;	
+			tiwyn -> shade -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;	
 
 			// done
 			tiwyn -> shade_initialized = TRUE;
@@ -164,10 +162,10 @@ void tiwyn_event( void ) {
 			tiwyn -> resized -> descriptor -> new_height	= tiwyn -> shade -> height;
 
 			// inform application interface about requested properties
-			tiwyn -> resized -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
+			tiwyn -> resized -> descriptor -> flags |= LIB_WINDOW_FLAG_properties;
 
 			// remove shade object
-			tiwyn -> shade -> descriptor -> flags = STD_WINDOW_FLAG_release;
+			tiwyn -> shade -> descriptor -> flags = LIB_WINDOW_FLAG_release;
 
 			// debug
 			tiwyn -> shade = EMPTY;
@@ -193,10 +191,10 @@ void tiwyn_event( void ) {
 	tiwyn -> cursor -> y = mouse.y;
 
 	// redisplay cursor at new location
-	tiwyn -> cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+	tiwyn -> cursor -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 	// move object along with cursor pointer?
-	if( tiwyn -> mouse_button_left && (tiwyn -> key_ctrl_left || tiwyn -> drag_allow) && ! (tiwyn -> selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_xy) ) tiwyn_object_move( delta_x, delta_y );
+	if( tiwyn -> mouse_button_left && (tiwyn -> key_ctrl_left || tiwyn -> drag_allow) && ! (tiwyn -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_xy) ) tiwyn_object_move( delta_x, delta_y );
 
 	//----------------------------------------------------------------------
 
@@ -248,5 +246,5 @@ void tiwyn_event( void ) {
 	tiwyn -> shade -> descriptor = (struct LIB_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( tiwyn -> shade -> limit ) >> STD_SHIFT_PAGE ); tiwyn_event_shade_fill();
 
 	// show refresh object content
-	tiwyn -> shade -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+	tiwyn -> shade -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 }

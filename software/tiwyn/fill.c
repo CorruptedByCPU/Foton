@@ -34,7 +34,7 @@ void tiwyn_fill( void ) {
 			}
 
 		// synchronize workbench with framebuffer
-		tiwyn -> canvas.descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		tiwyn -> canvas.descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 	}
 
 	// all zones filled

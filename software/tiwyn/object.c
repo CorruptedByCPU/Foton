@@ -9,22 +9,22 @@ void tiwyn_object( void ) {
 	// search whole list for flush request on any object
 	for( uint16_t i = 0; i < tiwyn -> list_limit; i++ ) {
 		// found cursor object?
-		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// done
+		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;	// done
 
 		// active window selected?
-		if( list[ i ] == tiwyn -> active ) tiwyn -> active -> descriptor -> flags |= STD_WINDOW_FLAG_active;
-		else list[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_active;
+		if( list[ i ] == tiwyn -> active ) tiwyn -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
+		else list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_active;
 
 		// requested flush?
-		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_flush ) {
+		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_flush ) {
 			// parse object area
 			tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn -> list[ i ], FALSE );
 
 			// request parsed
-			list[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_flush;
+			list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_flush;
 
 			// always redraw cursor object (it might be covered)
-			tiwyn -> cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			tiwyn -> cursor -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 		}
 	}
 }
@@ -74,10 +74,10 @@ void tiwyn_object_current( void ) {
 	// search thru object list as far as to panel type object
 	for( uint16_t i = 0; i < tiwyn -> list_limit; i++ ) {
 		// panel or cursor object?
-		if( tiwyn -> list[ i ] -> descriptor -> flags & (STD_WINDOW_FLAG_panel | STD_WINDOW_FLAG_cursor) ) break;	// yes
+		if( tiwyn -> list[ i ] -> descriptor -> flags & (LIB_WINDOW_FLAG_panel | LIB_WINDOW_FLAG_cursor) ) break;	// yes
 
 		// object is visible?
-		if( tiwyn -> list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible ) tiwyn -> active = tiwyn -> list[ i ];
+		if( tiwyn -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) tiwyn -> active = tiwyn -> list[ i ];
 	}
 }
 
@@ -88,10 +88,10 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_find( uint16_t x, uint16_t y, uint8_
 	// find object at current cursor coordinates
 	for( uint16_t i = tiwyn -> list_limit - 1; i >= 0; i-- ) {
 		// object marked as cursor?
-		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_cursor ) continue;	// ignore
+		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;	// ignore
 
 		// object is visible? (or include hidden ones too)
-		if( list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_visible || hidden ) {
+		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible || hidden ) {
 			// coordinates at object area?
 			if( list[ i ] -> x > x ) continue;	// no
 			if( list[ i ] -> y > y ) continue;	// no
@@ -114,7 +114,7 @@ void tiwyn_object_insert( struct TIWYN_STRUCTURE_OBJECT *object ) {
 	// find panel object on list
 	uint64_t i = 0; for( ; i < tiwyn -> list_limit; i++ ) {
 		// if not a panel
-		if( ! (list[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_panel) ) continue;	// next entry
+		if( ! (list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_panel) ) continue;	// next entry
 
 		// move all objects one position further
 		for( uint64_t j = tiwyn -> list_limit; j > i; j-- ) list[ j ] = list[ j - 1 ];
@@ -183,7 +183,7 @@ void tiwyn_object_move( int16_t x, int16_t y ) {
 	}
 
 	// object has been moved
-	tiwyn -> selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+	tiwyn -> selected -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 }
 
 uint8_t wm_object_move_up( struct TIWYN_STRUCTURE_OBJECT *object ) {
@@ -195,7 +195,7 @@ uint8_t wm_object_move_up( struct TIWYN_STRUCTURE_OBJECT *object ) {
 		// move all objects in place of selected
 		for( uint64_t j = i; j < tiwyn -> list_limit - TRUE; j++ ) {
 			// next object, panel?
-			if( tiwyn -> list[ j + 1 ] -> descriptor -> flags & STD_WINDOW_FLAG_panel ) break;	// done
+			if( tiwyn -> list[ j + 1 ] -> descriptor -> flags & LIB_WINDOW_FLAG_panel ) break;	// done
 
 			// no, move next object to current position
 			tiwyn -> list[ i++ ] = tiwyn -> list[ j + 1 ];

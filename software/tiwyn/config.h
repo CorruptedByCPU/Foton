@@ -49,6 +49,9 @@ struct	TIWYN_STRUCTURE {
 	uint64_t					list_limit;
 	uint64_t					zone_limit;
 
+	// do not allow modification of object list
+	uint8_t						list_lock;
+
 	// draw on canvas, before sync with Graphics Card
 	struct TIWYN_STRUCTURE_OBJECT			canvas;
 

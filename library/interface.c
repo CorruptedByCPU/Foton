@@ -39,7 +39,7 @@ void lib_interface_border( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	uint32_t color_shadow = LIB_INTERFACE_BORDER_COLOR_default_shadow;
 
 	// change border of window if not active
-	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) { color = LIB_INTERFACE_BORDER_COLOR_inactive; color_shadow = LIB_INTERFACE_BORDER_COLOR_inactive_shadow; }
+	if( ! (interface -> descriptor -> flags & LIB_WINDOW_FLAG_active) ) { color = LIB_INTERFACE_BORDER_COLOR_inactive; color_shadow = LIB_INTERFACE_BORDER_COLOR_inactive_shadow; }
 
 	// and point border
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) interface -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
@@ -487,7 +487,7 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			pixel[ (y * interface -> width) + x ] = pixel_offset[ (y * width) + x ];
 
 	// reload window content
-	interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+	interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 }
 
 struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -512,9 +512,9 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 	// lib_interface_active_or_hover( interface, mouse -> scroll );
 
 	// acquired new window properties?
-	if( interface -> descriptor -> flags & STD_WINDOW_FLAG_properties ) {
+	if( interface -> descriptor -> flags & LIB_WINDOW_FLAG_properties ) {
 		// disable flag
-		interface -> descriptor -> flags ^= STD_WINDOW_FLAG_properties;
+		interface -> descriptor -> flags ^= LIB_WINDOW_FLAG_properties;
 
 		// minimal dimesions are preserved?
 		if( interface -> min_width > interface -> descriptor -> new_width ) interface -> descriptor -> new_width = interface -> min_width;	// no, set correction
@@ -571,7 +571,7 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		//----------------------------------------------------------------------
 
 		// release old interface window
-		interface -> descriptor -> flags |= STD_WINDOW_FLAG_release;
+		interface -> descriptor -> flags |= LIB_WINDOW_FLAG_release;
 
 		// release old interface area
 		free( interface );
@@ -581,9 +581,9 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 	}
 
 	// active window change?
-	if( (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) != interface -> active_semaphore ) {
+	if( (interface -> descriptor -> flags & LIB_WINDOW_FLAG_active) != interface -> active_semaphore ) {
 		// remember current status
-		interface -> active_semaphore = interface -> descriptor -> flags & STD_WINDOW_FLAG_active;
+		interface -> active_semaphore = interface -> descriptor -> flags & LIB_WINDOW_FLAG_active;
 
 		// update window border
 		lib_interface_border( interface );
@@ -592,7 +592,7 @@ struct LIB_INTERFACE_STRUCTURE *lib_interface_event( struct LIB_INTERFACE_STRUCT
 		lib_interface_name_rewrite( interface );
 
 		// update window content
-		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 	}
 
 	// nothing to do
@@ -666,7 +666,7 @@ void lib_interface_event_handler_press( struct LIB_INTERFACE_STRUCTURE *interfac
 					lib_interface_draw_select( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) properties );
 
 					// redraw window content
-					interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+					interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 					// done
 					break;
@@ -717,7 +717,7 @@ void lib_interface_event_handler_release( struct LIB_INTERFACE_STRUCTURE *interf
 						interface -> previous_height	= EMPTY;
 
 						// inform interface library about request
-						interface -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
+						interface -> descriptor -> flags |= LIB_WINDOW_FLAG_properties;
 					} else {
 						// preserve current window properties
 						interface -> previous_x		= interface -> x;
@@ -726,7 +726,7 @@ void lib_interface_event_handler_release( struct LIB_INTERFACE_STRUCTURE *interf
 						interface -> previous_height	= interface -> height;
 
 						// maximize window
-						interface -> descriptor -> flags |= STD_WINDOW_FLAG_maximize;
+						interface -> descriptor -> flags |= LIB_WINDOW_FLAG_maximize;
 					}
 
 					// done
@@ -735,7 +735,7 @@ void lib_interface_event_handler_release( struct LIB_INTERFACE_STRUCTURE *interf
 
 				case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
 					// minimize window
-					interface -> descriptor -> flags |= STD_WINDOW_FLAG_minimize;
+					interface -> descriptor -> flags |= LIB_WINDOW_FLAG_minimize;
 
 					// done
 					break;
@@ -767,7 +767,7 @@ void lib_interface_event_handler_release( struct LIB_INTERFACE_STRUCTURE *interf
 					lib_interface_draw_select( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) checkbox );
 
 					// redraw window content
-					interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+					interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 					// done
 					break;
@@ -797,7 +797,7 @@ void lib_interface_event_handler_release( struct LIB_INTERFACE_STRUCTURE *interf
 					}
 
 					// redraw window content
-					interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+					interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 					// done
 					break;
@@ -823,7 +823,7 @@ void lib_interface_event_handler_release( struct LIB_INTERFACE_STRUCTURE *interf
 					lib_interface_draw_select( interface, (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) element );
 
 					// redraw window content
-					interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+					interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 					// done
 					break;
@@ -909,7 +909,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 			lib_interface_draw_select( interface, selected );
 
 			// redraw window content
-			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 		}
 
 		// done
@@ -943,7 +943,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 				lib_interface_draw_select( interface, interface -> element_select );
 
 				// redraw window content
-				interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+				interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 				// done
 				break;
@@ -967,7 +967,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 				}
 
 				// redraw window content
-				interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+				interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 				// done
 				break;
@@ -992,7 +992,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		lib_interface_draw_select( interface, interface -> element_select );
 
 		// redraw window content
-		interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 	}
 
 	// element type of
@@ -1063,7 +1063,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 			lib_interface_draw_select( interface, interface -> element_select );
 
 			// synchronize window content
-			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 		}
 	}
 
@@ -1172,7 +1172,7 @@ void lib_interface_active_or_hover( struct LIB_INTERFACE_STRUCTURE *interface, i
 			lib_interface_draw_select( interface, properties );
 
 			// update window content on screen
-			interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+			interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 		}
 
 		// next element from list
@@ -1218,7 +1218,7 @@ void lib_interface_name( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	lib_interface_name_rewrite( interface );
 
 	// inform Window Manager about new window name
-	interface -> descriptor -> flags |= STD_WINDOW_FLAG_name;
+	interface -> descriptor -> flags |= LIB_WINDOW_FLAG_name;
 }
 
 void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
@@ -1239,7 +1239,7 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	uint32_t color = 0xFFFFFFFF;
 
 	// change border of window if not active
-	if( ! (interface -> descriptor -> flags & STD_WINDOW_FLAG_active) ) color = 0xFF808080;
+	if( ! (interface -> descriptor -> flags & LIB_WINDOW_FLAG_active) ) color = 0xFF808080;
 
 	// print new header
 	lib_font( LIB_FONT_FAMILY_ROBOTO, interface -> descriptor -> name, limit, color, pixel + (5 * interface -> width) + 5, interface -> width, LIB_FONT_ALIGN_left );

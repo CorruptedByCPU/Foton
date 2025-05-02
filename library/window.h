@@ -11,29 +11,25 @@
 	#define	LIB_WINDOW_BORDER_COLOR_inactive		LIB_WINDOW_BORDER_COLOR_default_shadow
 	#define	LIB_WINDOW_BORDER_COLOR_inactive_shadow		0xFF181818
 	
-	#define	STD_WINDOW_FLAG_active		(1 << 0)
-	#define	STD_WINDOW_FLAG_visible		(1 << 1)
-	#define	STD_WINDOW_FLAG_fixed_xy	(1 << 2)
-	#define	STD_WINDOW_FLAG_fixed_z		(1 << 3)
-	#define	STD_WINDOW_FLAG_release		(1 << 4)	// window marked as ready to be removed
-	#define	STD_WINDOW_FLAG_name		(1 << 5)
-	#define	STD_WINDOW_FLAG_minimize	(1 << 6)
-	#define	STD_WINDOW_FLAG_unstable	(1 << 7)	// hide window on any mouse button press
-	#define	STD_WINDOW_FLAG_resizable	(1 << 8)
-	#define	STD_WINDOW_FLAG_properties	(1 << 9)	// Window Manager proposed new window properties
-	#define	STD_WINDOW_FLAG_maximize	(1 << 10)
-	#define	STD_WINDOW_FLAG_icon		(1 << 11)
-	#define	STD_WINDOW_FLAG_workbench	(1 << 12)
-	#define	STD_WINDOW_FLAG_flush		(1 << 13)
-	#define	STD_WINDOW_FLAG_panel		(1 << 14)
-	#define	STD_WINDOW_FLAG_cursor		(1 << 15)
-	#define	STD_WINDOW_FLAG_lock		(1 << 16)
+	#define	LIB_WINDOW_FLAG_active		(1 << 0)
+	#define	LIB_WINDOW_FLAG_visible		(1 << 1)
+	#define	LIB_WINDOW_FLAG_fixed_xy	(1 << 2)
+	#define	LIB_WINDOW_FLAG_fixed_z		(1 << 3)
+	#define	LIB_WINDOW_FLAG_release		(1 << 4)	// window marked as ready to be removed
+	#define	LIB_WINDOW_FLAG_name		(1 << 5)
+	#define	LIB_WINDOW_FLAG_minimize	(1 << 6)
+	#define	LIB_WINDOW_FLAG_unstable	(1 << 7)	// hide window on any mouse button press
+	#define	LIB_WINDOW_FLAG_resizable	(1 << 8)
+	#define	LIB_WINDOW_FLAG_properties	(1 << 9)	// Window Manager proposed new window properties
+	#define	LIB_WINDOW_FLAG_maximize	(1 << 10)
+	#define	LIB_WINDOW_FLAG_altered		(1 << 11)
+	#define	LIB_WINDOW_FLAG_flush		(1 << 12)
+	#define	LIB_WINDOW_FLAG_panel		(1 << 13)
+	#define	LIB_WINDOW_FLAG_cursor		(1 << 14)
 
-	#define	STD_WINDOW_REQUEST_create	0b00000001
-	#define	STD_WINDOW_REQUEST_active	0b00000010
+	#define	LIB_WINDOW_REQUEST_create	0b00000001
 
-	#define	STD_WINDOW_ANSWER_create	0b10000000 | STD_WINDOW_REQUEST_create
-	#define	STD_WINDOW_ANSWER_active	0b10000000 | STD_WINDOW_REQUEST_active
+	#define	LIB_WINDOW_ANSWER_create	0b10000000 | LIB_WINDOW_REQUEST_create
 
 	struct	LIB_WINDOW_DESCRIPTOR {
 		uint32_t	flags;
