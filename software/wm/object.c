@@ -2,39 +2,51 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void tiwyn_object( void ) {
+void wm_object( void ) {
 	// properties of object list
-	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn -> list;
+	struct WM_STRUCTURE_OBJECT **list = wm -> list;
 
 	// search whole list for flush request on any object
-	for( uint16_t i = 0; i < tiwyn -> list_limit; i++ ) {
+	for( uint16_t i = 0; i < wm -> list_limit; i++ ) {
 		// found cursor object?
 		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;	// done
 
 		// active window selected?
-		if( list[ i ] == tiwyn -> active ) tiwyn -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
+		if( list[ i ] == wm -> active ) wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
 		else list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_active;
 
-		// requested flush?
-		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_flush ) {
+		// requested hide or flush?
+		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_hide || list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_flush ) {
 			// parse object area
-			tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) tiwyn -> list[ i ], FALSE );
+			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) list[ i ], FALSE );
 
 			// request parsed
 			list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_flush;
 
+			// hide object?
+			if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_hide ) {
+				// accept and request parsed
+				list[ i ] -> descriptor -> flags &= ~(LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_hide);
+
+				// selet new active object
+				wm_object_activate();
+			}
+
 			// always redraw cursor object (it might be covered)
-			tiwyn -> cursor -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+			wm -> cursor -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 		}
 	}
+
+					//
+					wm -> panel_semaphore = TRUE;
 }
 
-struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height ) {
+struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height ) {
 	// properties of object array
-	struct TIWYN_STRUCTURE_OBJECT *object = tiwyn -> object;
+	struct WM_STRUCTURE_OBJECT *object = wm -> object;
 
 	// find available entry
-	for( uint64_t i = 0; i < TIWYN_OBJECT_LIMIT; i++ ) {
+	for( uint64_t i = 0; i < WM_OBJECT_LIMIT; i++ ) {
 		// record in use?
 		if( object -> descriptor ) { object++; continue; }	// yes, next
 
@@ -49,7 +61,7 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint
 		object -> limit = ((width * height) << STD_VIDEO_DEPTH_shift) + sizeof( struct LIB_WINDOW_DESCRIPTOR );
 
 		// by default all object belong to Tiwyn
-		object -> pid = tiwyn -> pid;
+		object -> pid = wm -> pid;
 
 		// assign area for object
 		if( ! (object -> descriptor = (struct LIB_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( object -> limit ) >> STD_SHIFT_PAGE )) )
@@ -57,10 +69,7 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint
 			return EMPTY;
 
 		// register object on list
-		tiwyn_object_insert( object );
-
-		// newly created object becomes active
-		tiwyn -> active = object;
+		wm_object_insert( object );
 
 		// ready
 		return object;
@@ -70,23 +79,23 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_create( uint16_t x, uint16_t y, uint
 	return EMPTY;
 }
 
-void tiwyn_object_current( void ) {
+void wm_object_activate( void ) {
 	// search thru object list as far as to panel type object
-	for( uint16_t i = 0; i < tiwyn -> list_limit; i++ ) {
+	for( uint16_t i = 0; i < wm -> list_limit; i++ ) {
 		// panel or cursor object?
-		if( tiwyn -> list[ i ] -> descriptor -> flags & (LIB_WINDOW_FLAG_panel | LIB_WINDOW_FLAG_cursor) ) break;	// yes
+		if( wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_panel ) break;	// yes
 
 		// object is visible?
-		if( tiwyn -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) tiwyn -> active = tiwyn -> list[ i ];
+		if( wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) wm -> active = wm -> list[ i ];
 	}
 }
 
-struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_find( uint16_t x, uint16_t y, uint8_t hidden ) {
+struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t hidden ) {
 	// properties of object list
-	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn -> list;
+	struct WM_STRUCTURE_OBJECT **list = wm -> list;
 
 	// find object at current cursor coordinates
-	for( uint16_t i = tiwyn -> list_limit - 1; i >= 0; i-- ) {
+	for( uint16_t i = wm -> list_limit - 1; i >= 0; i-- ) {
 		// object marked as cursor?
 		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;	// ignore
 
@@ -107,17 +116,17 @@ struct TIWYN_STRUCTURE_OBJECT *tiwyn_object_find( uint16_t x, uint16_t y, uint8_
 	return EMPTY;
 }
 
-void tiwyn_object_insert( struct TIWYN_STRUCTURE_OBJECT *object ) {
+void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 	// properties of object list
-	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn -> list;
+	struct WM_STRUCTURE_OBJECT **list = wm -> list;
 
 	// find panel object on list
-	uint64_t i = 0; for( ; i < tiwyn -> list_limit; i++ ) {
+	uint64_t i = 0; for( ; i < wm -> list_limit; i++ ) {
 		// if not a panel
 		if( ! (list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_panel) ) continue;	// next entry
 
 		// move all objects one position further
-		for( uint64_t j = tiwyn -> list_limit; j > i; j-- ) list[ j ] = list[ j - 1 ];
+		for( uint64_t j = wm -> list_limit; j > i; j-- ) list[ j ] = list[ j - 1 ];
 
 		// entry prepared
 		break;
@@ -127,23 +136,23 @@ void tiwyn_object_insert( struct TIWYN_STRUCTURE_OBJECT *object ) {
 	list[ i ] = object;
 
 	// amount of objects on list
-	tiwyn -> list_limit++;
+	wm -> list_limit++;
 }
 
-void tiwyn_object_move( int16_t x, int16_t y ) {
+void wm_object_move( int16_t x, int16_t y ) {
 	// properties of zone for truncate operation
-	struct TIWYN_STRUCTURE_ZONE zone;
+	struct WM_STRUCTURE_ZONE zone;
 
 	// initial values
-	zone.x		= tiwyn -> selected -> x;
-	zone.y		= tiwyn -> selected -> y;
-	zone.width	= tiwyn -> selected -> width;
-	zone.height	= tiwyn -> selected -> height;
+	zone.x		= wm -> selected -> x;
+	zone.y		= wm -> selected -> y;
+	zone.width	= wm -> selected -> width;
+	zone.height	= wm -> selected -> height;
 
 	// a movement on X axis occurred?
 	if( x ) {
 		// new position of selected object
-		tiwyn -> selected -> x += x;
+		wm -> selected -> x += x;
 
 		// X axis shift is positive?
 		if( x > 0 )	// yes
@@ -151,22 +160,22 @@ void tiwyn_object_move( int16_t x, int16_t y ) {
 			zone.width = x;
 		else {
 			// position and width of exposed zone
-			zone.x = tiwyn -> selected -> x + tiwyn -> selected -> width;
+			zone.x = wm -> selected -> x + wm -> selected -> width;
 			zone.width = ~x + 1;
 		}
 
 		// register zone
-		tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) &zone, FALSE );
+		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone, FALSE );
 
 		// update zone properties
-		zone.x = tiwyn -> selected -> x;
-		zone.width = tiwyn -> selected -> width;
+		zone.x = wm -> selected -> x;
+		zone.width = wm -> selected -> width;
 	}
 
 	// a movement on Y axis occured?
 	if( y ) {
 		// new position of selected object
-		tiwyn -> selected -> y += y;
+		wm -> selected -> y += y;
 
 		// Y axis shift is positive?
 		if( y > 0 )	// yes
@@ -174,35 +183,35 @@ void tiwyn_object_move( int16_t x, int16_t y ) {
 			zone.height = y;
 		else {
 			// position and height of exposed fragment
-			zone.y = tiwyn -> selected -> y + tiwyn -> selected -> height;
+			zone.y = wm -> selected -> y + wm -> selected -> height;
 			zone.height = ~y + 1;
 		}
 
 		// register zone
-		tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) &zone, FALSE );
+		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone, FALSE );
 	}
 
 	// object has been moved
-	tiwyn -> selected -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+	wm -> selected -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 }
 
-uint8_t wm_object_move_up( struct TIWYN_STRUCTURE_OBJECT *object ) {
+uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object ) {
 	// find object on list
-	for( uint64_t i = 0; i < tiwyn -> list_limit; i++ ) {
+	for( uint64_t i = 0; i < wm -> list_limit; i++ ) {
 		// object located?
-		if( tiwyn -> list[ i ] != object ) continue;	// no
+		if( wm -> list[ i ] != object ) continue;	// no
 
 		// move all objects in place of selected
-		for( uint64_t j = i; j < tiwyn -> list_limit - TRUE; j++ ) {
+		for( uint64_t j = i; j < wm -> list_limit - TRUE; j++ ) {
 			// next object, panel?
-			if( tiwyn -> list[ j + 1 ] -> descriptor -> flags & LIB_WINDOW_FLAG_panel ) break;	// done
+			if( wm -> list[ j + 1 ] -> descriptor -> flags & LIB_WINDOW_FLAG_panel ) break;	// done
 
 			// no, move next object to current position
-			tiwyn -> list[ i++ ] = tiwyn -> list[ j + 1 ];
+			wm -> list[ i++ ] = wm -> list[ j + 1 ];
 		}
 
 		// put object back on its new position
-		tiwyn -> list[ i ] = object;
+		wm -> list[ i ] = object;
 
 		// object changed position
 		return TRUE;

@@ -22,10 +22,10 @@
 	#define	LIB_WINDOW_FLAG_resizable	(1 << 8)
 	#define	LIB_WINDOW_FLAG_properties	(1 << 9)	// Window Manager proposed new window properties
 	#define	LIB_WINDOW_FLAG_maximize	(1 << 10)
-	#define	LIB_WINDOW_FLAG_altered		(1 << 11)
 	#define	LIB_WINDOW_FLAG_flush		(1 << 12)
 	#define	LIB_WINDOW_FLAG_panel		(1 << 13)
 	#define	LIB_WINDOW_FLAG_cursor		(1 << 14)
+	#define	LIB_WINDOW_FLAG_hide		(1 << 15)
 
 	#define	LIB_WINDOW_REQUEST_create	0b00000001
 

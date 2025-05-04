@@ -2,4 +2,4 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct TIWYN_STRUCTURE *tiwyn;
+struct WM_STRUCTURE *wm;

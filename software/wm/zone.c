@@ -2,20 +2,20 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void tiwyn_zone( void ) {
+void wm_zone( void ) {
 	// properties of first entry inside zone list
-	struct TIWYN_STRUCTURE_ZONE *zone = tiwyn -> zone;
+	struct WM_STRUCTURE_ZONE *zone = wm -> zone;
 
 	// properties of object list
-	struct TIWYN_STRUCTURE_OBJECT **list = tiwyn -> list;
+	struct WM_STRUCTURE_OBJECT **list = wm -> list;
 
 	// parse zones on list
-	for( uint64_t i = 0; i < tiwyn -> zone_limit; i++ ) {
+	for( uint64_t i = 0; i < wm -> zone_limit; i++ ) {
 		// object already assigned to zone?
 		if( zone[ i ].object ) continue;	// yes
 
 		// analyze zone against each object
-		for( uint64_t j = 0; j < tiwyn -> list_limit; j++ ) {
+		for( uint64_t j = 0; j < wm -> list_limit; j++ ) {
 			// ignore cursor object
 			if( list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;
 
@@ -29,7 +29,7 @@ void tiwyn_zone( void ) {
 			if( list[ j ] -> y > zone[ i ].y + zone[ i ].height ) continue;	// no
 
 			// modify zone up to object boundaries
-			struct TIWYN_STRUCTURE_ZONE parse = zone[ i ];
+			struct WM_STRUCTURE_ZONE parse = zone[ i ];
 
 			// left edge
 			if( parse.x < list[ j ] -> x ) {
@@ -55,32 +55,32 @@ void tiwyn_zone( void ) {
 
 			// fill the zone with the given object
 			parse.object = list[ j ];
-			tiwyn_zone_insert( (struct TIWYN_STRUCTURE_ZONE *) &parse, TRUE );
+			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &parse, TRUE );
 		}
 	}
 }
 
-void tiwyn_zone_insert( struct TIWYN_STRUCTURE_ZONE *current, uint8_t object ) {
+void wm_zone_insert( struct WM_STRUCTURE_ZONE *current, uint8_t object ) {
 	// discard zone if outside of cache area
-	if( current -> x > tiwyn -> canvas.width - 1 ) return;
-	if( current -> y > tiwyn -> canvas.height - 1 ) return;
+	if( current -> x > wm -> canvas.width - 1 ) return;
+	if( current -> y > wm -> canvas.height - 1 ) return;
 	if( current -> x + current -> width < 0 ) return;
 	if( current -> y + current -> height < 0 ) return;
 
 	// inset new zone
 
 	// properties of last entry inside zone list
-	struct TIWYN_STRUCTURE_ZONE *zone = &tiwyn -> zone[ tiwyn -> zone_limit ];
+	struct WM_STRUCTURE_ZONE *zone = &wm -> zone[ wm -> zone_limit ];
 
 	// truncate X axis
 	if( current -> x < 0 ) {
 		// left side
 		zone -> width = current -> width - (~current -> x + TRUE);
 		zone -> x = 0;
-	} else if( current -> x + current -> width > tiwyn -> canvas.width ) {
+	} else if( current -> x + current -> width > wm -> canvas.width ) {
 		// right side
 		zone -> x = current -> x;
-		zone -> width = current -> width - ((current -> x + current -> width) - (int16_t) tiwyn -> canvas.width);
+		zone -> width = current -> width - ((current -> x + current -> width) - (int16_t) wm -> canvas.width);
 	} else {
 		// whole zone
 		zone -> x = current -> x;
@@ -92,10 +92,10 @@ void tiwyn_zone_insert( struct TIWYN_STRUCTURE_ZONE *current, uint8_t object ) {
 		// up side
 		zone -> height = current -> height - (~current -> y + TRUE);
 		zone -> y = 0;
-	} else if( current -> y + current -> height > tiwyn -> canvas.height ) {
+	} else if( current -> y + current -> height > wm -> canvas.height ) {
 		// bottom side
 		zone -> y = current -> y;
-		zone -> height = current -> height - ((current -> y + current -> height) - (int16_t) tiwyn -> canvas.height);
+		zone -> height = current -> height - ((current -> y + current -> height) - (int16_t) wm -> canvas.height);
 	} else {
 		// whole zone
 		zone -> y = current -> y;
@@ -108,5 +108,5 @@ void tiwyn_zone_insert( struct TIWYN_STRUCTURE_ZONE *current, uint8_t object ) {
 		zone -> object = EMPTY;
 
 	// zone inserted
-	tiwyn -> zone_limit++;
+	wm -> zone_limit++;
 }

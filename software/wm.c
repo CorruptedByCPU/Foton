@@ -6,62 +6,75 @@
 	// required libraries
 	//----------------------------------------------------------------------
 	#include	"../library/color.h"
+	#include	"../library/font.h"
+	#include	"../library/image.h"
+	#include	"../library/integer.h"
 	#include	"../library/window.h"
 	//----------------------------------------------------------------------
 
 	//----------------------------------------------------------------------
 	// structures, definitions
 	//----------------------------------------------------------------------
-	#include	"tiwyn/config.h"
-	#include	"tiwyn/fill.h"
-	#include	"tiwyn/object.h"
-	#include	"tiwyn/zone.h"
+	#include	"wm/config.h"
+	#include	"wm/fill.h"
+	#include	"wm/object.h"
+	#include	"wm/panel.h"
+	#include	"wm/zone.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
-	#include	"tiwyn/data.c"
+	#include	"wm/data.c"
 	//----------------------------------------------------------------------
 	// functions / procedures
 	//----------------------------------------------------------------------
-	#include	"tiwyn/cursor.c"
-	#include	"tiwyn/desktop.c"
-	#include	"tiwyn/event.c"
-	#include	"tiwyn/fill.c"
-	#include	"tiwyn/init.c"
-	#include	"tiwyn/object.c"
-	#include	"tiwyn/release.c"
-	#include	"tiwyn/sync.c"
-	#include	"tiwyn/zone.c"
+	#include	"wm/cursor.c"
+	#include	"wm/event.c"
+	#include	"wm/fill.c"
+	#include	"wm/init.c"
+	#include	"wm/object.c"
+	#include	"wm/panel.c"
+	#include	"wm/release.c"
+	#include	"wm/sync.c"
+	#include	"wm/zone.c"
 	//----------------------------------------------------------------------
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize Desktop environment
-	tiwyn_init();
+	wm_init();
 
 	// hold the door
 	while( TRUE ) {
 		// remove obsolete objects
-		tiwyn_release();
+		wm_release();
 
 		// check for incomming events
-		tiwyn_event();
+		wm_event();
+
+		// refresh panel state if required
+		wm_panel();
 
 		// which objects have been recently updated?
-		tiwyn_object();
+		wm_object();
+
+		// if nothing to parse
+		if( ! wm -> zone_limit ) {
+			// release CPU time
+			sleep( TRUE );
+
+			// lets go again
+			continue;
+		}
 
 		// assign objects to zones
-		tiwyn_zone();
+		wm_zone();
 
 		// fill zones with fragments of objects
-		tiwyn_fill();
+		wm_fill();
 
 		// show cursor
-		tiwyn_cursor();
+		wm_cursor();
 
 		// synchronize workbench with framebuffer
-		tiwyn_sync();
-
-		// release CPU
-		sleep( TRUE );
+		wm_sync();
 	}
 }
