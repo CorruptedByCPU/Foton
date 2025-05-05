@@ -5,68 +5,47 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
+	#include	"../library/image.h"
 	#include	"../library/interface.h"
-	#include	"../library/window.h"
-	//----------------------------------------------------------------------
 
-	//----------------------------------------------------------------------
-	// structures, definitions
-	//----------------------------------------------------------------------
-	#include	"so/config.h"
-	//----------------------------------------------------------------------
-	// variables
-	//----------------------------------------------------------------------
-	#include	"so/data.c"
-	//----------------------------------------------------------------------
+MACRO_IMPORT_FILE_AS_ARRAY( interface, "./software/so/interface.json" )
+
+struct LIB_INTERFACE_STRUCTURE	welcome_interface;
+
+void close( void ) {
+	// end of program
+	exit();
+}
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	// create interface instance
-	struct LIB_INTERFACE_STRUCTURE *so_interface = (struct LIB_INTERFACE_STRUCTURE *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
+	// initialize interface library
+	welcome_interface.properties = (uint8_t *) &file_interface_start;
+	if( ! lib_interface( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface ) ) { exit(); }
 
-	// set default properties of our interface
-	so_interface -> x = STD_MAX_unsigned;	// window at center of desktop
-	so_interface -> y = STD_MAX_unsigned;
-	so_interface -> width = 320;
-	so_interface -> height = 240;
+	// find control element of type: close
+	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface, 0 );
 
-	// alloc area for interface elements
-	so_interface -> properties = (uint8_t *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL ) + TRUE );
-
-	// initialize interface
-	lib_interface( so_interface );
-
-	// add window name
-	for( uint8_t i = 0; i < sizeof( so_window_name ) - 1; i++ ) so_interface -> descriptor -> name[ so_interface -> descriptor -> name_length++ ] = so_window_name[ i ];
-	lib_interface_name_rewrite( so_interface );
-
-	// allow window to be resiable
-	so_interface -> descriptor -> flags = LIB_WINDOW_FLAG_resizable;
+	// assign executable function to element
+	control -> event = close;
 
 	// update window content on screen
-	so_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
+	welcome_interface.descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 
 	// main loop
 	while( TRUE ) {
-		// check incomming events
-		struct LIB_INTERFACE_STRUCTURE *new = EMPTY;
-		if( (new = lib_interface_event( so_interface )) ) {
-			// update interface pointer
-			so_interface = new;
-
-			// update window content on screen
-			so_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_resizable | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
-		}
-
-		// recieve key
-		uint16_t key = getkey();
-
-		// exit game?
-		if( key == STD_ASCII_ESC ) return 0;	// yes
-
-		// release CPU ticks
+		// free up AP time
 		sleep( TRUE );
+
+		// check events from interface
+		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface );
+
+		// check events from keyboard
+		uint16_t key = lib_interface_event_keyboard( (struct LIB_INTERFACE_STRUCTURE *) &welcome_interface );
+
+		// exit?
+		if( key == STD_ASCII_ESC ) break;	// yes
 	}
 
-	// done
+	// end of execution
 	return 0;
 }

@@ -9,7 +9,7 @@
 #define	WM_OBJECT_OVERSHADE_COLOR		0x20008000
 #define	WM_OBJECT_OVERSHADE_COLOR_BORDER	WM_OBJECT_OVERSHADE_COLOR + 0x80707070
 
-#define	WM_PANEL_COLOR_alpha_channel	0x40000000
+#define	WM_PANEL_COLOR_alpha_channel	0xF0000000
 #define	WM_PANEL_COLOR_default	WM_PANEL_COLOR_alpha_channel | 0x00101010
 #define	WM_PANEL_COLOR_visible	WM_PANEL_COLOR_alpha_channel | 0x000C0C0C
 #define	WM_PANEL_COLOR_active	WM_PANEL_COLOR_alpha_channel | 0x00004000
@@ -25,7 +25,7 @@ struct	WM_STRUCTURE_OBJECT {
 	int16_t		height;
 	uint64_t	limit;
 	uint64_t	pid;
-	struct LIB_WINDOW_DESCRIPTOR	*descriptor;
+	struct LIB_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
 };
 
 struct	WM_STRUCTURE_ZONE {

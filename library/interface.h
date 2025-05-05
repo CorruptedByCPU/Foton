@@ -35,6 +35,9 @@
 	#ifndef	LIB_VFS
 		#include	"./vfs.h"
 	#endif
+	#ifndef	LIB_WINDOW
+		#include	"./window.h"
+	#endif
 
 	#define	LIB_INTERFACE_GLOBAL_NAME_limit				64
 
@@ -71,10 +74,10 @@
 	#define	LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select		0x08
 
 	#define	LIB_INTERFACE_BORDER_pixel				1
-	#define	LIB_INTERFACE_BORDER_COLOR_default			0xFF0F0F0F
-	#define	LIB_INTERFACE_BORDER_COLOR_default_shadow		LIB_INTERFACE_BORDER_COLOR_default
-	#define	LIB_INTERFACE_BORDER_COLOR_inactive			LIB_INTERFACE_BORDER_COLOR_default
-	#define	LIB_INTERFACE_BORDER_COLOR_inactive_shadow		LIB_INTERFACE_BORDER_COLOR_default_shadow
+	#define	LIB_INTERFACE_BORDER_COLOR_default			0xFF282828
+	#define	LIB_INTERFACE_BORDER_COLOR_default_shadow		0xFF202020
+	#define	LIB_INTERFACE_BORDER_COLOR_inactive			LIB_INTERFACE_BORDER_COLOR_default_shadow
+	#define	LIB_INTERFACE_BORDER_COLOR_inactive_shadow		0xFF181818
 
 	#define	LIB_INTERFACE_COLOR_background				0xFF101010
 	#define	LIB_INTERFACE_COLOR_background_lighter			0x00080808
@@ -96,7 +99,7 @@
 	#define	LIB_INTERFACE_NAME_limit				LIB_INTERFACE_GLOBAL_NAME_limit
 
 	struct LIB_INTERFACE_STRUCTURE {
-		struct LIB_WINDOW_DESCRIPTOR	*descriptor;
+		struct LIB_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
 		uint8_t		*properties;
 		//--------------------------------------------------
 		int16_t		x;
@@ -120,6 +123,9 @@
 		uint8_t		key_alt_semaphore;
 		uint8_t		key_ctrl_semaphore;
 		uint8_t		key_shift_semaphore;
+		//--------------------------------------------------
+		uint8_t		name_length;
+		uint8_t		name[ LIB_INTERFACE_NAME_limit ];
 	};
 
 	struct	LIB_INTERFACE_STRUCTURE_ELEMENT {

@@ -30,7 +30,7 @@ void wm_init( void ) {
 	// create cache area
 	wm -> canvas.width		= wm -> framebuffer.width_pixel;
 	wm -> canvas.height		= wm -> framebuffer.height_pixel;
-	wm -> canvas.descriptor	= (struct LIB_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm -> canvas.width * wm -> canvas.height * STD_VIDEO_DEPTH_byte) + sizeof( struct LIB_WINDOW_DESCRIPTOR ) ) >> STD_SHIFT_PAGE );
+	wm -> canvas.descriptor	= (struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm -> canvas.width * wm -> canvas.height * STD_VIDEO_DEPTH_byte) + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ) ) >> STD_SHIFT_PAGE );
 
 	// leave cache untouched, first object synchronization will fill it up
 
@@ -55,7 +55,7 @@ void wm_init( void ) {
 	wm -> workbench = wm_object_create( 0, 0, wm -> canvas.width, wm -> canvas.height );
 
 	// properties of workbench area content
-	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm -> workbench -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm -> workbench -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
 
 	// if default wallpaper file found
 	if( workbench_image ) {
@@ -93,16 +93,14 @@ void wm_init( void ) {
 	wm -> panel = wm_object_create( 0, wm -> canvas.height - WM_PANEL_HEIGHT_pixel, wm -> canvas.width, WM_PANEL_HEIGHT_pixel );
 
 	// properties of panel area content
-	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
 
 	// fill panel with default color
 
 	// overlight
 	for( uint16_t y = FALSE; y < TRUE; y++ ) for( uint16_t x = 0; x < wm -> panel -> width; x++ ) panel_pixel[ x ] = 0x20FFFFFF;
-	// menu button
-	for( uint16_t y = TRUE; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < WM_PANEL_HEIGHT_pixel; x++ ) panel_pixel[ (y * wm -> panel -> width) + x ] = STD_COLOR_BLACK;
 	// background
-	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ ) for( uint16_t x = WM_PANEL_HEIGHT_pixel; x < wm -> panel -> width; x++ ) panel_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
+	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ ) for( uint16_t x = 0; x < wm -> panel -> width; x++ ) panel_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
 
 	// show menu button on panel
 	uint8_t test[ 3 ] = "|||";
@@ -137,7 +135,7 @@ void wm_init( void ) {
 		wm -> cursor = wm_object_create( wm -> workbench -> width >> STD_SHIFT_2, wm -> workbench -> height >> STD_SHIFT_2, 16, 32 );
 
 	// properties of cursor area content
-	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm -> cursor -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm -> cursor -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
 
 	// fill cursor with default color
 	for( uint16_t y = 0; y < wm -> cursor -> height; y++ )
@@ -162,5 +160,5 @@ void wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// debug
-	// std_exec( (uint8_t *) "so", 2, EMPTY, TRUE );
+	std_exec( (uint8_t *) "so", 2, EMPTY, TRUE );
 }

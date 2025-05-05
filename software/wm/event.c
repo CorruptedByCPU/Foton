@@ -4,7 +4,7 @@
 
 void wm_event_shade_fill( void ) {
 	// fill object with default pattern/color
-	uint32_t *shade = (uint32_t *) ((uintptr_t) wm -> shade -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+	uint32_t *shade = (uint32_t *) ((uintptr_t) wm -> shade -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
 	for( uint16_t y = 0; y < wm -> shade -> height; y++ )
 		for( uint16_t x = 0; x < wm -> shade -> width; x++ )
 			shade[ (y * wm -> shade -> width) + x ] = WM_OBJECT_OVERSHADE_COLOR;
@@ -285,10 +285,10 @@ void wm_event( void ) {
 	//----------------------------------------------------------------------
 
 	// calculate new object area size in Bytes
-	wm -> shade -> limit = ((wm -> shade -> width * wm -> shade -> height) << STD_VIDEO_DEPTH_shift) + sizeof( struct LIB_WINDOW_DESCRIPTOR );
+	wm -> shade -> limit = ((wm -> shade -> width * wm -> shade -> height) << STD_VIDEO_DEPTH_shift) + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR );
 
 	// assign new area for object
-	wm -> shade -> descriptor = (struct LIB_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm -> shade -> limit ) >> STD_SHIFT_PAGE ); wm_event_shade_fill();
+	wm -> shade -> descriptor = (struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm -> shade -> limit ) >> STD_SHIFT_PAGE ); wm_event_shade_fill();
 
 	// show refresh object content
 	wm -> shade -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;

@@ -17,10 +17,9 @@ void wm_panel( void ) {
 			wm_panel_insert( wm -> list[ i ] );
 
 	// properties of task list area
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+	uint32_t *pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
 
 	// clean'up panel with default color
-	for( uint16_t x = 0; x < wm -> panel -> width; x++ ) pixel[ x ] = 0x20FFFFFF;
 	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ ) for( uint16_t x = WM_PANEL_HEIGHT_pixel; x < wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
 
 	// nothing to show?
@@ -41,17 +40,15 @@ void wm_panel( void ) {
 	// show
 	for( uint64_t i = 0; i < wm -> list_limit_panel; i++ ) {
 		// select default background color for entry
-		uint32_t color = 0x40000000 | WM_PANEL_COLOR_default;	// or is it active?
-		if( wm -> list_panel[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) color = 0x80000000;
-		if( wm -> list_panel[ i ] == wm -> active ) color = 0xF0000000;
+		uint32_t color = 0xFFFFFFFF;
+		// invisible?
+		if( ! (wm -> list_panel[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) color = 0xFF808080;
 
-		// change background of entry
-		for( uint16_t y = TRUE; y < WM_PANEL_HEIGHT_pixel; y++ )
-			for( uint16_t x = 0; x < wm -> panel_entry_width - TRUE; x++ )
-				pixel[ (y * wm -> panel -> width) + x ] = color;
+		// mark active entry
+		if( wm -> list_panel[ i ] == wm -> active ) for( uint16_t y = WM_PANEL_HEIGHT_pixel - TRUE; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width; x++ ) pixel[ (y * wm -> panel -> width) + x ] = STD_COLOR_GREEN;
 
 		// show entry name
-		lib_font( LIB_FONT_FAMILY_ROBOTO, wm -> list_panel[ i ] -> descriptor -> name, wm -> list_panel[ i ] -> descriptor -> name_length, 0xFFFFFFFF, pixel + (4 * wm -> panel -> width) + 4, wm -> panel -> width, LIB_FONT_ALIGN_left );
+		lib_font( LIB_FONT_FAMILY_ROBOTO, wm -> list_panel[ i ] -> descriptor -> name, wm -> list_panel[ i ] -> descriptor -> name_length, color, pixel + (4 * wm -> panel -> width) + 4, wm -> panel -> width, LIB_FONT_ALIGN_left );
 
 		// next entry location
 		pixel += wm -> panel_entry_width;
@@ -80,8 +77,8 @@ void wm_panel_clock( void ) {
 	uint8_t clock_string[ 5 ] = "00 00";
 
 	// fill clock area with default background color
-	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
-	uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR )) + (wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel);
+	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR )) + (wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel);
 	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ )
 		for( uint16_t x = 0; x < WM_PANEL_CLOCK_WIDTH_pixel; x++ )
 			clock_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
