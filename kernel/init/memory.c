@@ -79,4 +79,7 @@ void kernel_init_memory( void ) {
 		// available pages removed
 		kernel -> page_available--;
 	}
+
+	// unlock access to binary memory map
+	MACRO_UNLOCK( *((uint8_t *) kernel -> memory_base_address + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) - STD_SIZE_BYTE_byte) );
 }

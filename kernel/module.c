@@ -166,7 +166,7 @@ uint64_t kernel_module( uint8_t *name, uint64_t limit ) {
 	// update module entry address
 	context -> rip += module.base;
 
-	// //----------------------------------------------------------------------
+	//----------------------------------------------------------------------
 
 	// module use same memory map as kernel
 	module.task -> memory = kernel -> memory_base_address;

@@ -29,6 +29,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	so_interface -> width = 320;
 	so_interface -> height = 240;
 
+	// alloc area for interface elements
+	so_interface -> properties = (uint8_t *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL ) + TRUE );
+
 	// initialize interface
 	lib_interface( so_interface );
 

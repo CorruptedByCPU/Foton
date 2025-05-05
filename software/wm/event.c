@@ -52,8 +52,8 @@ void wm_event( void ) {
 				std_ipc_send( pid, (uint8_t *) answer );
 
 				// newly created object becomes active
-				wm -> active = new;
-
+				wm -> active = new; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
+				
 				// done
 				break;
 			}
@@ -114,33 +114,33 @@ void wm_event( void ) {
 			wm -> selected -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 		// set object as active?
-		if( ! wm -> key_ctrl_left && ! (wm -> selected != wm -> panel) ) wm -> active = wm -> selected;
+		if( ! wm -> key_ctrl_left && wm -> selected != wm -> panel ) { wm -> active = wm -> selected; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active; }
 
 		//--------------------------------------------------------------
 
-		// // mouse pointer in range of any list entry of panel?
-		// if( wm -> cursor -> y >= wm -> panel -> y && (wm -> cursor -> x >= WM_PANEL_HEIGHT_pixel && wm -> cursor -> x < (WM_PANEL_HEIGHT_pixel + (wm -> panel_entry_width * wm -> list_limit_panel))) ) {
-		// 	// empty panel?
-		// 	if( wm -> list_limit_panel ) {	// no
-		// 		// properties of selected object entry
-		// 		struct WM_STRUCTURE_OBJECT *object = wm -> list_panel[ (wm -> panel -> descriptor -> x - WM_PANEL_HEIGHT_pixel) / wm -> panel_entry_width ];
+		// mouse pointer in range of any list entry of panel?
+		if( wm -> cursor -> y >= wm -> panel -> y && (wm -> cursor -> x >= WM_PANEL_HEIGHT_pixel && wm -> cursor -> x < (WM_PANEL_HEIGHT_pixel + (wm -> panel_entry_width * wm -> list_limit_panel))) ) {
+			// no action on empty panel
+			if( wm -> list_limit_panel ) {
+				// properties of selected object entry
+				struct WM_STRUCTURE_OBJECT *object = wm -> list_panel[ (wm -> panel -> descriptor -> x - WM_PANEL_HEIGHT_pixel) / wm -> panel_entry_width ];
 
-		// 		// active?
-		// 		if( object == wm -> active )
-		// 			// remove object from cache
-		// 			object -> descriptor -> flags |= LIB_WINDOW_FLAG_hide;
-		// 		else {
-		// 			// set object on top
-		// 			wm_object_move_up( object );
+				// active?
+				if( object == wm -> active )
+					// remove object from cache
+					object -> descriptor -> flags |= LIB_WINDOW_FLAG_hide;
+				else {
+					// set object on top
+					wm_object_move_up( object );
 
-		// 			// show object inside cache
-		// 			object -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
+					// show object inside cache
+					object -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 
-		// 			// object is active now
-		// 			wm -> active = object;
-		// 		}
-		// 	}
-		// }
+					// object is active now
+					wm -> active = object; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
+				}
+			}
+		}
 
 		// do not send messages to ourselfs
 		if( wm -> selected -> pid != wm -> pid ) {

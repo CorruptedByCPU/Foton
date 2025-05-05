@@ -57,7 +57,7 @@
 		uint8_t		name[ 32 + TRUE ];
 	} __attribute__( (aligned( STD_PAGE_byte )) );
 
-	struct LIB_WINDOW_STRUCTURE_LIST {
+	struct LIB_WINDOW_LIST {
 		uint64_t	id;
 		uint16_t	flags;
 		uint8_t		name_limit;

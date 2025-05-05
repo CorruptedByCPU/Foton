@@ -82,7 +82,7 @@ void wm_init( void ) {
 		// fill workbench with default color
 		for( uint16_t y = 0; y < wm -> workbench -> height; y++ )
 			for( uint16_t x = 0; x < wm -> workbench -> width; x++ )
-				workbench_pixel[ (y * wm -> workbench -> width) + x ] = WM_PANEL_COLOR_default;
+				workbench_pixel[ (y * wm -> workbench -> width) + x ] = STD_COLOR_GRAY;
 
 	// object content ready for display
 	wm -> workbench -> descriptor -> flags = LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
@@ -96,9 +96,13 @@ void wm_init( void ) {
 	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 
 	// fill panel with default color
-	for( uint16_t y = 0; y < wm -> panel -> height; y++ )
-		for( uint16_t x = 0; x < wm -> panel -> width; x++ )
-			panel_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
+
+	// overlight
+	for( uint16_t y = FALSE; y < TRUE; y++ ) for( uint16_t x = 0; x < wm -> panel -> width; x++ ) panel_pixel[ x ] = 0x20FFFFFF;
+	// menu button
+	for( uint16_t y = TRUE; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < WM_PANEL_HEIGHT_pixel; x++ ) panel_pixel[ (y * wm -> panel -> width) + x ] = STD_COLOR_BLACK;
+	// background
+	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ ) for( uint16_t x = WM_PANEL_HEIGHT_pixel; x < wm -> panel -> width; x++ ) panel_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
 
 	// show menu button on panel
 	uint8_t test[ 3 ] = "|||";
@@ -155,10 +159,8 @@ void wm_init( void ) {
 	// object content ready for display
 	wm -> cursor -> descriptor -> flags = LIB_WINDOW_FLAG_cursor | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 
+	//----------------------------------------------------------------------
 
-
-
-
-		// debug
-		std_exec( (uint8_t *) "so", 2, EMPTY, TRUE );
+	// debug
+	// std_exec( (uint8_t *) "so", 2, EMPTY, TRUE );
 }

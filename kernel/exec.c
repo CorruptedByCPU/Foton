@@ -194,6 +194,9 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 	// mark as occupied pages used by the executable
 	kernel_memory_acquire( exec.task -> memory, exec.page, KERNEL_EXEC_base_address >> STD_SHIFT_PAGE, kernel -> page_limit );
 
+	// unlock access to binary memory map
+	MACRO_UNLOCK( *((uint8_t *) exec.task -> memory + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) - STD_SIZE_BYTE_byte) );
+
 	//----------------------------------------------------------------------
 
 	// connect required functions new locations / from another library

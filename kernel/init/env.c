@@ -42,6 +42,10 @@ void kernel_init_env( void ) {
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;
 	kernel -> framebuffer_pid		= EMPTY;	// by default: kernel
 
+	kernel -> device_mouse_x		= kernel -> framebuffer_width_pixel >> STD_SHIFT_2;
+	kernel -> device_mouse_y		= kernel -> framebuffer_height_pixel >> STD_SHIFT_2;
+	kernel -> device_mouse_z		= EMPTY;
+
 	kernel -> idt_attach			= kernel_idt_attach;
 
 	kernel -> io_apic_attach		= kernel_io_apic_attach;

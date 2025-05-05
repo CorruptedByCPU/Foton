@@ -11,9 +11,8 @@ void wm_object( void ) {
 		// found cursor object?
 		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;	// done
 
-		// active window selected?
-		if( list[ i ] == wm -> active ) wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
-		else list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_active;
+		// remove active flag from non-compliant objects
+		if( list[ i ] != wm -> active ) list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_active;
 
 		// requested hide or flush?
 		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_hide || list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_flush ) {
