@@ -71,6 +71,7 @@ struct KERNEL {
 	uint64_t					page_total;
 	uint64_t					page_shared;
 	uint64_t					page_structure;
+	void						(*page_deconstruct)( uint64_t *pml4, uint8_t type );
 	uint8_t						(*page_map)( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t n, uint16_t flags );
 
 	void						(*serial)( uint8_t *string, ... );
@@ -81,6 +82,7 @@ struct KERNEL {
 
 	uint64_t					*task_ap_address;
 	struct KERNEL_STRUCTURE_TASK			*task_base_address;
+	struct KERNEL_STRUCTURE_TASK			*(*task_by_id)( uint64_t pid );
 	uint64_t					task_limit;
 	uint8_t						task_lock;
 	uint8_t						task_lock_ap;

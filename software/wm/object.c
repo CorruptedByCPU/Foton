@@ -29,6 +29,9 @@ void wm_object( void ) {
 
 				// selet new active object
 				wm_object_activate();
+
+				// refresh panel content
+				wm -> panel_semaphore = TRUE;
 			}
 
 			// always redraw cursor object (it might be covered)

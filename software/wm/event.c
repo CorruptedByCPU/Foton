@@ -113,7 +113,7 @@ void wm_event( void ) {
 		wm -> selected = current;
 
 		// refresh panel content?
-		// if( wm -> selected != wm -> active ) wm -> panel_semaphore = TRUE;	// yep
+		if( wm -> selected != wm -> active ) wm -> panel_semaphore = TRUE;	// yep
 
 		// cursor in position of object header
 		if( wm -> selected -> descriptor -> y < wm -> selected -> descriptor -> header_height ) wm -> drag_allow = TRUE;

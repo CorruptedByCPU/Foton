@@ -57,9 +57,12 @@ void kernel_init_env( void ) {
 
 	kernel -> module_thread			= kernel_module_thread;
 
+	kernel -> page_deconstruct		= kernel_page_deconstruct;
 	kernel -> page_map			= kernel_page_map;
 
 	kernel -> serial			= driver_serial;
+
+	kernel -> task_by_id			= kernel_task_by_id;
 
 	kernel -> time_sleep			= kernel_time_sleep;
 }

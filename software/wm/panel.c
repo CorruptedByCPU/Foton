@@ -68,8 +68,6 @@ void wm_panel_clock( void ) {
 	// it's different than previous?
 	if( time == wm -> panel_clock_state ) return;	// no
 
-	log( "clock!\n" );
-
 	// preserve current date and time
 	wm -> panel_clock_state = time;
 

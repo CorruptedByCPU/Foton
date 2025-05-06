@@ -2,10 +2,11 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#define	KERNEL_INIT_MODULE_count	2
+#define	KERNEL_INIT_MODULE_count	3
 
 uint8_t *module_list[ KERNEL_INIT_MODULE_count ] = {
 	(uint8_t *) "idle.ko",
+	(uint8_t *) "shredder.ko",
 	(uint8_t *) "ps2.ko"
 };
 
