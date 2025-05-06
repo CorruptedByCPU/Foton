@@ -34,6 +34,6 @@ void wm_fill( void ) {
 			}
 	}
 
-	// all zones filled
-	wm -> zone_limit = EMPTY;
+	// // all zones filled
+	// wm -> zone_limit = EMPTY;
 }

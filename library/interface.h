@@ -80,7 +80,7 @@
 	#define	LIB_INTERFACE_BORDER_COLOR_inactive_shadow		0xFF181818
 
 	#define	LIB_INTERFACE_COLOR_background				0xFF101010
-	#define	LIB_INTERFACE_COLOR_background_lighter			0x00080808
+	#define	LIB_INTERFACE_COLOR_background_lighter			0xFF202020
 	#define	LIB_INTERFACE_COLOR_background_button_default		0xFF202020
 	#define	LIB_INTERFACE_COLOR_background_menu_default		LIB_INTERFACE_COLOR_background
 	#define	LIB_INTERFACE_COLOR_background_menu_selected		LIB_INTERFACE_COLOR_background + 0x00002000;

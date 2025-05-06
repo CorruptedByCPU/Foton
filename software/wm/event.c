@@ -83,17 +83,24 @@ void wm_event( void ) {
 
 	//--------------------------------------------------------------
 
-	// check keyboard cache
-	uint16_t key = std_keyboard();
+	// properties of keyboard message
+	struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_data;
+
+	// IPC type
+	keyboard -> ipc.type = STD_IPC_TYPE_keyboard;
+	keyboard -> key = std_keyboard();	// and key code
 
 	// remember state of special key, or take action immediately
-	switch( key ) {
+	switch( keyboard -> key ) {
 		// left ctrl pressed
 		case STD_KEY_CTRL_LEFT: { wm -> key_ctrl_left = TRUE; break; }
 
 		// left ctrl released
 		case STD_KEY_CTRL_LEFT | 0x80: { wm -> key_ctrl_left = FALSE; break; }
 	}
+
+	// send event to active object process
+	if( keyboard -> key ) std_ipc_send( current -> pid, (uint8_t *) keyboard );
 
 	//--------------------------------------------------------------
 
@@ -104,6 +111,9 @@ void wm_event( void ) {
 
 		// current object under cursor pointer set as selected
 		wm -> selected = current;
+
+		// refresh panel content?
+		// if( wm -> selected != wm -> active ) wm -> panel_semaphore = TRUE;	// yep
 
 		// cursor in position of object header
 		if( wm -> selected -> descriptor -> y < wm -> selected -> descriptor -> header_height ) wm -> drag_allow = TRUE;
@@ -143,7 +153,7 @@ void wm_event( void ) {
 		}
 
 		// do not send messages to ourselfs
-		if( wm -> selected -> pid != wm -> pid ) {
+		if( wm -> selected -> pid != wm -> pid && ! wm -> key_ctrl_left ) {
 			// properties of mouse message
 			struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
 
@@ -158,6 +168,25 @@ void wm_event( void ) {
 			std_ipc_send( wm -> selected -> pid, (uint8_t *) mouse );
 		}
 	} } else {
+		// left mouse button was on hold?
+		if( wm -> mouse_button_left && ! wm -> key_ctrl_left ) {
+			// do not send messages to ourselfs
+			if( wm -> selected -> pid != wm -> pid ) {
+				// properties of mouse message
+				struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
+
+				// default values
+				mouse -> ipc.type = STD_IPC_TYPE_mouse;
+				mouse -> scroll = EMPTY;
+
+				// left mouse button pressed
+				mouse -> button = ~STD_IPC_MOUSE_BUTTON_left;
+
+				// send event to selected object owner
+				std_ipc_send( wm -> selected -> pid, (uint8_t *) mouse );
+			}
+		}
+
 		// release mouse button state
 		wm -> mouse_button_left = FALSE;
 
@@ -166,38 +195,84 @@ void wm_event( void ) {
 	}
 
 	// create shade object?
-	if( (mouse.status & STD_MOUSE_BUTTON_right) ) { if( ! wm -> mouse_button_right ) { if( wm -> key_ctrl_left && ! wm -> shade_initialized && current -> descriptor -> flags & LIB_WINDOW_FLAG_resizable ) {
-		// current object under cursor pointer selected for resize
-		wm -> resized = current;
+	if( (mouse.status & STD_MOUSE_BUTTON_right) ) {
+		// first occurence?
+		if( ! wm -> mouse_button_right ) {	// yes
+			// remember mouse button state
+			wm -> mouse_button_right = TRUE;
 
-		//--------------------------------------------------------------
+			// send mouse state or parse?
+			if( wm -> key_ctrl_left ) {	// parse
+				if( ! wm -> shade_initialized && current -> descriptor -> flags & LIB_WINDOW_FLAG_resizable ) {
+					// current object under cursor pointer selected for resize
+					wm -> resized = current;
 
-		// by default, user holds right or bottom side
-		wm -> direction.width = TRUE;
-		wm -> direction.height = TRUE;
+					//--------------------------------------------------------------
 
-		// is it left side?
-		if( wm -> resized -> descriptor -> x < (wm -> resized -> width >> STD_SHIFT_2) ) wm -> direction.x = TRUE;	// yes
-		else wm -> direction.x = FALSE;	// no
+					// by default, user holds right or bottom side
+					wm -> direction.width = TRUE;
+					wm -> direction.height = TRUE;
 
-		// is it top side?
-		if( wm -> resized -> descriptor -> y < (wm -> resized -> height >> STD_SHIFT_2) ) wm -> direction.y = TRUE;	// yes
-		else wm -> direction.y = FALSE;	// no
+					// is it left side?
+					if( wm -> resized -> descriptor -> x < (wm -> resized -> width >> STD_SHIFT_2) ) wm -> direction.x = TRUE;	// yes
+					else wm -> direction.x = FALSE;	// no
 
-		//--------------------------------------------------------------
+					// is it top side?
+					if( wm -> resized -> descriptor -> y < (wm -> resized -> height >> STD_SHIFT_2) ) wm -> direction.y = TRUE;	// yes
+					else wm -> direction.y = FALSE;	// no
 
-		// create initial shade object
-		if( (wm -> shade = wm_object_create( wm -> resized -> x, wm -> resized -> y, wm -> resized -> width, wm -> resized -> height )) ) {
-			// set gradient
-			wm_event_shade_fill();
+					//--------------------------------------------------------------
 
-			// show object
-			wm -> shade -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;	
+					// create initial shade object
+					if( (wm -> shade = wm_object_create( wm -> resized -> x, wm -> resized -> y, wm -> resized -> width, wm -> resized -> height )) ) {
+						// set gradient
+						wm_event_shade_fill();
 
-			// done
-			wm -> shade_initialized = TRUE;
+						// show object
+						wm -> shade -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;	
+
+						// done
+						wm -> shade_initialized = TRUE;
+					}
+				}
+			} else {
+				// do not send messages to ourselfs
+				if( current -> pid != wm -> pid ) {
+					// properties of mouse message
+					struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
+
+					// default values
+					mouse -> ipc.type = STD_IPC_TYPE_mouse;
+					mouse -> scroll = EMPTY;
+
+					// left mouse button pressed
+					mouse -> button = STD_IPC_MOUSE_BUTTON_right;
+
+					// send event to selected object owner
+					std_ipc_send( current -> pid, (uint8_t *) mouse );
+				}
+			}
 		}
-	} } } else {
+	} else {
+		// left mouse button was on hold?
+		if( wm -> mouse_button_right && ! wm -> key_ctrl_left ) {
+			// do not send messages to ourselfs
+			if( current -> pid != wm -> pid ) {
+				// properties of mouse message
+				struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
+
+				// default values
+				mouse -> ipc.type = STD_IPC_TYPE_mouse;
+				mouse -> scroll = EMPTY;
+
+				// left mouse button pressed
+				mouse -> button = ~STD_IPC_MOUSE_BUTTON_right;
+
+				// send event to selected object owner
+				std_ipc_send( current -> pid, (uint8_t *) mouse );
+			}
+		}
+
 		// if shade object exist
 		if( wm -> shade && wm -> shade -> descriptor ) {
 			// copy hover object properties to selected object

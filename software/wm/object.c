@@ -16,11 +16,11 @@ void wm_object( void ) {
 
 		// requested hide or flush?
 		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_hide || list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_flush ) {
-			// parse object area
-			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) list[ i ], FALSE );
-
 			// request parsed
 			list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_flush;
+
+			// parse object area
+			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) list[ i ], FALSE );
 
 			// hide object?
 			if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_hide ) {
@@ -34,10 +34,22 @@ void wm_object( void ) {
 			// always redraw cursor object (it might be covered)
 			wm -> cursor -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 		}
-	}
 
-					//
-					wm -> panel_semaphore = TRUE;
+		// requested maximize?
+		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_maximize ) {
+			// propose new properties of object
+			list[ i ] -> descriptor -> new_x	= 0;
+			list[ i ] -> descriptor -> new_y	= 0;
+			list[ i ] -> descriptor -> new_width	= wm -> workbench -> width;
+			list[ i ] -> descriptor -> new_height	= wm -> workbench -> height - wm -> panel -> height;
+
+			// inform application interface about requested properties
+			list[ i ] -> descriptor -> flags |= LIB_WINDOW_FLAG_properties;
+
+			// request parsed
+			list[ i ] -> descriptor -> flags  &= ~LIB_WINDOW_FLAG_maximize;
+		}
+	}
 }
 
 struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height ) {
@@ -69,6 +81,9 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 
 		// register object on list
 		wm_object_insert( object );
+
+		// update panel content
+		wm -> panel_semaphore = TRUE;
 
 		// ready
 		return object;

@@ -1260,7 +1260,7 @@ void lib_interface_event_handler_release( struct LIB_INTERFACE_STRUCTURE *interf
 
 				case LIB_INTERFACE_ELEMENT_TYPE_control_minimize: {
 					// minimize window
-					interface -> descriptor -> flags |= LIB_WINDOW_FLAG_minimize;
+					interface -> descriptor -> flags |= LIB_WINDOW_FLAG_hide;
 
 					// done
 					break;
