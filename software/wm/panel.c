@@ -22,8 +22,14 @@ void wm_panel( void ) {
 	// clean'up panel with default color
 	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ ) for( uint16_t x = WM_PANEL_HEIGHT_pixel; x < wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
 
-	// nothing to show?
-	if( ! wm -> list_limit_panel ) return;
+	// nothing to draw?
+	if( ! wm -> list_limit_panel ) {
+		// update panel content on screen
+		wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+
+		// done
+		return;
+	}
 
 	// move pointer to first entry of panel task list
 	pixel += WM_PANEL_HEIGHT_pixel;
@@ -124,6 +130,9 @@ void wm_panel_remove( struct WM_STRUCTURE_OBJECT *object ) {
 
 		// clear last entry
 		wm -> list_panel[ --wm -> list_limit_panel ] = EMPTY;
+
+		// refresh panel content
+		wm -> panel_semaphore = TRUE;
 
 		// done
 		return;

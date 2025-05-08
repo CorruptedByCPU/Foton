@@ -6,9 +6,6 @@ void wm_sync( void ) {
 	// properties of zone list
 	struct WM_STRUCTURE_ZONE *zone = wm -> zone;
 
-	// debug
-	log( "%u\n", wm -> zone_limit );
-
 	// for every zone
 	for( uint64_t i = 0; i < wm -> zone_limit; i++ ) {
 		// object was assigned to zone?

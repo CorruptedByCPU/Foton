@@ -10,7 +10,7 @@
 	#define	KERNEL_LIBRARY_FLAG_active		0x01
 	#define	KERNEL_LIBRARY_FLAG_reserved		0x80
 
-	#define	KERNEL_LIBRARY_limit			STD_PAGE_byte / sizeof( struct KERNEL_STRUCTURE_LIBRARY )
+	#define	KERNEL_LIBRARY_limit			((STD_PAGE_byte << STD_SHIFT_2) / sizeof( struct KERNEL_STRUCTURE_LIBRARY ))
 
 	struct	KERNEL_STRUCTURE_LIBRARY {
 		uint8_t					flags;

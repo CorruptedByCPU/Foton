@@ -53,7 +53,7 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 	kernel_memory_release( (uintptr_t) exec.path, MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + limit ) >> STD_SHIFT_PAGE );
 
 	// file doesn't exist?
-	if( ! exec.socket ) return EMPTY;	// yep
+	if( ! exec.socket ) return 1;	// yep
 
 	// checkpoint: socket --------------------------------------------------
 	exec.level++;
@@ -68,16 +68,16 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 	kernel -> storage_base_address[ exec.socket -> storage ].vfs -> file_read( exec.socket, (uint8_t *) exec.workbench, EMPTY, exec.socket -> file.limit );
 
 	// file contains ELF header?
-	if( ! lib_elf_identify( exec.workbench ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; };	// no
+	if( ! lib_elf_identify( exec.workbench ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return 2; };	// no
 
 	// ELF file properties
 	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) exec.workbench;
 
 	// executable?
-	if( elf -> type != LIB_ELF_TYPE_executable ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }	// no
+	if( elf -> type != LIB_ELF_TYPE_executable ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return 3; }	// no
 
 	// load libraries required by executable
-	if( ! kernel_library( elf ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }	// something went wrong
+	if( ! kernel_library( elf ) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return 4; }	// something went wrong
 
 	// add new task entry
 	if( ! (exec.task = kernel_task_add( name, limit )) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }	// end of resources
@@ -90,7 +90,7 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 
 	// create paging table
 	uint64_t cr3 = EMPTY;
-	if( ! (cr3 = kernel_memory_alloc_page()) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return EMPTY; }
+	if( ! (cr3 = kernel_memory_alloc_page()) ) { kernel_exec_cancel( (struct KERNEL_STRUCTURE_EXEC *) &exec ); return 5; }
 
 	// set paging address
 	exec.task -> cr3 = (uint64_t *) (cr3 | KERNEL_MEMORY_mirror);
