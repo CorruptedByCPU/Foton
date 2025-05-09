@@ -52,7 +52,7 @@ uint64_t kernel_module( uint8_t *name, uint64_t limit ) {
 	uint8_t path_default[ 13 ] = "/lib/modules/";
 
 	// combine default path with module name
-	module.path = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + limit ) >> STD_SHIFT_PAGE ); for( uint8_t i = INIT; i < sizeof( path_default ); i++ ) module.path[ module.limit++ ] = path_default[ i ]; for( uint64_t i = INIT; i < lib_string_word_end( name, limit, STD_ASCII_SPACE ); i++ ) module.path[ module.limit++ ] = name[ i ];
+	module.path = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + limit ) >> STD_SHIFT_PAGE ); for( uint8_t i = 0; i < sizeof( path_default ); i++ ) module.path[ module.limit++ ] = path_default[ i ]; for( uint64_t i = 0; i < lib_string_word_end( name, limit, STD_ASCII_SPACE ); i++ ) module.path[ module.limit++ ] = name[ i ];
 
 	// open file
 	module.socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ kernel_syscall_file_open( module.path, module.limit ) ];
@@ -132,7 +132,7 @@ uint64_t kernel_module( uint8_t *name, uint64_t limit ) {
 	struct LIB_ELF_STRUCTURE_HEADER *elf_header = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> header_offset);
 
 	// find furthest position in page of initialized module
-	for( uint16_t i = INIT; i < elf -> header_count; i++ ) {
+	for( uint16_t i = 0; i < elf -> header_count; i++ ) {
 		// ignore blank entry or not loadable
 		if( elf_header[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_header[ i ].segment_size  || ! elf_header[ i ].memory_size ) continue;
 
@@ -144,7 +144,7 @@ uint64_t kernel_module( uint8_t *name, uint64_t limit ) {
 	if( ! (module.base = kernel_memory_alloc( module.page )) ) { kernel_module_cancel( (struct KERNEL_STRUCTURE_MODULE *) &module ); return EMPTY; }
 
 	// load executable segments in place
-	for( uint16_t i = INIT; i < elf -> header_count; i++ ) {
+	for( uint16_t i = 0; i < elf -> header_count; i++ ) {
 		// ignore blank entry or not loadable
  		if( elf_header[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_header[ i ].segment_size || ! elf_header[ i ].memory_size ) continue;
 
@@ -155,7 +155,7 @@ uint64_t kernel_module( uint8_t *name, uint64_t limit ) {
 		uint8_t *destination = (uint8_t *) (elf_header[ i ].virtual_address + module.base);
 
 		// copy segment content into place
-		for( uint64_t j = INIT; j < elf_header[ i ].memory_size; j++ ) destination[ j ] = source[ j ];
+		for( uint64_t j = 0; j < elf_header[ i ].memory_size; j++ ) destination[ j ] = source[ j ];
 	}
 
 	// process memory usage

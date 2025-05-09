@@ -29,14 +29,14 @@ void kernel_init_task( void ) {
 	// that information is stored on AP list
 
 	// BS CPU is currently executing Kernel initialization routines
-	kernel -> task_ap_address[ id ] = INIT;
+	kernel -> task_ap_address[ id ] = 0;
 
 	//----------------------------------------------------------------------
 	// every child will inherit this parameters:
 	//----------------------------------------------------------------------
 
 	// storage id and directory knot
-	kernel -> task_base_address[ kernel -> task_ap_address[ id ] ].storage = INIT;
+	kernel -> task_base_address[ kernel -> task_ap_address[ id ] ].storage = 0;
 
 	// root directory of that storage
 	kernel -> task_base_address[ kernel -> task_ap_address[ id ] ].directory = kernel -> storage_base_address[ kernel -> task_base_address[ kernel -> task_ap_address[ id ] ].storage ].block;

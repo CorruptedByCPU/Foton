@@ -7,7 +7,7 @@ void kernel_init_memory( void ) {
 	kernel -> memory_base_address = (uint32_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
 
 	// describe all memory areas marked as USBALE inside binary memory map
-	for( uint64_t i = INIT; i < limine_memmap_request.response -> entry_count; i++ ) {
+	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
 		// ignore irrelevant entries
 		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_KERNEL_AND_MODULES && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_ACPI_RECLAIMABLE ) continue;
 

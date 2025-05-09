@@ -48,7 +48,7 @@ uint64_t kernel_memory_acquire( uint32_t *memory, uint64_t n, uint64_t p, uint64
 
 uintptr_t kernel_memory_alloc( uint64_t n ) {
 	// initialize page ID
-	uintptr_t p = INIT;
+	uintptr_t p = 0;
 
 	// search for requested length of area
 	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, n, KERNEL_MEMORY_HIGH, kernel -> page_limit )) ) return EMPTY;
@@ -65,7 +65,7 @@ uintptr_t kernel_memory_alloc( uint64_t n ) {
 
 uintptr_t kernel_memory_alloc_low( uint64_t n ) {
 	// initialize value
-	uintptr_t p = INIT;
+	uintptr_t p = 0;
 
 	// search for requested length of area
 	if( ! (p = kernel_memory_acquire( kernel -> memory_base_address, n, KERNEL_MEMORY_LOW, KERNEL_MEMORY_HIGH )) ) return EMPTY;
@@ -91,7 +91,7 @@ uintptr_t kernel_memory_alloc_page( void ) {
 	return page;
 }
 
-void kernel_memory_clean( uint64_t *address, uint64_t n ) { for( uint64_t i = INIT; i < n << STD_SHIFT_512; i++ ) address[ i ] = EMPTY; }
+void kernel_memory_clean( uint64_t *address, uint64_t n ) { for( uint64_t i = 0; i < n << STD_SHIFT_512; i++ ) address[ i ] = EMPTY; }
 
 void kernel_memory_dispose( uint32_t *memory, uint64_t p, uint64_t n ) {
 	// mark pages as available

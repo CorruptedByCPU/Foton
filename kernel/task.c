@@ -7,7 +7,7 @@ struct KERNEL_STRUCTURE_TASK *kernel_task_add( uint8_t *name, uint16_t limit ) {
 	MACRO_LOCK( kernel -> task_lock );
 
 	// find an available entry
-	for( uint64_t i = INIT; i < kernel -> task_limit; i++ ) {
+	for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
 		// available?
 		if( kernel -> task_base_address[ i ].flags ) continue;	// no
 
@@ -25,7 +25,7 @@ struct KERNEL_STRUCTURE_TASK *kernel_task_add( uint8_t *name, uint16_t limit ) {
 
 		// set process name
 		if( limit > KERNEL_TASK_NAME_limit ) kernel -> task_base_address[ i ].name_limit = KERNEL_TASK_NAME_limit; kernel -> task_base_address[ i ].name = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_TASK_NAME_limit ) >> STD_SHIFT_PAGE );
-		for( uint16_t n = INIT; n < kernel -> task_base_address[ i ].name_limit; n++ ) kernel -> task_base_address[ i ].name[ n ] = name[ n ]; kernel -> task_base_address[ i ].name[ kernel -> task_base_address[ i ].name_limit ] = STD_ASCII_TERMINATOR;
+		for( uint16_t n = 0; n < kernel -> task_base_address[ i ].name_limit; n++ ) kernel -> task_base_address[ i ].name[ n ] = name[ n ]; kernel -> task_base_address[ i ].name[ kernel -> task_base_address[ i ].name_limit ] = STD_ASCII_TERMINATOR;
 
 		// unlock
 		MACRO_UNLOCK( kernel -> task_lock );
@@ -79,7 +79,7 @@ struct KERNEL_STRUCTURE_TASK *kernel_task_select( uint64_t i ) {
 		}
 
 		// start from begining
-		i = INIT;
+		i = 0;
 	}
 }
 

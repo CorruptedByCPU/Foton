@@ -12,7 +12,7 @@ void kernel_init_page( void ) {
 	// --------------------------------------------------------------------
 
 	// map required memory area
-	for( uint64_t i = INIT; i < limine_memmap_request.response -> entry_count; i++ ) {
+	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
 		switch( limine_memmap_request.response -> entries[ i ] -> type ) {
 			case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
 			case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
@@ -46,7 +46,7 @@ void kernel_init_page( void ) {
 
 	// calculate loaded kernel limit
 	uint64_t kernel_limit = EMPTY;
-	for( uint16_t i = INIT; i < elf -> header_count; i++ ) {
+	for( uint16_t i = 0; i < elf -> header_count; i++ ) {
 		// ignore blank entry or not loadable
  		if( elf_header[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_header[ i ].memory_size ) continue;
 
@@ -57,7 +57,7 @@ void kernel_init_page( void ) {
 	// make a copy of currently working kernel
 	uint64_t *source = (uint64_t *) KERNEL_BASE_address;
 	uint64_t *target = (uint64_t *) kernel_memory_alloc( kernel_limit >> STD_SHIFT_PAGE );
-	for( uint64_t i = INIT; i < kernel_limit >> STD_SHIFT_8; i++ ) target[ i ] = source[ i ];
+	for( uint64_t i = 0; i < kernel_limit >> STD_SHIFT_8; i++ ) target[ i ] = source[ i ];
 
 	// connect kernel area to destination
 	kernel_page_map( (uint64_t *) kernel -> page_base_address, (uintptr_t) target & ~KERNEL_MEMORY_mirror, KERNEL_BASE_address, MACRO_PAGE_ALIGN_UP( kernel_limit ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write ); 

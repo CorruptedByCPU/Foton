@@ -15,6 +15,7 @@
 		uint64_t				root;
 		struct KERNEL_STRUCTURE_VFS_FILE	(*file)( struct KERNEL_STRUCTURE_STORAGE *storage, uintptr_t directory, uint8_t *path, uint64_t limit );
 		void					(*file_read)( struct KERNEL_STRUCTURE_VFS_SOCKET *socket, uint8_t *target, uint64_t seek, uint64_t limit );
+		uintptr_t				(*dir)( struct KERNEL_STRUCTURE_VFS_SOCKET *socket );
 	};
 
 	struct KERNEL_STRUCTURE_VFS_FILE {

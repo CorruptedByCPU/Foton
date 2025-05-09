@@ -15,7 +15,7 @@ uint8_t	kernel_init_vfs_identify( uintptr_t base, uint64_t limit ) {
 
 uint64_t kernel_init_vfs_length( uintptr_t base_address ) {
 	// detected size of directory
-	uint64_t limit = INIT;
+	uint64_t limit = 0;
 
 	// set pointer to directory content
 	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) base_address;
@@ -33,12 +33,12 @@ uint64_t kernel_init_vfs_length( uintptr_t base_address ) {
 
 struct LIB_VFS_STRUCTURE *kernel_init_vfs_search( struct LIB_VFS_STRUCTURE *dir, uint8_t *name, uint64_t limit ) {
 	// for each data block of directory
-	for( uint64_t b = INIT; b < MACRO_PAGE_ALIGN_UP( dir -> limit ) >> STD_SHIFT_PAGE; b++ ) {
+	for( uint64_t b = 0; b < MACRO_PAGE_ALIGN_UP( dir -> limit ) >> STD_SHIFT_PAGE; b++ ) {
 		// properties of directory content
 		struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( dir, b );
 
 		// for every possible entry
-		for( uint8_t e = INIT; e < LIB_VFS_BLOCK_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
+		for( uint8_t e = 0; e < LIB_VFS_BLOCK_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
 			// if 
 			if( vfs[ e ].name_limit == limit && lib_string_compare( (uint8_t *) vfs[ e ].name, name, limit ) ) return (struct LIB_VFS_STRUCTURE *) &vfs[ e ];
 	}
@@ -100,7 +100,7 @@ void kernel_init_vfs_realloc( struct LIB_VFS_STRUCTURE *vfs, uintptr_t offset ) 
 	uintptr_t *indirect = (uintptr_t *) vfs -> block[ 1 ];
 
 	// parse indirect blocks
-	for( uint16_t i = INIT; i < 512; i++ ) {
+	for( uint16_t i = 0; i < 512; i++ ) {
 		// true block offset
 		indirect[ i ] = offset;
 
@@ -117,12 +117,12 @@ void kernel_init_vfs_realloc( struct LIB_VFS_STRUCTURE *vfs, uintptr_t offset ) 
 
 void kernel_init_vfs_setup( struct LIB_VFS_STRUCTURE *current, struct LIB_VFS_STRUCTURE *previous ) {
 	// for each data block of directory
-	for( uint64_t b = INIT; b < MACRO_PAGE_ALIGN_UP( current -> limit ) >> STD_SHIFT_PAGE; b++ ) {
+	for( uint64_t b = 0; b < MACRO_PAGE_ALIGN_UP( current -> limit ) >> STD_SHIFT_PAGE; b++ ) {
 		// properties of directory content
 		struct LIB_VFS_STRUCTURE *dir = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( current, b );
 
 		// for every possible entry
-		for( uint8_t e = INIT; e < LIB_VFS_BLOCK_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
+		for( uint8_t e = 0; e < LIB_VFS_BLOCK_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
 			// depending of file type
 			switch( dir[ e ].type ) {
 				case STD_FILE_TYPE_file: {
@@ -173,9 +173,10 @@ void kernel_init_vfs( void ) {
 	kernel -> vfs = (struct KERNEL_STRUCTURE_VFS *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct KERNEL_STRUCTURE_VFS ) ) >> STD_SHIFT_PAGE );
 	kernel -> vfs -> file			= kernel_vfs_file;
 	kernel -> vfs -> file_read		= kernel_vfs_file_read;
+	kernel -> vfs -> dir			= kernel_vfs_dir;
 
 	// detect modules with Virtual File System (like initramfs from GNU/Linux)
-	for( uint64_t i = INIT; i < limine_module_request.response -> module_count; i++ ) {
+	for( uint64_t i = 0; i < limine_module_request.response -> module_count; i++ ) {
 		// VFS module type?
 		if( ! kernel_init_vfs_identify( (uintptr_t) limine_module_request.response -> modules[ i ] -> address, (uint64_t) limine_module_request.response -> modules[ i ] -> size ) ) continue;	// no
 
@@ -208,7 +209,7 @@ void kernel_init_vfs( void ) {
 		//--------------------------------------------------------------
 
 		// create storage
-		struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) kernel_storage_create();
+		struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) kernel_storage_add();
 
 		// main block data at
 		storage -> block = (uint64_t) vfs;

@@ -132,7 +132,7 @@ void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *frame
 	framebuffer -> width_pixel	= kernel -> framebuffer_width_pixel;
 	framebuffer -> height_pixel	= kernel -> framebuffer_height_pixel;
 	framebuffer -> pitch_byte	= kernel -> framebuffer_pitch_byte;
-	framebuffer -> pid		= INIT;	// kernel, by default
+	framebuffer -> pid		= 0;	// kernel, by default
 
 	// current task properties
 	struct KERNEL_STRUCTURE_TASK *current = (struct KERNEL_STRUCTURE_TASK *) kernel_task_current();
@@ -140,7 +140,7 @@ void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *frame
 	// change framebuffer owner if possible (first come, first serve)
 	if( ! __sync_val_compare_and_swap( (uint64_t *) &kernel -> framebuffer_pid, EMPTY, current -> pid ) ) {
 		// acquire N continuous pages
-		uintptr_t n = INIT;
+		uintptr_t n = 0;
 		if( (n = kernel_memory_acquire( current -> memory, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, EMPTY, kernel -> page_limit )) ) {
 			// alloc memory inside current task
 			if( ! kernel_page_map( (uint64_t *) current -> cr3, (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_MEMORY_mirror, (uintptr_t) (n << STD_SHIFT_PAGE), MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (KERNEL_PAGE_TYPE_SHARED << KERNEL_PAGE_TYPE_offset) ) ) {
@@ -166,6 +166,29 @@ void kernel_syscall_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *frame
 	framebuffer -> pid = kernel -> framebuffer_pid;
 }
 
+uintptr_t kernel_syscall_dir( uint8_t *path, uint64_t limit ) {
+	// try to open directory
+	uint64_t socket_id = kernel_syscall_file_open( path, limit );
+
+	// unsuccessful?
+	if( ! socket_id ) return EMPTY;	// yep
+
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *current = (struct KERNEL_STRUCTURE_TASK *) kernel_task_current();
+
+	// properties of socket
+	struct KERNEL_STRUCTURE_VFS_SOCKET *socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ];
+
+	// acquire content of directory from current storage
+	uintptr_t content = kernel -> storage_base_address[ socket -> storage ].vfs -> dir( socket );
+
+	// close directory
+	kernel_syscall_file_close( socket_id );
+
+	// return directory content pointer
+	return content;
+}
+
 void kernel_syscall_ipc_send( uint64_t pid, uint8_t *data ) {
 	// data outside of software environment?
 	if( ((uintptr_t) data + STD_IPC_SIZE_byte) >= KERNEL_TASK_STACK_pointer ) return;	// yes, ignore
@@ -176,7 +199,7 @@ void kernel_syscall_ipc_send( uint64_t pid, uint8_t *data ) {
 	// wait for free stack area
 	while( TRUE ) {
 		// scan whole IPC area
-		for( uint64_t i = INIT; i < KERNEL_IPC_limit; i++ ) {
+		for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
 			// free entry found?
 			if( kernel -> ipc_base_address[ i ].ttl > kernel -> time_units ) continue;	// no
 
@@ -207,7 +230,7 @@ uint64_t kernel_syscall_ipc_receive( uint8_t *data ) {
 	if( ((uintptr_t) data + STD_IPC_SIZE_byte) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// yes, ignore
 
 	// scan whole IPC area
-	for( uint64_t i = INIT; i < KERNEL_IPC_limit; i++ ) {
+	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
 		// message alive?
 		if( kernel -> time_units > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
@@ -234,7 +257,7 @@ uint8_t kernel_syscall_ipc_receive_by_pid( uint8_t *data, uint64_t pid ) {
 	if( ((uintptr_t) data + STD_IPC_SIZE_byte) >= KERNEL_TASK_STACK_pointer ) return FALSE;	// yes, ignore
 
 	// scan whole IPC area
-	for( uint64_t i = INIT; i < KERNEL_IPC_limit; i++ ) {
+	for( uint64_t i = 0; i < KERNEL_IPC_limit; i++ ) {
 		// message alive?
 		if( kernel -> time_units > kernel -> ipc_base_address[ i ].ttl ) continue;	// no
 	
@@ -315,7 +338,7 @@ void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 	if( (uintptr_t) string > KERNEL_STACK_pointer || ((uintptr_t) string + length) > KERNEL_STACK_pointer ) return;	// do not allow it
 
 	// show content of string
-	for( uint64_t i = INIT; i < length; i++ ) driver_serial_char( string[ i ] );
+	for( uint64_t i = 0; i < length; i++ ) driver_serial_char( string[ i ] );
 }
 
 uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
@@ -323,7 +346,7 @@ uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
 	struct KERNEL_STRUCTURE_TASK *current = (struct KERNEL_STRUCTURE_TASK *) kernel_task_current();
 
 	// id of first logical page
-	uintptr_t p = INIT;
+	uintptr_t p = 0;
 
 	// acquired N continuous pages?
 	if( ! (p = kernel_memory_acquire( current -> memory, n, KERNEL_MEMORY_HIGH, kernel -> page_limit )) ) return EMPTY;	// no
@@ -459,7 +482,7 @@ uint64_t kernel_syscall_pid( void ) {
 
 uint8_t kernel_syscall_pid_exist( uint64_t pid ) {
 	// find an entry with selected ID
-	for( uint64_t i = INIT; i < kernel -> task_limit; i++ ) {
+	for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
 		// entry occupied?
 		if( ! kernel -> task_base_address[ i ].flags ) continue;	// no
 

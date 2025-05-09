@@ -35,7 +35,7 @@ void kernel_init_acpi( void ) {
 	}
 
 	// do recon on all entries of list
-	for( uint64_t i = INIT; i < list_length; i++ ) {
+	for( uint64_t i = 0; i < list_length; i++ ) {
 		// SDT pointer address
 		uintptr_t sdt = EMPTY;
 

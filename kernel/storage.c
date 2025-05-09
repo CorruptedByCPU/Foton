@@ -2,12 +2,12 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct KERNEL_STRUCTURE_STORAGE *kernel_storage_create( void ) {
+struct KERNEL_STRUCTURE_STORAGE *kernel_storage_add( void ) {
 	// lock exclusive access
 	MACRO_LOCK( kernel -> storage_lock );
 
 	// search through storage list
-	for( uint64_t i = INIT; i < kernel -> storage_limit; i++ ) {
+	for( uint64_t i = 0; i < kernel -> storage_limit; i++ ) {
 		// available entry?
 		if( kernel -> storage_base_address[ i ].flags ) continue;	// no	// no
 

@@ -160,5 +160,6 @@ void wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// debug
-	std_exec( (uint8_t *) "3d /var/monkey.obj", 18, EMPTY, TRUE );
+	// std_exec( (uint8_t *) "3d /var/monkey.obj", 18, EMPTY, TRUE );
+	// std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
 }

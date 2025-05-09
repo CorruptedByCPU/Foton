@@ -33,7 +33,7 @@ void kernel_init_ap( struct limine_smp_info *info ) {
 	__asm__ volatile( "ltr %%ax" :: "a" ((uintptr_t) &tss[ id ] & ~STD_PAGE_mask) );
 
 	// select task from queue which CPU is now processing
-	kernel -> task_ap_address[ id ] = INIT;
+	kernel -> task_ap_address[ id ] = 0;
 
 	// disable x87 FPU Emulation, enable co-processor Monitor
 	__asm__ volatile( "movq %cr0, %rax\nand $0xFFFB, %ax\nor $0x02, %ax\nmovq %rax, %cr0" );

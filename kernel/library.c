@@ -38,7 +38,7 @@ void kernel_library_cancel( struct KERNEL_STRUCTURE_LIBRARY_INIT *lib ) {
 
 uint8_t kernel_library_find( uint8_t *name, uint8_t limit ) {
 	// look for selected library
-	for( uint64_t i = INIT; i < kernel -> library_limit; i++ )
+	for( uint64_t i = 0; i < kernel -> library_limit; i++ )
 		// library with exact name and length?
 		if( limit == kernel -> library_base_address[ i ].name_limit && lib_string_compare( name, (uint8_t *) &kernel -> library_base_address[ i ].name, limit ) )
 			// yes
@@ -50,7 +50,7 @@ uint8_t kernel_library_find( uint8_t *name, uint8_t limit ) {
 
 struct KERNEL_STRUCTURE_LIBRARY *kernel_library_register( void ) {
 	// look for available entry
-	for( uint64_t i = INIT; i < kernel -> library_limit; i++ ) {
+	for( uint64_t i = 0; i < kernel -> library_limit; i++ ) {
 		// available?
 		if( kernel -> library_base_address[ i ].flags ) continue;	// no
 
@@ -67,12 +67,12 @@ struct KERNEL_STRUCTURE_LIBRARY *kernel_library_register( void ) {
 
 uintptr_t kernel_library_function( uint8_t *name, uint64_t length ) {
 	// search in every loaded library
-	for( uint64_t i = INIT; i < kernel -> library_limit; i++ ) {
+	for( uint64_t i = 0; i < kernel -> library_limit; i++ ) {
 		// library active?
 		if( ! (kernel -> library_base_address[ i ].flags & KERNEL_LIBRARY_FLAG_active) ) continue;	// no
 
 		// search thru available dynamic symbols inside library
-		for( uint64_t j = INIT; j < kernel -> library_base_address[ i ].elf_section_dynsym_count; j++ )
+		for( uint64_t j = 0; j < kernel -> library_base_address[ i ].elf_section_dynsym_count; j++ )
 			// local function we are looking for?
 			if( kernel -> library_base_address[ i ].elf_section_dynsym[ j ].address && lib_string_length( (uint8_t *) &kernel -> library_base_address[ i ].elf_section_strtab[ kernel -> library_base_address[ i ].elf_section_dynsym[ j ].name_offset ] ) == length && lib_string_compare( name, (uint8_t *) &kernel -> library_base_address[ i ].elf_section_strtab[ kernel -> library_base_address[ i ].elf_section_dynsym[ j ].name_offset ], length ) )
 				// yes
@@ -96,7 +96,7 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t base_address,
 	struct LIB_ELF_STRUCTURE_SECTION *elf_section = (struct LIB_ELF_STRUCTURE_SECTION *) ((uintptr_t) elf + elf -> section_offset);
 
 	// before we find all of them, first must be section strtab
-	for( uint64_t i = INIT; i < elf -> section_count; i++ ) {
+	for( uint64_t i = 0; i < elf -> section_count; i++ ) {
 		// section names?
 		if( elf_section[ i ].type == LIB_ELF_SECTION_TYPE_strtab ) if( ! elf_section_strtab ) {
 			// try this strtab section
@@ -111,7 +111,7 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t base_address,
 	}
 
 	// retrieve information about others
-	for( uint64_t i = INIT; i < elf -> section_count; i++ ) {
+	for( uint64_t i = 0; i < elf -> section_count; i++ ) {
 		// function names?
 		if( ! elf_section_strtab && elf_section[ i ].type == LIB_ELF_SECTION_TYPE_strtab ) {
 			// it's the correct one?
@@ -156,7 +156,7 @@ void kernel_library_link( struct LIB_ELF_STRUCTURE *elf, uintptr_t base_address,
 	if( ! elf_section_rela ) return;	// yes
 
 	// for each entry in dynamic symbols
-	for( uint64_t i = INIT; i < elf_section_rela_entry_count; i++ ) {
+	for( uint64_t i = 0; i < elf_section_rela_entry_count; i++ ) {
 		// prepare .got.plt entry pointer
 		if( is_library )
 			// in case of library
@@ -192,7 +192,7 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t limit ) {
 	uint8_t path_default[ 5 ] = "/lib/";
 
 	// combine default path with library name
-	lib.path = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + limit ) >> STD_SHIFT_PAGE ); for( uint8_t i = INIT; i < sizeof( path_default ); i++ ) lib.path[ lib.limit++ ] = path_default[ i ]; for( uint64_t i = INIT; i < lib_string_word_end( name, limit, STD_ASCII_SPACE ); i++ ) lib.path[ lib.limit++ ] = name[ i ];
+	lib.path = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( path_default ) + limit ) >> STD_SHIFT_PAGE ); for( uint8_t i = 0; i < sizeof( path_default ); i++ ) lib.path[ lib.limit++ ] = path_default[ i ]; for( uint64_t i = 0; i < lib_string_word_end( name, limit, STD_ASCII_SPACE ); i++ ) lib.path[ lib.limit++ ] = name[ i ];
 
 	// open file
 	lib.socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ kernel_syscall_file_open( lib.path, lib.limit ) ];
@@ -235,7 +235,7 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t limit ) {
 	struct LIB_ELF_STRUCTURE_HEADER *elf_header = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> header_offset);
 
 	// find furthest position in page of initialized library
-	for( uint64_t i = INIT; i < elf -> header_count; i++ ) {
+	for( uint64_t i = 0; i < elf -> header_count; i++ ) {
 		// ignore blank entry or not loadable
  		if( elf_header[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_header[ i ].segment_size  || ! elf_header[ i ].memory_size ) continue;
 
@@ -263,7 +263,7 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t limit ) {
 	struct LIB_ELF_STRUCTURE_SECTION *elf_section = (struct LIB_ELF_STRUCTURE_SECTION *) ((uint64_t) elf + elf -> section_offset);
 
 	// load library segments in place
-	for( uint64_t i = INIT; i < elf -> section_count; i++ ) {
+	for( uint64_t i = 0; i < elf -> section_count; i++ ) {
 		// ignore blank entries
 		if( ! elf_section[ i ].virtual_address || ! elf_section[ i ].size_byte ) continue;
 
@@ -279,7 +279,7 @@ uint8_t kernel_library_load( uint8_t *name, uint64_t limit ) {
 	}
 
 	// retrieve pointers
-	for( uint16_t i = INIT; i < elf -> section_count; i++ ) {
+	for( uint16_t i = 0; i < elf -> section_count; i++ ) {
 		// strtab and first occurence? (look only for first)
 		if( ! lib.entry -> elf_section_strtab && elf_section[ i ].type == LIB_ELF_SECTION_TYPE_strtab ) lib.entry -> elf_section_strtab = (uint8_t *) (lib.entry -> base + elf_section[ i ].virtual_address);
 
@@ -316,11 +316,11 @@ uint8_t kernel_library( struct LIB_ELF_STRUCTURE *elf ) {
 	struct LIB_ELF_STRUCTURE_SECTION *elf_section = (struct LIB_ELF_STRUCTURE_SECTION *) ((uintptr_t) elf + elf -> section_offset);
 
 	// find location of follow sections
-	struct LIB_ELF_STRUCTURE_DYNAMIC *elf_section_dynamic	= INIT;
-	uint8_t *elf_section_strtab				= INIT;
+	struct LIB_ELF_STRUCTURE_DYNAMIC *elf_section_dynamic	= 0;
+	uint8_t *elf_section_strtab				= 0;
 
 	// retrieve pointers
-	for( uint16_t i = INIT; i < elf -> section_count; i++ ) {
+	for( uint16_t i = 0; i < elf -> section_count; i++ ) {
 		// strtab and first occurence? (look only for first)
 		if( ! elf_section_strtab && elf_section[ i ].type == LIB_ELF_SECTION_TYPE_strtab ) elf_section_strtab = (uint8_t *) ((uint64_t) elf + elf_section[ i ].file_offset);
 

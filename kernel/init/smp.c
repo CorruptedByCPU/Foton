@@ -7,10 +7,10 @@ void kernel_init_smp( void ) {
 	if( limine_smp_request.response == EMPTY ) return;	// no
 
 	// amount of running APs
-	uint64_t count = INIT;
+	uint64_t count = 0;
 
 	// initialize AP one by one
-	for( uint64_t i = INIT; i < limine_smp_request.response -> cpu_count; i++ ) {
+	for( uint64_t i = 0; i < limine_smp_request.response -> cpu_count; i++ ) {
 		// do not reload BSP processor, yet
 		if( limine_smp_request.response -> cpus[ i ] -> lapic_id == kernel_apic_id() ) continue;
 

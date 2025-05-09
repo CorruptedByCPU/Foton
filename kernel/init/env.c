@@ -4,11 +4,11 @@
 
 void kernel_init_env( void ) {
 	// look for address of the largest chunk of physical memory (RAM) and the furthest
-	uint64_t limit = INIT;
-	uint64_t max = INIT;
+	uint64_t limit = 0;
+	uint64_t max = 0;
 
 	// search through all memory map entries provided by Limine Bootloader
-	for( uint64_t i = INIT; i < limine_memmap_request.response -> entry_count; i++ ) {
+	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
 		// ignore irrelevant entries
 		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_KERNEL_AND_MODULES && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_ACPI_RECLAIMABLE ) continue;
 
