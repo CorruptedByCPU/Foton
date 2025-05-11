@@ -179,14 +179,17 @@ uintptr_t kernel_syscall_dir( uint8_t *path, uint64_t limit ) {
 	// properties of socket
 	struct KERNEL_STRUCTURE_VFS_SOCKET *socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ];
 
+	// allocate maximal required memory area for directory content
+	struct LIB_VFS_STRUCTURE *dir = (struct LIB_VFS_STRUCTURE *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( ((struct LIB_VFS_STRUCTURE *) socket -> file.knot) -> limit ) >> STD_SHIFT_PAGE );
+
 	// acquire content of directory from current storage
-	uintptr_t content = kernel -> storage_base_address[ socket -> storage ].vfs -> dir( socket );
+	kernel -> storage_base_address[ socket -> storage ].vfs -> dir( socket, dir );
 
 	// close directory
 	kernel_syscall_file_close( socket_id );
 
 	// return directory content pointer
-	return content;
+	return (uintptr_t) dir;
 }
 
 void kernel_syscall_ipc_send( uint64_t pid, uint8_t *data ) {

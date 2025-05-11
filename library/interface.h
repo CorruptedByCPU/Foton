@@ -78,20 +78,21 @@
 	#define	LIB_INTERFACE_BORDER_COLOR_default_shadow		0xFF202020
 	#define	LIB_INTERFACE_BORDER_COLOR_inactive			LIB_INTERFACE_BORDER_COLOR_default_shadow
 	#define	LIB_INTERFACE_BORDER_COLOR_inactive_shadow		0xFF181818
+	#define	LIB_INTERFACE_BORDER_COLOR_internal			0xFF2B2B2B
 
-	#define	LIB_INTERFACE_COLOR_background				0xFF202020
+	#define	LIB_INTERFACE_COLOR_background				0xFF181818
 	#define	LIB_INTERFACE_COLOR_background_lighter			0xFF303030
 	#define	LIB_INTERFACE_COLOR_background_button_default		0xFF303030
-	#define	LIB_INTERFACE_COLOR_background_menu_default		LIB_INTERFACE_COLOR_background
-	#define	LIB_INTERFACE_COLOR_background_menu_selected		LIB_INTERFACE_COLOR_background + 0x00002000;
-	#define	LIB_INTERFACE_COLOR_background_input_default		LIB_INTERFACE_COLOR_background_button_default
-	#define	LIB_INTERFACE_COLOR_background_input_selected		0xFF002000
+	#define	LIB_INTERFACE_COLOR_background_menu_default		0xFF1F1F1F
+	#define	LIB_INTERFACE_COLOR_background_menu_selected		LIB_INTERFACE_COLOR_background_menu_default + 0x00101010;
+	#define	LIB_INTERFACE_COLOR_background_input_default		0xFF242424;
+	#define	LIB_INTERFACE_COLOR_background_input_selected		LIB_INTERFACE_COLOR_background_input_default + 0x00101010;
 	#define	LIB_INTERFACE_COLOR_background_radio_default		LIB_INTERFACE_COLOR_background + 0x00101010;
 	#define	LIB_INTERFACE_COLOR_background_radio_selected		0xFF202080
 	#define	LIB_INTERFACE_COLOR_background_checkbox_default		LIB_INTERFACE_COLOR_background + 0x00101010;
 	#define	LIB_INTERFACE_COLOR_background_checkbox_selected	0xFF208020
 	#define	LIB_INTERFACE_COLOR_background_control_close_hover	0xFF208020
-	#define	LIB_INTERFACE_COLOR_background_file_default		0xFF121212
+	#define	LIB_INTERFACE_COLOR_background_file_default		0xFF1F1F1F
 	#define	LIB_INTERFACE_COLOR_background_file_odd			0xFF161616
 	#define	LIB_INTERFACE_COLOR_background_file_selected		0xFF208020
 	#define	LIB_INTERFACE_COLOR_foreground				0xFFF0F0F0

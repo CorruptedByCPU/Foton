@@ -31,9 +31,16 @@ struct KERNEL_STRUCTURE_VFS_FILE kernel_vfs_file( struct KERNEL_STRUCTURE_STORAG
 		// for every possible entry
 		for( uint8_t e = 0; e < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
 			// if found
-			if( vfs[ e ].name_limit == limit && lib_string_compare( (uint8_t *) vfs[ e ].name, name, limit ) )
+			if( vfs[ e ].name_limit == limit && lib_string_compare( (uint8_t *) vfs[ e ].name, name, limit ) ) {
+				// properties of found file
+				struct LIB_VFS_STRUCTURE *file = (struct LIB_VFS_STRUCTURE *) &vfs[ e ];
+
+				// follow symlink, if exist
+				while( file -> type == STD_FILE_TYPE_link ) file = (struct LIB_VFS_STRUCTURE *) file -> block[ FALSE ];
+
 				// done
-				return (struct KERNEL_STRUCTURE_VFS_FILE) { vfs[ e ].type, vfs[ e ].limit, (uintptr_t) &vfs[ e ] };
+				return (struct KERNEL_STRUCTURE_VFS_FILE) { file -> type, file -> limit, (uintptr_t) file };
+			}
 	}
 
 	// debug
@@ -71,12 +78,12 @@ void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS_SOCKET *socket, uint8_t *
 	}
 }
 
-uintptr_t kernel_vfs_dir( struct KERNEL_STRUCTURE_VFS_SOCKET *socket ) {
+void kernel_vfs_dir( struct KERNEL_STRUCTURE_VFS_SOCKET *socket, struct LIB_VFS_STRUCTURE *dir ) {
 	// properties of file
 	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) socket -> file.knot;
 
-	// allocate maximal required memory area for directory content
-	struct LIB_VFS_STRUCTURE *dir = (struct LIB_VFS_STRUCTURE *) kernel -> memory_alloc( MACRO_PAGE_ALIGN_UP( vfs -> limit ) >> STD_SHIFT_PAGE );
+	// properties of current block of directory
+	struct LIB_VFS_STRUCTURE *tmp = EMPTY;
 
 	// first block of data
 	uint64_t b = 0;
@@ -84,32 +91,29 @@ uintptr_t kernel_vfs_dir( struct KERNEL_STRUCTURE_VFS_SOCKET *socket ) {
 	// parse all files from each block
 	while( TRUE ) {
 		// source block pointer
-		struct LIB_VFS_STRUCTURE *tmp = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( vfs, b++ );
+		if( ! (tmp = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( vfs, b++ )) ) break;	// done, nothing more
 
 		// for every possible entry
 		for( uint8_t i = 0; i < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); i++ ) {
 			// if not exist
-			if( ! tmp[ i ].name_limit ) continue; // next one
+			if( ! tmp[ i ].type ) continue; // next one
 
 			// share important infomration about file
 
 			// type of file
-			dir -> type	= tmp -> type;
+			dir -> type	= tmp[ i ].type;
 
 			// length in Bytes
-			dir -> limit	= tmp -> limit;
+			dir -> limit	= tmp[ i ].limit;
 
 			// name
-			dir -> name_limit	= tmp -> name_limit;
-			for( uint8_t k = 0; k < tmp -> name_limit; k++ ) dir -> name[ k ] = tmp -> name[ k ];
+			dir -> name_limit	= tmp[ i ].name_limit;
+			for( uint8_t k = 0; k < tmp[ i ].name_limit; k++ ) dir -> name[ k ] = tmp[ i ].name[ k ];
 
 			// file shared
 			dir++;
 		}
 	}
-
-	// return pointer to directory content and its size
-	return (uintptr_t) dir;
 }
 
 struct KERNEL_STRUCTURE_VFS_SOCKET *kernel_vfs_socket( uint64_t pid ) {

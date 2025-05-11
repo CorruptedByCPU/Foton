@@ -204,6 +204,11 @@ uint64_t kernel_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t ini
 
 	//----------------------------------------------------------------------
 
+	// exec inherites root directory of parent, regardles of init semaphore
+	exec.task -> directory = kernel_task_current() -> directory;
+
+	//----------------------------------------------------------------------
+
 	// map kernel
 	kernel_page_merge( (uint64_t *) kernel -> page_base_address, (uint64_t *) exec.task -> cr3 );
 

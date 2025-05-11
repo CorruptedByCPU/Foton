@@ -105,7 +105,7 @@ kernel_syscall_list:
 	dq	0x00	;; dq	kernel_syscall_network_receive		; 0x27
 	dq	0x00	;; dq	kernel_syscall_storage			; 0x28
 	dq	0x00	;; dq	kernel_syscall_storage_select		; 0x29
-	dq	0x00	;; dq	kernel_syscall_dir			; 0x2A
+	dq	kernel_syscall_dir			; 0x2A
 	dq	0x00	;; dq	kernel_syscall_storage_id		; 0x2B
 	dq	kernel_syacall_memory_purge		; 0x2C
 kernel_syscall_list_end:
