@@ -78,20 +78,17 @@ void kernel_vfs_file_read( struct KERNEL_STRUCTURE_VFS_SOCKET *socket, uint8_t *
 	}
 }
 
-void kernel_vfs_dir( struct KERNEL_STRUCTURE_VFS_SOCKET *socket, struct LIB_VFS_STRUCTURE *dir ) {
+uint64_t kernel_vfs_dir( struct KERNEL_STRUCTURE_VFS_SOCKET *socket, struct STD_STRUCTURE_DIR *dir ) {
+	// preserve original pointer
+	uintptr_t dir_ptr = (uintptr_t) dir;
+
 	// properties of file
 	struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) socket -> file.knot;
 
-	// properties of current block of directory
-	struct LIB_VFS_STRUCTURE *tmp = EMPTY;
-
-	// first block of data
-	uint64_t b = 0;
-
-	// parse all files from each block
-	while( TRUE ) {
-		// source block pointer
-		if( ! (tmp = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( vfs, b++ )) ) break;	// done, nothing more
+	// for each data block of directory
+	for( uint64_t b = 0; b < (vfs -> limit >> STD_SHIFT_PAGE); b++ ) {
+		// properties of current block of directory
+		struct LIB_VFS_STRUCTURE *tmp = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( vfs, b );
 
 		// for every possible entry
 		for( uint8_t i = 0; i < STD_PAGE_byte / sizeof( struct LIB_VFS_STRUCTURE ); i++ ) {
@@ -114,6 +111,9 @@ void kernel_vfs_dir( struct KERNEL_STRUCTURE_VFS_SOCKET *socket, struct LIB_VFS_
 			dir++;
 		}
 	}
+
+	// used area
+	return (uintptr_t) dir - dir_ptr;
 }
 
 struct KERNEL_STRUCTURE_VFS_SOCKET *kernel_vfs_socket( uint64_t pid ) {

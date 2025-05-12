@@ -2,6 +2,70 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+static struct KERNEL_STRUCTURE_VFS_FILE kernel_syscall_support_path( uint8_t *path, uint64_t limit ) {
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *current = kernel_task_current();
+
+	// default storage
+	uint64_t storage = current -> storage;
+
+	// default directory
+	uint64_t directory = current -> directory;
+
+	// change to root directory?
+	if( *path == STD_ASCII_SLASH ) directory = kernel -> storage_base_address[ storage ].vfs -> root;
+
+	// properties of file from path
+	struct KERNEL_STRUCTURE_VFS_FILE file;
+
+	// until found
+	while( TRUE ) {
+		// remove leading slash
+		while( *path == STD_ASCII_SLASH ) path++;
+
+		// calculate file name
+		uint64_t name_limit = lib_string_word_end( path, lib_string_length( path ), STD_ASCII_SLASH );
+
+		// search for file inside current directory
+		file = kernel -> storage_base_address[ storage ].vfs -> file( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage ], directory, path, name_limit );
+
+		// not found?
+		if( ! file.type ) return (struct KERNEL_STRUCTURE_VFS_FILE) { EMPTY };	// invalid path
+
+		// last file from path?
+		if( name_limit == lib_string_length( path ) ) break;	// yes
+
+		// found file type of directory
+		if( ! (file.type & STD_FILE_TYPE_directory) ) return (struct KERNEL_STRUCTURE_VFS_FILE) { EMPTY };	// path error
+
+		// change directory
+		directory = file.knot;
+
+		// move pointer to next file name
+		path += name_limit;
+	}
+
+	// properties of file
+	return file;
+}
+
+void kernel_syscall_cd( uint8_t *path, uint64_t limit ) {
+	// path outside of software environment?
+	if( ((uintptr_t) path + limit) >= KERNEL_TASK_STACK_pointer ) return;	// yes, ignore
+
+	// retrieve properties of file
+	struct KERNEL_STRUCTURE_VFS_FILE file = kernel_syscall_support_path( path, limit );
+
+	// it's not a directory?
+	if( ! (file.type & STD_FILE_TYPE_directory) ) return;	// path error
+
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *current = kernel_task_current();
+
+	// set new work directory
+	current -> directory = file.knot;
+}
+
 uint64_t kernel_syscall_exec( uint8_t *name, uint64_t limit, uint8_t stream, uint8_t init ) {
 	// software name outside of software environment?
 	if( ((uintptr_t) name + limit) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// yes, ignore
@@ -51,56 +115,20 @@ uint64_t kernel_syscall_file_open( uint8_t *path, uint64_t limit ) {
 	// path outside of software environment?
 	// if( ((uintptr_t) path + limit) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// yes, ignore
 
-	// current task properties
-	struct KERNEL_STRUCTURE_TASK *task = kernel_task_current();
-
-	// default storage
-	uint64_t storage = task -> storage;
-
-	// default directory
-	uint64_t directory = task -> directory;
-
-	// change to root directory?
-	if( *path == STD_ASCII_SLASH ) directory = kernel -> storage_base_address[ storage ].vfs -> root;
-
-	// properties of file from path
-	struct KERNEL_STRUCTURE_VFS_FILE file;
-
-	// until found
-	while( TRUE ) {
-		// remove leading slash
-		while( *path == STD_ASCII_SLASH ) path++;
-
-		// calculate file name
-		uint64_t name_limit = lib_string_word_end( path, lib_string_length( path ), STD_ASCII_SLASH );
-
-		// search for file inside current directory
-		file = kernel -> storage_base_address[ storage ].vfs -> file( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage ], directory, path, name_limit );
-
-		// not found?
-		if( ! file.type ) return EMPTY;	// invalid path
-
-		// last file from path?
-		if( name_limit == lib_string_length( path ) ) break;	// yes
-
-		// found file type of directory
-		if( ! (file.type & STD_FILE_TYPE_directory) ) return EMPTY;	// path error
-
-		// change directory
-		directory = file.knot;
-
-		// move pointer to next file name
-		path += name_limit;
-	}
+	// retrieve properties of file
+	struct KERNEL_STRUCTURE_VFS_FILE file = kernel_syscall_support_path( path, limit ); if( ! file.type ) return EMPTY;	// no file
 
 	// retrieve information about module file
 	struct KERNEL_STRUCTURE_VFS_SOCKET *socket = EMPTY;
 	if( ! (socket = kernel_vfs_socket( file.knot )) ) return EMPTY;	// no enough resources
 
+	// current task properties
+	struct KERNEL_STRUCTURE_TASK *current = kernel_task_current();
+
 	// fill up socket properties
-	socket -> storage	= storage;
+	socket -> storage	= current -> storage;
 	socket -> file		= file;
-	socket -> pid		= kernel_task_current() -> pid;
+	socket -> pid		= current -> pid;
 
 	// return socket id
 	return ((uintptr_t) socket - (uintptr_t) kernel -> vfs_base_address) / sizeof( struct KERNEL_STRUCTURE_VFS_SOCKET );
@@ -180,10 +208,14 @@ uintptr_t kernel_syscall_dir( uint8_t *path, uint64_t limit ) {
 	struct KERNEL_STRUCTURE_VFS_SOCKET *socket = (struct KERNEL_STRUCTURE_VFS_SOCKET *) &kernel -> vfs_base_address[ socket_id ];
 
 	// allocate maximal required memory area for directory content
-	struct LIB_VFS_STRUCTURE *dir = (struct LIB_VFS_STRUCTURE *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( ((struct LIB_VFS_STRUCTURE *) socket -> file.knot) -> limit ) >> STD_SHIFT_PAGE );
+	uint64_t allocated = MACRO_PAGE_ALIGN_UP( ((struct LIB_VFS_STRUCTURE *) socket -> file.knot) -> limit + sizeof( struct STD_STRUCTURE_DIR ) ) >> STD_SHIFT_PAGE;
+	struct STD_STRUCTURE_DIR *dir = (struct STD_STRUCTURE_DIR *) kernel_syscall_memory_alloc( allocated );
 
 	// acquire content of directory from current storage
-	kernel -> storage_base_address[ socket -> storage ].vfs -> dir( socket, dir );
+	uint64_t used = MACRO_PAGE_ALIGN_UP( kernel -> storage_base_address[ socket -> storage ].vfs -> dir( socket, dir ) ) >> STD_SHIFT_PAGE;
+
+	// release unused area
+	if( allocated != used ) kernel_syscall_memory_release( (uintptr_t) dir + (used << STD_SHIFT_PAGE), allocated - used );
 
 	// close directory
 	kernel_syscall_file_close( socket_id );

@@ -51,7 +51,7 @@ void wm_panel( void ) {
 		if( ! (wm -> list_panel[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) color = 0xFF808080;
 
 		// mark active entry
-		if( wm -> list_panel[ i ] == wm -> active ) for( uint16_t y = WM_PANEL_HEIGHT_pixel - 2; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width; x++ ) pixel[ (y * wm -> panel -> width) + x ] = STD_COLOR_GREEN;
+		if( wm -> list_panel[ i ] == wm -> active ) for( uint16_t y = WM_PANEL_HEIGHT_pixel - 2; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_active;
 
 		// show entry name
 		lib_font( LIB_FONT_FAMILY_ROBOTO, wm -> list_panel[ i ] -> descriptor -> name, wm -> list_panel[ i ] -> descriptor -> name_length, color, pixel + (4 * wm -> panel -> width) + 4, wm -> panel -> width, LIB_FONT_ALIGN_left );

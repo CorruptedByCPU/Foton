@@ -88,7 +88,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_memory_move		; 0x16
 	dq	kernel_syscall_file_open		; 0x17
 	dq	kernel_syscall_file_close		; 0x18
-	dq	0x00	;dq	kernel_syscall_cd			; 0x19
+	dq	kernel_syscall_cd			; 0x19
 	dq	kernel_syscall_ipc_receive_by_type	; 0x1A
 	dq	kernel_syscall_microtime		; 0x1B
 	dq	kernel_syscall_time			; 0x1C

@@ -145,6 +145,13 @@
 		uint8_t		type;
 	};
 
+	struct	STD_STRUCTURE_DIR {
+		uint64_t	limit;
+		uint8_t		type;
+		uint8_t		name_limit;
+		uint8_t		name[ LIB_VFS_NAME_limit + 1 ];
+	};
+
 	#define	STD_IPC_SIZE_byte				40
 
 	#define	STD_IPC_TYPE_default				0x00
