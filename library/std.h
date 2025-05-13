@@ -455,6 +455,7 @@
 	#define	STD_MASK_byte_half		0x000000000000000F
 	#define	STD_MASK_byte			0x00000000000000FF
 	#define	STD_MASK_word			0x000000000000FFFF
+	#define	STD_MASK_dword			0x00000000FFFFFFFF
 
 	// returns properties of available framebuffer
 	void std_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer );

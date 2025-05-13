@@ -18,6 +18,7 @@
 	//----------------------------------------------------------------------
 	// Build-in driver variables, structures, definitions
 	//----------------------------------------------------------------------
+	#include	"driver/mtrr.h"
 	#include	"driver/port.h"
 	#include	"driver/rtc.h"
 	#include	"driver/serial.h"
@@ -54,6 +55,7 @@
 	//----------------------------------------------------------------------
 	// Build-in drivers
 	//----------------------------------------------------------------------
+	#include	"driver/mtrr.c"
 	#include	"driver/port.c"
 	#include	"driver/rtc.c"
 	#include	"driver/serial.c"
@@ -68,6 +70,7 @@
 	#include	"idt.c"
 	#include	"io_apic.c"
 	#include	"library.c"
+	#include	"log.c"
 	#include	"memory.c"
 	#include	"module.c"
 	#include	"page.c"
@@ -100,6 +103,7 @@
 	#include	"init/library.c"
 	#include	"init/memory.c"
 	#include	"init/module.c"
+	#include	"init/mtrr.c"
 	#include	"init/page.c"
 	#include	"init/smp.c"
 	#include	"init/storage.c"
@@ -120,6 +124,9 @@ void _entry( void ) {
 
 	// initialize kernel environment pointer and variables/functions/rountines
 	kernel_init_env();
+
+	// set Write-Combining on framebuffer memory area
+	kernel_init_mtrr();
 
 	// binary memory map as source of everything
 	kernel_init_memory();

@@ -57,6 +57,8 @@ struct KERNEL {
 	uint64_t					library_limit;
 	uint32_t					*library_memory_address;
 
+	void						(*log)( uint8_t *string, ... );
+
 	uint32_t					*memory_base_address;
 	uintptr_t					(*memory_alloc)( uint64_t n );
 	uintptr_t					(*memory_alloc_low)( uint64_t n );
