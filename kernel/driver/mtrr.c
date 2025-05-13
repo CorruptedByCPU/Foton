@@ -4,7 +4,7 @@
 
 uint64_t driver_mtrr_read( uint32_t msr ) {
 	// registers
-	uint32_t eax, edx;
+	uint32_t eax, edx = EMPTY;
 
 	// read content of MSR address
 	__asm__ volatile( "rdmsr" : "=a" (eax), "=d" (edx) : "c" (msr) );

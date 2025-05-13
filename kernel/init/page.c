@@ -16,7 +16,6 @@ void kernel_init_page( void ) {
 		switch( limine_memmap_request.response -> entries[ i ] -> type ) {
 			case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
 			case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
-			case LIMINE_MEMMAP_FRAMEBUFFER:
 			case LIMINE_MEMMAP_KERNEL_AND_MODULES:
 			case LIMINE_MEMMAP_USABLE: {
 				// map memory area to kernel paging array
@@ -27,6 +26,25 @@ void kernel_init_page( void ) {
 			}
 		}
 	}
+
+	//---------------------------------------------------------------------
+
+	// https://github.com/limine-bootloader/limine/blob/v9.x/PROTOCOL.md#caching
+	//
+	//						PAT PCD PWT
+	// PAT0 -> WB			 0   0   0
+	// PAT1 -> WT			 0   0   1
+	// PAT2 -> UC-			 0   1   0
+	// PAT3 -> UC			 0   1   1
+	// PAT4 -> WP			 1   0   0
+	// PAT5 -> WC			 1   0   1
+	// PAT6 -> unspecified	 1   1   0
+	// PAT7 -> unspecified	 1   1   1
+	//
+	// The MTRRs are left as the firmware set them up.
+
+	// map Framebuffer area with Write-Combining (PAT5)
+	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_MEMORY_mirror, (uintptr_t) kernel -> framebuffer_base_address, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_pat | KERNEL_PAGE_FLAG_pwt );
 
 	// --------------------------------------------------------------------
 

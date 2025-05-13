@@ -5,12 +5,12 @@
 #ifndef	KERNEL_PAGE
 	#define	KERNEL_PAGE
 
-	#define	KERNEL_PAGE_FLAG_cache_disable	(1 << 4)
-	#define	KERNEL_PAGE_FLAG_length		(1 << 7)
+	#define	KERNEL_PAGE_FLAG_pat		(1 << 7)
+	#define	KERNEL_PAGE_FLAG_pcd		(1 << 4)
 	#define	KERNEL_PAGE_FLAG_present	(1 << 0)
+	#define	KERNEL_PAGE_FLAG_pwt		(1 << 3)
 	#define	KERNEL_PAGE_FLAG_user		(1 << 2)
 	#define	KERNEL_PAGE_FLAG_write		(1 << 1)
-	#define	KERNEL_PAGE_FLAG_write_through	(1 << 3)
 	// Cyjon/Foton definied
 	#define	KERNEL_PAGE_TYPE_mask		0x0E00	// 0b0000111000000000
 	#define	KERNEL_PAGE_TYPE_offset		9

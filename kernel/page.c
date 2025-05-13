@@ -360,7 +360,7 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 			if( ! pml4[ p4 ] ) return FALSE;
 
 			// set flags for PML4 entry
-			pml4[ p4 ] |= flags;
+			pml4[ p4 ] |= (flags & ~(KERNEL_PAGE_FLAG_pat | KERNEL_PAGE_FLAG_pcd | KERNEL_PAGE_FLAG_pwt) );
 		}
 
 		// set PML3 array pointer (remove flags)
@@ -377,7 +377,7 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 				if( ! pml3[ p3 ] ) return FALSE;
 
 				// set flags for PML3 entry
-				pml3[ p3 ] |= flags;
+				pml3[ p3 ] |= (flags & ~(KERNEL_PAGE_FLAG_pat | KERNEL_PAGE_FLAG_pcd | KERNEL_PAGE_FLAG_pwt) );
 			}
 
 			// set PML2 array pointer (remove flags)
@@ -394,7 +394,7 @@ uint8_t kernel_page_map( uint64_t *pml4, uintptr_t source, uintptr_t target, uin
 					if( ! pml2[ p2 ] ) return FALSE;
 
 					// set flags for PML2 entry
-					pml2[ p2 ] |= flags;
+					pml2[ p2 ] |= (flags & ~(KERNEL_PAGE_FLAG_pat | KERNEL_PAGE_FLAG_pcd | KERNEL_PAGE_FLAG_pwt) );
 				}
 
 				// set PML1 array pointer (remove flags)

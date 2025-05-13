@@ -87,6 +87,7 @@
 	#include	"init/acpi.h"
 	#include	"init/ap.h"
 	#include	"init/apic.h"
+	#include	"init/mtrr.h"
 	//======================================================================
 
 	//----------------------------------------------------------------------
@@ -124,9 +125,6 @@ void _entry( void ) {
 
 	// initialize kernel environment pointer and variables/functions/rountines
 	kernel_init_env();
-
-	// set Write-Combining on framebuffer memory area
-	kernel_init_mtrr();
 
 	// binary memory map as source of everything
 	kernel_init_memory();

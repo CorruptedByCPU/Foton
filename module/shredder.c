@@ -14,8 +14,6 @@
 	#include	"./shredder/data.c"
 
 void close( int64_t pid ) {
-	MACRO_DEBUF();
-
 	// properties of task to close
 	struct KERNEL_STRUCTURE_TASK *task = kernel -> task_by_id( pid );
 

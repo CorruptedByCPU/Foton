@@ -3,18 +3,22 @@
 ===============================================================================*/
 
 void kernel_init_mtrr( void ) {
-	MACRO_DEBUF();
-	for( uint8_t i = 0; i < 16; i += 2 ) {
-		volatile uint64_t test = driver_mtrr_read( 0x200 + i );
-		volatile uint64_t test1 = driver_mtrr_read( 0x201 + i );
+	// amount of variable-sized registers
+	uint32_t ecx = driver_mtrr_read( 0x000000FE );
 
-		// // Set MTRR PHYSBASE0 for 0xC0000000 with Write-Combining type
-		uint64_t phys_base = ((uint64_t) kernel -> framebuffer_base_address & ~KERNEL_MEMORY_mirror);
-		if( phys_base == test ) {
-		driver_mtrr_write(0x200 + i, phys_base | MTRR_TYPE_WC);
+	// Write-Combining type is available?
+	if( ! (ecx & (1 << 11)) ) return;	// no :(
+
+	// search for framebuffer entry
+	for( uint8_t i = 0; i < (ecx & STD_MASK_byte); i++ ) {
+		// physical framebuffer address
+		uint64_t framebuffer_base_address = ((uint64_t) kernel -> framebuffer_base_address & ~KERNEL_MEMORY_mirror);
+		if( framebuffer_base_address == driver_mtrr_read( 0x200 + (i << STD_SHIFT_2) ) ) {
+			// add Write-Combining flag
+			driver_mtrr_write( 0x200 + i, framebuffer_base_address | TRUE );
 			
-		volatile uint64_t phys_mask = ~(uint32_t)(0x800000 - 1) | ((uint64_t)1 << 11);
-		driver_mtrr_write(0x201 + i, test1);
+			// and size as original
+			driver_mtrr_write( 0x201 + i, driver_mtrr_read( 0x201 + (i << STD_SHIFT_2) ) );
 		}
 	}
 }
