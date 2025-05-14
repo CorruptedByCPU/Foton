@@ -160,6 +160,6 @@ void wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// debug
-	std_exec( (uint8_t *) "3d /var/cube.obj", 16, EMPTY, TRUE );
 	// std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
+	std_exec( (uint8_t *) "3d /var/bird.obj", 16, EMPTY, TRUE );
 }

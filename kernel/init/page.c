@@ -17,6 +17,7 @@ void kernel_init_page( void ) {
 			case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
 			case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
 			case LIMINE_MEMMAP_KERNEL_AND_MODULES:
+			// case LIMINE_MEMMAP_FRAMEBUFFER:
 			case LIMINE_MEMMAP_USABLE: {
 				// map memory area to kernel paging array
 				kernel_page_map( kernel -> page_base_address, limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base | KERNEL_MEMORY_mirror, MACRO_PAGE_ALIGN_UP( limine_memmap_request.response -> entries[ i ] -> length ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
@@ -31,13 +32,13 @@ void kernel_init_page( void ) {
 
 	// https://github.com/limine-bootloader/limine/blob/v9.x/PROTOCOL.md#caching
 	//
-	//						PAT PCD PWT
-	// PAT0 -> WB			 0   0   0
-	// PAT1 -> WT			 0   0   1
-	// PAT2 -> UC-			 0   1   0
-	// PAT3 -> UC			 0   1   1
-	// PAT4 -> WP			 1   0   0
-	// PAT5 -> WC			 1   0   1
+	//			PAT PCD PWT
+	// PAT0 -> WB		 0   0   0
+	// PAT1 -> WT		 0   0   1
+	// PAT2 -> UC-		 0   1   0
+	// PAT3 -> UC		 0   1   1
+	// PAT4 -> WP		 1   0   0
+	// PAT5 -> WC		 1   0   1
 	// PAT6 -> unspecified	 1   1   0
 	// PAT7 -> unspecified	 1   1   1
 	//

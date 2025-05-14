@@ -2,8 +2,8 @@
 	"window": {
 		"x": -1,
 		"y": -1,
-		"width": 640,
-		"height": 480,
+		"width": 450,
+		"height": 400,
 		"name": "3D Viewer"
 	},
 	"control": {

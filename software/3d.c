@@ -34,6 +34,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	//----------------------------------------------------------------------
 
+	// change camera position
+	rgl -> camera.y = -1.0f;
+
 	// array of parsed faces
 	struct LIB_RGL_STRUCTURE_TRIANGLE *parse = (struct LIB_RGL_STRUCTURE_TRIANGLE *) malloc( sizeof( struct LIB_RGL_STRUCTURE_TRIANGLE ) * face_limit );
 
@@ -87,9 +90,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		lib_rgl_clean( rgl );
 
 		// calculate rotation matrixes
-		struct LIB_RGL_STRUCTURE_MATRIX x_matrix = lib_rgl_return_matrix_rotate_x( a / 2.0f );
+		// struct LIB_RGL_STRUCTURE_MATRIX x_matrix = lib_rgl_return_matrix_rotate_x( a / 2.0f );
 		struct LIB_RGL_STRUCTURE_MATRIX y_matrix = lib_rgl_return_matrix_rotate_y( a );
-		struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( a / 3.0f );
+		// struct LIB_RGL_STRUCTURE_MATRIX z_matrix = lib_rgl_return_matrix_rotate_z( a / 3.0f );
 
 		// calculate translate matrix
 		struct LIB_RGL_STRUCTURE_MATRIX t_matrix = lib_rgl_return_matrix_translate( 0.0f, 0.0f, 0.0f );
@@ -100,9 +103,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			vector_transformed[ i ] = vector[ i ];
 
 			// by Q matrix
-			lib_rgl_multiply_vector( &vector_transformed[ i ], &x_matrix );
+			// lib_rgl_multiply_vector( &vector_transformed[ i ], &x_matrix );
 			lib_rgl_multiply_vector( &vector_transformed[ i ], &y_matrix );
-			lib_rgl_multiply_vector( &vector_transformed[ i ], &z_matrix );
+			// lib_rgl_multiply_vector( &vector_transformed[ i ], &z_matrix );
 			lib_rgl_multiply_vector( &vector_transformed[ i ], &t_matrix );
 		}
 
