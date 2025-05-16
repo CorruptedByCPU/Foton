@@ -50,6 +50,8 @@ void kernel_init_env( void ) {
 
 	kernel -> io_apic_attach		= kernel_io_apic_attach;
 
+	kernel -> log				= kernel_log;
+
 	// kernel -> memory_alloc			= kernel_memory_alloc;
 	kernel -> memory_alloc_low		= kernel_memory_alloc_low;
 	kernel -> memory_clean			= kernel_memory_clean;

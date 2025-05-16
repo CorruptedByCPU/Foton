@@ -41,7 +41,7 @@
 
 	#define	LIB_INTERFACE_GLOBAL_NAME_limit				64
 
-	#define	LIB_INTERFACE_LATENCY_microtime				384
+	#define	LIB_INTERFACE_LATENCY_microtime				256
 
 	#define	LIB_INTERFACE_HEADER_HEIGHT_pixel			(LIB_FONT_HEIGHT_pixel + 8)	// 4 pixels from above and under
 

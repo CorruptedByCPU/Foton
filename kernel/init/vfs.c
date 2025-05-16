@@ -38,7 +38,7 @@ struct LIB_VFS_STRUCTURE *kernel_init_vfs_search( struct LIB_VFS_STRUCTURE *dir,
 		struct LIB_VFS_STRUCTURE *vfs = (struct LIB_VFS_STRUCTURE *) kernel_vfs_block_by_id( dir, b );
 
 		// for every possible entry
-		for( uint8_t e = 0; e < LIB_VFS_BLOCK_byte / sizeof( struct LIB_VFS_STRUCTURE ); e++ )
+		for( uint8_t e = 0; e < (LIB_VFS_BLOCK_byte / sizeof( struct LIB_VFS_STRUCTURE )); e++ )
 			// if 
 			if( vfs[ e ].name_limit == limit && lib_string_compare( (uint8_t *) vfs[ e ].name, name, limit ) ) return (struct LIB_VFS_STRUCTURE *) &vfs[ e ];
 	}

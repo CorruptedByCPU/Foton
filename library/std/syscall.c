@@ -389,9 +389,9 @@ uint8_t std_storage_select( uint8_t *name ) {
 	return std_syscall_bool();
 }
 
-uintptr_t std_dir( uint8_t *path ) {
+uintptr_t std_dir( uint8_t *path, uint64_t limit ) {
 	// request syscall
-	__asm__ volatile( "" :: "a" (STD_SYSCALL_DIR), "D" (path) );
+	__asm__ volatile( "" :: "a" (STD_SYSCALL_DIR), "D" (path), "S" (limit) );
 
 	// return pointer
 	return std_syscall_pointer();

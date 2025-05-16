@@ -4,7 +4,7 @@
 
 void kernel_init_ap( struct limine_smp_info *info ) {
 	// set Write-Combining on framebuffer memory area
-	kernel_init_mtrr();
+	// kernel_init_mtrr();
 
 	// reload kernel environment paging array
 	__asm__ volatile( "movq %0, %%cr3" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_MEMORY_mirror) );

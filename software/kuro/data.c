@@ -8,5 +8,5 @@ struct LIB_INTERFACE_STRUCTURE			*kuro_interface;
 struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE	*kuro_files;
 struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE	*kuro_storages;
 
-uint32_t **kuro_icon = EMPTY;
+uint32_t **kuro_icons = EMPTY;
 uint8_t	kuro_key_ctrl_semaphore = FALSE;

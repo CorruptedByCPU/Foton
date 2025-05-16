@@ -586,7 +586,7 @@
 	uint64_t std_storage_id( void );
 
 	// return content of directory (in VFS structure)
-	uintptr_t std_dir( uint8_t *path );
+	uintptr_t std_dir( uint8_t *path, uint64_t limit );
 
 	// debug purposes only
 	void std_log( uint8_t *string, uint64_t length );
