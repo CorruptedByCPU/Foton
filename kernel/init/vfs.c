@@ -211,6 +211,13 @@ void kernel_init_vfs( void ) {
 		// create storage
 		struct KERNEL_STRUCTURE_STORAGE *storage = (struct KERNEL_STRUCTURE_STORAGE *) kernel_storage_add();
 
+		// set type of storage
+		storage -> type = STD_STORAGE_TYPE_memory;
+
+		// name it
+		uint8_t storage_name[] = "System";
+		for( uint8_t n = 0; n < sizeof( storage_name ) - 1; n++ ) storage -> name[ storage -> length++ ] = storage_name[ n ];
+
 		// main block data at
 		storage -> block = (uint64_t) vfs;
 

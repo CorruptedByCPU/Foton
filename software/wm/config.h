@@ -41,7 +41,7 @@ struct	WM_STRUCTURE {
 	// by default FALSE, until Desktop Environment - end of initialization
 	uint8_t						enable;
 
-	// process ID of Tiwyn
+	// process ID of Window Manager
 	uint64_t					pid;
 
 	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER	framebuffer;

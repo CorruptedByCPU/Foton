@@ -529,6 +529,35 @@ uint8_t kernel_syscall_pid_exist( uint64_t pid ) {
 	return FALSE;
 }
 
+uintptr_t kernel_syscall_storage( void ) {
+	// amount of entries to pass
+	uint64_t limit = TRUE;	// last entry, always empty
+
+	// count entries
+	for( uint64_t i = 0; i < KERNEL_STORAGE_limit; i++ ) if( kernel -> storage_base_address[ i ].flags & KERNEL_STORAGE_FLAGS_active ) limit++;
+
+	// alloc enough memory for all entries
+	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_STRUCTURE_STORAGE ) * limit ) >> STD_SHIFT_PAGE );
+
+	// copy essential information about every storage
+	uint64_t entry = 0; for( uint64_t i = 0; i < KERNEL_STORAGE_limit && limit != entry; i++ ) {
+		// identificator of storage
+		storage[ entry ].id = i;
+
+		// type of storage
+		storage[ entry ].type = kernel -> storage_base_address[ i ].type;
+
+		// name
+		for( uint8_t n = 0; n < kernel -> storage_base_address[ i ].length; n++ ) storage[ entry ].name[ storage[ entry ].name_limit++ ] = kernel -> storage_base_address[ i ].name[ n ]; storage[ entry ].name[ storage[ entry ].name_limit ] = STD_ASCII_TERMINATOR;
+
+		// next antry position
+		entry++;
+	}
+
+	// share structure with process
+	return (uintptr_t) storage;
+}
+
 uint64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
 	// name or function outside of software environment?
 	if( (function + sizeof( uintptr_t )) >= KERNEL_TASK_STACK_pointer || ((uintptr_t) name + length) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// no, ignore

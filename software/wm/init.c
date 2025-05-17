@@ -3,7 +3,7 @@
 ===============================================================================*/
 
 void wm_init( void ) {
-	// Tiwyn environment global variables/functions/rountines
+	// Window Manager environment global variables/functions/rountines
 	wm = (struct WM_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 
 	// disable window management, for now
@@ -14,6 +14,9 @@ void wm_init( void ) {
 
 	// retrieve properties of kernel framebuffer
 	std_framebuffer( (struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *) &wm -> framebuffer );
+
+	// are we master of pupets?
+	if( wm -> pid != wm -> framebuffer.pid ) exit();	// no
 
 	// assign area for an array of objects
 	wm -> object		= (struct WM_STRUCTURE_OBJECT *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE_OBJECT ) * WM_OBJECT_LIMIT ) >> STD_SHIFT_PAGE );
@@ -160,6 +163,6 @@ void wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// debug
-	// std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
-	std_exec( (uint8_t *) "3d /var/bird.obj", 16, EMPTY, TRUE );
+	std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
+	// std_exec( (uint8_t *) "3d /var/bird.obj", 16, EMPTY, TRUE );
 }

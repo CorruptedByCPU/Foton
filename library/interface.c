@@ -950,18 +950,20 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 
 		//--------------------------------------------------------------
 
-		// limit name length to entry width
-		uint64_t limit;
-		if( ! element -> entry[ e ].byte ) limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> entry[ e ].name, element -> entry[ e ].name_length, width - (16 + 2 + LIB_FONT_WIDTH_pixel + 4) );
-		else limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> entry[ e ].name, element -> entry[ e ].name_length, width - (16 + 2 + LIB_FONT_WIDTH_pixel + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "0000.0 X", 8 ) + 4) );
+		if( element -> entry[ e ].name_length ) {
+			// limit name length to entry width
+			uint64_t limit;
+			if( ! element -> entry[ e ].byte ) limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> entry[ e ].name, element -> entry[ e ].name_length, width - (16 + 2 + LIB_FONT_WIDTH_pixel + 4) );
+			else limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> entry[ e ].name, element -> entry[ e ].name_length, width - (16 + 2 + LIB_FONT_WIDTH_pixel + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "0000.0 X", 8 ) + 4) );
 
-		// name
-		lib_font( LIB_FONT_FAMILY_ROBOTO, element -> entry[ e ].name, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
+			// name
+			lib_font( LIB_FONT_FAMILY_ROBOTO, element -> entry[ e ].name, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
+		}
 
 		//--------------------------------------------------------------
 
 		// convert Bytes to human readable string if provided
-		if( element -> entry[ e ].type != STD_FILE_TYPE_link ) {
+		if( element -> entry[ e ].byte != STD_MAX_unsigned && element -> entry[ e ].type != STD_FILE_TYPE_link ) {
 			// calculate unit type
 			uint8_t unit = 0;	// Bytes by default
 			while( pow( 1024, unit ) < element -> entry[ e ].byte ) unit++;

@@ -11,91 +11,21 @@
 	#include	"../library/string.h"
 	#include	"../library/type.h"
 	#include	"../library/vfs.h"
-
+	//----------------------------------------------------------------------
+	// variables, structures, definitions
+	//----------------------------------------------------------------------
 	#include	"./kuro/icon.h"
 	#include	"./kuro/list.h"
+	#include	"./kuro/storage.h"
 	//----------------------------------------------------------------------
 	// variables, routines, procedures
 	//----------------------------------------------------------------------
 	#include	"./kuro/config.h"
 	#include	"./kuro/data.c"
 	#include	"./kuro/icon.c"
+	#include	"./kuro/init.c"
 	#include	"./kuro/list.c"
-
-void kuro_close( void ) {
-	// end of program
-	exit();
-}
-
-// size_t kuro_storage( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
-// 		// // release current entry list
-// 		// kuro_release( kuro_storages );
-// 		// kuro_storages -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *) malloc( TRUE );
-// 		// kuro_storages -> limit = kuro_storage( kuro_storages -> entry );
-// 		// lib_interface_element_file( kuro_interface, kuro_storages );
-		
-// 	// properties of available storages
-// 	uint64_t storage_id = std_storage_id();	// get current storage id
-// 	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) std_storage();
-
-// 	// default
-// 	size_t local_list_entry_count = FALSE;
-
-// 	// storage by storage
-// 	while( storage -> type ) {
-// 		// prepare area for entry
-// 		entry = realloc( entry, (local_list_entry_count + 1) * sizeof( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY ) );
-
-// 		// define entry type and size
-// 		entry[ local_list_entry_count ].id = storage -> id;
-// 		entry[ local_list_entry_count ].type = storage -> type;
-// 		entry[ local_list_entry_count ].byte = STD_MAX_unsigned;	// do not show
-// 		if( storage -> id == storage_id ) entry[ local_list_entry_count ].flags = LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active | LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_select;
-// 		else entry[ local_list_entry_count ].flags = EMPTY;
-
-// 		// set storage name
-// 		entry[ local_list_entry_count ].name_length = storage -> name_limit;
-// 		if( storage -> name_limit ) { entry[ local_list_entry_count ].name = calloc( storage -> name_limit + 1 ); for( uint64_t i = 0; i < storage -> name_limit; i++ ) entry[ local_list_entry_count ].name[ i ] = storage -> name[ i ]; }
-
-// 		// set icon
-// 		switch( entry[ local_list_entry_count ].type ) {
-// 			case STD_STORAGE_TYPE_memory: {
-// 				// load memory icon, if not present
-// 				if( ! kuro_icons[ KURO_MIMETYPE_memory ] ) kuro_icons_register( KURO_MIMETYPE_memory, (uint8_t *) "system:/var/gfx/icons/media-memory.tga" );
-
-// 				// set memory icon
-// 				entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_memory;
-// 				entry[ local_list_entry_count ].icon = kuro_icons[ KURO_MIMETYPE_memory ];
-				
-// 				// done
-// 				break;
-// 			}
-// 			case STD_STORAGE_TYPE_disk: {
-// 				// load disk icon, if not present
-// 				if( ! kuro_icons[ KURO_MIMETYPE_disk ] ) kuro_icons_register( KURO_MIMETYPE_disk, (uint8_t *) "system:/var/gfx/icons/drive-harddisk.tga" );
-
-// 				// set disk icon
-// 				entry[ local_list_entry_count ].mimetype = KURO_MIMETYPE_disk;
-// 				entry[ local_list_entry_count ].icon = kuro_icons[ KURO_MIMETYPE_disk ];
-				
-// 				// done
-// 				break;
-// 			}
-// 		}
-
-// 		// entry registered
-// 		local_list_entry_count++;
-
-// 		// next entry
-// 		storage++;
-// 	}
-
-// 	// release obtained storages properties
-// 	std_memory_release( (uintptr_t) storage, MACRO_PAGE_ALIGN_UP( sizeof( struct STD_STRUCTURE_STORAGE ) * (local_list_entry_count + 1) ) >> STD_SHIFT_PAGE );
-
-// 	// debug
-// 	return local_list_entry_count;
-// }
+	#include	"./kuro/storage.c"
 
 uint8_t kuro_compare_names( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *first, struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *second ) {
 	// minimal length
@@ -180,62 +110,15 @@ void kuro_dir_sort( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry, ui
 	for( uint64_t i = 0; i < file; i++ ) entry[ i + 1 + directory ] = files[ i ];
 }
 
-void kuro_icons_register( uint8_t type, uint8_t *path ) {
-	// register new icon
-	kuro_icons = (uint32_t **) realloc( kuro_icons, type * sizeof( uint32_t * ) );
-	kuro_icons[ type ] = lib_image_scale( lib_interface_icon( path ), 48, 48, 16, 16 );
-}
-
-void kuro_release( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *list ) {
-	// check if there is any action required with entry
-	for( uint64_t i = 0; i < list -> limit; i++ )
-		// release entry name area
-		free( list -> entry[ i ].name );
-
-	// release entry list
-	free( list -> entry );
-}
-
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	//----------------------------------------------------------------------
+	// initialize Kuro environment
+	kuro_init();
 
-	// alloc area for interface properties
-	kuro_interface = (struct LIB_INTERFACE_STRUCTURE *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
 
-	// initialize interface library
-	kuro_interface -> properties = (uint8_t *) &file_interface_start;
-	if( ! lib_interface( kuro_interface ) ) { log( "Cannot create window.\n" ); exit(); }
+	// create list of entries
+	// kuro_storage();
 
-	// set minimal window size as current
-	kuro_interface -> min_width = kuro_interface -> width;
-	kuro_interface -> min_height = kuro_interface -> height;
-
-	//----------------------------------------------------------------------
-
-	// find entry of ID: 0
-	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( kuro_interface, 0 );
-	control -> event = kuro_close;	// assign executable function to element
-
-	//----------------------------------------------------------------------
-
-	// initialize icon list
-	kuro_icons = (uint32_t **) malloc( TRUE );
-
-	// register initial icon (directory change)
-	kuro_icons_register( KURO_MIMETYPE_up, (uint8_t *) "/var/share/media/icon/default/up.tga" );
-
-	// //----------------------------------------------------------------------
-
-	// find element of ID: 2
-	// kuro_storages = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) lib_interface_element_by_id( kuro_interface, 2 );
-
-	// // alloc initial area for list entries
-	// kuro_storages -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *) malloc( TRUE );
-
-	// // create list of entries
-	// kuro_storages -> limit = kuro_storage( kuro_storages -> entry );
-
-	// // show content from beginning
+	// show content from beginning
 	// kuro_storages -> offset = EMPTY;
 
 	// // do not allow deselection, do not allow more than 1 at a time, immedietly action
@@ -254,178 +137,159 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// //----------------------------------------------------------------------
 
-	// find element of ID: 1
-	kuro_files = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) lib_interface_element_by_id( kuro_interface, 1 );
-
-	// alloc initial area for list entries
-	kuro_files -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *) malloc( TRUE );
-
-	// create list of entries
-	kuro_files -> limit = kuro_list();
-
-	// show content from beginning
-	kuro_files -> offset = EMPTY;
-
-	// set order of files, by name and directories first
-	kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
-
-	// define our own colors
-	kuro_files -> color_default = 0xFF141414;
-	kuro_files -> color_odd = 0xFF141414;
-	kuro_files -> color_selected = 0xFF202020;
-
-	// update content of list
-	lib_interface_element_file( kuro_interface, kuro_files );
-
-	// update window content on screen
-	kuro_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_resizable | LIB_WINDOW_FLAG_flush;
-
 	//----------------------------------------------------------------------
 
-	// main loop
+	// create list of entries
+	kuro_storage();
+
+	// show content from beginning
+	kuro_storages -> offset = EMPTY;
+
+	// update content of list
+	lib_interface_element_file( kuro_interface, kuro_storages );
+
+reload:
+	// reload loop
 	while( TRUE ) {
-		// free up AP time
-		sleep( TRUE );
+		// create list of entries
+		kuro_list();
 
-		// check events from interface
-		struct LIB_INTERFACE_STRUCTURE *new = EMPTY;
-		if( (new = lib_interface_event( kuro_interface )) ) {
-			// update interface pointer
-			kuro_interface = new;
+		// show content from beginning
+		kuro_files -> offset = EMPTY;
 
-			// update window content on screen
-			kuro_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
-		}
+		// set order of files, by name and directories first
+		kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
 
-		// check events from keyboard
-		uint16_t key = lib_interface_event_keyboard( kuro_interface );
+		// update content of list
+		lib_interface_element_file( kuro_interface, kuro_files );
 
-		// keep Left CTRL semaphore
-		if( key == STD_KEY_CTRL_LEFT ) kuro_key_ctrl_semaphore = TRUE;
-		if( key == (STD_KEY_CTRL_LEFT | STD_KEY_RELEASE) ) kuro_key_ctrl_semaphore = FALSE;
+		// update window content on screen
+		kuro_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_resizable | LIB_WINDOW_FLAG_flush;
 
-		// // special action?
-		// if( key == 'c' && kuro_key_ctrl_semaphore ) {
+		// event loop
+		while( TRUE ) {
+			// check events from interface
+			struct LIB_INTERFACE_STRUCTURE *new = EMPTY;
+			if( (new = lib_interface_event( kuro_interface )) ) {
+				// update interface pointer
+				kuro_interface = new;
 
-		// }
-
-		// // check if there is any action required with entry
-		// for( uint64_t i = 0; i < kuro_storages -> limit; i++ )
-		// 	if( kuro_storages -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run ) {
-		// 		// remove flag
-		// 		kuro_storages -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
-
-		// 		// change storage
-		// 		if( ! std_storage_select( kuro_storages -> entry[ i ].name ) ) break;
-
-		// 		// release current entry list
-		// 		kuro_release( kuro_files );
-
-		// 		// alloc initial area for list entries
-		// 		kuro_files -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *) malloc( TRUE );
-
-		// 		// create list of entries
-		// 		kuro_files -> limit = kuro_reload( kuro_files -> entry );
-
-		// 		// show content from beginning
-		// 		kuro_files -> offset = EMPTY;
-
-		// 		// set order of files, by name and directories first
-		// 		kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
-
-		// 		// update content of list
-		// 		lib_interface_element_file( kuro_interface, kuro_files );
-
-		// 		// update window content on screen
-		// 		kuro_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
-		// 	}
-
-		// check if there is any action required with entry
-		for( uint64_t i = 0; i < kuro_files -> limit; i++ )
-			if( kuro_files -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run ) {
-				// based on mimetype
-				switch( kuro_files -> entry[ i ].mimetype ) {
-		// 			case KURO_MIMETYPE_executable: {
-		// 				// try to execute file
-		// 				std_exec( kuro_files -> entry[ i ].name, kuro_files -> entry[ i ].name_length, EMPTY, TRUE );
-
-		// 				// done
-		// 				break;
-		// 			}
-
-					case KURO_MIMETYPE_up:
-					case KURO_MIMETYPE_directory: {
-						// change home directory
-						std_cd( kuro_files -> entry[ i ].name, kuro_files -> entry[ i ].name_length );
-
-						// release current entry list
-						kuro_release( kuro_files );
-
-						// alloc initial area for list entries
-						kuro_files -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *) malloc( TRUE );
-						
-						// create list of entries
-						kuro_files -> limit = kuro_list();
-						
-						// show content from beginning
-						kuro_files -> offset = EMPTY;
-
-						// set order of files, by name and directories first
-						kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
-
-						// update content of list
-						lib_interface_element_file( kuro_interface, kuro_files );
-
-						// update window content on screen
-						kuro_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
-
-						// done
-						break;
-					}
-
-		// 			case KURO_MIMETYPE_plain_text: {
-		// 				// combine command with file name
-		// 				uint8_t *command = malloc( TRUE );
-		// 				sprintf( "console moko %s", command, kuro_files -> entry[ i ].name );
-
-		// 				// open text file in Moko editor
-		// 				std_exec( command, lib_string_length( command ), EMPTY, TRUE );
-
-		// 				// done
-		// 				break;
-		// 			}
-
-					case KURO_MIMETYPE_3d_object: {
-						// combine command with file name
-						uint8_t *command = malloc( TRUE );
-						sprintf( "3d %s", command, kuro_files -> entry[ i ].name );
-
-						// open object file in 3D Viewer
-						std_exec( command, lib_string_length( command ), EMPTY, TRUE );
-
-						// done
-						break;
-					}
-
-		// 			case KURO_MIMETYPE_image: {
-		// 				// combine command with file name
-		// 				uint8_t *command = malloc( TRUE );
-		// 				sprintf( "image %s", command, kuro_files -> entry[ i ].name );
-
-		// 				// open object file in Image Viewer
-		// 				std_exec( command, lib_string_length( command ), EMPTY, TRUE );
-
-		// 				// done
-		// 				break;
-		// 			}
-				}
-
-				// remove flag
-				kuro_files -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
+				// update window content on screen
+				kuro_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 			}
 
-		// exit?
-		if( key == STD_ASCII_ESC ) break;	// yes
+			// check events from keyboard
+			uint16_t key = lib_interface_event_keyboard( kuro_interface );
+
+			// keep Left CTRL semaphore
+			if( key == STD_KEY_CTRL_LEFT ) kuro_key_ctrl_semaphore = TRUE;
+			if( key == (STD_KEY_CTRL_LEFT | STD_KEY_RELEASE) ) kuro_key_ctrl_semaphore = FALSE;
+
+			// // special action?
+			// if( key == 'c' && kuro_key_ctrl_semaphore ) {
+
+			// }
+
+			// // check if there is any action required with entry
+			// for( uint64_t i = 0; i < kuro_storages -> limit; i++ )
+			// 	if( kuro_storages -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run ) {
+			// 		// remove flag
+			// 		kuro_storages -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
+
+			// 		// change storage
+			// 		if( ! std_storage_select( kuro_storages -> entry[ i ].name ) ) break;
+
+			// 		// release current entry list
+			// 		kuro_release( kuro_files );
+
+			// 		// alloc initial area for list entries
+			// 		kuro_files -> entry = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *) malloc( TRUE );
+
+			// 		// create list of entries
+			// 		kuro_files -> limit = kuro_reload( kuro_files -> entry );
+
+			// 		// show content from beginning
+			// 		kuro_files -> offset = EMPTY;
+
+			// 		// set order of files, by name and directories first
+			// 		kuro_dir_sort( kuro_files -> entry, kuro_files -> limit );
+
+			// 		// update content of list
+			// 		lib_interface_element_file( kuro_interface, kuro_files );
+
+			// 		// update window content on screen
+			// 		kuro_interface -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+			// 	}
+
+			// check if there is any action required with entry
+			for( uint64_t i = 0; i < kuro_files -> limit; i++ )
+				if( kuro_files -> entry[ i ].flags & LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run ) {
+					// based on mimetype
+					switch( kuro_files -> entry[ i ].mimetype ) {
+						case KURO_MIMETYPE_executable: {
+							// try to execute file
+							std_exec( kuro_files -> entry[ i ].name, kuro_files -> entry[ i ].name_length, EMPTY, TRUE );
+
+							// done
+							break;
+						}
+
+						case KURO_MIMETYPE_up:
+						case KURO_MIMETYPE_directory: {
+							// change home directory
+							std_cd( kuro_files -> entry[ i ].name, kuro_files -> entry[ i ].name_length );
+
+							// done
+							goto reload;
+						}
+
+			// 			case KURO_MIMETYPE_plain_text: {
+			// 				// combine command with file name
+			// 				uint8_t *command = malloc( TRUE );
+			// 				sprintf( "console moko %s", command, kuro_files -> entry[ i ].name );
+
+			// 				// open text file in Moko editor
+			// 				std_exec( command, lib_string_length( command ), EMPTY, TRUE );
+
+			// 				// done
+			// 				break;
+			// 			}
+
+						case KURO_MIMETYPE_3d_object: {
+							// combine command with file name
+							uint8_t *command = malloc( TRUE );
+							sprintf( "3d %s", command, kuro_files -> entry[ i ].name );
+
+							// open object file in 3D Viewer
+							std_exec( command, lib_string_length( command ), EMPTY, TRUE );
+
+							// done
+							break;
+						}
+
+			// 			case KURO_MIMETYPE_image: {
+			// 				// combine command with file name
+			// 				uint8_t *command = malloc( TRUE );
+			// 				sprintf( "image %s", command, kuro_files -> entry[ i ].name );
+
+			// 				// open object file in Image Viewer
+			// 				std_exec( command, lib_string_length( command ), EMPTY, TRUE );
+
+			// 				// done
+			// 				break;
+			// 			}
+					}
+
+					// remove flag
+					kuro_files -> entry[ i ].flags &= ~LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_run;
+				}
+
+			// exit?
+			if( key == STD_ASCII_ESC ) exit();	// yes
+
+			// release CPU time
+			sleep( TRUE );
+		}
 	}
 
 	// exit

@@ -15,6 +15,9 @@
 	struct KERNEL_STRUCTURE_STORAGE {
 		uint8_t				flags;
 		uint8_t				id;
+		uint8_t				type;
+		uint8_t				length;
+		uint8_t				name[ STD_STORAGE_NAME_length + TRUE ];
 		uint64_t			block;	// first
 		uint64_t			limit;	// blocks
 		uint64_t			byte;	// block limit

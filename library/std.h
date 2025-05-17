@@ -346,8 +346,10 @@
 	#define	STD_SIZE_QWORD_bit				64
 	#define	STD_SIZE_PTR_byte				STD_SIZE_QWORD_byte
 
-	#define	STD_STORAGE_TYPE_memory				0b00000001
-	#define	STD_STORAGE_TYPE_disk				0b00000010
+	#define	STD_STORAGE_NAME_length				31				
+
+	#define	STD_STORAGE_TYPE_memory				0x01
+	#define	STD_STORAGE_TYPE_disk				0x02
 
 	struct	STD_STRUCTURE_STORAGE {
 		uint64_t 	id;
