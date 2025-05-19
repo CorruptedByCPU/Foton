@@ -46,7 +46,14 @@ void wm_event( void ) {
 				if( new ) answer -> descriptor = std_memory_share( pid, (uintptr_t) new -> descriptor, MACRO_PAGE_ALIGN_UP( new -> limit ) >> STD_SHIFT_PAGE, TRUE );
 
 				// if everything was done properly
-				if( answer -> descriptor ) new -> pid = pid;
+				if( answer -> descriptor ) {
+					// assign parent process to object
+					new -> pid = pid;
+
+					// inform parent about dimensions of created window
+					new -> descriptor -> width	= new -> width;
+					new -> descriptor -> height	= new -> height;
+				}
 
 				// send answer
 				std_ipc_send( pid, (uint8_t *) answer );

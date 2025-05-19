@@ -14,6 +14,7 @@ MEM="${2}"
 if [ -z "${MEM}" ]; then MEM="64"; fi
 
 qemu-system-x86_64								\
+	-display gtk,show-menubar=off						\
 	--enable-kvm								\
 	-cpu max								\
 	-smp ${SMP}								\
@@ -35,4 +36,3 @@ qemu-system-x86_64								\
 #	-device usb-kbd,bus=ehci.0				\
 #	-device usb-mouse,bus=ehci.0				\
 #	-device qemu-xhci					\
-#	-display gtk,show-menubar=off						\
