@@ -12,7 +12,7 @@
 		#include	"./string.h"
 	#endif
 
-struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *lib_window_event( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *current ) {
+struct LIB_WINDOW_STRUCTURE *lib_window_event( struct LIB_WINDOW_STRUCTURE *current ) {
 	// acquired new descriptor properties?
 	if( ! (current -> flags & LIB_WINDOW_FLAG_properties) ) return EMPTY;	// no
 
@@ -24,7 +24,7 @@ struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *lib_window_event( struct LIB_WINDOW_STRU
 	if( current -> height_minimal > current -> new_height ) current -> new_height = current -> height_minimal;	// no, set correction
 
 	// new descriptor properties
-	struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *new = lib_window( current -> new_x, current -> new_y, current -> new_width, current -> new_height );
+	struct LIB_WINDOW_STRUCTURE *new = lib_window( current -> new_x, current -> new_y, current -> new_width, current -> new_height );
 	if( ! new ) return EMPTY;	// cannot create new descriptor
 
 	// spread descriptor name
@@ -52,7 +52,7 @@ struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *lib_window_event( struct LIB_WINDOW_STRU
 	return new;
 }
 
-void lib_window_name( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *descriptor, uint8_t *name ) {
+void lib_window_name( struct LIB_WINDOW_STRUCTURE *descriptor, uint8_t *name ) {
 	// set window name
 	descriptor -> name_length = lib_string_length( name );
 	for( uint8_t i = 0; i < descriptor -> name_length; i++ ) descriptor -> name[ i ] = name[ i ];
@@ -61,7 +61,7 @@ void lib_window_name( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *descriptor, uint8_
 	descriptor -> flags |= LIB_WINDOW_FLAG_name;
 }
 
-struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *lib_window( int16_t x, int16_t y, uint16_t width, uint16_t height ) {
+struct LIB_WINDOW_STRUCTURE *lib_window( int16_t x, int16_t y, uint16_t width, uint16_t height ) {
 	// obtain information about kernel framebuffer
 	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER framebuffer;
 	std_framebuffer( (struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *) &framebuffer );
@@ -97,6 +97,12 @@ struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *lib_window( int16_t x, int16_t y, uint16
 	// window assigned?
 	if( ! answer -> descriptor ) return EMPTY;	// no
 
+	// set default properties
+	struct LIB_WINDOW_STRUCTURE *window = (struct LIB_WINDOW_STRUCTURE *) answer -> descriptor;
+	window -> width = width;
+	window -> height = height;
+	window -> pixel = (uint32_t *) ((uintptr_t) window + sizeof( struct LIB_WINDOW_STRUCTURE ));
+
 	// properties of console window
-	return (struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *) answer -> descriptor;
+	return (struct LIB_WINDOW_STRUCTURE *) answer -> descriptor;
 }

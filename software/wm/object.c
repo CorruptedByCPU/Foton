@@ -72,13 +72,13 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 		object -> height	= height;
 
 		// calculate object area size in Bytes
-		object -> limit = ((width * height) << STD_VIDEO_DEPTH_shift) + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR );
+		object -> limit = ((width * height) << STD_VIDEO_DEPTH_shift) + sizeof( struct LIB_WINDOW_STRUCTURE );
 
 		// by default all object belong to Window Manager
 		object -> pid = wm -> pid;
 
 		// assign area for object
-		if( ! (object -> descriptor = (struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( object -> limit ) >> STD_SHIFT_PAGE )) )
+		if( ! (object -> descriptor = (struct LIB_WINDOW_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( object -> limit ) >> STD_SHIFT_PAGE )) )
 			// no enough memory
 			return EMPTY;
 

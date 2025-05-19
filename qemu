@@ -14,7 +14,6 @@ MEM="${2}"
 if [ -z "${MEM}" ]; then MEM="64"; fi
 
 qemu-system-x86_64								\
-	-display gtk,show-menubar=off						\
 	--enable-kvm								\
 	-cpu max								\
 	-smp ${SMP}								\

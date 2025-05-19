@@ -12,7 +12,7 @@ void wm_sync( void ) {
 		if( ! zone[ i ].object ) continue;	// no
 
 		// copy the contents of the buffer to the memory space of the graphics card
-		uint32_t *source = (uint32_t *) ((uintptr_t) wm -> canvas.descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
+		uint32_t *source = (uint32_t *) ((uintptr_t) wm -> canvas.descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 		for( uint64_t y = zone[ i ].y; y < zone[ i ].y + zone[ i ].height; y++ )
 			for( uint64_t x = zone[ i ].x; x < zone[ i ].x + zone[ i ].width; x++ )
 				wm -> framebuffer.base_address[ (y * (wm -> framebuffer.pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = source[ (y * wm -> canvas.width) + x ] & ~STD_COLOR_mask;

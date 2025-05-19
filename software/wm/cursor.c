@@ -13,8 +13,8 @@ void wm_cursor( void ) {
 	wm_zone(); wm_fill();
 
 	// properties of areas
-	uint32_t *source = (uint32_t *) ((uintptr_t) wm -> cursor -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
-	uint32_t *target = (uint32_t *) ((uintptr_t) wm -> canvas.descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *source = (uint32_t *) ((uintptr_t) wm -> cursor -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
+	uint32_t *target = (uint32_t *) ((uintptr_t) wm -> canvas.descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
 	// calculate overflows
 	uint16_t width = wm -> cursor -> width;

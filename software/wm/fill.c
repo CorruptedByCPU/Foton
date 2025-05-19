@@ -12,8 +12,8 @@ void wm_fill( void ) {
 		if( ! zone[ i ].object ) continue;	// no
 
 		// fill zone with selected object
-		uint32_t *source = (uint32_t *) ((uintptr_t) zone[ i ].object -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
-		uint32_t *target = (uint32_t *) ((uintptr_t) wm -> canvas.descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
+		uint32_t *source = (uint32_t *) ((uintptr_t) zone[ i ].object -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
+		uint32_t *target = (uint32_t *) ((uintptr_t) wm -> canvas.descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 		for( uint64_t y = zone[ i ].y; y < zone[ i ].height + zone[ i ].y; y++ )
 			for( uint64_t x = zone[ i ].x; x < zone[ i ].width + zone[ i ].x; x++ ) {
 				// color properties

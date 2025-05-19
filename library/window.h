@@ -31,8 +31,10 @@
 
 	#define	LIB_WINDOW_ANSWER_create	0b10000000 | LIB_WINDOW_REQUEST_create
 
-	struct	LIB_WINDOW_STRUCTURE_DESCRIPTOR {
+	struct	LIB_WINDOW_STRUCTURE {
 		uint32_t	flags;
+		// base address of window content
+		uint32_t	*pixel;
 		// pointer position inside window
 		uint16_t	x;
 		uint16_t	y;
@@ -64,9 +66,9 @@
 		uint8_t		name[ 32 + TRUE ];
 	};
 
-	struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *lib_window( int16_t x, int16_t y, uint16_t width, uint16_t height );
+	struct LIB_WINDOW_STRUCTURE *lib_window( int16_t x, int16_t y, uint16_t width, uint16_t height );
 
-	struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *lib_window_event( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *descriptor );
+	struct LIB_WINDOW_STRUCTURE *lib_window_event( struct LIB_WINDOW_STRUCTURE *descriptor );
 
-	void lib_window_name( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *descriptor, uint8_t *name );
+	void lib_window_name( struct LIB_WINDOW_STRUCTURE *descriptor, uint8_t *name );
 #endif

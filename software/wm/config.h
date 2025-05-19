@@ -25,7 +25,7 @@ struct	WM_STRUCTURE_OBJECT {
 	int16_t		height;
 	uint64_t	limit;
 	uint64_t	pid;
-	struct LIB_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
+	struct LIB_WINDOW_STRUCTURE	*descriptor;
 };
 
 struct	WM_STRUCTURE_ZONE {

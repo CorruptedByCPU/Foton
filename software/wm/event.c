@@ -4,7 +4,7 @@
 
 void wm_event_shade_fill( void ) {
 	// fill object with default pattern/color
-	uint32_t *shade = (uint32_t *) ((uintptr_t) wm -> shade -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *shade = (uint32_t *) ((uintptr_t) wm -> shade -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 	for( uint16_t y = 0; y < wm -> shade -> height; y++ )
 		for( uint16_t x = 0; x < wm -> shade -> width; x++ )
 			shade[ (y * wm -> shade -> width) + x ] = WM_OBJECT_OVERSHADE_COLOR;
@@ -52,7 +52,7 @@ void wm_event( void ) {
 				std_ipc_send( pid, (uint8_t *) answer );
 
 				// newly created object becomes active
-				wm -> active = new; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
+				// wm -> active = new; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
 				
 				// done
 				break;
@@ -74,7 +74,7 @@ void wm_event( void ) {
 	// calculate delta of cursor new position
 	int16_t delta_x = mouse.x - wm -> cursor -> x;
 	int16_t delta_y = mouse.y - wm -> cursor -> y;
-	int16_t delta_z = mouse.z - wm -> cursor -> z;
+	int16_t delta_z = mouse.z - wm -> cursor -> z; wm -> cursor -> z = mouse.z;
 
 	// update pointer position inside current object
 	current -> descriptor -> x = (wm -> cursor -> x + delta_x) - current -> x;
@@ -298,6 +298,22 @@ void wm_event( void ) {
 		wm -> mouse_button_right = FALSE;
 	}
 
+	// scroll movement?
+	if( delta_z ) {
+		// properties of mouse message
+		struct STD_STRUCTURE_IPC_MOUSE *mouse_z = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
+
+		// default values
+		mouse_z -> ipc.type = STD_IPC_TYPE_mouse;
+		mouse_z -> scroll = delta_z;
+
+		// select object under cursor position
+		struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse.x, mouse.y, FALSE );
+
+		// send event to selected object process
+		std_ipc_send( current -> pid, (uint8_t *) mouse_z );
+	}
+
 	//--------------------------------------------------------------
 
 	// if cursor pointer movement didn't occur
@@ -360,10 +376,10 @@ void wm_event( void ) {
 	//----------------------------------------------------------------------
 
 	// calculate new object area size in Bytes
-	wm -> shade -> limit = ((wm -> shade -> width * wm -> shade -> height) << STD_VIDEO_DEPTH_shift) + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR );
+	wm -> shade -> limit = ((wm -> shade -> width * wm -> shade -> height) << STD_VIDEO_DEPTH_shift) + sizeof( struct LIB_WINDOW_STRUCTURE );
 
 	// assign new area for object
-	wm -> shade -> descriptor = (struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm -> shade -> limit ) >> STD_SHIFT_PAGE ); wm_event_shade_fill();
+	wm -> shade -> descriptor = (struct LIB_WINDOW_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm -> shade -> limit ) >> STD_SHIFT_PAGE ); wm_event_shade_fill();
 
 	// show refresh object content
 	wm -> shade -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;

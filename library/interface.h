@@ -100,7 +100,7 @@
 	#define	LIB_INTERFACE_NAME_limit				LIB_INTERFACE_GLOBAL_NAME_limit
 
 	struct LIB_INTERFACE_STRUCTURE {
-		struct LIB_WINDOW_STRUCTURE_DESCRIPTOR	*descriptor;
+		struct LIB_WINDOW_STRUCTURE	*descriptor;
 		uint8_t		*properties;
 		//--------------------------------------------------
 		int16_t		x;

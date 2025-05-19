@@ -33,7 +33,7 @@ void wm_init( void ) {
 	// create cache area
 	wm -> canvas.width		= wm -> framebuffer.width_pixel;
 	wm -> canvas.height		= wm -> framebuffer.height_pixel;
-	wm -> canvas.descriptor	= (struct LIB_WINDOW_STRUCTURE_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm -> canvas.width * wm -> canvas.height * STD_VIDEO_DEPTH_byte) + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ) ) >> STD_SHIFT_PAGE );
+	wm -> canvas.descriptor	= (struct LIB_WINDOW_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm -> canvas.width * wm -> canvas.height * STD_VIDEO_DEPTH_byte) + sizeof( struct LIB_WINDOW_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 
 	// leave cache untouched, first object synchronization will fill it up
 
@@ -58,7 +58,7 @@ void wm_init( void ) {
 	wm -> workbench = wm_object_create( 0, 0, wm -> canvas.width, wm -> canvas.height );
 
 	// properties of workbench area content
-	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm -> workbench -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm -> workbench -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
 	// if default wallpaper file found
 	if( workbench_image ) {
@@ -96,7 +96,7 @@ void wm_init( void ) {
 	wm -> panel = wm_object_create( 0, wm -> canvas.height - WM_PANEL_HEIGHT_pixel, wm -> canvas.width, WM_PANEL_HEIGHT_pixel );
 
 	// properties of panel area content
-	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
 	// fill panel with default color
 
@@ -138,7 +138,7 @@ void wm_init( void ) {
 		wm -> cursor = wm_object_create( wm -> workbench -> width >> STD_SHIFT_2, wm -> workbench -> height >> STD_SHIFT_2, 16, 32 );
 
 	// properties of cursor area content
-	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm -> cursor -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE_DESCRIPTOR ));
+	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm -> cursor -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
 	// fill cursor with default color
 	for( uint16_t y = 0; y < wm -> cursor -> height; y++ )
@@ -163,6 +163,7 @@ void wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// debug
-	std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
+	std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
+	std_exec( (uint8_t *) "so", 2, EMPTY, TRUE );
 	// std_exec( (uint8_t *) "3d /var/bird.obj", 16, EMPTY, TRUE );
 }
