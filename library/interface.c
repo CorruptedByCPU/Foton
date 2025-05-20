@@ -739,10 +739,12 @@ void lib_interface_element_control( struct LIB_INTERFACE_STRUCTURE *interface, s
 			break;
 		}
 		case LIB_INTERFACE_ELEMENT_TYPE_control_close: {
+			uint32_t foreground_color = 0xFFF0F0F0;
+			if( element -> control.flags & LIB_INTERFACE_ELEMENT_FLAG_hover ) foreground_color = 0xFF000000;
 			// display close window button
 			for( uint64_t y = 8; y <= 16; y++ ) {
-				pixel[ (y * interface -> width) + y ] = 0xFFF0F0F0;
-				pixel[ (LIB_INTERFACE_HEADER_HEIGHT_pixel - y) + (y * interface -> width) ] = 0xFFF0F0F0;
+				pixel[ (y * interface -> width) + y ] = foreground_color;
+				pixel[ (LIB_INTERFACE_HEADER_HEIGHT_pixel - y) + (y * interface -> width) ] = foreground_color;
 			}
 
 			// done

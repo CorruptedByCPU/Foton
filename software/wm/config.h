@@ -12,7 +12,7 @@
 #define	WM_PANEL_COLOR_alpha_channel	0xF0000000
 #define	WM_PANEL_COLOR_default	WM_PANEL_COLOR_alpha_channel | 0x00202020
 #define	WM_PANEL_COLOR_visible	WM_PANEL_COLOR_alpha_channel | 0x000C0C0C
-#define	WM_PANEL_COLOR_active	WM_PANEL_COLOR_alpha_channel | 0x005294E2
+#define	WM_PANEL_COLOR_active	WM_PANEL_COLOR_alpha_channel | 0x0000CC00
 #define	WM_PANEL_CLOCK_WIDTH_pixel	50
 #define	WM_PANEL_HEIGHT_pixel	22
 #define	WM_PANEL_ENTRY_WIDTH_limit	256

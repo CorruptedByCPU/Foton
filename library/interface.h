@@ -91,7 +91,7 @@
 	#define	LIB_INTERFACE_COLOR_background_radio_selected		0xFF202080
 	#define	LIB_INTERFACE_COLOR_background_checkbox_default		LIB_INTERFACE_COLOR_background + 0x00101010;
 	#define	LIB_INTERFACE_COLOR_background_checkbox_selected	0xFF208020
-	#define	LIB_INTERFACE_COLOR_background_control_close_hover	0xFF208020
+	#define	LIB_INTERFACE_COLOR_background_control_close_hover	0xFF00CC00
 	#define	LIB_INTERFACE_COLOR_background_file_default		0xFF1F1F1F
 	#define	LIB_INTERFACE_COLOR_background_file_odd			0xFF161616
 	#define	LIB_INTERFACE_COLOR_background_file_selected		0xFF208020
