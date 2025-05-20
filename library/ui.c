@@ -2,8 +2,6 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#include	"../library/font.h"
-#include	"../library/string.h"
 #include	"../library/ui.h"
 
 void lib_ui_fill_rectangle( uint32_t *pixel, uint64_t scanline, uint8_t r, uint64_t width, uint64_t height, uint32_t color ) {
@@ -77,7 +75,7 @@ uint64_t lib_ui_add_checkbox( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t 
 	ui -> checkbox[ ui -> limit_checkbox ] -> standard.x = x;
 	ui -> checkbox[ ui -> limit_checkbox ] -> standard.y = y;
 	ui -> checkbox[ ui -> limit_checkbox ] -> standard.width = width;
-	ui -> checkbox[ ui -> limit_checkbox ] -> standard.height = LIB_FONT_HEIGHT_pixel;
+	ui -> checkbox[ ui -> limit_checkbox ] -> standard.height = LIB_UI_CHECKBOX_HEIGHT;
 	ui -> checkbox[ ui -> limit_checkbox ] -> name = (uint8_t *) malloc( lib_string_length( name ) );
 	for( uint64_t i = 0; i <= lib_string_length( name ); i++ ) ui -> checkbox[ ui -> limit_checkbox ] -> name[ i ] = name[ i ];
 	ui -> checkbox[ ui -> limit_checkbox ] -> set = FALSE;

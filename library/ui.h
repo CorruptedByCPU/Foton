@@ -2,6 +2,12 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+#ifndef	LIB_FONT
+	#include	"../library/font.h"
+#endif
+#ifndef	LIB_STRING
+	#include	"../library/string.h"
+#endif
 #ifndef	LIB_WINDOW
 	#include	"./window.h"
 #endif
@@ -10,12 +16,16 @@
 
 #define	LIB_UI_COLOR_DEFAULT			0xFFFFFFFF
 #define	LIB_UI_COLOR_INCREASE			0x00202020
-#define	LIB_UI_COLOR_BACKGROUND_DEFAULT		0xFF202020
+#define	LIB_UI_COLOR_BACKGROUND_DEFAULT		0xFF181818
 #define	LIB_UI_COLOR_BACKGROUND_BUTTON		0xFF00CC00
 #define	LIB_UI_COLOR_BACKGROUND_CHECKBOX	(LIB_UI_COLOR_BACKGROUND_DEFAULT + 0x00101010)
 #define	LIB_UI_COLOR_BACKGROUND_RADIO		LIB_UI_COLOR_BACKGROUND_CHECKBOX
 
-#define	LIB_UI_HEIGHT_DEFAULT		16
+#define	LIB_UI_HEADER_HEIGHT		22
+#define	LIB_UI_LABEL_HEIGHT		LIB_FONT_HEIGHT_pixel
+#define	LIB_UI_CHECKBOX_HEIGHT		LIB_FONT_HEIGHT_pixel
+#define	LIB_UI_BUTTON_HEIGHT		LIB_UI_HEADER_HEIGHT
+#define	LIB_UI_RADIO_HEIGHT		LIB_FONT_HEIGHT_pixel
 
 #define	LIB_UI_MARGIN_DEFAULT		5
 #define	LIB_UI_PADDING_DEFAULT		4
@@ -52,6 +62,13 @@ struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX {
 	struct LIB_UI_STRUCTURE_ELEMENT	standard;
 	uint8_t				*name;
 	uint8_t				set;
+};
+
+struct LIB_UI_STRUCTURE_ELEMENT_INPUT {
+	struct LIB_UI_STRUCTURE_ELEMENT	standard;
+	uint8_t				*name;
+	uint64_t			offset;
+	uint64_t			index;
 };
 
 struct LIB_UI_STRUCTURE_ELEMENT_LABEL {
