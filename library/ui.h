@@ -28,9 +28,16 @@
 #define	LIB_UI_COLOR_BACKGROUND_BUTTON		0xFF00CC00
 #define	LIB_UI_COLOR_BACKGROUND_BUTTON_DISABLED	0xFF404040
 #define	LIB_UI_COLOR_BACKGROUND_CHECKBOX	(LIB_UI_COLOR_BACKGROUND_DEFAULT + 0x00101010)
+#define	LIB_UI_COLOR_BACKGROUND_CONTROL_CLOSE	LIB_UI_COLOR_BACKGROUND_BUTTON
+#define	LIB_UI_COLOR_BACKGROUND_CONTROL_DEFAULT	(LIB_UI_COLOR_BACKGROUND_DEFAULT + LIB_UI_COLOR_INCREASE_LIGHT)
 #define	LIB_UI_COLOR_BACKGROUND_INPUT		0xFF000000
 #define	LIB_UI_COLOR_BACKGROUND_INPUT_DISABLED	0xFF080808
 #define	LIB_UI_COLOR_BACKGROUND_RADIO		LIB_UI_COLOR_BACKGROUND_CHECKBOX
+#define	LIB_UI_COLOR_BACKGROUND_SHADOW		LIB_UI_COLOR_BACKGROUND_DEFAULT - LIB_UI_COLOR_INCREASE_LIGHT
+
+#define	LIB_UI_CONTROL_TYPE_close		0x01
+#define	LIB_UI_CONTROL_TYPE_max			0x02
+#define	LIB_UI_CONTROL_TYPE_min			0x04
 
 #define	LIB_UI_HEADER_HEIGHT		22
 
@@ -47,8 +54,10 @@
 
 struct LIB_UI_STRUCTURE {
 	struct LIB_WINDOW_STRUCTURE			*window;
+
 	struct LIB_UI_STRUCTURE_ELEMENT_BUTTON		**button;
 	struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX	**checkbox;
+	struct LIB_UI_STRUCTURE_ELEMENT_CONTROL		**control;
 	struct LIB_UI_STRUCTURE_ELEMENT_INPUT		**input;
 	struct LIB_UI_STRUCTURE_ELEMENT_LABEL		**label;
 	struct LIB_UI_STRUCTURE_ELEMENT_RADIO		**radio;
@@ -56,6 +65,7 @@ struct LIB_UI_STRUCTURE {
 	uint64_t					limit;
 	uint64_t					limit_button;
 	uint64_t					limit_checkbox;
+	uint64_t					limit_control;
 	uint64_t					limit_input;
 	uint64_t					limit_label;
 	uint64_t					limit_radio;
@@ -79,6 +89,11 @@ struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX {
 	uint8_t				set;
 };
 
+struct LIB_UI_STRUCTURE_ELEMENT_CONTROL {
+	struct LIB_UI_STRUCTURE_ELEMENT	standard;
+	uint8_t				type;
+};
+
 struct LIB_UI_STRUCTURE_ELEMENT_INPUT {
 	struct LIB_UI_STRUCTURE_ELEMENT	standard;
 	uint64_t			offset;
@@ -98,6 +113,7 @@ struct LIB_UI_STRUCTURE_ELEMENT_RADIO {
 struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window );
 uint64_t lib_ui_add_button( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint16_t height );
 uint64_t lib_ui_add_checkbox( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name );
+uint64_t lib_ui_add_control( struct LIB_UI_STRUCTURE *ui, uint8_t type );
 uint64_t lib_ui_add_input( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name );
 uint64_t lib_ui_add_label( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name );
 uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t group );
@@ -105,6 +121,8 @@ void lib_ui_clean( struct LIB_UI_STRUCTURE *ui );
 void lib_ui_event( struct LIB_UI_STRUCTURE *ui );
 void lib_ui_show_button( struct LIB_UI_STRUCTURE *ui, uint64_t id, uint8_t flag );
 void lib_ui_show_checkbox( struct LIB_UI_STRUCTURE *ui, uint64_t id, uint8_t flag );
+void lib_ui_show_control( struct LIB_UI_STRUCTURE *ui, uint64_t id );
 void lib_ui_show_input( struct LIB_UI_STRUCTURE *ui, uint64_t id, uint8_t flag );
 void lib_ui_show_label( struct LIB_UI_STRUCTURE *ui, uint64_t id, uint8_t flag );
+void lib_ui_show_name( struct LIB_UI_STRUCTURE *ui );
 void lib_ui_show_radio( struct LIB_UI_STRUCTURE *ui, uint64_t id, uint8_t flag );

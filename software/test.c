@@ -5,11 +5,20 @@
 #include	"../library/ui.h"
 #include	"../library/window.h"
 
+#define	TEST_WIDTH_pixel	600
+#define	TEST_HEIGHT_pixel	200
+
 struct LIB_UI_STRUCTURE *ui;
 
 void create_ui( void ) {
+	lib_window_name( ui -> window, (uint8_t *) "GUI Debug Window" );
+	lib_ui_show_control( ui, lib_ui_add_control( ui, LIB_UI_CONTROL_TYPE_close ) );
+	lib_ui_show_control( ui, lib_ui_add_control( ui, LIB_UI_CONTROL_TYPE_max ) );
+	lib_ui_show_control( ui, lib_ui_add_control( ui, LIB_UI_CONTROL_TYPE_min ) );
+	lib_ui_show_name( ui );
+
 	// column width
-	uint64_t width = (ui -> window -> width - (LIB_UI_MARGIN_DEFAULT * 3)) >> STD_SHIFT_2;
+	uint64_t width = (320 - (LIB_UI_MARGIN_DEFAULT * 3)) >> STD_SHIFT_2;
 
 	// column 0
 	uint64_t x0 = LIB_UI_MARGIN_DEFAULT;
@@ -37,17 +46,17 @@ void create_ui( void ) {
 	y1 += LIB_UI_RADIO_HEIGHT + LIB_UI_MARGIN_DEFAULT;
 	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.1 (Group.0)", 0 ), EMPTY );
 	y1 += LIB_UI_RADIO_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.2 (Group.0)", 0 ), EMPTY );
+	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.2 (Group.0)", 0 ), LIB_UI_FLAG_set );
 	y1 += LIB_UI_RADIO_HEIGHT + LIB_UI_MARGIN_DEFAULT;
 	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.3 (Group.0)", 0 ), EMPTY );
 	y1 += LIB_UI_RADIO_HEIGHT + LIB_UI_MARGIN_DEFAULT;
 	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.0 (Group.1)", 1 ), EMPTY );
 	y1 += LIB_UI_RADIO_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.1 (Group.1)", 1 ), EMPTY );
+	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.1 (Group.1)", 1 ), LIB_UI_FLAG_set );
 }
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	ui = lib_ui( lib_window( -1, -1, 285, 200 ) );
+	ui = lib_ui( lib_window( -1, -1, TEST_WIDTH_pixel, TEST_HEIGHT_pixel ) );
 	lib_ui_clean( ui );
 
 	create_ui();

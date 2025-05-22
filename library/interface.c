@@ -1255,7 +1255,7 @@ void lib_interface_event_handler_release( struct LIB_INTERFACE_STRUCTURE *interf
 						interface -> previous_height	= interface -> height;
 
 						// maximize window
-						interface -> descriptor -> flags |= LIB_WINDOW_FLAG_maximize;
+						interface -> descriptor -> flags |= LIB_WINDOW_FLAG_enlarge;
 					}
 
 					// done

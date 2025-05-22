@@ -39,7 +39,7 @@ void wm_object( void ) {
 		}
 
 		// requested maximize?
-		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_maximize ) {
+		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_enlarge ) {
 			// propose new properties of object
 			list[ i ] -> descriptor -> new_x	= 0;
 			list[ i ] -> descriptor -> new_y	= 0;
@@ -50,7 +50,7 @@ void wm_object( void ) {
 			list[ i ] -> descriptor -> flags |= LIB_WINDOW_FLAG_properties;
 
 			// request parsed
-			list[ i ] -> descriptor -> flags  &= ~LIB_WINDOW_FLAG_maximize;
+			list[ i ] -> descriptor -> flags  &= ~LIB_WINDOW_FLAG_enlarge;
 		}
 	}
 }
