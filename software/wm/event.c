@@ -17,7 +17,7 @@ void wm_event_shade_fill( void ) {
 
 void wm_event( void ) {
 	// incomming/outgoing messages
-	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
+	uint8_t ipc_data[ STD_IPC_SIZE_byte ] = { EMPTY };
 
 	// check every incomming request
 	uint64_t pid; while( (pid = std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_default )) ) {
@@ -99,11 +99,11 @@ void wm_event( void ) {
 
 	// remember state of special key, or take action immediately
 	switch( keyboard -> key ) {
-		// left ctrl pressed
-		case STD_KEY_CTRL_LEFT: { wm -> key_ctrl_left = TRUE; break; }
+		// menu pressed
+		case STD_KEY_MENU: { wm -> key_menu = TRUE; break; }
 
-		// left ctrl released
-		case STD_KEY_CTRL_LEFT | 0x80: { wm -> key_ctrl_left = FALSE; break; }
+		// menu released
+		case (STD_KEY_MENU | STD_KEY_RELEASE): { wm -> key_menu = FALSE; break; }
 	}
 
 	// send event to active object process
@@ -126,12 +126,12 @@ void wm_event( void ) {
 		if( wm -> selected -> descriptor -> y < wm -> selected -> descriptor -> header_height ) wm -> drag_allow = TRUE;
 
 		// can we move object on top of object list?
-		if( ! (wm -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_z) && ! wm -> key_ctrl_left && wm_object_move_up( wm -> selected ) )
+		if( ! (wm -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_z) && ! wm -> key_menu && wm_object_move_up( wm -> selected ) )
 			// object moved on top, redraw
 			wm -> selected -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 		// set object as active?
-		if( ! wm -> key_ctrl_left && wm -> selected != wm -> panel ) { wm -> active = wm -> selected; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active; }
+		if( ! wm -> key_menu && wm -> selected != wm -> panel ) { wm -> active = wm -> selected; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active; }
 
 		//--------------------------------------------------------------
 
@@ -160,7 +160,7 @@ void wm_event( void ) {
 		}
 
 		// do not send messages to ourselfs
-		if( wm -> selected -> pid != wm -> pid && ! wm -> key_ctrl_left ) {
+		if( wm -> selected -> pid != wm -> pid && ! wm -> key_menu ) {
 			// properties of mouse message
 			struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
 
@@ -176,7 +176,7 @@ void wm_event( void ) {
 		}
 	} } else {
 		// left mouse button was on hold?
-		if( wm -> mouse_button_left && ! wm -> key_ctrl_left ) {
+		if( wm -> mouse_button_left && ! wm -> key_menu ) {
 			// do not send messages to ourselfs
 			if( wm -> selected -> pid != wm -> pid ) {
 				// properties of mouse message
@@ -209,7 +209,7 @@ void wm_event( void ) {
 			wm -> mouse_button_right = TRUE;
 
 			// send mouse state or parse?
-			if( wm -> key_ctrl_left ) {	// parse
+			if( wm -> key_menu ) {	// parse
 				if( ! wm -> shade_initialized && current -> descriptor -> flags & LIB_WINDOW_FLAG_resizable ) {
 					// current object under cursor pointer selected for resize
 					wm -> resized = current;
@@ -262,7 +262,7 @@ void wm_event( void ) {
 		}
 	} else {
 		// left mouse button was on hold?
-		if( wm -> mouse_button_right && ! wm -> key_ctrl_left ) {
+		if( wm -> mouse_button_right && ! wm -> key_menu ) {
 			// do not send messages to ourselfs
 			if( current -> pid != wm -> pid ) {
 				// properties of mouse message
@@ -337,7 +337,7 @@ void wm_event( void ) {
 	wm -> cursor -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 	// move object along with cursor pointer?
-	if( wm -> mouse_button_left && (wm -> key_ctrl_left || wm -> drag_allow) && ! (wm -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_xy) ) wm_object_move( delta_x, delta_y );
+	if( wm -> mouse_button_left && (wm -> key_menu || wm -> drag_allow) && ! (wm -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_xy) ) wm_object_move( delta_x, delta_y );
 
 	//----------------------------------------------------------------------
 

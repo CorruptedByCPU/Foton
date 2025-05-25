@@ -86,7 +86,7 @@ struct	WM_STRUCTURE {
 	// semaphores
 	uint8_t						panel_semaphore;
 	uint8_t						drag_allow;
-	uint8_t 					key_ctrl_left;
+	uint8_t 					key_menu;
 	uint8_t						mouse_button_left;
 	uint8_t						mouse_button_right;
 	uint8_t						shade_initialized;

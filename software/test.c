@@ -11,48 +11,50 @@
 struct LIB_UI_STRUCTURE *ui;
 
 void create_ui( void ) {
-	lib_window_name( ui -> window, (uint8_t *) "GUI Debug Window" );
-	lib_ui_show_control( ui, lib_ui_add_control( ui, LIB_UI_CONTROL_TYPE_close ) );
-	lib_ui_show_control( ui, lib_ui_add_control( ui, LIB_UI_CONTROL_TYPE_max ) );
-	lib_ui_show_control( ui, lib_ui_add_control( ui, LIB_UI_CONTROL_TYPE_min ) );
-	lib_ui_show_name( ui );
-
 	// column width
 	uint64_t width = (320 - (LIB_UI_MARGIN_DEFAULT * 3)) >> STD_SHIFT_2;
 
 	// column 0
 	uint64_t x0 = LIB_UI_MARGIN_DEFAULT;
 	uint64_t y0 = LIB_UI_HEADER_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_label( ui, lib_ui_add_label( ui, x0, y0, width, (uint8_t *) "Use TAB/SHIFT key to move around." ), EMPTY );
-	y0 += LIB_UI_LABEL_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_input( ui, lib_ui_add_input( ui, x0, y0, width, (uint8_t *) "Input.0" ), EMPTY );
-	y0 += LIB_UI_INPUT_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_checkbox( ui, lib_ui_add_checkbox( ui, x0, y0, width, (uint8_t *) "Checkbox.0" ), EMPTY );
-	y0 += LIB_UI_CHECKBOX_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_checkbox( ui, lib_ui_add_checkbox( ui, x0, y0, width, (uint8_t *) "Checkbox.1" ), LIB_UI_FLAG_set );
-	y0 += LIB_UI_CHECKBOX_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_button( ui, lib_ui_add_button( ui, x0, y0, width, (uint8_t *) "Button.0", LIB_UI_BUTTON_HEIGHT ), EMPTY );
-	y0 += LIB_UI_BUTTON_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_button( ui, lib_ui_add_button( ui, x0, y0, width, (uint8_t *) "Button.1", LIB_UI_BUTTON_HEIGHT ), EMPTY );
-	y0 += LIB_UI_BUTTON_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_button( ui, lib_ui_add_button( ui, x0, y0, width, (uint8_t *) "Button.2 (disabled)", LIB_UI_BUTTON_HEIGHT ), LIB_UI_FLAG_disabled );
+	lib_ui_add_label( ui, x0, y0, width, (uint8_t *) "Use TAB/SHIFT key to move around." );
+	y0 += LIB_UI_ELEMENT_LABEL_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_input( ui, x0, y0, width, (uint8_t *) "Input.0", EMPTY );
+	y0 += LIB_UI_ELEMENT_INPUT_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_checkbox( ui, x0, y0, width, (uint8_t *) "Checkbox.0", EMPTY );
+	y0 += LIB_UI_ELEMENT_CHECKBOX_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_checkbox( ui, x0, y0, width, (uint8_t *) "Checkbox.1", LIB_UI_ELEMENT_FLAG_set );
+	y0 += LIB_UI_ELEMENT_CHECKBOX_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_button( ui, x0, y0, width, (uint8_t *) "Button.0", LIB_UI_ELEMENT_BUTTON_height, EMPTY );
+	y0 += LIB_UI_ELEMENT_BUTTON_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_button( ui, x0, y0, width, (uint8_t *) "Button.1", LIB_UI_ELEMENT_BUTTON_height, EMPTY );
+	y0 += LIB_UI_ELEMENT_BUTTON_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_button( ui, x0, y0, width, (uint8_t *) "Button.2 (disabled)", LIB_UI_ELEMENT_BUTTON_height, LIB_UI_ELEMENT_FLAG_disabled );
 
 	// column 1
 	uint64_t x1 = LIB_UI_MARGIN_DEFAULT + width + LIB_UI_MARGIN_DEFAULT;
-	uint64_t y1 = LIB_UI_HEADER_HEIGHT + LIB_UI_MARGIN_DEFAULT + LIB_UI_LABEL_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_input( ui, lib_ui_add_input( ui, x1, y1, width, (uint8_t *) "Input.1 (disabled)" ), LIB_UI_FLAG_disabled );
-	y1 += LIB_UI_INPUT_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.0 (Group.0)", 0 ), EMPTY );
-	y1 += LIB_UI_RADIO_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.1 (Group.0)", 0 ), EMPTY );
-	y1 += LIB_UI_RADIO_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.2 (Group.0)", 0 ), LIB_UI_FLAG_set );
-	y1 += LIB_UI_RADIO_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.3 (Group.0)", 0 ), EMPTY );
-	y1 += LIB_UI_RADIO_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.0 (Group.1)", 1 ), EMPTY );
-	y1 += LIB_UI_RADIO_HEIGHT + LIB_UI_MARGIN_DEFAULT;
-	lib_ui_show_radio( ui, lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.1 (Group.1)", 1 ), LIB_UI_FLAG_set );
+	uint64_t y1 = LIB_UI_HEADER_HEIGHT + LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_input( ui, x1, y1, width, (uint8_t *) "Input.1 (disabled)", LIB_UI_ELEMENT_FLAG_disabled );
+	y1 += LIB_UI_ELEMENT_INPUT_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.0 (Group.0)", 0, EMPTY );
+	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.1 (Group.0)", 0, EMPTY );
+	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.2 (Group.0)", 0, LIB_UI_ELEMENT_FLAG_set );
+	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.3 (Group.0)", 0, EMPTY );
+	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.0 (Group.1)", 1, EMPTY );
+	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_MARGIN_DEFAULT;
+	lib_ui_add_radio( ui, x1, y1, width, (uint8_t *) "Radio.1 (Group.1)", 1, LIB_UI_ELEMENT_FLAG_set );
+
+	lib_window_name( ui -> window, (uint8_t *) "GUI Debug Window" );
+
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_close );
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_max );
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_min );
+
+	lib_ui_flush( ui );
 }
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {

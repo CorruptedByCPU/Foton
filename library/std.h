@@ -263,6 +263,12 @@
 	#define	STD_KEY_MENU					0xE05B
 	#define	STD_KEY_SUBMENU					0xE05D
 
+	struct	STD_STRUCTURE_KEYBOARD_STATE {
+		uint8_t	semaphore_alt_left;
+		uint8_t	semaphore_ctrl_left;
+		uint8_t	semaphore_shift;
+	};
+
 	struct	STD_STRUCTURE_SYSCALL_MEMORY {
 		uint64_t	total;
 		uint64_t	available;
