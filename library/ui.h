@@ -49,6 +49,8 @@
 #define	LIB_UI_ELEMENT_LABEL_height		LIB_FONT_HEIGHT_pixel
 #define	LIB_UI_ELEMENT_RADIO_height		LIB_FONT_HEIGHT_pixel
 
+#define	LIB_UI_ELEMENT_INPUT_length_max		256
+
 #define	LIB_UI_MARGIN_DEFAULT		5
 #define	LIB_UI_PADDING_DEFAULT		4
 

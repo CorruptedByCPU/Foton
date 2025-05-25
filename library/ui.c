@@ -60,22 +60,24 @@ struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window ) {
 	return ui;
 }
 
-static void lib_ui_add( struct LIB_UI_STRUCTURE_ELEMENT *element, uint16_t x, uint16_t y, uint16_t width, uint8_t type, uint8_t *name ) {
+static void lib_ui_add( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT *element, uint16_t x, uint16_t y, uint16_t width, uint8_t type, uint8_t *name ) {
 	element -> x		= x;
 	element -> y		= y;
 	element -> width	= width;
 	element -> type		= type;
 	element -> name		= (uint8_t *) malloc( lib_string_length( name ) ); for( uint64_t i = 0; i <= lib_string_length( name ); i++ ) element -> name[ i ] = name[ i ];
+
+	if( ! ui -> limit ) element -> flag |= LIB_UI_ELEMENT_FLAG_active;
 }
 
 uint64_t lib_ui_add_button( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint16_t height, uint8_t flag ) {
 	ui -> button = (struct LIB_UI_STRUCTURE_ELEMENT_BUTTON **) realloc( ui -> button, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_BUTTON ) * (ui -> limit_button + TRUE) );
 	ui -> button[ ui -> limit_button ] = (struct LIB_UI_STRUCTURE_ELEMENT_BUTTON *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_BUTTON ) );
 
-	lib_ui_add( (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> button[ ui -> limit_button ], x, y, width, BUTTON, name );
+	lib_ui_add( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> button[ ui -> limit_button ], x, y, width, BUTTON, name );
 
 	ui -> button[ ui -> limit_button ] -> standard.height	= height;
-	ui -> button[ ui -> limit_button ] -> standard.flag	= flag;
+	ui -> button[ ui -> limit_button ] -> standard.flag	|= flag;
 
 	lib_ui_list_insert( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> button[ ui -> limit_button ] );
 
@@ -86,9 +88,10 @@ uint64_t lib_ui_add_checkbox( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t 
 	ui -> checkbox = (struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX **) realloc( ui -> checkbox, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX ) * (ui -> limit_checkbox + TRUE) );
 	ui -> checkbox[ ui -> limit_checkbox ] = (struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX ) );
 
-	lib_ui_add( (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> checkbox[ ui -> limit_checkbox ], x, y, width, CHECKBOX, name );
+	lib_ui_add( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> checkbox[ ui -> limit_checkbox ], x, y, width, CHECKBOX, name );
 
-	ui -> checkbox[ ui -> limit_checkbox ] -> standard.height = LIB_UI_ELEMENT_CHECKBOX_height;
+	ui -> checkbox[ ui -> limit_checkbox ] -> standard.height	= LIB_UI_ELEMENT_CHECKBOX_height;
+	ui -> checkbox[ ui -> limit_checkbox ] -> standard.flag		|= flag;
 	
 	ui -> checkbox[ ui -> limit_checkbox ] -> set = FALSE;
 
@@ -118,14 +121,20 @@ uint64_t lib_ui_add_input( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	ui -> input = (struct LIB_UI_STRUCTURE_ELEMENT_INPUT **) realloc( ui -> input, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_INPUT ) * (ui -> limit_input + TRUE) );
 	ui -> input[ ui -> limit_input ] = (struct LIB_UI_STRUCTURE_ELEMENT_INPUT *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_INPUT ) );
 
-	lib_ui_add( (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> input[ ui -> limit_input ], x, y, width, INPUT, name );
+	struct LIB_UI_STRUCTURE_ELEMENT_INPUT *input = ui -> input[ ui -> limit_input ];
 
-	ui -> input[ ui -> limit_input ] -> standard.height = LIB_UI_ELEMENT_INPUT_height;
+	lib_ui_add( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) input, x, y, width, INPUT, name );
 
-	ui -> input[ ui -> limit_input ] -> offset = EMPTY;
-	ui -> input[ ui -> limit_input ] -> index = EMPTY;
+	input -> standard.height	= LIB_UI_ELEMENT_INPUT_height;
+	input -> standard.flag		|= flag;
 
-	lib_ui_list_insert( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> input[ ui -> limit_input ] );
+	if( lib_string_length( input -> standard.name ) < LIB_UI_ELEMENT_INPUT_length_max ) input -> standard.name = (uint8_t *) realloc( input -> standard.name, LIB_UI_ELEMENT_INPUT_length_max );
+	else input -> standard.name[ LIB_UI_ELEMENT_INPUT_length_max ] = STD_ASCII_TERMINATOR;
+
+	input -> offset = EMPTY;
+	input -> index = EMPTY;
+
+	lib_ui_list_insert( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) input );
 
 	return ui -> limit_input++;
 }
@@ -134,7 +143,7 @@ uint64_t lib_ui_add_label( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	ui -> label = (struct LIB_UI_STRUCTURE_ELEMENT_LABEL **) realloc( ui -> label, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_LABEL ) * (ui -> limit_label + TRUE) );
 	ui -> label[ ui -> limit_label ] = (struct LIB_UI_STRUCTURE_ELEMENT_LABEL *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_LABEL ) );
 
-	lib_ui_add( (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> label[ ui -> limit_label ], x, y, width, LABEL, name );
+	lib_ui_add( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> label[ ui -> limit_label ], x, y, width, LABEL, name );
 
 	ui -> label[ ui -> limit_label ] -> standard.height = LIB_FONT_HEIGHT_pixel;
 
@@ -145,9 +154,10 @@ uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	ui -> radio = (struct LIB_UI_STRUCTURE_ELEMENT_RADIO **) realloc( ui -> radio, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_RADIO ) * (ui -> limit_radio + TRUE) );
 	ui -> radio[ ui -> limit_radio ] = (struct LIB_UI_STRUCTURE_ELEMENT_RADIO *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_RADIO ) );
 
-	lib_ui_add( (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> radio[ ui -> limit_radio ], x, y, width, RADIO, name );
+	lib_ui_add( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> radio[ ui -> limit_radio ], x, y, width, RADIO, name );
 
-	ui -> radio[ ui -> limit_radio ] -> standard.height = LIB_FONT_HEIGHT_pixel;
+	ui -> radio[ ui -> limit_radio ] -> standard.height	= LIB_FONT_HEIGHT_pixel;
+	ui -> radio[ ui -> limit_radio ] -> standard.flag	|= flag;
 
 	ui -> radio[ ui -> limit_radio ] -> set = FALSE;
 	ui -> radio[ ui -> limit_radio ] -> group = group;
@@ -191,7 +201,10 @@ static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) 
 
 		lib_ui_show_element( ui, ui -> element[ ui -> element_active ] );
 		
-		ui -> element_active++;
+		if( ui -> keyboard.semaphore_shift ) {
+			if( ! ui -> element_active ) ui -> element_active = ui -> limit - TRUE;
+			else ui -> element_active--;
+		} else ui -> element_active++;
 
 		if( ui -> element_active == ui -> limit ) ui -> element_active = EMPTY;
 
@@ -215,6 +228,20 @@ static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) 
 		ui -> element[ ui -> element_active ] -> flag ^= LIB_UI_ELEMENT_FLAG_set;
 
 		lib_ui_show_element( ui, ui -> element[ ui -> element_active ] );
+
+		*sync = TRUE;
+	}
+
+	if( ui -> element[ ui -> element_active ] -> type == INPUT && ! (ui -> element[ ui -> element_active ] -> flag & LIB_UI_ELEMENT_FLAG_disabled) ) {
+		struct LIB_UI_STRUCTURE_ELEMENT_INPUT *input = (struct LIB_UI_STRUCTURE_ELEMENT_INPUT *) ui -> element[ ui -> element_active ];
+
+		input -> index = lib_input( input -> standard.name, LIB_UI_ELEMENT_INPUT_length_max, input -> index, keyboard -> key, ui -> keyboard.semaphore_ctrl_left );
+
+		while( input -> offset > input -> index ) input -> offset--;
+		uint64_t length = input -> index - input -> offset;
+		while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, length-- ) > (input -> standard.width - LIB_UI_PADDING_DEFAULT) ) input -> offset++;
+
+		lib_ui_show_input( ui, input );
 
 		*sync = TRUE;
 	}
@@ -246,6 +273,16 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 				struct LIB_UI_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_UI_STRUCTURE_ELEMENT_CONTROL *) ui -> element[ i ];
 				if( control -> type == LIB_UI_ELEMENT_CONTROL_TYPE_min && mouse -> button == STD_IPC_MOUSE_BUTTON_left ) ui -> window -> flags |= LIB_WINDOW_FLAG_hide;
 				if( control -> type == LIB_UI_ELEMENT_CONTROL_TYPE_close && mouse -> button & ~STD_IPC_MOUSE_BUTTON_left ) exit();
+			}
+
+			if( mouse -> button == STD_IPC_MOUSE_BUTTON_left ) {
+				ui -> element[ ui -> element_active ] -> flag &= ~LIB_UI_ELEMENT_FLAG_active;
+
+				lib_ui_show_element( ui, ui -> element[ ui -> element_active ] );
+				
+				for( uint64_t j = 0; j < ui -> limit; j++ ) if( ui -> element[ i ] == ui -> element[ j ] ) ui -> element_active = j;
+
+				*sync = TRUE;
 			}
 
 			if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) {
@@ -314,8 +351,8 @@ void lib_ui_show_checkbox( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 	uint32_t *pixel = ui -> window -> pixel + (checkbox -> standard.y * ui -> window -> width) + checkbox -> standard.x;
 
 	uint32_t color_background = LIB_UI_COLOR_BACKGROUND_CHECKBOX;
-	if( checkbox -> standard.flag & LIB_UI_ELEMENT_FLAG_active ) color_background += LIB_UI_COLOR_INCREASE;
 	if( checkbox -> standard.flag & LIB_UI_ELEMENT_FLAG_set ) color_background = LIB_UI_COLOR_CHECKBOX_SELECTED;
+	if( checkbox -> standard.flag & LIB_UI_ELEMENT_FLAG_active ) color_background += LIB_UI_COLOR_INCREASE;
 	if( checkbox -> standard.flag & LIB_UI_ELEMENT_FLAG_hover ) color_background += LIB_UI_COLOR_INCREASE;
 
 	// clean area
@@ -408,7 +445,16 @@ void lib_ui_show_input( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 	uint32_t color_foreground = LIB_UI_COLOR_INPUT;
 	if( input -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) color_foreground = LIB_UI_COLOR_INPUT_DISABLED;
 
-	lib_font( LIB_FONT_FAMILY_ROBOTO, input -> standard.name, lib_string_length( input -> standard.name ), color_foreground, pixel + LIB_UI_PADDING_DEFAULT, ui -> window -> width, LIB_FONT_ALIGN_left );
+	uint64_t name_length_max = lib_string_length( input -> standard.name ) - input -> offset;
+	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max ) > input -> standard.width - LIB_UI_PADDING_DEFAULT ) { if( ! --name_length_max ) break; }
+
+	if( name_length_max ) lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max, color_foreground, pixel + LIB_UI_PADDING_DEFAULT, ui -> window -> width, LIB_FONT_ALIGN_left );
+
+	if( ! (input -> standard.flag & LIB_UI_ELEMENT_FLAG_active) || input -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) return;
+
+	uint64_t x = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, input -> index - input -> offset );
+	for( uint64_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ )
+		pixel[ (y * ui -> window -> width) + x + LIB_UI_PADDING_DEFAULT ] = STD_COLOR_WHITE;
 }
 
 void lib_ui_show_label( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_LABEL *label ) {
@@ -437,8 +483,8 @@ void lib_ui_show_radio( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 	uint32_t *pixel = ui -> window -> pixel + (radio -> standard.y * ui -> window -> width) + radio -> standard.x;
 
 	uint32_t color_background = LIB_UI_COLOR_BACKGROUND_RADIO;
-	if( radio -> standard.flag & LIB_UI_ELEMENT_FLAG_active ) color_background += LIB_UI_COLOR_INCREASE;
 	if( radio -> standard.flag & LIB_UI_ELEMENT_FLAG_set ) color_background = LIB_UI_COLOR_RADIO_SELECTED;
+	if( radio -> standard.flag & LIB_UI_ELEMENT_FLAG_active ) color_background += LIB_UI_COLOR_INCREASE;
 	if( radio -> standard.flag & LIB_UI_ELEMENT_FLAG_hover ) color_background += LIB_UI_COLOR_INCREASE;
 
 	// clean area

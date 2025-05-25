@@ -1510,7 +1510,7 @@ uint16_t lib_interface_event_keyboard( struct LIB_INTERFACE_STRUCTURE *interface
 		struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *input = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_INPUT *) interface -> element_select;
 
 		// parse provided key
-		input -> index = lib_input_not_interactive( input -> name, input -> name_length, input -> index, keyboard -> key, interface -> key_ctrl_semaphore );
+		input -> index = lib_input( input -> name, input -> name_length, input -> index, keyboard -> key, interface -> key_ctrl_semaphore );
 
 		// calcualte offset, if required
 		while( input -> offset > input -> index ) input -> offset--;

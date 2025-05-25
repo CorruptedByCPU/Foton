@@ -57,7 +57,6 @@ uint16_t	module_ps2_keyboard_matrix_low[] = {
 	0x0060,	// `
 	STD_KEY_SHIFT_LEFT,
 	0x005C,	// BACKSLASH
-	0x0000,
 	0x007A,	// z
 	0x0078,	// x
 	0x0063,	// c
