@@ -50,7 +50,7 @@ void wm_object( void ) {
 			list[ i ] -> descriptor -> flags |= LIB_WINDOW_FLAG_properties;
 
 			// request parsed
-			list[ i ] -> descriptor -> flags  &= ~LIB_WINDOW_FLAG_enlarge;
+			list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_enlarge;
 		}
 	}
 }

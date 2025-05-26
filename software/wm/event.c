@@ -51,8 +51,10 @@ void wm_event( void ) {
 					new -> pid = pid;
 
 					// inform parent about dimensions of created window
-					new -> descriptor -> width	= new -> width;
-					new -> descriptor -> height	= new -> height;
+					new -> descriptor -> current_x		= new -> x;
+					new -> descriptor -> current_y		= new -> y;
+					new -> descriptor -> current_width	= new -> width;
+					new -> descriptor -> current_height	= new -> height;
 				}
 
 				// send answer
@@ -123,7 +125,7 @@ void wm_event( void ) {
 		if( wm -> selected != wm -> active ) wm -> panel_semaphore = TRUE;	// yep
 
 		// cursor in position of object header
-		if( wm -> selected -> descriptor -> y < wm -> selected -> descriptor -> header_height ) wm -> drag_allow = TRUE;
+		if( wm -> selected -> descriptor -> y < wm -> selected -> descriptor -> header_height && (wm -> selected -> descriptor -> x >= wm -> selected -> descriptor -> header_offset && wm -> selected -> descriptor -> x - wm -> selected -> descriptor -> header_offset < wm -> selected -> descriptor -> header_width) ) wm -> drag_allow = TRUE;
 
 		// can we move object on top of object list?
 		if( ! (wm -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_z) && ! wm -> key_menu && wm_object_move_up( wm -> selected ) )
@@ -337,7 +339,13 @@ void wm_event( void ) {
 	wm -> cursor -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 	// move object along with cursor pointer?
-	if( wm -> mouse_button_left && (wm -> key_menu || wm -> drag_allow) && ! (wm -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_xy) ) wm_object_move( delta_x, delta_y );
+	if( wm -> mouse_button_left && (wm -> key_menu || wm -> drag_allow) && ! (wm -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_xy) ) {
+		wm_object_move( delta_x, delta_y );
+
+		// inform about new location
+		wm -> selected -> descriptor -> current_x = wm -> selected -> x;
+		wm -> selected -> descriptor -> current_y = wm -> selected -> y;
+	}
 
 	//----------------------------------------------------------------------
 

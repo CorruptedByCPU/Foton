@@ -40,8 +40,10 @@
 		uint16_t	y;
 		uint16_t	z;
 		// assigned window dimension
-		uint16_t	width;
-		uint16_t	height;
+		uint16_t	current_x;
+		uint16_t	current_y;
+		uint16_t	current_width;
+		uint16_t	current_height;
 		// minimal dimension of window allowed
 		uint16_t	width_minimal;
 		uint16_t	height_minimal;
@@ -50,6 +52,11 @@
 		int16_t		new_y;
 		uint16_t	new_width;
 		uint16_t	new_height;
+		// preserved window properties
+		int16_t		old_x;
+		int16_t		old_y;
+		uint16_t	old_width;
+		uint16_t	old_height;
 		// header properties, used by window movement
 		uint8_t		header_offset;
 		uint8_t		header_height;

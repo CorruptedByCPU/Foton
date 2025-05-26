@@ -32,17 +32,22 @@ struct LIB_WINDOW_STRUCTURE *lib_window_event( struct LIB_WINDOW_STRUCTURE *curr
 
 	// set new descriptor properties
 	//----------------------------------------------------------------------
-	new -> x = current -> new_x;
-	new -> y = current -> new_y;
-	new -> width = current -> new_width;
-	new -> height = current -> new_height;
+	new -> current_x	= current -> new_x;
+	new -> current_y	= current -> new_y;
+	new -> current_width	= current -> new_width;
+	new -> current_height	= current -> new_height;
 	//----------------------------------------------------------------------
 	// copy required descriptor properties from old one
 	//----------------------------------------------------------------------
-	new -> width_minimal = current -> width_minimal;
-	new -> height_minimal = current -> height_minimal;
+	new -> width_minimal	= current -> width_minimal;
+	new -> height_minimal	= current -> height_minimal;
 	//----------------------------------------------------------------------
-	new -> flags = current -> flags;
+	new -> old_x		= current -> old_x;
+	new -> old_y		= current -> old_y;
+	new -> old_width	= current -> old_width;
+	new -> old_height	= current -> old_height;
+	//----------------------------------------------------------------------
+	new -> flags		= current -> flags & ~LIB_WINDOW_FLAG_visible;
 	//----------------------------------------------------------------------
 
 	// release old descriptor
@@ -77,15 +82,16 @@ struct LIB_WINDOW_STRUCTURE *lib_window( int16_t x, int16_t y, uint16_t width, u
 	//----------------------------------------------------------------------
 
 	// window properties
-	request -> ipc.type = STD_IPC_TYPE_default;
-	request -> properties = STD_IPC_WINDOW_create;
-	request -> x = x;
-	request -> y = y;
-	request -> width = width;
-	request -> height = height;
+	request -> ipc.type	= STD_IPC_TYPE_default;
+	request -> properties	= STD_IPC_WINDOW_create;
+	request -> x		= x;
+	request -> y		= y;
+	request -> width	= width;
+	request -> height	= height;
 
 	// center window?
-	if( x == STD_MAX_unsigned && y == STD_MAX_unsigned ) { request -> x = (framebuffer.width_pixel >> STD_SHIFT_2) - (width >> STD_SHIFT_2); request -> y = (framebuffer.height_pixel >> STD_SHIFT_2) - (height >> STD_SHIFT_2); }
+	if( x == STD_MAX_unsigned ) request -> x = (framebuffer.width_pixel >> STD_SHIFT_2) - (width >> STD_SHIFT_2);
+	if( y == STD_MAX_unsigned ) request -> y = (framebuffer.height_pixel >> STD_SHIFT_2) - (height >> STD_SHIFT_2);
 
 	// send request to Window Manager
 	std_ipc_send( framebuffer.pid, (uint8_t *) request );
@@ -99,8 +105,10 @@ struct LIB_WINDOW_STRUCTURE *lib_window( int16_t x, int16_t y, uint16_t width, u
 
 	// set default properties
 	struct LIB_WINDOW_STRUCTURE *window = (struct LIB_WINDOW_STRUCTURE *) answer -> descriptor;
-	window -> width = width;
-	window -> height = height;
+	window -> current_x		= request -> x;
+	window -> current_y		= request -> y;
+	window -> current_width		= request -> width;
+	window -> current_height	= request -> height;
 	window -> pixel = (uint32_t *) ((uintptr_t) window + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
 	// properties of console window

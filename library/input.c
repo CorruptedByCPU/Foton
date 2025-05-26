@@ -105,6 +105,9 @@ uint64_t lib_input( uint8_t *cache, uint64_t limit, uint64_t index, uint16_t key
 		}
 
 		default: {
+			// ignore key if CTRL is on hold
+			if( ctrl_semaphore ) break;
+
 			// cache limit acquired?
 			if( length == limit ) break;	// yes
 
