@@ -51,7 +51,23 @@ void create_ui( void ) {
 	// column 2
 	uint64_t x2 = LIB_UI_MARGIN_DEFAULT + column_width + LIB_UI_PADDING_DEFAULT + column_width + LIB_UI_PADDING_DEFAULT;
 	uint64_t y2 = LIB_UI_HEADER_HEIGHT;
-	uint64_t table_id = lib_ui_add_table( ui, x2, y2, -1, TEST_HEIGHT_pixel - y2 - LIB_UI_MARGIN_DEFAULT, EMPTY );
+    	uint8_t *table_example[ 4 ][ 4 ] = {
+		{ (uint8_t *) "ID"	,(uint8_t *) "Name"	,(uint8_t *) "Age"	,(uint8_t *) "Country"	},
+        	{ (uint8_t *) "1"	,(uint8_t *) "Alice"	,(uint8_t *) "23"	,(uint8_t *) "USA"	},
+        	{ (uint8_t *) "2"	,(uint8_t *) "Bob"	,(uint8_t *) "31"	,(uint8_t *) "Canada"	},
+        	{ (uint8_t *) "3"	,(uint8_t *) "Charlie"	,(uint8_t *) "28"	,(uint8_t *) "UK"	}
+	};
+	uint8_t ***table_content = (uint8_t ***) malloc( 4 * sizeof( uint8_t ** ) );
+	for( uint8_t y = 0; y < 4; y++ ) {
+		table_content[ y ] = (uint8_t **) malloc( 4 * sizeof( uint8_t * ) );
+
+		for( uint8_t x = 0; x < 4; x++ ) {
+			table_content[ y ][ x ] = (uint8_t *) calloc( lib_string_length( table_example[ y ][ x ] ) + TRUE );
+
+			for( uint8_t n = 0; n < sizeof( table_example[ y ][ x ] ); n++ ) table_content[ y ][ x ][ n ] = table_example[ y ][ x ][ n ];
+		}
+	}
+	lib_ui_add_table( ui, x2, y2, -1, TEST_HEIGHT_pixel - y2 - LIB_UI_MARGIN_DEFAULT, EMPTY, table_content, 4, 4 );
 
 	lib_window_name( ui -> window, (uint8_t *) "GUI Debug Window" );
 

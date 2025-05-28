@@ -30,7 +30,7 @@
 #define	LIB_UI_COLOR_BACKGROUND_INPUT_DISABLED	0xFF040404
 #define	LIB_UI_COLOR_BACKGROUND_INPUT_ACTIVE	0xFF080808
 #define	LIB_UI_COLOR_BACKGROUND_RADIO		LIB_UI_COLOR_BACKGROUND_CHECKBOX
-#define	LIB_UI_COLOR_BACKGROUND_TABLE		LIB_UI_COLOR_BACKGROUND_INPUT
+#define	LIB_UI_COLOR_BACKGROUND_TABLE		LIB_UI_COLOR_BACKGROUND_DEFAULT
 #define	LIB_UI_COLOR_BACKGROUND_SHADOW		LIB_UI_COLOR_BACKGROUND_DEFAULT - LIB_UI_COLOR_INCREASE_LIGHT
 
 #define	LIB_UI_ELEMENT_CONTROL_TYPE_close	0x01
@@ -49,6 +49,7 @@
 #define	LIB_UI_ELEMENT_INPUT_height		20
 #define	LIB_UI_ELEMENT_LABEL_height		LIB_FONT_HEIGHT_pixel
 #define	LIB_UI_ELEMENT_RADIO_height		LIB_FONT_HEIGHT_pixel
+#define	LIB_UI_ELEMENT_TABLE_height		LIB_UI_HEADER_HEIGHT
 
 #define	LIB_UI_ELEMENT_INPUT_length_max		256
 
@@ -141,8 +142,8 @@ struct LIB_UI_STRUCTURE_ELEMENT_TABLE {
 	uint64_t					limit_column;
 	uint64_t					limit_row;
 
-	struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER	**header;
-	struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY	**entry;
+	uint8_t						***content;
+	uint32_t					*pixel;
 };
 
 struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER {
@@ -162,7 +163,7 @@ uint64_t lib_ui_add_control( struct LIB_UI_STRUCTURE *ui, uint8_t type );
 uint64_t lib_ui_add_input( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t flag );
 uint64_t lib_ui_add_label( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name );
 uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t group, uint8_t flag );
-uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t flag );
+uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t flag, uint8_t ***content, uint64_t cols, uint64_t rows );
 void lib_ui_clean( struct LIB_UI_STRUCTURE *ui );
 void lib_ui_event( struct LIB_UI_STRUCTURE *ui );
 static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync );

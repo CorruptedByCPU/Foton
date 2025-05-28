@@ -170,7 +170,7 @@ uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	return ui -> limit_radio++;
 }
 
-uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t flag ) {
+uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t flag, uint8_t ***content, uint64_t cols, uint64_t rows ) {
 	ui -> table = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE **) realloc( ui -> table, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE ) * (ui -> limit_table + TRUE) );
 	ui -> table[ ui -> limit_table ] = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE ) );
 
@@ -180,6 +180,11 @@ uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	ui -> table[ ui -> limit_table ] -> standard.height	= height;
 	ui -> table[ ui -> limit_table ] -> standard.type	= TABLE;
 	ui -> table[ ui -> limit_table ] -> standard.flag	|= flag;
+
+	ui -> table[ ui -> limit_table ] -> content		= content;
+	ui -> table[ ui -> limit_table ] -> limit_column	= cols;
+	ui -> table[ ui -> limit_table ] -> limit_row		= rows;
+	ui -> table[ ui -> limit_table ] -> pixel		= (uint32_t *) malloc( FALSE );
 
 	lib_ui_list_insert( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> table[ ui -> limit_table ] );
 
@@ -587,6 +592,23 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 
 	uint16_t width; if( table -> standard.width == (uint16_t) STD_MAX_unsigned ) width = ui -> window -> current_width - table -> standard.x - LIB_UI_MARGIN_DEFAULT; else width = table -> standard.width;
 	uint16_t height; if( table -> standard.height == (uint16_t) STD_MAX_unsigned ) height = ui -> window -> current_height - table -> standard.y - LIB_UI_MARGIN_DEFAULT; else height = table -> standard.height;
-	
+
+	if( table -> pixel ) table -> pixel = (uint32_t *) realloc( table -> pixel, (table -> limit_row * ((LIB_UI_ELEMENT_TABLE_height) * width)) << STD_VIDEO_DEPTH_shift );
+	else table -> pixel = (uint32_t *) malloc( (table -> limit_row * ((LIB_UI_ELEMENT_TABLE_height) * width)) << STD_VIDEO_DEPTH_shift );
+
 	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, width, height, color_background );
+
+	uint32_t *pixel_table = table -> pixel;
+	for( uint64_t y = 0; y < table -> limit_row; y++ ) {
+		for( uint64_t x = 0; x < table -> limit_column; x++ ) {
+			log( "%s", table -> content[ y ][ x ] );
+			lib_font( LIB_FONT_FAMILY_ROBOTO, table -> content[ y ][ 0 ], lib_string_length( table -> content[ y ][ 0 ] ), LIB_UI_COLOR_DEFAULT, table -> pixel + (LIB_UI_ELEMENT_TABLE_height * width * y), width, LIB_FONT_ALIGN_left );
+		}
+		log( "\n" );
+	}
+
+	for( uint64_t y = 0; y < (table -> limit_row * LIB_UI_ELEMENT_TABLE_height) && y < height; y++ )
+		for( uint64_t x = 0; x < width; x++ )
+			pixel[ (y * ui -> window -> current_width) + x ] = table -> pixel[ (y * width) + x ];
+
 }
