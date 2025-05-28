@@ -51,14 +51,29 @@ void create_ui( void ) {
 	// column 2
 	uint64_t x2 = LIB_UI_MARGIN_DEFAULT + column_width + LIB_UI_PADDING_DEFAULT + column_width + LIB_UI_PADDING_DEFAULT;
 	uint64_t y2 = LIB_UI_HEADER_HEIGHT;
-    	uint8_t *table_example[ 4 ][ 4 ] = {
-		{ (uint8_t *) "ID"	,(uint8_t *) "Name"	,(uint8_t *) "Age"	,(uint8_t *) "Country"	},
-        	{ (uint8_t *) "1"	,(uint8_t *) "Alice"	,(uint8_t *) "23"	,(uint8_t *) "USA"	},
-        	{ (uint8_t *) "2"	,(uint8_t *) "Bob"	,(uint8_t *) "31"	,(uint8_t *) "Canada"	},
-        	{ (uint8_t *) "3"	,(uint8_t *) "Charlie"	,(uint8_t *) "28"	,(uint8_t *) "UK"	}
+    	uint8_t *table_example[ 19 ][ 4 ] = {
+		{ (uint8_t *) "FileID", (uint8_t *) "Filename", (uint8_t *) "SizeKB", (uint8_t *) "Type" },
+		{ (uint8_t *) "1", (uint8_t *) "main.c", (uint8_t *) "15", (uint8_t *) "C Source" },
+		{ (uint8_t *) "2", (uint8_t *) "readme.md", (uint8_t *) "2", (uint8_t *) "Markdown" },
+		{ (uint8_t *) "3", (uint8_t *) "data.csv", (uint8_t *) "42", (uint8_t *) "CSV" },
+		{ (uint8_t *) "4", (uint8_t *) "icon.png", (uint8_t *) "128", (uint8_t *) "Image" },
+		{ (uint8_t *) "5", (uint8_t *) "notes.txt", (uint8_t *) "8", (uint8_t *) "Text" },
+		{ (uint8_t *) "6", (uint8_t *) "archive.zip", (uint8_t *) "300", (uint8_t *) "ZIP Archive" },
+		{ (uint8_t *) "7", (uint8_t *) "presentation.pptx", (uint8_t *) "2560", (uint8_t *) "PowerPoint" },
+		{ (uint8_t *) "8", (uint8_t *) "report.pdf", (uint8_t *) "544", (uint8_t *) "PDF" },
+		{ (uint8_t *) "9", (uint8_t *) "logo.svg", (uint8_t *) "3", (uint8_t *) "SVG" },
+		{ (uint8_t *) "10", (uint8_t *) "src/", (uint8_t *) "—", (uint8_t *) "Directory" },
+		{ (uint8_t *) "11", (uint8_t *) "assets/", (uint8_t *) "—", (uint8_t *) "Directory" },
+		{ (uint8_t *) "12", (uint8_t *) "build/", (uint8_t *) "—", (uint8_t *) "Directory" },
+		{ (uint8_t *) "13", (uint8_t *) "docs/", (uint8_t *) "—", (uint8_t *) "Directory" },
+		{ (uint8_t *) "14", (uint8_t *) "Makefile", (uint8_t *) "1", (uint8_t *) "Makefile" },
+		{ (uint8_t *) "15", (uint8_t *) "script.sh", (uint8_t *) "6", (uint8_t *) "Shell Script" },
+		{ (uint8_t *) "16", (uint8_t *) "config.json", (uint8_t *) "4", (uint8_t *) "JSON" },
+		{ (uint8_t *) "17", (uint8_t *) "LICENSE", (uint8_t *) "1", (uint8_t *) "Text" },
+		{ (uint8_t *) "18", (uint8_t *) "bin/", (uint8_t *) "—", (uint8_t *) "Directory" }
 	};
-	uint8_t ***table_content = (uint8_t ***) malloc( 4 * sizeof( uint8_t ** ) );
-	for( uint8_t y = 0; y < 4; y++ ) {
+	uint8_t ***table_content = (uint8_t ***) malloc( 19 * sizeof( uint8_t ** ) );
+	for( uint8_t y = 0; y < 19; y++ ) {
 		table_content[ y ] = (uint8_t **) malloc( 4 * sizeof( uint8_t * ) );
 
 		for( uint8_t x = 0; x < 4; x++ ) {
@@ -67,7 +82,7 @@ void create_ui( void ) {
 			for( uint8_t n = 0; n < sizeof( table_example[ y ][ x ] ); n++ ) table_content[ y ][ x ][ n ] = table_example[ y ][ x ][ n ];
 		}
 	}
-	lib_ui_add_table( ui, x2, y2, -1, TEST_HEIGHT_pixel - y2 - LIB_UI_MARGIN_DEFAULT, EMPTY, table_content, 4, 4 );
+	lib_ui_add_table( ui, x2, y2, -1, TEST_HEIGHT_pixel - y2 - LIB_UI_MARGIN_DEFAULT, EMPTY, table_content, 4, 19 );
 
 	lib_window_name( ui -> window, (uint8_t *) "GUI Debug Window" );
 

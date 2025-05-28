@@ -519,9 +519,9 @@ void lib_ui_show_input( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 	if( input -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) color_background = LIB_UI_COLOR_BACKGROUND_INPUT_DISABLED;
 
 	// border
-	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, input -> standard.width, input -> standard.height, color_background + LIB_UI_COLOR_INCREASE_LIGHT );
+	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, input -> standard.width, input -> standard.height, color_background + LIB_UI_COLOR_INCREASE_LITTLE );
 	// inner
-	lib_ui_fill_rectangle( pixel + (ui -> window -> current_width) + TRUE, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, input -> standard.width - 2, input -> standard.height - 2, color_background + LIB_UI_COLOR_INCREASE_LIGHT );
+	lib_ui_fill_rectangle( pixel + (ui -> window -> current_width) + TRUE, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, input -> standard.width - 2, input -> standard.height - 2, color_background + LIB_UI_COLOR_INCREASE_LITTLE );
 
 	if( input -> standard.height > LIB_FONT_HEIGHT_pixel ) pixel += ((input -> standard.height - LIB_FONT_HEIGHT_pixel) >> 1) * ui -> window -> current_width;
 
@@ -590,25 +590,34 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 	uint32_t color_background = LIB_UI_COLOR_BACKGROUND_TABLE;
 	if( table -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) color_background = LIB_UI_COLOR_BACKGROUND_BUTTON_DISABLED;
 
-	uint16_t width; if( table -> standard.width == (uint16_t) STD_MAX_unsigned ) width = ui -> window -> current_width - table -> standard.x - LIB_UI_MARGIN_DEFAULT; else width = table -> standard.width;
-	uint16_t height; if( table -> standard.height == (uint16_t) STD_MAX_unsigned ) height = ui -> window -> current_height - table -> standard.y - LIB_UI_MARGIN_DEFAULT; else height = table -> standard.height;
+	uint16_t table_width; if( table -> standard.width == (uint16_t) STD_MAX_unsigned ) table_width = ui -> window -> current_width - table -> standard.x - LIB_UI_MARGIN_DEFAULT; else table_width = table -> standard.width;
+	uint16_t table_height; if( table -> standard.height == (uint16_t) STD_MAX_unsigned ) table_height = ui -> window -> current_height - table -> standard.y - LIB_UI_MARGIN_DEFAULT; else table_height = table -> standard.height;
 
-	if( table -> pixel ) table -> pixel = (uint32_t *) realloc( table -> pixel, (table -> limit_row * ((LIB_UI_ELEMENT_TABLE_height) * width)) << STD_VIDEO_DEPTH_shift );
-	else table -> pixel = (uint32_t *) malloc( (table -> limit_row * ((LIB_UI_ELEMENT_TABLE_height) * width)) << STD_VIDEO_DEPTH_shift );
+	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, EMPTY, table_width, table_height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
 
-	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, width, height, color_background );
+	uint64_t content_width = table_width;
+	uint64_t content_height = table -> limit_row * LIB_UI_ELEMENT_TABLE_height; if( content_height < table_height ) content_height = table_height;
+
+	if( table -> pixel ) table -> pixel = (uint32_t *) realloc( table -> pixel, (content_width * content_height) << STD_VIDEO_DEPTH_shift );
+	else table -> pixel = (uint32_t *) malloc( (content_width * content_height) << STD_VIDEO_DEPTH_shift );
+
+	lib_ui_fill_rectangle( table -> pixel, content_width, EMPTY, content_width, LIB_UI_ELEMENT_TABLE_height, LIB_UI_COLOR_BACKGROUND_TABLE_HEADER );
+	lib_ui_fill_rectangle( table -> pixel + (LIB_UI_ELEMENT_TABLE_height * content_width), content_width, EMPTY, content_width, content_height - LIB_UI_ELEMENT_TABLE_height, LIB_UI_COLOR_BACKGROUND_TABLE );
+
+	uint64_t table_width_column = content_width / table -> limit_column;
 
 	uint32_t *pixel_table = table -> pixel;
-	for( uint64_t y = 0; y < table -> limit_row; y++ ) {
-		for( uint64_t x = 0; x < table -> limit_column; x++ ) {
-			log( "%s", table -> content[ y ][ x ] );
-			lib_font( LIB_FONT_FAMILY_ROBOTO, table -> content[ y ][ 0 ], lib_string_length( table -> content[ y ][ 0 ] ), LIB_UI_COLOR_DEFAULT, table -> pixel + (LIB_UI_ELEMENT_TABLE_height * width * y), width, LIB_FONT_ALIGN_left );
-		}
-		log( "\n" );
+	if( LIB_FONT_HEIGHT_pixel < LIB_UI_ELEMENT_TABLE_height ) pixel_table += ((LIB_UI_ELEMENT_TABLE_height - LIB_FONT_HEIGHT_pixel) >> TRUE) * content_width;
+
+	for( uint64_t x = 0; x < table -> limit_column; x++ )
+		lib_font( LIB_FONT_FAMILY_ROBOTO, table -> content[ 0 ][ x ], lib_string_length( table -> content[ 0 ][ x ] ), LIB_UI_COLOR_DEFAULT, pixel_table + (table_width_column * x) + LIB_UI_PADDING_TABLE, content_width, LIB_FONT_ALIGN_left );
+
+	for( uint64_t y = 1; y < table -> limit_row; y++ ) {
+		for( uint64_t x = 0; x < table -> limit_column; x++ )
+			lib_font( LIB_FONT_FAMILY_ROBOTO, table -> content[ y ][ x ], lib_string_length( table -> content[ y ][ x ] ), LIB_UI_COLOR_DEFAULT, pixel_table + (LIB_UI_ELEMENT_TABLE_height * content_width * y) + (table_width_column * x) + LIB_UI_PADDING_TABLE, content_width, LIB_FONT_ALIGN_left );
 	}
 
-	for( uint64_t y = 0; y < (table -> limit_row * LIB_UI_ELEMENT_TABLE_height) && y < height; y++ )
-		for( uint64_t x = 0; x < width; x++ )
-			pixel[ (y * ui -> window -> current_width) + x ] = table -> pixel[ (y * width) + x ];
-
+	for( uint64_t y = 0; y < table_height; y++ )
+		for( uint64_t x = 0; x < table_width; x++ )
+			pixel[ (y * ui -> window -> current_width) + x ] = table -> pixel[ (y * content_width) + x ];
 }
