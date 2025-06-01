@@ -32,13 +32,18 @@ void driver_serial_init( void ) {
 
 void driver_serial_char( uint8_t character ) {
 	// controller is busy?
-	driver_serial_pool();
+	driver_serial_pool_out();
 
 	// send character
 	driver_port_out_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_data_or_divisor_low, character );
 }
 
-void driver_serial_pool( void ) {
+void driver_serial_pool_in( void ) {
+	// controller is busy?
+	while( !( driver_port_in_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_line_status ) & TRUE ) );
+}
+
+void driver_serial_pool_out( void ) {
 	// controller is busy?
 	while( !( driver_port_in_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_line_status ) & 0x20 ) );
 }

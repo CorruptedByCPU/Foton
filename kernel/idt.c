@@ -21,8 +21,12 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	}
 
 	// time to hunt some BUGs
-	volatile uint8_t ok = FALSE; kernel -> serial( (uint8_t *) "LOOP!\n" );
-	while( ! ok ) { MACRO_DEBUF(); } MACRO_DEBUF();
+
+	// say, hello!
+	kernel -> serial( (uint8_t *) "Simple debuffer by Blackdev.org\n" );
+
+	// hold the door
+	while( TRUE );
 }
 
 __attribute__ (( preserve_most ))

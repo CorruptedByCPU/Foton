@@ -177,6 +177,3 @@ echo -e "|root.vfs.gz|${root_size}" | awk -F "|" '{printf "%s  %-33s %s\n", $1, 
 
 # convert iso directory to iso file
 xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label build/iso -o build/foton.iso > /dev/null 2>&1
-
-# install bootloader limine inside created
-limine/limine bios-install build/foton.iso > /dev/null 2>&1

@@ -27,7 +27,7 @@ qemu-system-x86_64								\
 	-object filter-dump,id=eth0,netdev=eth0,file=network.pcap		\
 	-device virtio-blk-pci-transitional,drive=vfs,id=vfs			\
 	-drive format=raw,file=build/storage.vfs,if=none,id=vfs			\
-	-serial stdio								\
+	-serial mon:stdio							\
 #	-usb									\
 #        -device usb-kbd,bus=usb-bus.0,port=1					\
 #        -device usb-mouse,bus=usb-bus.0,port=2					\
