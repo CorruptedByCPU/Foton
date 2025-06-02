@@ -122,7 +122,7 @@ void lib_terminal_char( struct LIB_TERMINAL_STRUCTURE *terminal, uint8_t ascii )
 		if( terminal -> flags & LIB_TERMINAL_FLAG_clean ) lib_terminal_char_drain( terminal );
 
 		// display the character
-		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, &ascii, 1, terminal -> color_foreground, terminal -> pointer, terminal -> scanline_pixel, LIB_FONT_ALIGN_left );
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, &ascii, 1, terminal -> color_foreground, terminal -> pointer, terminal -> scanline_pixel, LIB_FONT_FLAG_ALIGN_left );
 
 		// set the new cursor position
 		terminal -> cursor_x++;

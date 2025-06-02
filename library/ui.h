@@ -31,8 +31,8 @@
 #define	LIB_UI_COLOR_BACKGROUND_INPUT_DISABLED	0xFF040404
 #define	LIB_UI_COLOR_BACKGROUND_INPUT_ACTIVE	0xFF080808
 #define	LIB_UI_COLOR_BACKGROUND_RADIO		LIB_UI_COLOR_BACKGROUND_CHECKBOX
-#define	LIB_UI_COLOR_BACKGROUND_TABLE		LIB_UI_COLOR_BACKGROUND_TABLE_HEADER - LIB_UI_COLOR_INCREASE_LITTLE_BIT
-#define	LIB_UI_COLOR_BACKGROUND_TABLE_HEADER	LIB_UI_COLOR_BACKGROUND_DEFAULT - LIB_UI_COLOR_INCREASE_LITTLE_BIT
+#define	LIB_UI_COLOR_BACKGROUND_TABLE		0xFF000000
+#define	LIB_UI_COLOR_BACKGROUND_TABLE_HEADER	LIB_UI_COLOR_BACKGROUND_DEFAULT
 #define	LIB_UI_COLOR_BACKGROUND_SHADOW		LIB_UI_COLOR_BACKGROUND_DEFAULT - LIB_UI_COLOR_INCREASE_LITTLE
 
 #define	LIB_UI_ELEMENT_CONTROL_TYPE_close	0x01
@@ -147,14 +147,17 @@ struct LIB_UI_STRUCTURE_ELEMENT_TABLE {
 
 	uint8_t						***content;
 	uint32_t					*pixel;
+
+	uint64_t					offset_x;
+	uint64_t					offset_y;
 };
 
-struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL {
-	uint8_t						flag;
-	uint16_t					x;
-	uint16_t					width;
-	uint8_t						*name;
-};
+// struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL {
+// 	uint8_t						flag;
+// 	uint16_t					x;
+// 	uint16_t					width;
+// 	uint8_t						*name;
+// };
 
 struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window );
 uint64_t lib_ui_add_button( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint16_t height, uint8_t flag );
@@ -179,3 +182,4 @@ void lib_ui_show_label( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 void lib_ui_show_name( struct LIB_UI_STRUCTURE *ui );
 void lib_ui_show_radio( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_RADIO *radio );
 void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_TABLE *table );
+static uint64_t lib_ui_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t width_pixel );

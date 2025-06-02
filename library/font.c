@@ -57,7 +57,7 @@ static uint8_t lib_font_length_char( uint8_t font, uint8_t character ) {
 }
 
 // print character on screen
-static uint8_t lib_font_char( uint8_t font, uint64_t scanline_pixel, uint32_t *pixel, uint8_t character, uint32_t color ) {
+static uint8_t lib_font_char( uint8_t font, uint64_t scanline_pixel, uint32_t *pixel, uint8_t character, uint32_t color, uint8_t flag ) {
 	// properties of font matrix
 	uint8_t *matrix = (uint8_t *) lib_font_matrix;
 
@@ -69,7 +69,13 @@ static uint8_t lib_font_char( uint8_t font, uint64_t scanline_pixel, uint32_t *p
 	for( uint8_t y = 0; y < LIB_FONT_MATRIX_height_pixel; y++ )
 		for( uint16_t x = 0; x < lib_font_length_char( font, character ); x++ )
 			// show him if is visible
-			if( matrix[ (y * LIB_FONT_MATRIX_width_pixel) + x ] ) pixel[ (y * scanline_pixel) + x ] = lib_color_blend( pixel[ (y * scanline_pixel) + x ], (color & 0x00FFFFFF) | matrix[ (y * LIB_FONT_MATRIX_width_pixel) + x ] << 24 );
+			if( matrix[ (y * LIB_FONT_MATRIX_width_pixel) + x ] ) {
+				// simple bold function :>
+				uint8_t bold = TRUE; if( flag & LIB_FONT_FLAG_WEIGHT_bold ) bold = LIB_FONT_BOLD_level;
+
+				// put pixels
+				while( bold-- ) pixel[ (y * scanline_pixel) + x ] = lib_color_blend( pixel[ (y * scanline_pixel) + x ], (color & 0x00FFFFFF) | matrix[ (y * LIB_FONT_MATRIX_width_pixel) + x ] << 24 );
+			}
 
 	// return to string function width of displayed character in pixels
 	return lib_font_length_char( font, character );
@@ -97,22 +103,22 @@ uint64_t lib_font_length_string( uint8_t font, uint8_t *string, uint64_t length 
 }
 
 // main function of library
-uint64_t lib_font( uint8_t font, uint8_t *string, uint64_t length, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t align ) {
+uint64_t lib_font( uint8_t font, uint8_t *string, uint64_t length, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t flag ) {
 	// no support for empty strings or if there is at least 1 character not printable
 	if( ! lib_font_length_string( font, string, length ) ) return EMPTY;
 
 	// move pointer of destination according of alignment
-	if( align & LIB_FONT_ALIGN_center ) pixel -= lib_font_length_string( font, string, length ) >> 1;
-	if( align & LIB_FONT_ALIGN_right ) pixel -= lib_font_length_string( font, string, length );
+	if( flag & LIB_FONT_FLAG_ALIGN_center ) pixel -= lib_font_length_string( font, string, length ) >> 1;
+	if( flag & LIB_FONT_FLAG_ALIGN_right ) pixel -= lib_font_length_string( font, string, length );
 
 	// print all characters from string
-	for( uint8_t i = 0; i < length; i++ ) pixel += lib_font_char( font, scanline_pixel, pixel, string[ i ] - 0x20, color );
+	for( uint8_t i = 0; i < length; i++ ) pixel += lib_font_char( font, scanline_pixel, pixel, string[ i ] - 0x20, color, flag );
 
 	// return length of string in pixels
 	return lib_font_length_string( font, string, length );
 }
 
-uint64_t lib_font_value( uint8_t font, uint64_t value, uint8_t base, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t align ) {
+uint64_t lib_font_value( uint8_t font, uint64_t value, uint8_t base, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t flag ) {
 	// base of value not supported?
 	if( base < 2 || base > 36 ) return EMPTY;	// yes
 
@@ -135,5 +141,5 @@ uint64_t lib_font_value( uint8_t font, uint64_t value, uint8_t base, uint32_t co
 	if( index == 64 ) index--;
 
 	// show value
-	return lib_font( font, (uint8_t *) &string[ index ], 64 - index, color, pixel, scanline_pixel, align );
+	return lib_font( font, (uint8_t *) &string[ index ], 64 - index, color, pixel, scanline_pixel, flag );
 }

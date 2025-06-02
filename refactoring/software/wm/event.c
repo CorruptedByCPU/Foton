@@ -162,9 +162,9 @@ void wm_event( void ) {
 	std_mouse( (struct STD_STRUCTURE_MOUSE_SYSCALL *) &mouse );
 
 	// calculate delta of cursor new position
-	int16_t delta_x = EMPTY;
-	int16_t delta_y = EMPTY;
-	int16_t delta_z = EMPTY;
+	int16_t	delta_x = EMPTY;
+	int16_t	delta_y = EMPTY;
+	int8_t	delta_z = EMPTY;
 
 	// select object under cursor position
 	struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse.x, mouse.y, FALSE );
@@ -181,6 +181,7 @@ void wm_event( void ) {
 		// update pointer position
 		object -> descriptor -> x = (wm_object_cursor -> x + delta_x) - object -> x;
 		object -> descriptor -> y = (wm_object_cursor -> y + delta_y) - object -> y;
+		object -> descriptor -> z = delta_z;
 	}
 
 	//----------------------------------------------------------------------
@@ -330,18 +331,18 @@ void wm_event( void ) {
 		}
 	}
 
-	// scroll movement?
-	if( delta_z ) {
-		// properties of mouse message
-		struct STD_STRUCTURE_IPC_MOUSE *ipc_mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
+	// // scroll movement?
+	// if( delta_z ) {
+	// 	// properties of mouse message
+	// 	struct STD_STRUCTURE_IPC_MOUSE *ipc_mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
 
-		// default values
-		ipc_mouse -> ipc.type = STD_IPC_TYPE_mouse;
-		ipc_mouse -> scroll = delta_z;
+	// 	// default values
+	// 	ipc_mouse -> ipc.type = STD_IPC_TYPE_mouse;
+	// 	ipc_mouse -> scroll = delta_z;
 
-		// send event to selected object process
-		std_ipc_send( object -> pid, (uint8_t *) ipc_mouse );
-	}
+	// 	// send event to selected object process
+	// 	std_ipc_send( object -> pid, (uint8_t *) ipc_mouse );
+	// }
 
 	//--------------------------------------------------------------------------
 	// if cursor pointer movement occurs

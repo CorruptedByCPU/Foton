@@ -32,7 +32,7 @@ struct KERNEL {
 	uint8_t						device_mouse_status;
 	uint16_t					device_mouse_x;
 	uint16_t					device_mouse_y;
-	uint16_t					device_mouse_z;
+	int8_t						device_mouse_z;
 	void						(*device_mouse)( void );
 	uint16_t					device_keyboard[ 8 ];
 

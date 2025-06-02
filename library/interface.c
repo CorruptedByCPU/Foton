@@ -237,15 +237,15 @@ void lib_interface_convert( struct LIB_INTERFACE_STRUCTURE *interface ) {
 				// align
 				if( lib_json_key( label_or_button, (uint8_t *) &lib_interface_string_align ) ) {
 					// by default
-					element -> label_or_button.flags = LIB_FONT_ALIGN_left;
+					element -> label_or_button.flags = LIB_FONT_FLAG_ALIGN_left;
 
 					// center?
 					if( lib_string_compare( (uint8_t *) label_or_button.value, (uint8_t *) &lib_interface_string_center, label_or_button.length ) )
-						element -> label_or_button.flags = LIB_FONT_ALIGN_center;
+						element -> label_or_button.flags = LIB_FONT_FLAG_ALIGN_center;
 
 					// right?
 					if( lib_string_compare( (uint8_t *) label_or_button.value, (uint8_t *) &lib_interface_string_right, label_or_button.length ) )
-						element -> label_or_button.flags = LIB_FONT_ALIGN_right;
+						element -> label_or_button.flags = LIB_FONT_FLAG_ALIGN_right;
 				}
 
 				// name
@@ -641,7 +641,7 @@ void lib_interface_element_button( struct LIB_INTERFACE_STRUCTURE *interface, st
 	pixel += element -> label_or_button.width >> STD_SHIFT_2;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, LIB_FONT_ALIGN_center );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, LIB_FONT_FLAG_ALIGN_center );
 }
 
 uintptr_t lib_interface_element_by_id( struct LIB_INTERFACE_STRUCTURE *interface, uint64_t id ) {
@@ -778,7 +778,7 @@ void lib_interface_element_input( struct LIB_INTERFACE_STRUCTURE *interface, str
 	if( element -> input.height > LIB_FONT_HEIGHT_pixel ) pixel_string += ((element -> input.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, element -> name + element -> offset, name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel_string + 4, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, element -> name + element -> offset, name_length, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel_string + 4, interface -> width, LIB_FONT_FLAG_ALIGN_left );
 
 	// if element is active
 	if( interface -> element_select != (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) element ) return;	// nope
@@ -805,8 +805,8 @@ void lib_interface_element_label( struct LIB_INTERFACE_STRUCTURE *interface, str
 	if( element -> label_or_button.height > LIB_FONT_HEIGHT_pixel ) pixel += ((element -> label_or_button.height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width;
 
 	// horizontal align of element content
-	if( element -> label_or_button.flags & LIB_FONT_ALIGN_center ) pixel += element -> label_or_button.width >> STD_SHIFT_2;
-	if( element -> label_or_button.flags & LIB_FONT_ALIGN_right ) pixel += element -> label_or_button.width;
+	if( element -> label_or_button.flags & LIB_FONT_FLAG_ALIGN_center ) pixel += element -> label_or_button.width >> STD_SHIFT_2;
+	if( element -> label_or_button.flags & LIB_FONT_FLAG_ALIGN_right ) pixel += element -> label_or_button.width;
 
 	// display the content of element
 	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel, interface -> width, element -> label_or_button.flags );
@@ -830,7 +830,7 @@ void lib_interface_element_menu( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			pixel[ (y * interface -> width) + x ] = color;
 
 	// display the content of element
-	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4 + 16 + 2 + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width), interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, element -> name, limit, LIB_INTERFACE_COLOR_foreground, (uint32_t *) pixel + 4 + 16 + 2 + (((LIB_INTERFACE_ELEMENT_MENU_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * interface -> width), interface -> width, LIB_FONT_FLAG_ALIGN_left );
 
 	// icon provided?
 	if( element -> icon ) {
@@ -959,7 +959,7 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			else limit = lib_interface_string( LIB_FONT_FAMILY_ROBOTO, element -> entry[ e ].name, element -> entry[ e ].name_length, width - (16 + 2 + LIB_FONT_WIDTH_pixel + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "0000.0 X", 8 ) + 4) );
 
 			// name
-			lib_font( LIB_FONT_FAMILY_ROBOTO, element -> entry[ e ].name, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_ALIGN_left );
+			lib_font( LIB_FONT_FAMILY_ROBOTO, element -> entry[ e ].name, limit, LIB_INTERFACE_COLOR_foreground, pixel_entry + 4 + 16 + 2, width, LIB_FONT_FLAG_ALIGN_left );
 		}
 
 		//--------------------------------------------------------------
@@ -991,7 +991,7 @@ void lib_interface_element_file( struct LIB_INTERFACE_STRUCTURE *interface, stru
 			byte_string[ byte_limit + 1 ] = lib_type_byte( element -> entry[ e ].byte );
 
 			// size
-			lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, byte_string, byte_limit + 2, LIB_INTERFACE_COLOR_foreground, pixel_entry + width - 8, width, LIB_FONT_ALIGN_right );
+			lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, byte_string, byte_limit + 2, LIB_INTERFACE_COLOR_foreground, pixel_entry + width - 8, width, LIB_FONT_FLAG_ALIGN_right );
 
 			// release prepared size string
 			free( byte_string );
@@ -1777,7 +1777,7 @@ void lib_interface_name_rewrite( struct LIB_INTERFACE_STRUCTURE *interface ) {
 	if( ! (interface -> descriptor -> flags & LIB_WINDOW_FLAG_active) ) color = 0xFF808080;
 
 	// print new header
-	lib_font( LIB_FONT_FAMILY_ROBOTO, string, limit, color, pixel + (5 * interface -> width) + 5, interface -> width, LIB_FONT_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, string, limit, color, pixel + (5 * interface -> width) + 5, interface -> width, LIB_FONT_FLAG_ALIGN_left );
 	free( string );
 }
 

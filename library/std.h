@@ -185,7 +185,7 @@
 	struct	STD_STRUCTURE_IPC_MOUSE {
 		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
 		uint8_t					button;
-		int16_t					scroll;
+		int8_t					scroll;	// deprecated, remove if no one else is using (todo)
 	} __attribute__( (packed) );
 
 	struct STD_STRUCTURE_IPC_WINDOW {

@@ -107,7 +107,7 @@ void wm_init( void ) {
 
 	// show menu button on panel
 	uint8_t test[ 3 ] = "|||";
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), STD_COLOR_WHITE, panel_pixel + (((wm -> panel -> height - LIB_FONT_HEIGHT_pixel) / 2) * wm -> panel -> width) + (wm -> panel -> height >> STD_SHIFT_2), wm -> panel -> width, LIB_FONT_ALIGN_center );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), STD_COLOR_WHITE, panel_pixel + (((wm -> panel -> height - LIB_FONT_HEIGHT_pixel) / 2) * wm -> panel -> width) + (wm -> panel -> height >> STD_SHIFT_2), wm -> panel -> width, LIB_FONT_FLAG_ALIGN_center );
 
 	// panel list is empty
 	wm -> list_limit_panel = EMPTY;

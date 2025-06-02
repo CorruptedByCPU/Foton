@@ -75,7 +75,7 @@ uint64_t de_init( void ) {
 
 	// show menu buton on taskbar
 	uint8_t test[ 3 ] = "|||";
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), STD_COLOR_WHITE, taskbar_pixel + (((DE_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) * de_window_taskbar -> width) + (22 >> STD_SHIFT_2), de_window_taskbar -> width, LIB_FONT_ALIGN_center );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &test, sizeof( test ), STD_COLOR_WHITE, taskbar_pixel + (((DE_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) * de_window_taskbar -> width) + (22 >> STD_SHIFT_2), de_window_taskbar -> width, LIB_FONT_FLAG_ALIGN_center );
 
 	// object content ready for display
 	de_window_taskbar -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;

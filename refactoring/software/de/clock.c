@@ -37,11 +37,11 @@ uint64_t de_clock( void ) {
 		else lib_integer_to_string( minutes, 10, (uint8_t *) &clock_string[ 3 ] );
 
 		// show clock on taskbar
-		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &clock_string, sizeof( clock_string ), STD_COLOR_WHITE, clock_pixel + ((((DE_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) + TRUE) * de_window_taskbar -> width) + (DE_TASKBAR_CLOCK_pixel >> STD_SHIFT_2), de_window_taskbar -> width, LIB_FONT_ALIGN_center );
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &clock_string, sizeof( clock_string ), STD_COLOR_WHITE, clock_pixel + ((((DE_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) + TRUE) * de_window_taskbar -> width) + (DE_TASKBAR_CLOCK_pixel >> STD_SHIFT_2), de_window_taskbar -> width, LIB_FONT_FLAG_ALIGN_center );
 
 		// colon animation
-		if( seconds % 2 ) lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) ":", TRUE, STD_COLOR_GRAY, clock_pixel + ((((DE_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2)) * de_window_taskbar -> width) + (DE_TASKBAR_CLOCK_pixel >> STD_SHIFT_2), de_window_taskbar -> width, LIB_FONT_ALIGN_center );
-		else lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) ":", TRUE, STD_COLOR_WHITE, clock_pixel + ((((DE_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2)) * de_window_taskbar -> width) + (DE_TASKBAR_CLOCK_pixel >> STD_SHIFT_2), de_window_taskbar -> width, LIB_FONT_ALIGN_center );
+		if( seconds % 2 ) lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) ":", TRUE, STD_COLOR_GRAY, clock_pixel + ((((DE_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2)) * de_window_taskbar -> width) + (DE_TASKBAR_CLOCK_pixel >> STD_SHIFT_2), de_window_taskbar -> width, LIB_FONT_FLAG_ALIGN_center );
+		else lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) ":", TRUE, STD_COLOR_WHITE, clock_pixel + ((((DE_TASKBAR_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2)) * de_window_taskbar -> width) + (DE_TASKBAR_CLOCK_pixel >> STD_SHIFT_2), de_window_taskbar -> width, LIB_FONT_FLAG_ALIGN_center );
 
 		// update taskbar content on screen
 		de_window_taskbar -> flags |= STD_WINDOW_FLAG_flush;

@@ -83,7 +83,7 @@ void wm_event( void ) {
 	// calculate delta of cursor new position
 	int16_t delta_x = mouse.x - wm -> cursor -> x;
 	int16_t delta_y = mouse.y - wm -> cursor -> y;
-	int16_t delta_z = mouse.z - wm -> cursor -> z; wm -> cursor -> z = mouse.z;
+	int16_t delta_z = (int8_t) mouse.z - wm -> cursor -> z; wm -> cursor -> z = (int8_t) mouse.z;
 
 	// update pointer position inside current object
 	current -> descriptor -> x = (wm -> cursor -> x + delta_x) - current -> x;

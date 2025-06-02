@@ -38,7 +38,7 @@
 		// pointer position inside window
 		uint16_t	x;
 		uint16_t	y;
-		int16_t	z;
+		int8_t		z;
 		// assigned window dimension
 		uint16_t	current_x;
 		uint16_t	current_y;
