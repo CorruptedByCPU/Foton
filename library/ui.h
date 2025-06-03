@@ -31,8 +31,9 @@
 #define	LIB_UI_COLOR_BACKGROUND_INPUT_DISABLED	0xFF040404
 #define	LIB_UI_COLOR_BACKGROUND_INPUT_ACTIVE	0xFF080808
 #define	LIB_UI_COLOR_BACKGROUND_RADIO		LIB_UI_COLOR_BACKGROUND_CHECKBOX
-#define	LIB_UI_COLOR_BACKGROUND_TABLE		0xFF000000
 #define	LIB_UI_COLOR_BACKGROUND_TABLE_HEADER	LIB_UI_COLOR_BACKGROUND_DEFAULT
+#define	LIB_UI_COLOR_BACKGROUND_TABLE_ROW	0xFF000000
+#define	LIB_UI_COLOR_BACKGROUND_TABLE_ROW_SET	LIB_UI_COLOR_BACKGROUND_BUTTON
 #define	LIB_UI_COLOR_BACKGROUND_SHADOW		LIB_UI_COLOR_BACKGROUND_DEFAULT - LIB_UI_COLOR_INCREASE_LITTLE
 
 #define	LIB_UI_ELEMENT_CONTROL_TYPE_close	0x01
@@ -145,19 +146,29 @@ struct LIB_UI_STRUCTURE_ELEMENT_TABLE {
 	uint64_t					limit_column;
 	uint64_t					limit_row;
 
-	uint8_t						***content;
+	struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER	*header;
+	struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW	*row;
 	uint32_t					*pixel;
 
 	uint64_t					offset_x;
 	uint64_t					offset_y;
 };
 
-// struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL {
-// 	uint8_t						flag;
-// 	uint16_t					x;
-// 	uint16_t					width;
-// 	uint8_t						*name;
-// };
+struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL	{
+	uint8_t						flag;
+	uint8_t						*name;
+	uint32_t					*icon;
+};
+
+struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER {
+	uint16_t					width;
+	struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL	cell;
+};
+
+struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW {
+	uint8_t						flag;
+	struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL	*cell;
+};
 
 struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window );
 uint64_t lib_ui_add_button( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint16_t height, uint8_t flag );
@@ -166,7 +177,7 @@ uint64_t lib_ui_add_control( struct LIB_UI_STRUCTURE *ui, uint8_t type );
 uint64_t lib_ui_add_input( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t flag );
 uint64_t lib_ui_add_label( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name );
 uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t group, uint8_t flag );
-uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t flag, uint8_t ***content, uint64_t cols, uint64_t rows );
+uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t flag, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *header, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t c, uint64_t r );
 void lib_ui_clean( struct LIB_UI_STRUCTURE *ui );
 void lib_ui_event( struct LIB_UI_STRUCTURE *ui );
 static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync );

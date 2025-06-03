@@ -10,11 +10,12 @@
 	#endif
 
         // display management
-	#define LIB_FONT_FLAG_ALIGN_left             	1
-	#define LIB_FONT_FLAG_ALIGN_center           	2
-	#define LIB_FONT_FLAG_ALIGN_right            	4
-	#define LIB_FONT_FLAG_ALIGN_justify          	8
-	#define	LIB_FONT_FLAG_WEIGHT_bold		16
+	#define	LIB_FONT_FLAG_mask			0x1F		
+	#define LIB_FONT_FLAG_ALIGN_left             	0x01
+	#define LIB_FONT_FLAG_ALIGN_center           	0x02
+	#define LIB_FONT_FLAG_ALIGN_right            	0x04
+	#define LIB_FONT_FLAG_ALIGN_justify          	0x08
+	#define	LIB_FONT_FLAG_WEIGHT_bold		0x10
 
 	#define	LIB_FONT_BOLD_level			2
 
