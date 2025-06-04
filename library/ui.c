@@ -312,10 +312,25 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 					case TABLE: {
 						struct LIB_UI_STRUCTURE_ELEMENT_TABLE *table = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE *) ui -> element[ i ];
 
-						if( ! ui -> keyboard.semaphore_ctrl_left ) for( uint64_t y = 0; y < table -> limit_row; y++ ) table -> row[ y ].flag &= ~LIB_UI_ELEMENT_FLAG_set;
+						if( ui -> window -> y - table -> standard.y < LIB_UI_ELEMENT_TABLE_height ) {
+							// sort
+						} else {
+							uint64_t r = (((ui -> window -> y + table -> offset_y) - table -> standard.y) / LIB_UI_ELEMENT_TABLE_height) - TRUE;
 
-						uint64_t r = (((ui -> window -> y + table -> offset_y) - table -> standard.y) / LIB_UI_ELEMENT_TABLE_height) - TRUE;
-						table -> row[ r ].flag |= LIB_UI_ELEMENT_FLAG_set;
+							uint16_t table_height = table -> standard.height; if( table -> standard.height == (uint16_t) STD_MAX_unsigned ) table_height = ui -> window -> current_height - table -> standard.y - LIB_UI_MARGIN_DEFAULT;
+
+							if( (r + 1) * LIB_UI_ELEMENT_TABLE_height >= table -> offset_y + table_height ) table -> offset_y = ((r + 1) * LIB_UI_ELEMENT_TABLE_height) - table_height;
+							else if( r * LIB_UI_ELEMENT_TABLE_height < table -> offset_y ) table -> offset_y = r * LIB_UI_ELEMENT_TABLE_height;
+
+							if( std_microtime() - ui -> microtime < LIB_UI_LATENCY_microtime )
+								if( table -> row[ r ].flag & LIB_UI_ELEMENT_FLAG_set ) {
+									table -> row[ r ].flag |= LIB_UI_ELEMENT_FLAG_event;
+								}
+
+							if( ! ui -> keyboard.semaphore_ctrl_left ) for( uint64_t y = 0; y < table -> limit_row; y++ ) table -> row[ y ].flag &= ~LIB_UI_ELEMENT_FLAG_set;
+
+							table -> row[ r ].flag ^= LIB_UI_ELEMENT_FLAG_set;
+						}
 
 						flush_element = TRUE;
 
@@ -334,6 +349,8 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 						*sync = TRUE;
 					}
 				}
+
+				ui -> microtime = std_microtime();
 			}
 
 			if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) {
@@ -366,17 +383,14 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 					}
 
 					if( ui -> window -> z ) {
-						uint16_t table_height = table -> standard.height;
-						if( table -> standard.height == (uint16_t) STD_MAX_unsigned ) table_height = ui -> window -> current_height - table -> standard.y - LIB_UI_MARGIN_DEFAULT;
+						uint16_t table_height = table -> standard.height; if( table -> standard.height == (uint16_t) STD_MAX_unsigned ) table_height = ui -> window -> current_height - table -> standard.y - LIB_UI_MARGIN_DEFAULT;
 
 						if( ui -> window -> z > 0 ) {
 							if( (table -> offset_y + table_height + (ui -> window -> z * LIB_UI_ELEMENT_TABLE_height)) < (table -> limit_row * LIB_UI_ELEMENT_TABLE_height) )
 								table -> offset_y += ui -> window -> z * LIB_UI_ELEMENT_TABLE_height;
 							else if( (table -> limit_row * LIB_UI_ELEMENT_TABLE_height) > table_height )
 								table -> offset_y = (table -> limit_row * LIB_UI_ELEMENT_TABLE_height) - table_height;
-						}
-
-						if( ui -> window -> z < 0 ) {
+						} else {
 							ui -> window -> z = ~ui -> window -> z + TRUE;
 							if( table -> offset_y > (ui -> window -> z * LIB_UI_ELEMENT_TABLE_height) )
 								table -> offset_y -= ui -> window -> z * LIB_UI_ELEMENT_TABLE_height;
@@ -669,9 +683,7 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 	table -> pixel = (uint32_t *) malloc( (content_width * content_height) << STD_VIDEO_DEPTH_shift );
 
 	lib_ui_fill_rectangle( table -> pixel, content_width, EMPTY, content_width, LIB_UI_ELEMENT_TABLE_height, LIB_UI_COLOR_BACKGROUND_TABLE_HEADER );
-
-	uint32_t *pixel_table_header = table -> pixel;
-	if( LIB_FONT_HEIGHT_pixel < LIB_UI_ELEMENT_TABLE_height ) pixel_table_header += ((LIB_UI_ELEMENT_TABLE_height - LIB_FONT_HEIGHT_pixel) >> TRUE) * content_width;
+	lib_ui_fill_rectangle( table -> pixel + (LIB_UI_ELEMENT_TABLE_height * content_width), content_width, EMPTY, content_width, content_height - LIB_UI_ELEMENT_TABLE_height, LIB_UI_COLOR_BACKGROUND_TABLE_ROW );
 
 	for( uint64_t x = 0; x < table -> limit_column; x++ ) {
 		if( ! table -> header[ x ].cell.name ) continue;
@@ -679,30 +691,46 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 		uint64_t table_width_column = content_width / table -> limit_column;
 		if( content_width != table_width ) table_width_column = table -> header[ x ].width;
 
+		uint32_t *pixel_table_header = table -> pixel + (table_width_column * x);
+		if( LIB_FONT_HEIGHT_pixel < LIB_UI_ELEMENT_TABLE_height ) pixel_table_header += ((LIB_UI_ELEMENT_TABLE_height - LIB_FONT_HEIGHT_pixel) >> TRUE) * content_width;
+
+		if( table -> header[ x ].cell.flag & LIB_FONT_FLAG_ALIGN_right ) pixel_table_header += table_width_column - LIB_UI_PADDING_TABLE;
+		else pixel_table_header += LIB_UI_PADDING_TABLE;
+
 		uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, table -> header[ x ].cell.name, lib_string_length( table -> header[ x ].cell.name ), table_width_column );
-		lib_font( LIB_FONT_FAMILY_ROBOTO, table -> header[ x ].cell.name, limit, LIB_UI_COLOR_DEFAULT, pixel_table_header + (table_width_column * x) + LIB_UI_PADDING_TABLE, content_width, LIB_FONT_FLAG_ALIGN_left | LIB_FONT_FLAG_WEIGHT_bold );
+		lib_font( LIB_FONT_FAMILY_ROBOTO, table -> header[ x ].cell.name, limit, LIB_UI_COLOR_DEFAULT, pixel_table_header, content_width, table -> header[ x ].cell.flag & LIB_FONT_FLAG_mask );
 	}
 
-	uint32_t *pixel_table_row = table -> pixel + (LIB_UI_ELEMENT_TABLE_height * table_width);
 	for( uint64_t y = 0; y < table -> limit_row; y++ ) {
+		uint32_t *pixel_table_row = table -> pixel + (LIB_UI_ELEMENT_TABLE_height * table_width) + (LIB_UI_ELEMENT_TABLE_height * content_width * y);
+
 		uint32_t color_foreground = STD_COLOR_WHITE;
+
 		color_background = LIB_UI_COLOR_BACKGROUND_TABLE_ROW;
 		if( table -> row[ y ].flag & LIB_UI_ELEMENT_FLAG_set ) { color_background = LIB_UI_COLOR_BACKGROUND_TABLE_ROW_SET; color_foreground = STD_COLOR_BLACK; }
 		if( table -> row[ y ].flag & LIB_UI_ELEMENT_FLAG_hover ) color_background += LIB_UI_COLOR_INCREASE;
-		lib_ui_fill_rectangle( pixel_table_row + (LIB_UI_ELEMENT_TABLE_height * content_width * y), content_width, EMPTY, content_width, LIB_UI_ELEMENT_TABLE_height, color_background );
+		lib_ui_fill_rectangle( pixel_table_row, content_width, EMPTY, content_width, LIB_UI_ELEMENT_TABLE_height, color_background );
 
 		for( uint64_t x = 0; x < table -> limit_column; x++ ) {
-			if( ! table -> row[ y ].cell[ x ].name ) continue;
-
 			uint64_t table_width_column = content_width / table -> limit_column;
 			if( content_width != table_width ) table_width_column = table -> header[ x ].width;
 
-			uint32_t *pixel_table_cell = pixel_table_row + (LIB_UI_ELEMENT_TABLE_height * content_width * y) + (((LIB_UI_ELEMENT_TABLE_height - LIB_FONT_HEIGHT_pixel) >> TRUE) * content_width) + (table_width_column * x);
+			uint32_t *pixel_table_cell = pixel_table_row + (((LIB_UI_ELEMENT_TABLE_height - LIB_FONT_HEIGHT_pixel) >> TRUE) * content_width) + (table_width_column * x);
 			if( table -> row[ y ].cell[ x ].flag & LIB_FONT_FLAG_ALIGN_right ) pixel_table_cell += table_width_column - LIB_UI_PADDING_TABLE;
 			else pixel_table_cell += LIB_UI_PADDING_TABLE;
 
-			uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, table -> row[ y ].cell[ x ].name, lib_string_length( table -> row[ y ].cell[ x ].name ), table_width_column );
-			lib_font( LIB_FONT_FAMILY_ROBOTO, table -> row[ y ].cell[ x ].name, limit, color_foreground, pixel_table_cell, content_width, table -> row[ y ].cell[ x ].flag & LIB_FONT_FLAG_mask );
+			uint64_t offset = EMPTY;
+			if( table -> row[ y ].cell[ x ].icon ) {
+				offset = 16 + LIB_UI_PADDING_TABLE;
+
+				for( uint64_t iy = 0; iy < 16; iy++ )
+					for( uint64_t ix = 0; ix < 16; ix++ )
+						pixel_table_cell[ (iy * content_width) + ix ] = lib_color_blend( pixel_table_cell[ (iy * content_width) + ix ], table -> row[ y ].cell[ x ].icon[ (iy * 16) + ix ] );
+			}
+			if( table -> row[ y ].cell[ x ].name ) {
+				uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, table -> row[ y ].cell[ x ].name, lib_string_length( table -> row[ y ].cell[ x ].name ), table_width_column );
+				lib_font( LIB_FONT_FAMILY_ROBOTO, table -> row[ y ].cell[ x ].name, limit, color_foreground, pixel_table_cell + offset, content_width, table -> row[ y ].cell[ x ].flag & LIB_FONT_FLAG_mask );
+			}
 		}
 	}
 
@@ -715,8 +743,11 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 		for( uint64_t x = 0; x < table_width; x++ )
 			pixel[ (y * ui -> window -> current_width) + x ] = table -> pixel[ (y * content_width) + x ];
 
+	uint64_t y_limit = table_height;
+	if( content_height < table_height ) y_limit = content_height;
+
 	uint32_t *pixel_at_offset = (uint32_t *) table -> pixel + (table -> offset_y * content_width);
-	for( uint64_t y = LIB_UI_ELEMENT_TABLE_height; y < table_height; y++ )
+	for( uint64_t y = LIB_UI_ELEMENT_TABLE_height; y < y_limit; y++ )
 		for( uint64_t x = 0; x < table_width; x++ )
 			pixel[ (y * ui -> window -> current_width) + x ] = pixel_at_offset[ (y * content_width) + x ];
 }
