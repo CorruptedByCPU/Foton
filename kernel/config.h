@@ -4,7 +4,7 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"546"
+#define	KERNEL_revision		"503"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
 
@@ -32,7 +32,7 @@ struct KERNEL {
 	uint8_t						device_mouse_status;
 	uint16_t					device_mouse_x;
 	uint16_t					device_mouse_y;
-	int8_t						device_mouse_z;
+	int16_t						device_mouse_z;
 	void						(*device_mouse)( void );
 	uint16_t					device_keyboard[ 8 ];
 

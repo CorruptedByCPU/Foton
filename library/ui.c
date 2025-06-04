@@ -319,7 +319,7 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 
 							uint16_t table_height = table -> standard.height; if( table -> standard.height == (uint16_t) STD_MAX_unsigned ) table_height = ui -> window -> current_height - table -> standard.y - LIB_UI_MARGIN_DEFAULT;
 
-							if( (r + 1) * LIB_UI_ELEMENT_TABLE_height >= table -> offset_y + table_height ) table -> offset_y = ((r + 1) * LIB_UI_ELEMENT_TABLE_height) - table_height;
+							if( ! ((r + 1) * LIB_UI_ELEMENT_TABLE_height - table -> offset_y < (table_height - LIB_UI_ELEMENT_TABLE_height)) ) table -> offset_y = ((r + 1) * LIB_UI_ELEMENT_TABLE_height) - (table_height - LIB_UI_ELEMENT_TABLE_height);
 							else if( r * LIB_UI_ELEMENT_TABLE_height < table -> offset_y ) table -> offset_y = r * LIB_UI_ELEMENT_TABLE_height;
 
 							if( std_microtime() - ui -> microtime < LIB_UI_LATENCY_microtime )

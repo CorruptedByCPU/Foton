@@ -16,7 +16,7 @@ if [ -z "${MEM}" ]; then MEM="64"; fi
 qemu-system-x86_64								\
 	-display gtk,show-menubar=off						\
 	--enable-kvm								\
-	-cpu max								\
+	-cpu core2duo								\
 	-smp ${SMP}								\
 	-m ${MEM}								\
 	-cdrom build/foton.iso							\

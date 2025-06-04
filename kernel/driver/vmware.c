@@ -90,7 +90,7 @@ void drvier_vmware_mouse( void ) {
 	// coordinates
 	kernel -> device_mouse_x = driver_vmware_convert( mouse -> x, kernel -> framebuffer_width_pixel );
 	kernel -> device_mouse_y = driver_vmware_convert( mouse -> y, kernel -> framebuffer_height_pixel );
-	kernel -> device_mouse_z += (int8_t) mouse -> z;
+	kernel -> device_mouse_z = (int16_t) mouse -> z;
 }
 
 void driver_vmware_init( void ) {

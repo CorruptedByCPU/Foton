@@ -47,11 +47,14 @@ void kernel_init_ap( struct limine_smp_info *info ) {
 	// allow all BS/A processors to write on read-only pages
 	__asm__ volatile( "movq %cr0, %rax\nandq $~(1 << 16), %rax\nmovq %rax, %cr0" );
 
-	// enable FXSAVE/FXRSTOR (bit 9), OSXMMEXCPT (bit 10) and OSXSAVE (bit 18)
-	__asm__ volatile( "movq %cr4, %rax\norq $0b000001000000011000000000, %rax\nmovq %rax, %cr4" );
+	// enable FXSAVE/FXRSTOR (bit 9), OSXMMEXCPT (bit 10)
+	// INFO:
+	// XCR0 was first introduced with Intel’s Sandy Bridge architecture (2nd generation Core processors, launched in 2011)
+	// DISABLED to be compliant with first x64 CPU
+	__asm__ volatile( "movq %cr4, %rax\nandq $0xFFFB, %rax\norq $0b000000000000011000000000, %rax\nmovq %rax, %cr4" );	// 0b000001000000011000000000, enable access to XCR0 by OSXSAVE (bit 18)
 
-	// enable X87, SSE, AVX support
-	__asm__ volatile( "xor %ecx, %ecx\nxgetbv\nor $0x3, %eax\nxsetbv" );
+	// enable X87, SSE support (AVX bit 2, no support for now)
+	// __asm__ volatile( "xor %ecx, %ecx\nxgetbv\nor $0b11, %eax\nxsetbv" );
 
 	//--------------------------------------------------------------------------
 	// enable syscall/sysret support
