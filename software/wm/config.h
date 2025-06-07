@@ -2,20 +2,19 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#define	WM_OBJECT_LIMIT			64
-#define	WM_LIST_LIMIT			(WM_OBJECT_LIMIT + TRUE)
-#define	WM_ZONE_LIMIT			(WM_OBJECT_LIMIT << STD_SHIFT_4)	// 4 edges per window
+#define	WM_OBJECT_LIMIT				64
+#define	WM_LIST_LIMIT				(WM_OBJECT_LIMIT + TRUE)
+#define	WM_ZONE_LIMIT				(WM_OBJECT_LIMIT << STD_SHIFT_4)	// 4 edges per window
 
 #define	WM_OBJECT_OVERSHADE_COLOR		0x20008000
 #define	WM_OBJECT_OVERSHADE_COLOR_BORDER	WM_OBJECT_OVERSHADE_COLOR + 0x80707070
 
-#define	WM_PANEL_COLOR_alpha_channel	0xF0000000
-#define	WM_PANEL_COLOR_default	WM_PANEL_COLOR_alpha_channel | 0x00202020
-#define	WM_PANEL_COLOR_visible	WM_PANEL_COLOR_alpha_channel | 0x000C0C0C
-#define	WM_PANEL_COLOR_active	WM_PANEL_COLOR_alpha_channel | 0x0000CC00
-#define	WM_PANEL_CLOCK_WIDTH_pixel	50
-#define	WM_PANEL_HEIGHT_pixel	22
-#define	WM_PANEL_ENTRY_WIDTH_limit	256
+#define	WM_PANEL_COLOR_default			0xFF202020
+#define	WM_PANEL_COLOR_visible			0xFF0C0C0C
+#define	WM_PANEL_COLOR_active			0xFF00CC00
+#define	WM_PANEL_CLOCK_WIDTH_pixel		50
+#define	WM_PANEL_HEIGHT_pixel			22
+#define	WM_PANEL_ENTRY_WIDTH_limit		256
 
 struct	WM_STRUCTURE_OBJECT {
 	int16_t		x;

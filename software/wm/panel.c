@@ -20,7 +20,7 @@ void wm_panel( void ) {
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
 	// clean'up panel with default color
-	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ ) for( uint16_t x = WM_PANEL_HEIGHT_pixel; x < wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
+	for( uint16_t y = 0; y < wm -> panel -> height; y++ ) for( uint16_t x = WM_PANEL_HEIGHT_pixel; x < wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
 
 	// nothing to draw?
 	if( ! wm -> list_limit_panel ) {
@@ -88,7 +88,7 @@ void wm_panel_clock( void ) {
 	// fill clock area with default background color
 	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 	uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE )) + (wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel);
-	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ )
+	for( uint16_t y = 0; y < wm -> panel -> height; y++ )
 		for( uint16_t x = 0; x < WM_PANEL_CLOCK_WIDTH_pixel; x++ )
 			clock_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
 

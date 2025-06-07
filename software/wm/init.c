@@ -100,10 +100,8 @@ void wm_init( void ) {
 
 	// fill panel with default color
 
-	// overlight
-	for( uint16_t y = FALSE; y < TRUE; y++ ) for( uint16_t x = 0; x < wm -> panel -> width; x++ ) panel_pixel[ x ] = 0x20FFFFFF;
 	// background
-	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ ) for( uint16_t x = 0; x < wm -> panel -> width; x++ ) panel_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
+	for( uint16_t y = 0; y < wm -> panel -> height; y++ ) for( uint16_t x = 0; x < wm -> panel -> width; x++ ) panel_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
 
 	// show menu button on panel
 	uint8_t test[ 3 ] = "|||";
@@ -158,12 +156,12 @@ void wm_init( void ) {
 	}
 
 	// object content ready for display
-	wm -> cursor -> descriptor -> flags = LIB_WINDOW_FLAG_cursor | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
+	wm -> cursor -> descriptor -> flags = LIB_WINDOW_FLAG_cursor | LIB_WINDOW_FLAG_transparent | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 
 	//----------------------------------------------------------------------
 
 	// debug
 	// std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
 	std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
-	// std_exec( (uint8_t *) "3d /var/bird.obj", 16, EMPTY, TRUE );
+	std_exec( (uint8_t *) "3d /var/bird.obj", 16, EMPTY, TRUE );
 }

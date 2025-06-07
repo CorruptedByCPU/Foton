@@ -16,24 +16,26 @@ void wm_fill( void ) {
 		uint32_t *target = (uint32_t *) ((uintptr_t) wm -> canvas.descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 		for( uint64_t y = zone[ i ].y; y < zone[ i ].height + zone[ i ].y; y++ )
 			for( uint64_t x = zone[ i ].x; x < zone[ i ].width + zone[ i ].x; x++ ) {
-				// color properties
-				uint32_t color_current = target[ (y * wm -> canvas.width) + x ];
-				uint32_t color_new = source[ (x - zone[ i ].object -> x) + (zone[ i ].object -> width * (y - zone[ i ].object -> y)) ];
+				uint32_t pixel = source[ (x - zone[ i ].object -> x) + (zone[ i ].object -> width * (y - zone[ i ].object -> y)) ];
 
-				// perform the operation based on the alpha channel
-				switch( color_new >> 24 ) {
-					// transparent
-					case 0x00: { break; }
+				// window contains transparent pixels?
+				if( ! (zone[ i ].object -> descriptor -> flags & LIB_WINDOW_FLAG_transparent) ) target[ (y * wm -> canvas.width) + x ] = pixel;	// no
+				else {
+					// color properties
+					uint32_t color_current = target[ (y * wm -> canvas.width) + x ];
+
+					// perform the operation based on the alpha channel
+					switch( pixel >> 24 ) {
+						// transparent
+						case 0x00: { break; }
 		
-					// opaque
-					case (uint8_t) 0xFF: { target[ (y * wm -> canvas.width) + x ] = color_new; break; }
+						// opaque
+						case (uint8_t) 0xFF: { target[ (y * wm -> canvas.width) + x ] = pixel; break; }
 
-					// calculate the color based on the alpha channel
-					default: { target[ (y * wm -> canvas.width) + x ] = lib_color_blend( color_current, color_new ); }
+						// calculate the color based on the alpha channel
+						default: { target[ (y * wm -> canvas.width) + x ] = lib_color_blend( color_current, pixel ); }
+					}
 				}
 			}
 	}
-
-	// // all zones filled
-	// wm -> zone_limit = EMPTY;
 }

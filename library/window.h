@@ -17,7 +17,7 @@
 	#define	LIB_WINDOW_FLAG_fixed_z		(1 << 3)
 	#define	LIB_WINDOW_FLAG_release		(1 << 4)	// window marked as ready to be removed
 	#define	LIB_WINDOW_FLAG_name		(1 << 5)
-#define	LIB_WINDOW_FLAG_minimize	(1 << 6)	// remove
+	#define	LIB_WINDOW_FLAG_transparent	(1 << 6)	// window contains transparent pixels (high CPU usage...)
 	#define	LIB_WINDOW_FLAG_unstable	(1 << 7)	// hide window on any mouse button press
 	#define	LIB_WINDOW_FLAG_resizable	(1 << 8)
 	#define	LIB_WINDOW_FLAG_properties	(1 << 9)	// Window Manager proposed new window properties

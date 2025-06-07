@@ -68,6 +68,11 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// assign objects to zones
 		wm_zone();
 
+		// log( "wm %u\n", std_microtime() );
+
+		// struct WM_STRUCTURE_ZONE *zone = wm -> zone;
+		// for( uint64_t i = 0; i < wm -> zone_limit; i++ ) if( zone[ i ].object ) log( "%u, %u (%ux%u) o: %X\n", zone[ i ].x, zone[ i ].y, zone[ i ].width, zone[ i ].height, zone[ i ].object );
+
 		// fill zones with fragments of objects
 		wm_fill();
 
