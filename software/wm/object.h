@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height );
+struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t flags );
 
 void wm_object_activate( void );
 
@@ -12,4 +12,4 @@ void wm_object_insert( struct WM_STRUCTURE_OBJECT *object );
 
 void wm_object_move( int16_t x, int16_t y );
 
-uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object );
+void wm_object_move_up( struct WM_STRUCTURE_OBJECT *object );

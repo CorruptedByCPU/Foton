@@ -3,17 +3,23 @@
 ===============================================================================*/
 
 void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
+	// properties of current stack
+	struct KERNEL_STRUCTURE_TASK *current = kernel_task_current();
+
 	// action based on exception id
 	switch( exception -> id ) {
 		case 14: {
-			// // exception for process stack space?
-			// if( MACRO_PAGE_ALIGN_UP( exception -> cr2 ) == KERNEL_TASK_STACK_pointer - (task -> stack << STD_SHIFT_PAGE) ) {
-			// 	// describe additional space under process stack
-			// 	kernel_page_alloc( (uint64_t *) task -> cr3, KERNEL_TASK_STACK_pointer - (++task -> stack << STD_SHIFT_PAGE), 1, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (task -> page_type << KERNEL_PAGE_TYPE_offset) );
+			MACRO_DEBUF();
+			return;
 
-			// 	// done
-			// 	return;
-			// }
+			// exception for process stack space?
+			if( MACRO_PAGE_ALIGN_UP( exception -> cr2 ) == KERNEL_TASK_STACK_pointer - (current -> stack_page << STD_SHIFT_PAGE) ) {
+				// describe additional space under process stack
+				kernel_page_alloc( (uint64_t *) current -> cr3, KERNEL_TASK_STACK_pointer - (++current -> stack_page << STD_SHIFT_PAGE), TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_user | (current -> type << KERNEL_PAGE_TYPE_offset) );
+
+				// done
+				return;
+			}
 
 			// done
 			break;
@@ -26,6 +32,8 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	kernel -> serial( (uint8_t *) "Simple debuffer by Blackdev.org\n" );
 
 	// hold the door
+	MACRO_DEBUF();
+	MACRO_DEBUF();
 	while( TRUE );
 }
 

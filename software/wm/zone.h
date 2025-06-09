@@ -4,4 +4,5 @@
 
 void wm_zone( void );
 
-void wm_zone_insert( struct WM_STRUCTURE_ZONE *current, uint8_t object );
+uint64_t wm_zone_insert( struct WM_STRUCTURE_ZONE *current, uint8_t object );
+void wm_zone_substract( void );

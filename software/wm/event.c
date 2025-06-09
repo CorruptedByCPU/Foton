@@ -37,7 +37,7 @@ void wm_event( void ) {
 				struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &ipc_data;
 
 				// properties of new object
-				struct WM_STRUCTURE_OBJECT *new = wm_object_create( create -> x, create -> y, create -> width, create -> height );
+				struct WM_STRUCTURE_OBJECT *new = wm_object_create( create -> x, create -> y, create -> width, create -> height, EMPTY );
 
 				// by default, couldn't create object
 				answer -> descriptor = EMPTY;
@@ -128,9 +128,13 @@ void wm_event( void ) {
 		if( wm -> selected -> descriptor -> y < wm -> selected -> descriptor -> header_height && (wm -> selected -> descriptor -> x >= wm -> selected -> descriptor -> header_offset && wm -> selected -> descriptor -> x - wm -> selected -> descriptor -> header_offset < wm -> selected -> descriptor -> header_width) ) wm -> drag_allow = TRUE;
 
 		// can we move object on top of object list?
-		if( ! (wm -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_z) && ! wm -> key_menu && wm_object_move_up( wm -> selected ) )
-			// object moved on top, redraw
+		if( ! (wm -> selected -> descriptor -> flags & LIB_WINDOW_FLAG_fixed_z) && ! wm -> key_menu ) {
+			// move object on top
+			wm_object_move_up( wm -> selected );
+
+			// and redraw
 			wm -> selected -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+		}
 
 		// set object as active?
 		if( ! wm -> key_menu && wm -> selected != wm -> panel ) { wm -> active = wm -> selected; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active; }
@@ -233,12 +237,9 @@ void wm_event( void ) {
 					//--------------------------------------------------------------
 
 					// create initial shade object
-					if( (wm -> shade = wm_object_create( wm -> resized -> x, wm -> resized -> y, wm -> resized -> width, wm -> resized -> height )) ) {
+					if( (wm -> shade = wm_object_create( wm -> resized -> x, wm -> resized -> y, wm -> resized -> width, wm -> resized -> height, LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush )) ) {
 						// set gradient
 						wm_event_shade_fill();
-
-						// show object
-						wm -> shade -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;	
 
 						// done
 						wm -> shade_initialized = TRUE;

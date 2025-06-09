@@ -55,7 +55,11 @@ void wm_init( void ) {
 	}
 
 	// create workbench object
-	wm -> workbench = wm_object_create( 0, 0, wm -> canvas.width, wm -> canvas.height );
+	wm -> workbench = wm_object_create( 0, 0, wm -> canvas.width, wm -> canvas.height, LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush );
+
+	// object name
+	uint8_t workbench_name[] = "{workbench}";
+	for( uint8_t i = 0; i < sizeof( workbench_name ); i++ ) wm -> workbench -> descriptor -> name[ i ] = workbench_name[ i ];
 
 	// properties of workbench area content
 	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm -> workbench -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
@@ -87,13 +91,16 @@ void wm_init( void ) {
 			for( uint16_t x = 0; x < wm -> workbench -> width; x++ )
 				workbench_pixel[ (y * wm -> workbench -> width) + x ] = STD_COLOR_GRAY;
 
-	// object content ready for display
-	wm -> workbench -> descriptor -> flags = LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
+	log( "utworzono object '%s'\n", wm -> workbench -> descriptor -> name );
 
 	//----------------------------------------------------------------------
 
 	// create panel object
-	wm -> panel = wm_object_create( 0, wm -> canvas.height - WM_PANEL_HEIGHT_pixel, wm -> canvas.width, WM_PANEL_HEIGHT_pixel );
+	wm -> panel = wm_object_create( 0, wm -> canvas.height - WM_PANEL_HEIGHT_pixel, wm -> canvas.width, WM_PANEL_HEIGHT_pixel, LIB_WINDOW_FLAG_panel | LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush );
+
+	// object name
+	uint8_t panel_name[] = "{panel}";
+	for( uint8_t i = 0; i < sizeof( panel_name ); i++ ) wm -> panel -> descriptor -> name[ i ] = panel_name[ i ];
 
 	// properties of panel area content
 	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
@@ -110,8 +117,7 @@ void wm_init( void ) {
 	// panel list is empty
 	wm -> list_limit_panel = EMPTY;
 
-	// object content ready for display
-	wm -> panel -> descriptor -> flags = LIB_WINDOW_FLAG_panel | LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
+	log( "utworzono object '%s'\n", wm -> panel -> descriptor -> name );
 
 	//----------------------------------------------------------------------
 
@@ -130,10 +136,14 @@ void wm_init( void ) {
 		if( cursor_image ) fread( cursor_file, (uint8_t *) cursor_image, cursor_file -> byte );
 
 		// create cursor object
-		wm -> cursor = wm_object_create( wm -> workbench -> width >> STD_SHIFT_2, wm -> workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height );
+		wm -> cursor = wm_object_create( wm -> workbench -> width >> STD_SHIFT_2, wm -> workbench -> height >> STD_SHIFT_2, cursor_image -> width, cursor_image -> height, LIB_WINDOW_FLAG_cursor | LIB_WINDOW_FLAG_transparent | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush );
 	} else
 		// create default object
-		wm -> cursor = wm_object_create( wm -> workbench -> width >> STD_SHIFT_2, wm -> workbench -> height >> STD_SHIFT_2, 16, 32 );
+		wm -> cursor = wm_object_create( wm -> workbench -> width >> STD_SHIFT_2, wm -> workbench -> height >> STD_SHIFT_2, 16, 32, LIB_WINDOW_FLAG_cursor | LIB_WINDOW_FLAG_transparent | LIB_WINDOW_FLAG_flush );
+
+	// object name
+	uint8_t cursor_name[] = "{cursor}";
+	for( uint8_t i = 0; i < sizeof( cursor_name ); i++ ) wm -> cursor -> descriptor -> name[ i ] = cursor_name[ i ];
 
 	// properties of cursor area content
 	uint32_t *cursor_pixel = (uint32_t *) ((uintptr_t) wm -> cursor -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
@@ -155,13 +165,12 @@ void wm_init( void ) {
 		fclose( cursor_file );
 	}
 
-	// object content ready for display
-	wm -> cursor -> descriptor -> flags = LIB_WINDOW_FLAG_cursor | LIB_WINDOW_FLAG_transparent | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
+	log( "utworzono object '%s'\n", wm -> cursor -> descriptor -> name );
 
 	//----------------------------------------------------------------------
 
 	// debug
 	// std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
-	std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
+	// std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
 	std_exec( (uint8_t *) "3d /var/bird.obj", 16, EMPTY, TRUE );
 }

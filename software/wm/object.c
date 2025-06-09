@@ -8,17 +8,11 @@ void wm_object( void ) {
 
 	// search whole list for flush request on any object
 	for( uint16_t i = 0; i < wm -> list_limit; i++ ) {
-		// found cursor object?
-		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;	// done
-
 		// remove active flag from non-compliant objects
 		if( list[ i ] != wm -> active ) list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_active;
 
 		// requested hide or flush?
 		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_hide || list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_flush ) {
-			// request parsed
-			list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_flush;
-
 			// parse object area
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) list[ i ], FALSE );
 
@@ -34,8 +28,10 @@ void wm_object( void ) {
 				wm -> panel_semaphore = TRUE;
 			}
 
-			// always redraw cursor object (it might be covered)
-			wm -> cursor -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+			log( "obiekt %s przeslano do listy przestrzeni\n", list[ i ] -> descriptor -> name );
+
+			// request parsed
+			list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_flush;
 		}
 
 		// requested maximize?
@@ -55,7 +51,7 @@ void wm_object( void ) {
 	}
 }
 
-struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height ) {
+struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t flags ) {
 	// properties of object array
 	struct WM_STRUCTURE_OBJECT *object = wm -> object;
 
@@ -82,6 +78,9 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 			// no enough memory
 			return EMPTY;
 
+		// set flags
+		object -> descriptor -> flags = flags;
+
 		// register object on list
 		wm_object_insert( object );
 
@@ -98,13 +97,9 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 
 void wm_object_activate( void ) {
 	// search thru object list as far as to panel type object
-	for( uint16_t i = 0; i < wm -> list_limit; i++ ) {
-		// panel or cursor object?
-		if( wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_panel ) break;	// yes
-
+	for( uint16_t i = wm -> list_start; i < wm -> list_limit; i++ )
 		// object is visible?
 		if( wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) wm -> active = wm -> list[ i ];
-	}
 }
 
 struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t hidden ) {
@@ -137,20 +132,19 @@ void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 	// properties of object list
 	struct WM_STRUCTURE_OBJECT **list = wm -> list;
 
-	// find panel object on list
-	uint64_t i = 0; for( ; i < wm -> list_limit; i++ ) {
-		// if not a panel
-		if( ! (list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_panel) ) continue;	// next entry
+	// insert object at
+	uint64_t offset = wm -> list_start;
+	// except if thats a special object
+	if( object -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) offset = EMPTY;
 
-		// move all objects one position further
-		for( uint64_t j = wm -> list_limit; j > i; j-- ) list[ j ] = list[ j - 1 ];
-
-		// entry prepared
-		break;
-	}
+	// move all objects one position further
+	for( uint64_t j = wm -> list_limit; j > offset; j-- ) list[ j ] = list[ j - 1 ];
 
 	// insert object on list
-	list[ i ] = object;
+	list[ offset ] = object;
+
+	// special object?
+	if( object -> descriptor -> flags & (LIB_WINDOW_FLAG_panel | LIB_WINDOW_FLAG_cursor) ) wm -> list_start++;
 
 	// amount of objects on list
 	wm -> list_limit++;
@@ -212,28 +206,10 @@ void wm_object_move( int16_t x, int16_t y ) {
 	wm -> selected -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 }
 
-uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object ) {
-	// find object on list
-	for( uint64_t i = 0; i < wm -> list_limit; i++ ) {
-		// object located?
-		if( wm -> list[ i ] != object ) continue;	// no
+void wm_object_move_up( struct WM_STRUCTURE_OBJECT *object ) {
+	// remove object from list
+	for( uint64_t i = wm -> list_start; i < wm -> list_limit; i++ ) if( wm -> list[ i ] == object ) { for( uint64_t j = i; j < wm -> list_limit; j++ ) wm -> list[ j ] = wm -> list[ j + 1 ]; wm -> list[ --wm -> list_limit ] = EMPTY; break; }
 
-		// move all objects in place of selected
-		for( uint64_t j = i; j < wm -> list_limit - TRUE; j++ ) {
-			// next object, panel?
-			if( wm -> list[ j + 1 ] -> descriptor -> flags & LIB_WINDOW_FLAG_panel ) break;	// done
-
-			// no, move next object to current position
-			wm -> list[ i++ ] = wm -> list[ j + 1 ];
-		}
-
-		// put object back on its new position
-		wm -> list[ i ] = object;
-
-		// object changed position
-		return TRUE;
-	}
-
-	// object not found
-	return FALSE;
+	// insert again as beginning
+	wm_object_insert( object );
 }

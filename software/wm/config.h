@@ -53,10 +53,12 @@ struct	WM_STRUCTURE {
 	// list of fragments of object to parse
 	struct WM_STRUCTURE_ZONE			*zone;
 
+	uint64_t					list_start;
+
 	// lists length
 	uint64_t					list_limit;
 	uint64_t					list_limit_panel;
-	uint64_t					zone_limit;
+	volatile uint64_t				zone_limit;
 
 	// do not allow modification of object array/list
 	uint8_t						object_lock;

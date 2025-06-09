@@ -11,61 +11,104 @@ void wm_zone( void ) {
 
 	// parse zones on list
 	for( uint64_t i = 0; i < wm -> zone_limit; i++ ) {
-		// object already assigned to zone?
-		if( zone[ i ].object ) continue;	// yes
+		log( "iteracja %u z %u\n", i, wm -> zone_limit - 1 );
 
 		// analyze zone against each object
 		for( uint64_t j = 0; j < wm -> list_limit; j++ ) {
-			// ignore cursor object
-			if( list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;
+			log( "porownianie strefy %u (x:%u, w:%u, y:%u, h:%u) z obiektem %u (x:%u, w:%u, y:%u, h:%u) pod 0x%X o nazwie %s, ", i, zone[ i ].x, zone[ i ].width, zone[ i ].y, zone[ i ].height, j, list[ j ] -> x, list[ j ] -> width, list[ j ] -> y, list[ j ] -> height, (uintptr_t) list[ j ], list[ j ] -> descriptor -> name );
+			if( ! (list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) { log( "niewidoczny\n" ); continue; };
 
-			// invisible object?
-			if( ! (list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) continue;	// yes
+			// zone overlapping?
+			if( zone[ i ].x + zone[ i ].width <= list[ j ] -> x ) { log( "odseparowane\n" ); continue; }	// no
+			else log( "!x " );
+			if( zone[ i ].y + zone[ i ].height <= list[ j ] -> y ) { log( "odseparowane\n" ); continue; }	// no
+			else log( "!y " );
+			if( zone[ i ].x >= list[ j ] -> x + list[ j ] -> width ) { log( "odseparowane\n" ); continue; }	// no
+			else log( "!w " );
+			if( zone [ i ].y >= list[ j ] -> y + list[ j ] -> height ) { log( "odseparowane\n" ); continue; }	// no
+			else log( "!h " );
 
-			// zone and object share area?
-			if( list[ j ] -> x + list[ j ] -> width < zone[ i ].x ) continue;	// no
-			if( list[ j ] -> y + list[ j ] -> height < zone[ i ].y ) continue;	// no
-			if( list[ j ] -> x > zone[ i ].x + zone[ i ].width ) continue;	// no
-			if( list[ j ] -> y > zone[ i ].y + zone[ i ].height ) continue;	// no
-
-			// modify zone up to object boundaries
-			struct WM_STRUCTURE_ZONE parse = zone[ i ];
+			log( "interferencja!\n" );
 
 			// left edge
-			if( parse.x < list[ j ] -> x ) {
-				parse.width -= list[ j ] -> x - parse.x;
-				parse.x = list[ j ] -> x;
+			if( zone[ i ].x < list[ j ] -> x ) {
+				// cut off part of zone
+				struct WM_STRUCTURE_ZONE cut = zone[ i ];
+				cut.width = list[ j ] -> x - zone[ i ].x;
+				uint64_t zi = wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
+
+				log( "lewy fragment %u x:%u, w:%u, y:%u, h:%u odlozono na liste przestrzeni\n", zi, cut.x, cut.width, cut.y, cut.height );
+
+				// new dimension of zone
+				zone[ i ].x = list[ j ] -> x;
+				zone[ i ].width -= cut.width;
 			}
 
 			// top edge
-			if( parse.y < list[ j ] -> y ) {
-				parse.height -= list[ j ] -> y - parse.y;
-				parse.y = list[ j ] -> y;
+			if( zone[ i ].y < list[ j ] -> y ) {
+				// cut off part of zone
+				struct WM_STRUCTURE_ZONE cut = zone[ i ];
+				cut.height = list[ j ] -> y - zone[ i ].y;
+				uint64_t zi = wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
+
+				log( "gorny fragment %u x:%u, w:%u, y:%u, h:%u odlozono na liste przestrzeni\n", zi, cut.x, cut.width, cut.y, cut.height );
+
+				// new dimension of zone
+				zone[ i ].y = list[ j ] -> y;
+				zone[ i ].height -= cut.height;
 			}
 
 			// right edge
-			if( (parse.x + parse.width) > (list[ j ] -> x + list[ j ] -> width) ) {
-				parse.width -= (parse.x + parse.width) - (list[ j ] -> x + list[ j ] -> width);
+			if( (zone[ i ].x + zone[ i ].width) > (list[ j ] -> x + list[ j ] -> width) ) {
+				// cut off part of zone
+				struct WM_STRUCTURE_ZONE cut = zone[ i ];
+				cut.x = list[ j ] -> x + list[ j ] -> width;
+				cut.width = (zone[ i ].x + zone[ i ].width) - (list[ j ] -> x + list[ j ] -> width);
+				uint64_t zi = wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
+
+				log( "prawy fragment %u x:%u, w:%u, y:%u, h:%u odlozono na liste przestrzeni\n", zi, cut.x, cut.width, cut.y, cut.height );
+
+				// new dimension of zone
+				zone[ i ].width -= cut.width;
 			}
 
 			// bottom edge
-			if( (parse.y + parse.height) > (list[ j ] -> y + list[ j ] -> height) ) {
-				parse.height -= (parse.y + parse.height) - (list[ j ] -> y + list[ j ] -> height);
+			if( (zone[ i ].y + zone[ i ].height) > (list[ j ] -> y + list[ j ] -> height) ) {
+				// cut off part of zone
+				struct WM_STRUCTURE_ZONE cut = zone[ i ];
+				cut.y = list[ j ] -> y + list[ j ] -> height;
+				cut.height = (zone[ i ].y + zone[ i ].height) - (list[ j ] -> y + list[ j ] -> height);
+				uint64_t zi = wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
+
+				log( "dolny fragment %u x:%u, w:%u, y:%u, h:%u odlozono na liste przestrzeni\n", zi, cut.x, cut.width, cut.y, cut.height );
+
+				// new dimension of zone
+				zone[ i ].height -= cut.height;
+				log( "(%ux%u)\n", zone[ i ].width, zone[ i ].height );
 			}
 
-			// fill the zone with the given object
-			parse.object = list[ j ];
-			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &parse, TRUE );
+			// fill zone with given object
+			log( "przypisanie do strefy %u, identyfikatora %X\n", i, (uintptr_t) list[ j ] );
+			zone[ i ].object = list[ j ];
+
+			// next object?
+			// if( list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_transparent ) continue;	// yea
+			
+			// next zone
+			break;
 		}
+
+		// if( i == 8 ) 			// next zone
+		// 	while( TRUE );
 	}
 }
 
-void wm_zone_insert( struct WM_STRUCTURE_ZONE *current, uint8_t object ) {
+uint64_t wm_zone_insert( struct WM_STRUCTURE_ZONE *current, uint8_t object ) {
 	// discard zone if outside of cache area
-	if( current -> x > wm -> canvas.width - 1 ) return;
-	if( current -> y > wm -> canvas.height - 1 ) return;
-	if( current -> x + current -> width < 0 ) return;
-	if( current -> y + current -> height < 0 ) return;
+	if( current -> x > wm -> canvas.width - 1 ) return EMPTY;
+	if( current -> y > wm -> canvas.height - 1 ) return EMPTY;
+	if( current -> x + current -> width < 0 ) return EMPTY;
+	if( current -> y + current -> height < 0 ) return EMPTY;
 
 	// inset new zone
 
@@ -109,4 +152,102 @@ void wm_zone_insert( struct WM_STRUCTURE_ZONE *current, uint8_t object ) {
 
 	// zone inserted
 	wm -> zone_limit++;
+
+	return wm -> zone_limit - 1;
+}
+
+void wm_zone_substract( void ) {
+	// properties of first entry inside zone list
+	struct WM_STRUCTURE_ZONE *zone = wm -> zone;
+
+	// properties of object list
+	struct WM_STRUCTURE_OBJECT **list = wm -> list;
+
+	// parse zones on list
+	uint64_t a = 0;
+	while( a < wm -> zone_limit ) {
+		log( "iteracja %u z %u\n", a + 1, wm -> zone_limit );
+
+		// analyze zone against each object
+		uint8_t deleted = FALSE;
+		uint64_t b = 0;
+		while( b < wm -> zone_limit ) {
+			log( "porownianie strefy %u z %u, ", a, b );
+			// interference?
+			if( a == b ) { log( "duplikat\n" ); b++; continue; }
+
+			// zone overlapping?
+			if( zone[ a ].x > zone[ b ].x + zone[ b ].width ) { log( "odseparowane\n" ); b++; continue; }	// no
+			if( zone[ a ].y > zone[ b ].y + zone[ b ].height ) { log( "odseparowane\n" ); b++; continue; }	// no
+			if( zone[ b ].x > zone[ a ].x + zone[ a ].width ) { log( "odseparowane\n" ); b++; continue; }	// no
+			if( zone[ b ].y > zone[ a ].y + zone[ a ].height ) { log( "odseparowane\n" ); b++; continue; }	// no
+
+			log( "interferencja!\n" );
+
+			// left edge
+			if( zone[ a ].x < zone[ b ].x ) {
+				// cut off part of zone
+				struct WM_STRUCTURE_ZONE cut = zone[ a ];
+				cut.width = zone[ b ].x - zone[ a ].x;
+				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
+
+				log( "lewy fragment x:%u, w:%u, y:%u, h:%u odlozono na liste przestrzeni\n", cut.x, cut.width, cut.y, cut.height );
+
+				// new dimension of zone
+				zone[ a ].width -= cut.width;
+				zone[ a ].x = zone[ b ].x;
+			}
+
+			// top edge
+			if( zone[ a ].y < zone[ b ].y ) {
+				// cut off part of zone
+				struct WM_STRUCTURE_ZONE cut = zone[ a ];
+				cut.height = zone[ b ].y - zone[ a ].y;
+				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
+
+				log( "gorny fragment x:%u, w:%u, y:%u, h:%u odlozono na liste przestrzeni\n", cut.x, cut.width, cut.y, cut.height );
+
+				// new dimension of zone
+				zone[ a ].height -= cut.height;
+				zone[ a ].y = zone[ b ].y;
+			}
+
+			// right edge
+			if( (zone[ a ].x + zone[ a ].width) > (zone[ b ].x + zone[ b ].width) ) {
+				// cut off part of zone
+				struct WM_STRUCTURE_ZONE cut = zone[ a ];
+				cut.width = (zone[ a ].x + zone[ a ].width) - (zone[ b ].x + zone[ b ].width);
+				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
+
+				log( "prawy fragment x:%u, w:%u, y:%u, h:%u odlozono na liste przestrzeni\n", cut.x, cut.width, cut.y, cut.height );
+
+				// new dimension of zone
+				zone[ a ].width -= cut.width;
+			}
+
+			// bottom edge
+			if( (zone[ a ].y + zone[ a ].height) > (zone[ b ].y + zone[ b ].height) ) {
+				// cut off part of zone
+				struct WM_STRUCTURE_ZONE cut = zone[ a ];
+				cut.height = (zone[ a ].y + zone[ a ].height) - (zone[ b ].y + zone[ b ].height);
+				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
+
+				log( "dolny fragment x:%u, w:%u, y:%u, h:%u odlozono na liste przestrzeni\n", cut.x, cut.width, cut.y, cut.height );
+
+				// new dimension of zone
+				zone[ a ].height -= cut.height;
+			}
+
+			log( "skasowano przestrzen %u (x:%u, w:%u, y:%u, h:%u)\n", a, zone[ a ].x, zone[ a ].width, zone[ a ].y, zone[ a ].height );
+
+			for( uint64_t c = a; c < wm -> zone_limit; c++ ) zone[ c ] = zone[ c + 1 ];
+			wm -> zone_limit--;
+
+			// again
+			deleted = TRUE;
+			break;
+		}
+
+		if( ! deleted ) a++;
+	}
 }
