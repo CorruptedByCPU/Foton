@@ -91,8 +91,6 @@ void wm_init( void ) {
 			for( uint16_t x = 0; x < wm -> workbench -> width; x++ )
 				workbench_pixel[ (y * wm -> workbench -> width) + x ] = STD_COLOR_GRAY;
 
-	log( "utworzono object '%s'\n", wm -> workbench -> descriptor -> name );
-
 	//----------------------------------------------------------------------
 
 	// create panel object
@@ -116,8 +114,6 @@ void wm_init( void ) {
 
 	// panel list is empty
 	wm -> list_limit_panel = EMPTY;
-
-	log( "utworzono object '%s'\n", wm -> panel -> descriptor -> name );
 
 	//----------------------------------------------------------------------
 
@@ -164,8 +160,6 @@ void wm_init( void ) {
 		// close file
 		fclose( cursor_file );
 	}
-
-	log( "utworzono object '%s'\n", wm -> cursor -> descriptor -> name );
 
 	//----------------------------------------------------------------------
 

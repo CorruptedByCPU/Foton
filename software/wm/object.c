@@ -25,10 +25,8 @@ void wm_object( void ) {
 				wm_object_activate();
 
 				// refresh panel content
-				wm -> panel_semaphore = TRUE;
+				// wm -> panel_semaphore = TRUE;
 			}
-
-			log( "obiekt %s przeslano do listy przestrzeni\n", list[ i ] -> descriptor -> name );
 
 			// request parsed
 			list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_flush;
@@ -97,7 +95,7 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 
 void wm_object_activate( void ) {
 	// search thru object list as far as to panel type object
-	for( uint16_t i = wm -> list_start; i < wm -> list_limit; i++ )
+	for( uint64_t i = wm -> list_start; i < wm -> list_limit; i++ )
 		// object is visible?
 		if( wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) wm -> active = wm -> list[ i ];
 }
@@ -107,7 +105,7 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t hidd
 	struct WM_STRUCTURE_OBJECT **list = wm -> list;
 
 	// find object at current cursor coordinates
-	for( uint16_t i = wm -> list_limit - 1; i >= 0; i-- ) {
+	for( uint64_t i = wm -> list_start; i < wm -> list_limit; i++ ) {
 		// object marked as cursor?
 		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;	// ignore
 

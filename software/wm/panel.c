@@ -25,7 +25,7 @@ void wm_panel( void ) {
 	// nothing to draw?
 	if( ! wm -> list_limit_panel ) {
 		// update panel content on screen
-		wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+		// wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 		// done
 		return;
@@ -130,9 +130,6 @@ void wm_panel_remove( struct WM_STRUCTURE_OBJECT *object ) {
 
 		// clear last entry
 		wm -> list_panel[ --wm -> list_limit_panel ] = EMPTY;
-
-		// refresh panel content
-		wm -> panel_semaphore = TRUE;
 
 		// done
 		return;

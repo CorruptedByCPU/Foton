@@ -32,7 +32,7 @@
 	#define	LIB_WINDOW_ANSWER_create	0b10000000 | LIB_WINDOW_REQUEST_create
 
 	struct	LIB_WINDOW_STRUCTURE {
-		uint32_t	flags;
+		uint16_t	flags;
 		// base address of window content
 		uint32_t	*pixel;
 		// pointer position inside window
