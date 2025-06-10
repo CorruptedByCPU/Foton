@@ -142,7 +142,7 @@ void wm_event( void ) {
 		//--------------------------------------------------------------
 
 		// mouse pointer in range of any list entry of panel?
-		if( wm -> cursor -> y >= wm -> panel -> y && (wm -> cursor -> x >= WM_PANEL_HEIGHT_pixel && wm -> cursor -> x < (WM_PANEL_HEIGHT_pixel + (wm -> panel_entry_width * wm -> list_limit_panel))) ) {
+		if( wm -> cursor -> y >= wm -> panel -> y && (wm -> panel -> descriptor -> x >= WM_PANEL_HEIGHT_pixel && wm -> panel -> descriptor -> x < (WM_PANEL_HEIGHT_pixel + (wm -> panel_entry_width * wm -> list_limit_panel))) ) {
 			// no action on empty panel
 			if( wm -> list_limit_panel ) {
 				// properties of selected object entry
@@ -237,7 +237,7 @@ void wm_event( void ) {
 					//--------------------------------------------------------------
 
 					// create initial shade object
-					if( (wm -> shade = wm_object_create( wm -> resized -> x, wm -> resized -> y, wm -> resized -> width, wm -> resized -> height, LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush )) ) {
+					if( (wm -> shade = wm_object_create( wm -> resized -> x, wm -> resized -> y, wm -> resized -> width, wm -> resized -> height, LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_transparent | LIB_WINDOW_FLAG_flush )) ) {
 						// set gradient
 						wm_event_shade_fill();
 
@@ -398,5 +398,5 @@ void wm_event( void ) {
 	wm -> shade -> descriptor = (struct LIB_WINDOW_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm -> shade -> limit ) >> STD_SHIFT_PAGE ); wm_event_shade_fill();
 
 	// show refresh object content
-	wm -> shade -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
+	wm -> shade -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_transparent | LIB_WINDOW_FLAG_flush;
 }

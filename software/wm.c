@@ -65,9 +65,6 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			continue;
 		}
 
-		// remove any overlapping
-		wm_zone_substract();
-
 		// assign objects to zones
 		wm_zone();
 

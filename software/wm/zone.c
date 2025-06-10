@@ -3,6 +3,9 @@
 ===============================================================================*/
 
 void wm_zone( void ) {
+	// remove any overlapping
+	wm_zone_substract();
+	
 	// properties of first entry inside zone list
 	struct WM_STRUCTURE_ZONE *zone = wm -> zone;
 
@@ -22,7 +25,7 @@ void wm_zone( void ) {
 			if( zone[ i ].x + zone[ i ].width <= list[ j ] -> x ) continue;		// no
 			if( zone[ i ].y + zone[ i ].height <= list[ j ] -> y ) continue;	// no
 			if( zone[ i ].x >= list[ j ] -> x + list[ j ] -> width ) continue;	// no
-			if( zone [ i ].y >= list[ j ] -> y + list[ j ] -> height ) continue;	// no
+			if( zone[ i ].y >= list[ j ] -> y + list[ j ] -> height ) continue;	// no
 
 			// left edge
 			if( zone[ i ].x < list[ j ] -> x ) {
@@ -222,8 +225,8 @@ void wm_zone_substract( void ) {
 				zone[ a ].height -= cut.height;
 			}
 
-			for( uint64_t c = a; c < wm -> zone_limit; c++ ) zone[ c ] = zone[ c + 1 ];
-			wm -> zone_limit--;
+			// delete overlaping part of zone
+			zone[ a ] = zone[ wm -> zone_limit-- - 1 ];
 
 			// again
 			deleted = TRUE;

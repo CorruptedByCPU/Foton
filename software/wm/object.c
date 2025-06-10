@@ -25,7 +25,7 @@ void wm_object( void ) {
 				wm_object_activate();
 
 				// refresh panel content
-				// wm -> panel_semaphore = TRUE;
+				wm -> panel_semaphore = TRUE;
 			}
 
 			// request parsed
@@ -105,7 +105,7 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t hidd
 	struct WM_STRUCTURE_OBJECT **list = wm -> list;
 
 	// find object at current cursor coordinates
-	for( uint64_t i = wm -> list_start; i < wm -> list_limit; i++ ) {
+	for( uint64_t i = wm -> list_start - 1; i < wm -> list_limit; i++ ) {
 		// object marked as cursor?
 		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;	// ignore
 
