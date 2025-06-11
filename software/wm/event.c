@@ -241,6 +241,10 @@ void wm_event( void ) {
 						// set gradient
 						wm_event_shade_fill();
 
+						// object name
+						uint8_t shade_name[] = "{shade}";
+						for( uint8_t i = 0; i < sizeof( shade_name ); i++ ) wm -> shade -> descriptor -> name[ i ] = shade_name[ i ];
+
 						// done
 						wm -> shade_initialized = TRUE;
 					}
@@ -396,6 +400,10 @@ void wm_event( void ) {
 
 	// assign new area for object
 	wm -> shade -> descriptor = (struct LIB_WINDOW_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm -> shade -> limit ) >> STD_SHIFT_PAGE ); wm_event_shade_fill();
+
+	// object name
+	uint8_t shade_name[] = "{shade}";
+	for( uint8_t i = 0; i < sizeof( shade_name ); i++ ) wm -> shade -> descriptor -> name[ i ] = shade_name[ i ];
 
 	// show refresh object content
 	wm -> shade -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_transparent | LIB_WINDOW_FLAG_flush;

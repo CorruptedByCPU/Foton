@@ -16,8 +16,8 @@ void driver_serial_init( void ) {
 	// enable DLAB (frequency divider)
 	driver_port_out_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_line_control_or_dlab, 0x80 );
 
-	// communication frequency: 38400
-	driver_port_out_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_data_or_divisor_low, 0x03 );
+	// communication frequency: max 115200
+	driver_port_out_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_data_or_divisor_low, 0x01 );
 	driver_port_out_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_interrupt_enable_or_divisor_high, 0x00 );
 
 	// 8 bits per sign, no parity, 1 stop bit

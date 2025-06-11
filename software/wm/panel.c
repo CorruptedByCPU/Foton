@@ -3,68 +3,68 @@
 ===============================================================================*/
 
 void wm_panel( void ) {
-	// check clock status
-	wm_panel_clock();
+	// // check clock status
+	// wm_panel_clock();
 
-	// nothing to do?
-	if( ! wm -> panel_semaphore ) return;	// done
+	// // nothing to do?
+	// if( ! wm -> panel_semaphore ) return;	// done
 
-	// count amount of object to show
-	for( uint64_t i = 0; i < wm -> list_limit; i++ )
-		// it's not our object? and visible? (except without name)
-		if( wm -> list[ i ] -> pid != wm -> pid && wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible && wm -> list[ i ] -> descriptor -> name_length )
-			// insert on panel list
-			wm_panel_insert( wm -> list[ i ] );
+	// // count amount of object to show
+	// for( uint64_t i = 0; i < wm -> list_limit; i++ )
+	// 	// it's not our object? and visible? (except without name)
+	// 	if( wm -> list[ i ] -> pid != wm -> pid && wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible && wm -> list[ i ] -> descriptor -> name_length )
+	// 		// insert on panel list
+	// 		wm_panel_insert( wm -> list[ i ] );
 
-	// properties of task list area
-	uint32_t *pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
+	// // properties of task list area
+	// uint32_t *pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
-	// clean'up panel with default color
-	for( uint16_t y = 0; y < wm -> panel -> height; y++ ) for( uint16_t x = WM_PANEL_HEIGHT_pixel; x < wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
+	// // clean'up panel with default color
+	// for( uint16_t y = 0; y < wm -> panel -> height; y++ ) for( uint16_t x = WM_PANEL_HEIGHT_pixel; x < wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
 
-	// nothing to draw?
-	if( ! wm -> list_limit_panel ) {
-		// update panel content on screen
-		// wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+	// // nothing to draw?
+	// if( ! wm -> list_limit_panel ) {
+	// 	// update panel content on screen
+	// 	// wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
-		// done
-		return;
-	}
+	// 	// done
+	// 	return;
+	// }
 
-	// move pointer to first entry of panel task list
-	pixel += WM_PANEL_HEIGHT_pixel;
+	// // move pointer to first entry of panel task list
+	// pixel += WM_PANEL_HEIGHT_pixel;
 
-	// first entry width in pixels
-	wm -> panel_entry_width = (wm -> panel -> width - (WM_PANEL_HEIGHT_pixel + WM_PANEL_CLOCK_WIDTH_pixel)) / wm -> list_limit_panel;
+	// // first entry width in pixels
+	// wm -> panel_entry_width = (wm -> panel -> width - (WM_PANEL_HEIGHT_pixel + WM_PANEL_CLOCK_WIDTH_pixel)) / wm -> list_limit_panel;
 
-	// if entry wider than allowed
-	if( wm -> panel_entry_width > WM_PANEL_ENTRY_WIDTH_limit ) wm -> panel_entry_width = WM_PANEL_ENTRY_WIDTH_limit;	// limit it
+	// // if entry wider than allowed
+	// if( wm -> panel_entry_width > WM_PANEL_ENTRY_WIDTH_limit ) wm -> panel_entry_width = WM_PANEL_ENTRY_WIDTH_limit;	// limit it
 
-	// first entry location
-	uint16_t x = 0;
+	// // first entry location
+	// uint16_t x = 0;
 
-	// show
-	for( uint64_t i = 0; i < wm -> list_limit_panel; i++ ) {
-		// select default background color for entry
-		uint32_t color = 0xFFFFFFFF;
-		// invisible?
-		if( ! (wm -> list_panel[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) color = 0xFF808080;
+	// // show
+	// for( uint64_t i = 0; i < wm -> list_limit_panel; i++ ) {
+	// 	// select default background color for entry
+	// 	uint32_t color = 0xFFFFFFFF;
+	// 	// invisible?
+	// 	if( ! (wm -> list_panel[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) color = 0xFF808080;
 
-		// mark active entry
-		if( wm -> list_panel[ i ] == wm -> active ) for( uint16_t y = WM_PANEL_HEIGHT_pixel - 2; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_active;
+	// 	// mark active entry
+	// 	if( wm -> list_panel[ i ] == wm -> active ) for( uint16_t y = WM_PANEL_HEIGHT_pixel - 2; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_active;
 
-		// show entry name
-		lib_font( LIB_FONT_FAMILY_ROBOTO, wm -> list_panel[ i ] -> descriptor -> name, wm -> list_panel[ i ] -> descriptor -> name_length, color, pixel + (4 * wm -> panel -> width) + 4, wm -> panel -> width, LIB_FONT_FLAG_ALIGN_left );
+	// 	// show entry name
+	// 	lib_font( LIB_FONT_FAMILY_ROBOTO, wm -> list_panel[ i ] -> descriptor -> name, wm -> list_panel[ i ] -> descriptor -> name_length, color, pixel + (4 * wm -> panel -> width) + 4, wm -> panel -> width, LIB_FONT_FLAG_ALIGN_left );
 
-		// next entry location
-		pixel += wm -> panel_entry_width;
-	}
+	// 	// next entry location
+	// 	pixel += wm -> panel_entry_width;
+	// }
 
-	// panel parsed
-	wm -> panel_semaphore = FALSE;
+	// // panel parsed
+	// wm -> panel_semaphore = FALSE;
 
-	// update panel content on screen
-	wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+	// // update panel content on screen
+	// wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 }
 
 void wm_panel_clock( void ) {

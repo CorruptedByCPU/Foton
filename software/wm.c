@@ -27,7 +27,6 @@
 	//----------------------------------------------------------------------
 	// functions / procedures
 	//----------------------------------------------------------------------
-	// #include	"wm/cursor.c"
 	#include	"wm/event.c"
 	#include	"wm/fill.c"
 	#include	"wm/init.c"
@@ -65,8 +64,13 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			continue;
 		}
 
+		log( "- %u - \n", std_microtime() );
+
 		// assign objects to zones
 		wm_zone();
+
+		log( "phase 2:\n" );
+		for( uint64_t i = 0; i < wm -> zone_limit; i++ ) log( "%s (%u, %u, %u, %u)\n", wm -> zone[ i ].object -> descriptor -> name, wm -> zone[ i ].x, wm -> zone[ i ].width, wm -> zone[ i ].y, wm -> zone[ i ].height );
 
 		// fill zones with fragments of objects
 		wm_fill();
