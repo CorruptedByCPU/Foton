@@ -28,7 +28,7 @@ void wm_fill( void ) {
 					// perform the operation based on the alpha channel
 					switch( color_new >> 24 ) {
 						// transparent
-						case 0x00: { break; }
+						case 0x00: { continue; }
 		
 						// opaque
 						case (uint8_t) 0xFF: { target[ (y * wm -> canvas.width) + x ] = color_new; break; }
