@@ -46,6 +46,15 @@ void wm_object( void ) {
 			// request parsed
 			list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_enlarge;
 		}
+
+		// window name change?
+		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_name ) {
+			// refresh panel content
+			wm -> panel_semaphore = TRUE;
+
+			// remove flag
+			list[ i ] -> descriptor -> flags ^= LIB_WINDOW_FLAG_name;
+		}
 	}
 }
 

@@ -78,6 +78,7 @@ struct	WM_STRUCTURE {
 	// default objects
 	struct WM_STRUCTURE_OBJECT			*workbench;
 	struct WM_STRUCTURE_OBJECT			*panel;
+	struct WM_STRUCTURE_OBJECT			*menu;
 	struct WM_STRUCTURE_OBJECT			*cursor;
 
 	struct WM_STRUCTURE_ZONE			direction;

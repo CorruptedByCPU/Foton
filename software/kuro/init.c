@@ -3,54 +3,31 @@
 ===============================================================================*/
 
 void kuro_init( void ) {
-	// alloc area for interface properties
-	kuro_interface = (struct LIB_INTERFACE_STRUCTURE *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
-
-	// initialize interface library
-	kuro_interface -> properties = (uint8_t *) &file_interface_start;
-	if( ! lib_interface( kuro_interface ) ) { log( "Cannot create window.\n" ); exit(); }
-
-	// set minimal window size as current
-	kuro_interface -> min_width = kuro_interface -> width;
-	kuro_interface -> min_height = kuro_interface -> height;
-
-	//----------------------------------------------------------------------
-
-	// find element of ID: 0
-	struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( kuro_interface, 0 );
-
-	// assign executable function to element
-	control -> event = exit;	
-
-	// find element of ID: 1
-	kuro_files = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) lib_interface_element_by_id( kuro_interface, 1 );
-
-	// define our own colors
-	kuro_files -> color_default	= KURO_LIST_COLOR_default;
-	kuro_files -> color_odd		= KURO_LIST_COLOR_odd;
-	kuro_files -> color_selected	= KURO_LIST_COLOR_selected;
-
-	// find element of ID: 2
-	kuro_storages = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE *) lib_interface_element_by_id( kuro_interface, 2 );
-
-	// define our own colors
-	kuro_storages -> color_default	= KURO_LIST_COLOR_default;
-	kuro_storages -> color_odd	= KURO_LIST_COLOR_odd;
-	kuro_storages -> color_selected	= KURO_LIST_COLOR_selected;
-
-	//----------------------------------------------------------------------
-
 	// initialize icon list
-	kuro_icons = (uint32_t **) malloc( TRUE );
+	kuro_icon = (uint32_t **) malloc( TRUE );
 
 	// register initial icon (directory change)
-	kuro_icon_register( KURO_MIMETYPE_up, (uint8_t *) "/var/share/media/icon/default/up.tga" );
+	kuro_icon_register( UP, (uint8_t *) "/var/share/media/icon/default/up.tga" );
+	kuro_icon_register( DIRECTORY, (uint8_t *) "/var/share/media/icon/default/folder.tga" );
+	kuro_icon_register( UNKNOWN, (uint8_t *) "/var/share/media/icon/default/unknown.tga" );
 
-	//----------------------------------------------------------------------
+	// create window
+	struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, KURO_DEFAULT_WIDTH, KURO_DEFAULT_HEIGHT );
+
+	// we allow window resize
+	window -> flags |= LIB_WINDOW_FLAG_resizable;
+
+	// initialize interface properties for our window
+	ui = lib_ui( window );
+
+	// set ui window name
+	lib_window_name( ui -> window, (uint8_t *) "Kuro - File Manager" );
+
+	// add default window controls
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_close );
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_max );
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_min );
+
+	// window ready for show up
+	ui -> window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 }
-
-// 	// // do not allow deselection, do not allow more than 1 at a time, immedietly action
-// 	// kuro_storages -> flags = LIB_INTERFACE_ELEMENT_LIST_FLAG_persistent | LIB_INTERFACE_ELEMENT_LIST_FLAG_individual | LIB_INTERFACE_ELEMENT_LIST_FLAG_single_click;
-
-// 	// // first entry selected as default
-// 	// kuro_storages -> entry[ FALSE ].flags = LIB_INTERFACE_ELEMENT_LIST_ENTRY_FLAG_active;

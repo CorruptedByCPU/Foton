@@ -174,6 +174,7 @@ struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER {
 
 struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW {
 	uint8_t						flag;
+	uint8_t						reserved;
 	struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL	*cell;
 };
 

@@ -24,8 +24,11 @@ void wm_panel( void ) {
 
 	// nothing to draw?
 	if( ! wm -> list_limit_panel ) {
+		// panel parsed
+		wm -> panel_semaphore = FALSE;
+
 		// update panel content on screen
-		// wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+		wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 
 		// done
 		return;
@@ -71,19 +74,18 @@ void wm_panel_clock( void ) {
 	// check current date and time
 	uint64_t time = std_time();
 
-	// it's different than previous?
-	if( time == wm -> panel_clock_state ) return;	// no
-
-	// preserve current date and time
-	wm -> panel_clock_state = time;
-
 	// properties of current time
 	uint8_t hours = (uint8_t) (time >> 16);
 	uint8_t minutes = (uint8_t) (time >> 8);
-	uint8_t seconds = (uint8_t) (time);
+
+	// it's different than previous?
+	if( minutes == wm -> panel_clock_state ) return;	// no
+
+	// preserve current date and time
+	wm -> panel_clock_state = minutes;
 
 	// clock template
-	uint8_t clock_string[ 5 ] = "00 00";
+	uint8_t clock_string[ 5 ] = "00:00";
 
 	// fill clock area with default background color
 	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
@@ -102,10 +104,6 @@ void wm_panel_clock( void ) {
 
 	// show clock on panel
 	lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &clock_string, sizeof( clock_string ), STD_COLOR_WHITE, clock_pixel + ((((WM_PANEL_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) + TRUE) * wm -> panel -> width) + (WM_PANEL_CLOCK_WIDTH_pixel >> STD_SHIFT_2), wm -> panel -> width, LIB_FONT_FLAG_ALIGN_center );
-
-	// colon animation
-	if( seconds % 2 ) lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) ":", TRUE, STD_COLOR_WHITE - 0x00808080, clock_pixel + ((((WM_PANEL_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2)) * wm -> panel -> width) + (WM_PANEL_CLOCK_WIDTH_pixel >> STD_SHIFT_2), wm -> panel -> width, LIB_FONT_FLAG_ALIGN_center );
-	else lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) ":", TRUE, STD_COLOR_WHITE, clock_pixel + ((((WM_PANEL_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2)) * wm -> panel -> width) + (WM_PANEL_CLOCK_WIDTH_pixel >> STD_SHIFT_2), wm -> panel -> width, LIB_FONT_FLAG_ALIGN_center );
 
 	// update panel content on screen
 	wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
@@ -130,6 +128,9 @@ void wm_panel_remove( struct WM_STRUCTURE_OBJECT *object ) {
 
 		// clear last entry
 		wm -> list_panel[ --wm -> list_limit_panel ] = EMPTY;
+
+		// reorganize panel content
+		wm -> panel_semaphore = TRUE;
 
 		// done
 		return;

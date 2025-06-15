@@ -52,7 +52,7 @@ struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window ) {
 	// prepare area for element list
 	ui -> element = (struct LIB_UI_STRUCTURE_ELEMENT **) malloc( ui -> limit );
 
-	// prepare area for ui elements
+	// prepare area for all ui elements
 	ui -> button = (struct LIB_UI_STRUCTURE_ELEMENT_BUTTON **) malloc( ui -> limit_button );
 	ui -> checkbox = (struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX **) malloc( ui -> limit_checkbox );
 	ui -> control = (struct LIB_UI_STRUCTURE_ELEMENT_CONTROL **) malloc( ui -> limit_control );
@@ -60,6 +60,9 @@ struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window ) {
 	ui -> label = (struct LIB_UI_STRUCTURE_ELEMENT_LABEL **) malloc( ui -> limit_label );
 	ui -> radio = (struct LIB_UI_STRUCTURE_ELEMENT_RADIO **) malloc( ui -> limit_radio );
 	ui -> table = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE **) malloc( ui -> limit_table );
+
+	// clean up window area
+	lib_ui_clean( ui );
 
 	// return ui properties
 	return ui;
@@ -313,7 +316,7 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 						struct LIB_UI_STRUCTURE_ELEMENT_TABLE *table = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE *) ui -> element[ i ];
 
 						if( ui -> window -> y - table -> standard.y < LIB_UI_ELEMENT_TABLE_height ) {
-							// sort
+							// sort by column
 						} else {
 							uint64_t r = (((ui -> window -> y + table -> offset_y) - table -> standard.y) / LIB_UI_ELEMENT_TABLE_height) - TRUE;
 

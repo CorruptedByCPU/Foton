@@ -194,7 +194,7 @@ void create_ui( void ) {
 	uint64_t y2 = LIB_UI_HEADER_HEIGHT;
 	struct STD_STRUCTURE_DIR *dir = (struct STD_STRUCTURE_DIR *) std_dir( (uint8_t *) ".", TRUE );
 	uint64_t f_count = EMPTY; while( dir[ ++f_count ].type );
-	kuro_dir_sort( (struct STD_STRUCTURE_DIR *) &dir[ 2 ], f_count );
+	kuro_dir_sort( (struct STD_STRUCTURE_DIR *) &dir[ 1 ], f_count - 1 );
 	struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *table_header = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *) malloc( 2 * sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER ) );
 	// header
 		// subcolumn 0
