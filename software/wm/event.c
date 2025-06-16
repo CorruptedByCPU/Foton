@@ -7,7 +7,7 @@ void wm_event_shade_fill( void ) {
 	uint32_t *shade = (uint32_t *) ((uintptr_t) wm -> shade -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 	for( uint16_t y = 0; y < wm -> shade -> height; y++ )
 		for( uint16_t x = 0; x < wm -> shade -> width; x++ )
-			shade[ (y * wm -> shade -> width) + x ] = WM_OBJECT_OVERSHADE_COLOR;
+			shade[ (y * wm -> shade -> width) + x ] = 0xFF000000 | WM_OBJECT_OVERSHADE_COLOR;
 
 	// and border
 	for( uint16_t y = 0; y < wm -> shade -> height; y++ )

@@ -195,6 +195,14 @@ uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	return ui -> limit_table++;
 }
 
+void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t r ) {
+	ui -> table[ id ] -> limit_row = r;
+	ui -> table[ id ] -> row = row;
+
+	ui -> table[ id ] -> offset_x = EMPTY;
+	ui -> table[ id ] -> offset_y = EMPTY;
+}
+
 void lib_ui_clean( struct LIB_UI_STRUCTURE *ui ) {
 	lib_ui_fill_rectangle( ui -> window -> pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, ui -> window -> current_width, ui -> window -> current_height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
 }

@@ -5,6 +5,7 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
+	#include	"../library/elf.h"
 	#include	"../library/image.h"
 	#include	"../library/integer.h"
 	#include	"../library/string.h"
@@ -44,13 +45,28 @@ reload:
 				if( table_content[ i ].flag & LIB_UI_ELEMENT_FLAG_event ) {
 					// based on mimetype
 					switch( table_content[ i ].reserved ) {
-						case UP:
-						case DIRECTORY: {
-							// // change home directory
-							// std_cd( table_content[ i ].cell[ 0 ].name, lib_string_length( table_content[ i ].cell[ 0 ].name ) );
+						case UP: {
+							// change home directory
+							std_cd( (uint8_t *) "..", 2 );
 
-							// // done
-							// goto reload;
+							// done
+							goto reload;
+						}
+
+						case DIRECTORY: {
+							// change home directory
+							std_cd( table_content[ i ].cell[ 0 ].name, lib_string_length( table_content[ i ].cell[ 0 ].name ) );
+
+							// done
+							goto reload;
+						}
+
+						case EXECUTABLE: {
+							// open object file with 3D Viewer
+							std_exec( table_content[ i ].cell[ 0 ].name, lib_string_length( table_content[ i ].cell[ 0 ].name ), EMPTY, TRUE );
+
+							// done
+							break;
 						}
 					}
 				}

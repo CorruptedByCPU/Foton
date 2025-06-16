@@ -25,6 +25,74 @@ uint8_t kuro_icon_assign( struct STD_STRUCTURE_DIR *file ) {
 				// assign
 				return LOG;
 			}
+
+			// check for object file
+			if( file -> name_limit > 4 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 4 ], (uint8_t *) ".obj", 4 ) ) {
+				// load object icon (if not present)
+				if( ! kuro_icon[ OBJECT ] ) kuro_icon_register( OBJECT, (uint8_t *) "/var/share/media/icon/default/object-group.tga" );
+
+				// assign
+				return OBJECT;
+			}
+
+			// check for image file
+			if( file -> name_limit > 4 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 4 ], (uint8_t *) ".tga", 4 ) ) {
+				// load image icon (if not present)
+				if( ! kuro_icon[ IMAGE ] ) kuro_icon_register( IMAGE, (uint8_t *) "/var/share/media/icon/default/image-icon.tga" );
+
+				// assign
+				return IMAGE;
+			}
+
+			// 
+			if( file -> limit > sizeof( struct LIB_ELF_STRUCTURE ) ) {
+				// properties of file
+				struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) malloc( sizeof( struct LIB_ELF_STRUCTURE ) );
+
+				// retrieve part of file content
+				FILE *f = fopen( file -> name, EMPTY ); fread( f, (uint8_t *) elf, sizeof( struct LIB_ELF_STRUCTURE ) ); fclose( f );
+
+				// ELF file?
+				if( lib_elf_identify( (uintptr_t) elf ) ) {
+					// library?
+					if( elf -> type == LIB_ELF_TYPE_shared_object ) {
+						// load library icon (if not present)
+						if( ! kuro_icon[ LIBRARY ] ) kuro_icon_register( LIBRARY, (uint8_t *) "/var/share/media/icon/default/application-x-sharedlib.tga" );
+
+						// release file content
+						free( elf );
+
+						// assign
+						return LIBRARY;
+					} else
+
+					// module?
+					if( file -> name_limit > 3 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 3 ], (uint8_t *) ".ko", 3 ) ) {
+						// load module icon (if not present)
+						if( ! kuro_icon[ MODULE ] ) kuro_icon_register( MODULE, (uint8_t *) "/var/share/media/icon/default/text-x-hex.tga" );
+
+						// release file content
+						free( elf );
+
+						// assign
+						return MODULE;
+					}
+
+					else {
+						// load executable icon (if not present)
+						if( ! kuro_icon[ EXECUTABLE ] ) kuro_icon_register( EXECUTABLE, (uint8_t *) "/var/share/media/icon/default/application-x-executable.tga" );
+
+						// release file content
+						free( elf );
+
+						// assign
+						return EXECUTABLE;
+					}
+				}
+
+				// release file content
+				free( elf );
+			}
 		}
 	}
 

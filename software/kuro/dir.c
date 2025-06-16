@@ -2,6 +2,53 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+void kuro_dir_add( struct STD_STRUCTURE_DIR *dir, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row ) {
+	// insert new entries
+	uint64_t file = FALSE;
+	while( dir[ ++file ].type ) {
+		// extend table content by row
+		row = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) realloc( row, table_row * sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW ) );
+
+		// default flag state
+		row[ table_row ].flag = EMPTY;	// none
+
+		// assign area for row
+		row[ table_row ].cell = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL *) calloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL ) << STD_SHIFT_2 );
+
+		//
+		row[ table_row ].reserved = kuro_icon_assign( (struct STD_STRUCTURE_DIR *) &dir[ file ] );
+
+		// column 0 --------------------------------------------
+
+		// assign proper icon
+		row[ table_row ].cell[ 0 ].icon = kuro_icon[ row[ table_row ].reserved ];
+
+		// set cell: name
+		// only if thats not a special link
+		if( file != TRUE ) {
+			row[ table_row ].cell[ 0 ].name = (uint8_t *) calloc( dir[ file ].name_limit + TRUE );
+			for( uint64_t i = 0; i < dir[ file ].name_limit; i++ ) row[ table_row ].cell[ 0 ].name[ i ] = dir[ file ].name[ i ];
+		}
+
+		// column 1 --------------------------------------------
+
+		// align content to right
+		row[ table_row ].cell[ 1 ].flag = LIB_FONT_FLAG_ALIGN_right;
+
+		// set cell: size
+		// only if thats not a special link or directory
+		if( file != TRUE && dir[ file ].type != STD_FILE_TYPE_directory ) {
+			row[ table_row ].cell[ 1 ].name = (uint8_t *) calloc( lib_integer_digit_count( dir[ file ].limit, STD_NUMBER_SYSTEM_decimal ) + TRUE );
+			lib_integer_to_string( dir[ file ].limit, STD_NUMBER_SYSTEM_decimal, row[ table_row ].cell[ 1 ].name );
+		}
+
+		//------------------------------------------------------
+
+		// row created
+		table_row++;
+	}
+}
+
 void kuro_dir( void ) {
 	// retrieve list of files inside current directory
 	struct STD_STRUCTURE_DIR *dir = (struct STD_STRUCTURE_DIR *) std_dir( (uint8_t *) ".", TRUE );
@@ -32,69 +79,38 @@ void kuro_dir( void ) {
 	}
 
 	// there is no table content?
-	if( ! table_content )
+	if( ! table_content ) {
 		// create one
 		table_content = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) malloc( FALSE );
 
-	// release old table content
-	for( uint64_t i = 0; i < table_row; i++ ) {
-		// name, icon, cell itself
-		free( table_content[ i ].cell[ 0 ].name );
-		free( table_content[ i ].cell[ 1 ].name );
-		free( table_content[ i ].cell[ 0 ].icon );
-		free( table_content[ i ].cell );
-	}
+		// insert new entries
+		kuro_dir_add( dir, table_content );
 
-	// no more entries
-	table_row = EMPTY;
+		// add table to ui interface
+		table_id = lib_ui_add_table( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, -1, -1, EMPTY, table_header, table_content, 2, table_row );
+	} else {
+		// release old table content
+		for( uint64_t y = 0; y < table_row; y++ ) {
+			for( uint64_t x = 0; x < 2; x++ )
+				// name
+				if( table_content[ y ].cell[ x ].name ) free( table_content[ y ].cell[ x ].name );
 
-	// truncate table content for new entries
-	table_content = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) realloc( table_content, FALSE );
-
-	// insert new entries
-	uint64_t file = FALSE;
-	while( dir[ ++file ].type ) {
-		// extend table content by row
-		table_content = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) realloc( table_content, table_row * sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW ) );
-
-		// assign area for row
-		table_content[ table_row ].cell = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL *) calloc( 2 * sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL ) );
-
-		//
-		table_content[ table_row ].reserved = kuro_icon_assign( (struct STD_STRUCTURE_DIR *) &dir[ file ] );
-
-		// column 0 --------------------------------------------
-
-		// assign proper icon
-		table_content[ table_row ].cell[ 0 ].icon = kuro_icon[ table_content[ table_row ].reserved ];
-
-		// set cell: name
-		// only if thats not a special link
-		if( file != TRUE ) {
-			table_content[ table_row ].cell[ 0 ].name = (uint8_t *) calloc( dir[ file ].name_limit + TRUE );
-			for( uint64_t i = 0; i < dir[ file ].name_limit; i++ ) table_content[ table_row ].cell[ 0 ].name[ i ] = dir[ file ].name[ i ];
+			// and cell itself
+			free( table_content[ y ].cell );
 		}
 
-		// column 1 --------------------------------------------
+		// no entries by default
+		table_row = EMPTY;
 
-		// align content to right
-		table_content[ table_row ].cell[ 1 ].flag = LIB_FONT_FLAG_ALIGN_right;
+		// truncate table content
+		table_content = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) realloc( table_content, FALSE );
 
-		// set cell: size
-		// only if thats not a special link or directory
-		if( file != TRUE && dir[ file ].type != STD_FILE_TYPE_directory ) {
-			table_content[ table_row ].cell[ 1 ].name = (uint8_t *) calloc( lib_integer_digit_count( dir[ file ].limit, STD_NUMBER_SYSTEM_decimal ) + TRUE );
-			lib_integer_to_string( dir[ file ].limit, STD_NUMBER_SYSTEM_decimal, table_content[ table_row ].cell[ 1 ].name );
-		}
+		// insert new entries
+		kuro_dir_add( dir, table_content );
 
-		//------------------------------------------------------
-
-		// row created
-		table_row++;
+		// update table properties
+		lib_ui_update_table( ui, table_id, table_content, table_row );
 	}
-
-	// add table to ui interface
-	lib_ui_add_table( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, -1, -1, EMPTY, table_header, table_content, 2, table_row );
 
 	// sync all interface elements with window
 	lib_ui_flush( ui );	// even window name
