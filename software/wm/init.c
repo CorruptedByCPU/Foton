@@ -39,21 +39,6 @@ void wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
-	// properties of file
-	FILE *workbench_file = EMPTY;
-
-	// properties of image
-	struct LIB_IMAGE_STRUCTURE_TGA *workbench_image = EMPTY;
-
-	// retrieve file information
-	if( (workbench_file = fopen( (uint8_t *) "/var/share/media/wallpaper/default.tga", EMPTY )) ) {
-		// assign area for file
-		workbench_image = (struct LIB_IMAGE_STRUCTURE_TGA *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( workbench_file -> byte ) >> STD_SHIFT_PAGE );
-
-		// load file content
-		fread( workbench_file, (uint8_t *) workbench_image, workbench_file -> byte );
-	}
-
 	// create workbench object
 	wm -> workbench = wm_object_create( 0, 0, wm -> canvas.width, wm -> canvas.height, LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush );
 
@@ -64,32 +49,15 @@ void wm_init( void ) {
 	// properties of workbench area content
 	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm -> workbench -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
-	// if default wallpaper file found
-	if( workbench_image ) {
-		// convert image to RGBA
-		uint32_t *tmp_workbench_image = (uint32_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm -> workbench -> limit ) >> STD_SHIFT_PAGE );
-		lib_image_tga_parse( (uint8_t *) workbench_image, tmp_workbench_image, workbench_file -> byte );
+	// fill workbench with default gradient
+	uint8_t r1 = 0x28, g1 = 0x28, b1 = 0x28;
+	uint8_t r2 = 0x08, g2 = 0x08, b2 = 0x08;
+	for( uint16_t y = 0; y < wm -> workbench -> height; y++ ) {
+		double ratio = (double) y / (wm -> workbench -> height - 1);
+		uint32_t color = ((uint8_t) 0xFF << 24) | (((uint8_t) (r1 + (r2 - r1) * ratio)) << 16) | (((uint8_t) (g1 + (g2 - g1) * ratio)) << 8) | ((uint8_t) (b1 + (b2 - b1) * ratio));
 
-		// copy scaled image content to workbench object
-		float x_scale_factor = (float) ((float) workbench_image -> width / (float) wm -> workbench -> width);
-		float y_scale_factor = (float) ((float) workbench_image -> height / (float) wm -> workbench -> height);
-		for( uint16_t y = 0; y < wm -> workbench -> height; y++ )
-			for( uint16_t x = 0; x < wm -> workbench -> width; x++ )
-				workbench_pixel[ (y * wm -> workbench -> width) + x ] = tmp_workbench_image[ (uint64_t) (((uint64_t) (y_scale_factor * y) * workbench_image -> width) + (uint64_t) (x * x_scale_factor)) ];
-
-		// release temporary image
-		std_memory_release( (uintptr_t) tmp_workbench_image, MACRO_PAGE_ALIGN_UP( wm -> workbench -> limit ) >> STD_SHIFT_PAGE );
-
-		// release file content
-		std_memory_release( (uintptr_t) workbench_image, MACRO_PAGE_ALIGN_UP( workbench_file -> byte ) >> STD_SHIFT_PAGE );
-
-		// close file
-		fclose( workbench_file );
-	} else
-		// fill workbench with default color
-		for( uint16_t y = 0; y < wm -> workbench -> height; y++ )
-			for( uint16_t x = 0; x < wm -> workbench -> width; x++ )
-				workbench_pixel[ (y * wm -> workbench -> width) + x ] = STD_COLOR_GRAY;
+		for( uint16_t x = 0; x < wm -> workbench -> width; x++ ) workbench_pixel[ (y * wm -> workbench -> width) + x ] = color;
+	}
 
 	//----------------------------------------------------------------------
 

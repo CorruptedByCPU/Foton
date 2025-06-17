@@ -89,6 +89,7 @@ struct LIB_UI_STRUCTURE {
 	struct LIB_UI_STRUCTURE_ELEMENT_LABEL		**label;
 	struct LIB_UI_STRUCTURE_ELEMENT_RADIO		**radio;
 	struct LIB_UI_STRUCTURE_ELEMENT_TABLE		**table;
+	struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA	**textarea;
 
 	uint64_t					element_active;
 
@@ -100,6 +101,7 @@ struct LIB_UI_STRUCTURE {
 	uint64_t					limit_label;
 	uint64_t					limit_radio;
 	uint64_t					limit_table;
+	uint64_t					limit_textarea;
 
 	struct	STD_STRUCTURE_KEYBOARD_STATE		keyboard;
 
@@ -176,6 +178,20 @@ struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW {
 	uint8_t						flag;
 	uint8_t						reserved;
 	struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL	*cell;
+};
+
+struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA {
+	struct LIB_UI_STRUCTURE_ELEMENT	standard;
+
+	uint8_t				*string;
+
+	// uint64_t			line;
+	// uint64_t			line_length;
+	// uint64_t			line_limit;
+	// uint64_t			line_offset;
+	// uint64_t			line_offset_saved;
+	// uint64_t			line_pointer;
+	// uint64_t			line_pointer_saved;
 };
 
 struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window );

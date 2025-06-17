@@ -47,7 +47,7 @@ struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window ) {
 	ui -> window -> height_minimal = ui -> window -> current_height;
 
 	// no elements by default
-	ui -> limit = ui -> limit_button = ui -> limit_checkbox = ui -> limit_control = ui -> limit_input = ui -> limit_label = ui -> limit_radio = ui -> limit_table = EMPTY;
+	ui -> limit = ui -> limit_button = ui -> limit_checkbox = ui -> limit_control = ui -> limit_input = ui -> limit_label = ui -> limit_radio = ui -> limit_table = ui -> limit_textarea = EMPTY;
 
 	// prepare area for element list
 	ui -> element = (struct LIB_UI_STRUCTURE_ELEMENT **) malloc( ui -> limit );
@@ -60,6 +60,7 @@ struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window ) {
 	ui -> label = (struct LIB_UI_STRUCTURE_ELEMENT_LABEL **) malloc( ui -> limit_label );
 	ui -> radio = (struct LIB_UI_STRUCTURE_ELEMENT_RADIO **) malloc( ui -> limit_radio );
 	ui -> table = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE **) malloc( ui -> limit_table );
+	ui -> textarea = (struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA **) malloc( ui -> limit_textarea );
 
 	// clean up window area
 	lib_ui_clean( ui );
@@ -194,6 +195,22 @@ uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 
 	return ui -> limit_table++;
 }
+
+// uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint64_t height, uint8_t flag ) {
+// 	ui -> textarea = (struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA **) realloc( ui -> textarea, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA ) * (ui -> limit_textarea + TRUE) );
+// 	ui -> textarea[ ui -> limit_textarea ] = (struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA ) );
+
+// 	struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA *textarea = ui -> textarea[ ui -> limit_textarea ];
+
+// 	lib_ui_add( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) textarea, x, y, width, TEXTAREA, EMPTY );
+
+// 	textarea -> standard.height	= LIB_UI_ELEMENT_TEXTAREA_height;
+// 	textarea -> standard.flag	|= flag;
+
+// 	lib_ui_list_insert( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) textarea );
+
+// 	return ui -> limit_textarea++;
+// }
 
 void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t r ) {
 	ui -> table[ id ] -> limit_row = r;

@@ -1,16 +1,16 @@
-Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+Copyright (C) Andrzej Adamczyk (https://blackdev.org/). All rights reserved.
 
 You are free to:
 
-   Share — copy and redistribute the binary or source code in any medium or format.
+   Share - copy and redistribute the binary or source code in any medium or format.
 
 Under the following terms:
 
-   You must give appropriate credit, provide a link to the license or repository.
+   You must give appropriate credit and provide a link to the license or repository.
 
-   You may not use for commercial purposes.
+   You may not use it for commercial purposes.
 
-   You may not share any modified version of binary / source code.
+   You may not share modified versions of the binary or source code.
 
 THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY

@@ -107,7 +107,7 @@ uint64_t lib_string_to_integer( uint8_t *string, uint8_t base ) {
 	uint64_t index = lib_string_length_scope_digit( string );
 
 	// empty string?
-	if( index == -1 ) return 0;	// yes
+	if( index == (uint64_t) -1 ) return 0;	// yes
 
 	// first order of magnitude power
 	uint64_t order_of_magnitude = 1;
