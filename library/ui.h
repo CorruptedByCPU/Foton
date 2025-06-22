@@ -34,6 +34,7 @@
 #define	LIB_UI_COLOR_BACKGROUND_TABLE_HEADER	LIB_UI_COLOR_BACKGROUND_DEFAULT
 #define	LIB_UI_COLOR_BACKGROUND_TABLE_ROW	0xFF010101
 #define	LIB_UI_COLOR_BACKGROUND_TABLE_ROW_SET	LIB_UI_COLOR_BACKGROUND_BUTTON
+#define	LIB_UI_COLOR_BACKGROUND_TEXTAREA	0xFF000000
 #define	LIB_UI_COLOR_BACKGROUND_SHADOW		LIB_UI_COLOR_BACKGROUND_DEFAULT - LIB_UI_COLOR_INCREASE_LITTLE
 
 #define	LIB_UI_ELEMENT_CONTROL_TYPE_close	0x01
@@ -63,6 +64,7 @@
 
 #define	LIB_UI_PADDING_DEFAULT		4
 #define	LIB_UI_PADDING_TABLE		4
+#define	LIB_UI_PADDING_TEXTAREA		4
 
 #define	LIB_UI_RADIUS_DEFAULT		1
 
@@ -74,7 +76,8 @@ enum LIB_UI_ELEMENT_TYPE {
 	INPUT,
 	LABEL,
 	RADIO,
-	TABLE
+	TABLE,
+	TEXTAREA
 };
 
 struct LIB_UI_STRUCTURE {
@@ -185,6 +188,10 @@ struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA {
 
 	uint8_t				*string;
 
+	uint64_t			width;
+	uint64_t			height;
+	uint32_t			*pixel;
+
 	// uint64_t			line;
 	// uint64_t			line_length;
 	// uint64_t			line_limit;
@@ -202,6 +209,7 @@ uint64_t lib_ui_add_input( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 uint64_t lib_ui_add_label( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name );
 uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t group, uint8_t flag );
 uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t flag, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *header, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t c, uint64_t r );
+uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint64_t height, uint8_t flag, uint8_t *string );
 void lib_ui_clean( struct LIB_UI_STRUCTURE *ui );
 void lib_ui_event( struct LIB_UI_STRUCTURE *ui );
 static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync );
@@ -217,5 +225,6 @@ void lib_ui_show_label( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 void lib_ui_show_name( struct LIB_UI_STRUCTURE *ui );
 void lib_ui_show_radio( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_RADIO *radio );
 void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_TABLE *table );
+void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA *textarea );
 static uint64_t lib_ui_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t width_pixel );
 void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t r );

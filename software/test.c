@@ -9,7 +9,7 @@
 #include	"../library/window.h"
 
 #define	TEST_WIDTH_pixel	600
-#define	TEST_HEIGHT_pixel	192
+#define	TEST_HEIGHT_pixel	300
 
 #define	KURO_MIMETYPE_unknown		0x00
 #define	KURO_MIMETYPE_up		0x01
@@ -31,6 +31,8 @@ uint64_t y = 0;
 struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *table_content;
 
 uint32_t **kuro_icons = EMPTY;
+
+uint8_t textarea[] = "https://www.lipsum.com/\n\nWhat is Lorem Ipsum?\nLorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
 
 uint32_t *lib_interface_icon( uint8_t *path ) {
 	// file properties
@@ -155,6 +157,8 @@ void create_ui( void ) {
 	// column width
 	uint64_t column_width = (320 - (LIB_UI_MARGIN_DEFAULT * 3)) >> STD_SHIFT_2;
 
+	// row 0
+
 	// column 0
 	uint64_t x0 = LIB_UI_MARGIN_DEFAULT;
 	uint64_t y0 = LIB_UI_HEADER_HEIGHT + LIB_UI_PADDING_DEFAULT;
@@ -241,6 +245,12 @@ void create_ui( void ) {
 		y++;
 	}
 	lib_ui_add_table( ui, x2, y2, -1, TEST_HEIGHT_pixel - y2 - LIB_UI_MARGIN_DEFAULT, EMPTY, table_header, table_content, 2, y );
+
+	// row 1
+
+	// column 0
+	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_PADDING_DEFAULT;
+	lib_ui_add_textarea( ui, x0, y1, column_width + LIB_UI_PADDING_DEFAULT + column_width, -1, EMPTY, (uint8_t *) &textarea );
 
 	lib_window_name( ui -> window, (uint8_t *) "GUI Debug Window" );
 
