@@ -85,8 +85,15 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 			// no enough memory
 			return EMPTY;
 
+		// set crucial properties
+		object -> descriptor -> pixel		= (uint32_t *) ((uintptr_t) object -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
+		object -> descriptor -> current_x	= x;
+		object -> descriptor -> current_y	= y;
+		object -> descriptor -> current_width	= width;
+		object -> descriptor -> current_height	= height;
+
 		// set flags
-		object -> descriptor -> flags = flags;
+		object -> descriptor -> flags		= flags;
 
 		// register object on list
 		wm_object_insert( object );
@@ -114,7 +121,7 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t hidd
 	struct WM_STRUCTURE_OBJECT **list = wm -> list;
 
 	// find object at current cursor coordinates
-	for( uint64_t i = wm -> list_start - 1; i < wm -> list_limit; i++ ) {
+	for( uint64_t i = TRUE; i < wm -> list_limit; i++ ) {
 		// object marked as cursor?
 		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;	// ignore
 
@@ -151,7 +158,7 @@ void wm_object_insert( struct WM_STRUCTURE_OBJECT *object ) {
 	list[ offset ] = object;
 
 	// special object?
-	if( object -> descriptor -> flags & (LIB_WINDOW_FLAG_panel | LIB_WINDOW_FLAG_cursor) ) wm -> list_start++;
+	if( object -> descriptor -> flags & (LIB_WINDOW_FLAG_panel | LIB_WINDOW_FLAG_cursor | LIB_WINDOW_FLAG_menu) ) wm -> list_start++;
 
 	// amount of objects on list
 	wm -> list_limit++;

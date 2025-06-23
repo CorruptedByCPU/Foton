@@ -218,16 +218,16 @@ uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t 
 	return ui -> limit_textarea++;
 }
 
+void lib_ui_clean( struct LIB_UI_STRUCTURE *ui ) {
+	lib_ui_fill_rectangle( ui -> window -> pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, ui -> window -> current_width, ui -> window -> current_height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
+}
+
 void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t r ) {
 	ui -> table[ id ] -> limit_row = r;
 	ui -> table[ id ] -> row = row;
 
 	ui -> table[ id ] -> offset_x = EMPTY;
 	ui -> table[ id ] -> offset_y = EMPTY;
-}
-
-void lib_ui_clean( struct LIB_UI_STRUCTURE *ui ) {
-	lib_ui_fill_rectangle( ui -> window -> pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, ui -> window -> current_width, ui -> window -> current_height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
 }
 
 void lib_ui_event( struct LIB_UI_STRUCTURE *ui ) {
@@ -769,10 +769,6 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 		}
 	}
 
-	// if( table -> offset_y + table_height > (content_height - LIB_UI_ELEMENT_TABLE_height)) {
-	// 	if( (content_height - LIB_UI_ELEMENT_TABLE_height) > table_height ) table -> offset_y = (content_height - LIB_UI_ELEMENT_TABLE_height) - table_height;
-	// 	else table -> offset_y = LIB_UI_ELEMENT_TABLE_height;
-	// }
 
 	for( uint64_t y = 0; y < LIB_UI_ELEMENT_TABLE_height; y++ )
 		for( uint64_t x = 0; x < table_width; x++ )
@@ -788,110 +784,53 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 }
 
 void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA *textarea ) {
-	// set pointer location of element inside window
-	uint32_t *pixel = ui -> window -> pixel + (textarea -> standard.y * ui -> window -> current_width) + textarea -> standard.x;
+	// in progress
 
-	uint16_t textarea_width = textarea -> standard.width; if( textarea -> standard.width == (uint16_t) STD_MAX_unsigned ) textarea_width = ui -> window -> current_width - textarea -> standard.x - LIB_UI_MARGIN_DEFAULT;
-	uint16_t textarea_height = textarea -> standard.height; if( textarea -> standard.height == (uint16_t) STD_MAX_unsigned ) textarea_height = ui -> window -> current_height - textarea -> standard.y - LIB_UI_MARGIN_DEFAULT;
+// 	// set pointer location of element inside window
+// 	uint32_t *pixel = ui -> window -> pixel + (textarea -> standard.y * ui -> window -> current_width) + textarea -> standard.x;
 
-	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, textarea_width, textarea_height, LIB_UI_COLOR_BACKGROUND_TEXTAREA );
+// 	uint16_t textarea_width = textarea -> standard.width; if( textarea -> standard.width == (uint16_t) STD_MAX_unsigned ) textarea_width = ui -> window -> current_width - textarea -> standard.x - LIB_UI_MARGIN_DEFAULT;
+// 	uint16_t textarea_height = textarea -> standard.height; if( textarea -> standard.height == (uint16_t) STD_MAX_unsigned ) textarea_height = ui -> window -> current_height - textarea -> standard.y - LIB_UI_MARGIN_DEFAULT;
 
-	if( ! textarea -> pixel ) {
-		uint8_t *tmp = textarea -> string;
+// 	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, textarea_width, textarea_height, LIB_UI_COLOR_BACKGROUND_TEXTAREA );
 
-		uint64_t content_width;
-		while( *tmp ) {
-			uint64_t line_in_characters = lib_string_length_line( tmp );
-			uint64_t line_in_pixels = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, tmp, line_in_characters );
-			if( content_width < line_in_pixels ) content_width = line_in_pixels;
+// 	uint64_t content_width = EMPTY;
 
-			tmp += line_in_characters + 1;
-		}
-		content_width += (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2);
+// 	uint8_t *line = textarea -> string; while( *line ) {
+// 		uint64_t line_in_characters = lib_string_length_line( line );
+// 		uint64_t line_in_pixels = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, line, line_in_characters );
+// 		if( content_width < line_in_pixels ) content_width = line_in_pixels + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2);
+
+// 		line += line_in_characters + TRUE;
+// 	}
 	
-		uint64_t string_lines = lib_string_count( textarea -> string, lib_string_length( textarea -> string ), '\n' ) + 1;
-		uint64_t content_height = LIB_FONT_HEIGHT_pixel * string_lines; if( content_height < textarea_height ) content_height = textarea_height;
+// 	uint64_t string_lines = lib_string_count( textarea -> string, lib_string_length( textarea -> string ), '\n' ) + 1;
+// 	uint64_t content_height = (LIB_FONT_HEIGHT_pixel * string_lines) + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2); if( content_height < textarea_height ) content_height = textarea_height;
 
-		log( "%u, %u\n", content_width, content_height );
-	}
+// 	if( textarea -> pixel ) free( textarea -> pixel );
+// 	textarea -> pixel = (uint32_t *) malloc( (content_width * content_height) << STD_VIDEO_DEPTH_shift );
 
-	// if( textarea -> pixel ) free( textarea -> pixel );
-	// textarea -> pixel = (uint32_t *) malloc( (content_width * content_height) << STD_VIDEO_DEPTH_shift );
+// 	lib_ui_fill_rectangle( textarea -> pixel, content_width, EMPTY, content_width, content_height, LIB_UI_COLOR_BACKGROUND_TEXTAREA );
 
-	// lib_ui_fill_rectangle( textarea -> pixel, content_width, EMPTY, content_width, LIB_UI_ELEMENT_TABLE_height, LIB_UI_COLOR_BACKGROUND_TABLE_HEADER );
-	// lib_ui_fill_rectangle( textarea -> pixel + (LIB_UI_ELEMENT_TABLE_height * content_width), content_width, EMPTY, content_width, content_height - LIB_UI_ELEMENT_TABLE_height, LIB_UI_COLOR_BACKGROUND_TABLE_ROW );
+// 	uint32_t *pixel_paragraph = (uint32_t *) textarea -> pixel + (LIB_UI_PADDING_TEXTAREA * content_width) + LIB_UI_PADDING_TEXTAREA;
 
-	// for( uint64_t x = 0; x < textarea -> limit_column; x++ ) {
-	// 	if( ! textarea -> header[ x ].cell.name ) continue;
+// 	uint8_t *paragraph = textarea -> string; while( *paragraph != STD_ASCII_TERMINATOR ) {
+// 		uint64_t line_in_characters = lib_string_length_line( paragraph );
+// 		if( line_in_characters ) lib_font( LIB_FONT_FAMILY_ROBOTO, paragraph, line_in_characters, STD_COLOR_WHITE, pixel_paragraph, content_width, LIB_FONT_FLAG_ALIGN_left );
 
-	// 	uint64_t textarea_width_column = content_width / textarea -> limit_column;
-	// 	if( content_width != textarea_width ) textarea_width_column = textarea -> header[ x ].width;
+// 		pixel_paragraph += (LIB_FONT_HEIGHT_pixel * content_width );
 
-	// 	uint32_t *pixel_textarea_header = textarea -> pixel + (textarea_width_column * x);
-	// 	if( LIB_FONT_HEIGHT_pixel < LIB_UI_ELEMENT_TABLE_height ) pixel_textarea_header += ((LIB_UI_ELEMENT_TABLE_height - LIB_FONT_HEIGHT_pixel) >> TRUE) * content_width;
+// 		paragraph += line_in_characters;
+// 		if( *paragraph == STD_ASCII_NEW_LINE ) paragraph++;
+// 	}
 
-	// 	if( textarea -> header[ x ].cell.flag & LIB_FONT_FLAG_ALIGN_right ) pixel_textarea_header += textarea_width_column - LIB_UI_PADDING_TABLE;
-	// 	else pixel_textarea_header += LIB_UI_PADDING_TABLE;
+// 	uint64_t y_limit = textarea_height;
+// 	if( content_height < textarea_height ) y_limit = content_height;
 
-	// 	uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, textarea -> header[ x ].cell.name, lib_string_length( textarea -> header[ x ].cell.name ), textarea_width_column );
-	// 	lib_font( LIB_FONT_FAMILY_ROBOTO, textarea -> header[ x ].cell.name, limit, LIB_UI_COLOR_DEFAULT, pixel_textarea_header, content_width, textarea -> header[ x ].cell.flag & LIB_FONT_FLAG_mask );
-	// }
-
-	// for( uint64_t y = 0; y < textarea -> limit_row; y++ ) {
-	// 	uint32_t *pixel_textarea_row = textarea -> pixel + (LIB_UI_ELEMENT_TABLE_height * textarea_width) + (LIB_UI_ELEMENT_TABLE_height * content_width * y);
-
-	// 	uint32_t color_foreground = STD_COLOR_WHITE;
-
-	// 	color_background = LIB_UI_COLOR_BACKGROUND_TABLE_ROW;
-	// 	if( textarea -> row[ y ].flag & LIB_UI_ELEMENT_FLAG_set ) { color_background = LIB_UI_COLOR_BACKGROUND_TABLE_ROW_SET; color_foreground = STD_COLOR_BLACK; }
-	// 	if( textarea -> row[ y ].flag & LIB_UI_ELEMENT_FLAG_hover ) color_background += LIB_UI_COLOR_INCREASE;
-	// 	lib_ui_fill_rectangle( pixel_textarea_row, content_width, EMPTY, content_width, LIB_UI_ELEMENT_TABLE_height, color_background );
-
-	// 	for( uint64_t x = 0; x < textarea -> limit_column; x++ ) {
-	// 		uint64_t textarea_width_column = content_width / textarea -> limit_column;
-	// 		if( content_width != textarea_width ) textarea_width_column = textarea -> header[ x ].width;
-
-	// 		uint32_t *pixel_textarea_cell = pixel_textarea_row + (((LIB_UI_ELEMENT_TABLE_height - LIB_FONT_HEIGHT_pixel) >> TRUE) * content_width) + (textarea_width_column * x);
-	// 		if( textarea -> row[ y ].cell[ x ].flag & LIB_FONT_FLAG_ALIGN_right ) pixel_textarea_cell += textarea_width_column - LIB_UI_PADDING_TABLE;
-	// 		else pixel_textarea_cell += LIB_UI_PADDING_TABLE;
-
-	// 		uint64_t offset = EMPTY;
-	// 		if( textarea -> row[ y ].cell[ x ].icon ) {
-	// 			offset = 16 + LIB_UI_PADDING_TABLE;
-
-	// 			for( uint64_t iy = 0; iy < 16; iy++ )
-	// 				for( uint64_t ix = 0; ix < 16; ix++ )
-	// 					pixel_textarea_cell[ (iy * content_width) + ix ] = lib_color_blend( pixel_textarea_cell[ (iy * content_width) + ix ], textarea -> row[ y ].cell[ x ].icon[ (iy * 16) + ix ] );
-	// 		}
-	// 		if( textarea -> row[ y ].cell[ x ].name ) {
-	// 			uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, textarea -> row[ y ].cell[ x ].name, lib_string_length( textarea -> row[ y ].cell[ x ].name ), textarea_width_column );
-	// 			lib_font( LIB_FONT_FAMILY_ROBOTO, textarea -> row[ y ].cell[ x ].name, limit, color_foreground, pixel_textarea_cell + offset, content_width, textarea -> row[ y ].cell[ x ].flag & LIB_FONT_FLAG_mask );
-	// 		}
-	// 	}
-	// }
-
-	uint64_t name_length_max = lib_string_length_line( textarea -> string );
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, textarea -> string, name_length_max ) > textarea -> standard.width - (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2) ) { if( ! --name_length_max ) break; }
-
-	pixel += LIB_UI_PADDING_TEXTAREA * ui -> window -> current_width;
-	if( name_length_max ) lib_font( LIB_FONT_FAMILY_ROBOTO, textarea -> string, name_length_max, 0xFFFFFFFF, pixel + LIB_UI_PADDING_TEXTAREA, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_left );
-
-	// // if( textarea -> offset_y + textarea_height > (content_height - LIB_UI_ELEMENT_TABLE_height)) {
-	// // 	if( (content_height - LIB_UI_ELEMENT_TABLE_height) > textarea_height ) textarea -> offset_y = (content_height - LIB_UI_ELEMENT_TABLE_height) - textarea_height;
-	// // 	else textarea -> offset_y = LIB_UI_ELEMENT_TABLE_height;
-	// // }
-
-	// for( uint64_t y = 0; y < LIB_UI_ELEMENT_TABLE_height; y++ )
-	// 	for( uint64_t x = 0; x < textarea_width; x++ )
-	// 		pixel[ (y * ui -> window -> current_width) + x ] = textarea -> pixel[ (y * content_width) + x ];
-
-	// uint64_t y_limit = textarea_height;
-	// if( content_height < textarea_height ) y_limit = content_height;
-
-	// uint32_t *pixel_at_offset = (uint32_t *) textarea -> pixel + (textarea -> offset_y * content_width);
-	// for( uint64_t y = LIB_UI_ELEMENT_TABLE_height; y < y_limit; y++ )
-	// 	for( uint64_t x = 0; x < textarea_width; x++ )
-	// 		pixel[ (y * ui -> window -> current_width) + x ] = pixel_at_offset[ (y * content_width) + x ];
+// 	uint32_t *pixel_at_offset = (uint32_t *) textarea -> pixel + (textarea -> offset_y * content_width) + textarea -> offset_x;
+// 	for( uint64_t y = 0; y < y_limit; y++ )
+// 		for( uint64_t x = 0; x < textarea_width; x++ )
+// 			pixel[ (y * ui -> window -> current_width) + x ] = pixel_at_offset[ (y * content_width) + x ];
 }
 
 static uint64_t lib_ui_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t width_pixel ) {

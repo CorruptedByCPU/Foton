@@ -146,6 +146,17 @@ struct LIB_UI_STRUCTURE_ELEMENT_LABEL {
 	struct LIB_UI_STRUCTURE_ELEMENT	standard;
 };
 
+struct LIB_UI_STRUCTURE_ELEMENT_LIST {
+	struct LIB_UI_STRUCTURE_ELEMENT	standard;
+
+};
+
+struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY {
+	uint32_t 	*icon;
+	uint8_t		*name;
+	uint8_t		*shortcut;
+};
+
 struct LIB_UI_STRUCTURE_ELEMENT_RADIO {
 	struct LIB_UI_STRUCTURE_ELEMENT	standard;
 	uint8_t				set;
@@ -188,9 +199,10 @@ struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA {
 
 	uint8_t				*string;
 
-	uint64_t			width;
-	uint64_t			height;
 	uint32_t			*pixel;
+
+	uint64_t			offset_x;
+	uint64_t			offset_y;
 
 	// uint64_t			line;
 	// uint64_t			line_length;

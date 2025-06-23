@@ -17,6 +17,7 @@
 	//----------------------------------------------------------------------
 	#include	"wm/config.h"
 	#include	"wm/fill.h"
+	#include	"wm/menu.h"
 	#include	"wm/object.h"
 	#include	"wm/panel.h"
 	#include	"wm/zone.h"
@@ -27,10 +28,10 @@
 	//----------------------------------------------------------------------
 	// functions / procedures
 	//----------------------------------------------------------------------
-	// #include	"wm/cursor.c"
 	#include	"wm/event.c"
 	#include	"wm/fill.c"
 	#include	"wm/init.c"
+	#include	"wm/menu.c"
 	#include	"wm/object.c"
 	#include	"wm/panel.c"
 	#include	"wm/release.c"

@@ -112,7 +112,7 @@ uint64_t lib_font( uint8_t font, uint8_t *string, uint64_t length, uint32_t colo
 	if( flag & LIB_FONT_FLAG_ALIGN_right ) pixel -= lib_font_length_string( font, string, length );
 
 	// print all characters from string
-	for( uint8_t i = 0; i < length; i++ ) pixel += lib_font_char( font, scanline_pixel, pixel, string[ i ] - 0x20, color, flag );
+	for( uint64_t i = 0; i < length; i++ ) pixel += lib_font_char( font, scanline_pixel, pixel, string[ i ] - 0x20, color, flag );
 
 	// return length of string in pixels
 	return lib_font_length_string( font, string, length );

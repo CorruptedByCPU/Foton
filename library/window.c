@@ -105,11 +105,6 @@ struct LIB_WINDOW_STRUCTURE *lib_window( int16_t x, int16_t y, uint16_t width, u
 
 	// set default properties
 	struct LIB_WINDOW_STRUCTURE *window = (struct LIB_WINDOW_STRUCTURE *) answer -> descriptor;
-	window -> current_x		= request -> x;
-	window -> current_y		= request -> y;
-	window -> current_width		= request -> width;
-	window -> current_height	= request -> height;
-	window -> pixel = (uint32_t *) ((uintptr_t) window + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
 	// properties of console window
 	return (struct LIB_WINDOW_STRUCTURE *) answer -> descriptor;

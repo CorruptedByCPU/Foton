@@ -131,8 +131,14 @@ void wm_init( void ) {
 
 	//----------------------------------------------------------------------
 
+	// execute menu function as thread
+	uint8_t wm_string_menu[] = "wm menu";
+	std_thread( (uintptr_t) &wm_menu, (uint8_t *) &wm_string_menu, sizeof( wm_string_menu ) );
+
+	//----------------------------------------------------------------------
+
 	// debug
-	// std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
-	std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
+	std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
+	// std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
 	// std_exec( (uint8_t *) "3d /var/bird.obj", 16, EMPTY, TRUE );
 }

@@ -43,11 +43,12 @@ if [ ! -d limine ]; then git clone https://github.com/limine-bootloader/limine -
 rm -rf build && mkdir -p build/iso
 rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 
-# git deosn't allow empty folder
-mkdir -p root/{bin,lib/modules}
+# git doesn't allow empty folder
+mkdir -p root/{bin,lib/{include,modules}}
 
 # copy default filesystem structure
 cp -rf root build
+cp library/*.h build/root/lib/include
 
 # build subroutines required by kernel
 EXT=""

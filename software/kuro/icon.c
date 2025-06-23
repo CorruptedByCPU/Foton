@@ -11,7 +11,7 @@ uint8_t kuro_icon_assign( struct STD_STRUCTURE_DIR *file ) {
 			// check for plain text
 			if( file -> name_limit > 4 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 4 ], (uint8_t *) ".txt", 4 ) ) {
 				// load text icon (if not present)
-				if( ! kuro_icon[ PLAIN_TEXT ] ) kuro_icon_register( PLAIN_TEXT, (uint8_t *) "/var/share/media/icon/default/text-plain.tga" );
+				if( ! kuro_icon[ PLAIN_TEXT ] ) kuro_icon_register( PLAIN_TEXT, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-plain.tga" );
 
 				// assign
 				return PLAIN_TEXT;
@@ -20,25 +20,25 @@ uint8_t kuro_icon_assign( struct STD_STRUCTURE_DIR *file ) {
 			// check for log file
 			if( file -> name_limit > 4 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 4 ], (uint8_t *) ".log", 4 ) ) {
 				// load text icon (if not present)
-				if( ! kuro_icon[ LOG ] ) kuro_icon_register( LOG, (uint8_t *) "/var/share/media/icon/default/text-x-log.tga" );
+				if( ! kuro_icon[ LOG ] ) kuro_icon_register( LOG, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-x-log.tga" );
 
 				// assign
 				return LOG;
 			}
 
-			// check for object file
-			if( file -> name_limit > 4 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 4 ], (uint8_t *) ".obj", 4 ) ) {
-				// load object icon (if not present)
-				if( ! kuro_icon[ OBJECT ] ) kuro_icon_register( OBJECT, (uint8_t *) "/var/share/media/icon/default/object-group.tga" );
+			// check for C header file
+			if( file -> name_limit > 2 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 2 ], (uint8_t *) ".h", 2 ) ) {
+				// load C header icon (if not present)
+				if( ! kuro_icon[ HEADER ] ) kuro_icon_register( HEADER, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-x-chdr.tga" );
 
 				// assign
-				return OBJECT;
+				return HEADER;
 			}
 
 			// check for image file
 			if( file -> name_limit > 4 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 4 ], (uint8_t *) ".tga", 4 ) ) {
 				// load image icon (if not present)
-				if( ! kuro_icon[ IMAGE ] ) kuro_icon_register( IMAGE, (uint8_t *) "/var/share/media/icon/default/image-icon.tga" );
+				if( ! kuro_icon[ IMAGE ] ) kuro_icon_register( IMAGE, (uint8_t *) "/var/share/media/icon/default/mimetypes/image-icon.tga" );
 
 				// assign
 				return IMAGE;
@@ -57,7 +57,7 @@ uint8_t kuro_icon_assign( struct STD_STRUCTURE_DIR *file ) {
 					// library?
 					if( elf -> type == LIB_ELF_TYPE_shared_object ) {
 						// load library icon (if not present)
-						if( ! kuro_icon[ LIBRARY ] ) kuro_icon_register( LIBRARY, (uint8_t *) "/var/share/media/icon/default/application-x-sharedlib.tga" );
+						if( ! kuro_icon[ LIBRARY ] ) kuro_icon_register( LIBRARY, (uint8_t *) "/var/share/media/icon/default/mimetypes/application-x-sharedlib.tga" );
 
 						// release file content
 						free( elf );
@@ -69,7 +69,7 @@ uint8_t kuro_icon_assign( struct STD_STRUCTURE_DIR *file ) {
 					// module?
 					if( file -> name_limit > 3 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 3 ], (uint8_t *) ".ko", 3 ) ) {
 						// load module icon (if not present)
-						if( ! kuro_icon[ MODULE ] ) kuro_icon_register( MODULE, (uint8_t *) "/var/share/media/icon/default/text-x-hex.tga" );
+						if( ! kuro_icon[ MODULE ] ) kuro_icon_register( MODULE, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-x-hex.tga" );
 
 						// release file content
 						free( elf );
@@ -80,7 +80,7 @@ uint8_t kuro_icon_assign( struct STD_STRUCTURE_DIR *file ) {
 
 					else {
 						// load executable icon (if not present)
-						if( ! kuro_icon[ EXECUTABLE ] ) kuro_icon_register( EXECUTABLE, (uint8_t *) "/var/share/media/icon/default/application-x-executable.tga" );
+						if( ! kuro_icon[ EXECUTABLE ] ) kuro_icon_register( EXECUTABLE, (uint8_t *) "/var/share/media/icon/default/app/application-x-executable.tga" );
 
 						// release file content
 						free( elf );

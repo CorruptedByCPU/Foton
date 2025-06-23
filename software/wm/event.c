@@ -50,11 +50,8 @@ void wm_event( void ) {
 					// assign parent process to object
 					new -> pid = pid;
 
-					// inform parent about dimensions of created window
-					new -> descriptor -> current_x		= new -> x;
-					new -> descriptor -> current_y		= new -> y;
-					new -> descriptor -> current_width	= new -> width;
-					new -> descriptor -> current_height	= new -> height;
+					// update pixel properties
+					new -> descriptor -> pixel = (uint32_t *) ((uintptr_t) answer -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 				}
 
 				// send answer

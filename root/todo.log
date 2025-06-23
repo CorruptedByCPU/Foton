@@ -3,9 +3,10 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
 started:
-- file management on external stoarges (like VirtIO-Block)
+- refactoring UI library
 
 yet to be done:
+- file management on external stoarges (like VirtIO-Block)
 - UI of libinterface.so
 - element input of libinterface.so connect with libinput.so
 - unused library, remove from memory
