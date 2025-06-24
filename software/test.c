@@ -162,7 +162,7 @@ void create_ui( void ) {
 	// column 0
 	uint64_t x0 = LIB_UI_MARGIN_DEFAULT;
 	uint64_t y0 = LIB_UI_HEADER_HEIGHT + LIB_UI_PADDING_DEFAULT;
-	lib_ui_add_label( ui, x0, y0, column_width, (uint8_t *) "Use TAB/SHIFT key or mouse for interaction." );
+	lib_ui_add_label( ui, x0, y0, column_width, (uint8_t *) "Use TAB/SHIFT key or mouse for interaction.", EMPTY );
 	y0 += LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT;
 	lib_ui_add_input( ui, x0, y0, column_width, (uint8_t *) "Input.0", EMPTY );
 	y0 += LIB_UI_ELEMENT_INPUT_height + LIB_UI_PADDING_DEFAULT;
@@ -267,9 +267,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	// register initial icon (directory change)
 	kuro_icon_register( KURO_MIMETYPE_up, (uint8_t *) "/var/share/media/icon/default/up.tga" );
-	kuro_icon_register( KURO_MIMETYPE_plain_text, (uint8_t *) "/var/share/media/icon/default/text-plain.tga" );
-	kuro_icon_register( KURO_MIMETYPE_directory, (uint8_t *) "/var/share/media/icon/default/folder.tga" );
-	kuro_icon_register( KURO_MIMETYPE_unknown, (uint8_t *) "/var/share/media/icon/default/unknown.tga" );
+	kuro_icon_register( KURO_MIMETYPE_plain_text, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-plain.tga" );
+	kuro_icon_register( KURO_MIMETYPE_directory, (uint8_t *) "/var/share/media/icon/default/places/folder.tga" );
+	kuro_icon_register( KURO_MIMETYPE_unknown, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );
 
 	struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, TEST_WIDTH_pixel, TEST_HEIGHT_pixel );
 	window -> flags = LIB_WINDOW_FLAG_resizable;

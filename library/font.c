@@ -104,18 +104,21 @@ uint64_t lib_font_length_string( uint8_t font, uint8_t *string, uint64_t length 
 
 // main function of library
 uint64_t lib_font( uint8_t font, uint8_t *string, uint64_t length, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t flag ) {
+	// string length in pixels
+	uint64_t string_pixel = lib_font_length_string( font, string, length );
+
 	// no support for empty strings or if there is at least 1 character not printable
-	if( ! lib_font_length_string( font, string, length ) ) return EMPTY;
+	if( ! string_pixel ) return EMPTY;
 
 	// move pointer of destination according of alignment
-	if( flag & LIB_FONT_FLAG_ALIGN_center ) pixel -= lib_font_length_string( font, string, length ) >> 1;
-	if( flag & LIB_FONT_FLAG_ALIGN_right ) pixel -= lib_font_length_string( font, string, length );
+	if( flag & LIB_FONT_FLAG_ALIGN_center ) pixel -= string_pixel >> STD_SHIFT_2;
+	if( flag & LIB_FONT_FLAG_ALIGN_right ) pixel -= string_pixel;
 
 	// print all characters from string
 	for( uint64_t i = 0; i < length; i++ ) pixel += lib_font_char( font, scanline_pixel, pixel, string[ i ] - 0x20, color, flag );
 
 	// return length of string in pixels
-	return lib_font_length_string( font, string, length );
+	return string_pixel;
 }
 
 uint64_t lib_font_value( uint8_t font, uint64_t value, uint8_t base, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t flag ) {

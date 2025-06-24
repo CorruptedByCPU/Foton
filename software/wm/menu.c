@@ -3,11 +3,76 @@
 ===============================================================================*/
 
 #include	"../../library/font.h"
+#include	"../../library/image.h"
 #include	"../../library/ui.h"
 
+uint8_t wm_menu_header[] = "Foton v0.629";
+
+uint32_t *menu_icon_load( uint8_t *path ) {
+	// file properties
+	FILE *file = EMPTY;
+
+	// file exist?
+	if( (file = fopen( path, EMPTY )) ) {
+		// assign area for file
+		struct LIB_IMAGE_STRUCTURE_TGA *image = (struct LIB_IMAGE_STRUCTURE_TGA *) malloc( MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
+
+		// load file content
+		fread( file, (uint8_t *) image, file -> byte );
+
+		// copy image content to cursor object
+		uint32_t *icon = (uint32_t *) malloc( image -> width * image -> height * STD_VIDEO_DEPTH_byte );
+		lib_image_tga_parse( (uint8_t *) image, icon, file -> byte );
+
+		// release file content
+		free( image );
+
+		// close file
+		fclose( file );
+
+		// done
+		return icon;
+	}
+
+	// cannot locate specified file
+	return EMPTY;
+}
+
 uint64_t wm_menu( void ) {
+	// initial dimension of menu window
+	uint64_t menu_width	= lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &wm_menu_header, sizeof( wm_menu_header ) - 1 );
+	uint64_t menu_height	= LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT;
+
+	//----------------------------------------------------------------------
+
+	// add entries to menu list
+	struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *entry = (struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY ) );
+
+		// first entry
+		uint8_t file_manager_name[] = "File Manager";
+		uint8_t file_manager_shortcut[] = "Menu + f";
+		entry[ 0 ].icon		= lib_image_scale( menu_icon_load( (uint8_t *) "/var/share/media/icon/default/app/system-file-manager.tga" ), 48, 48, 16, 16 );
+		entry[ 0 ].name		= (uint8_t *) calloc( sizeof( file_manager_name ) ); for( uint8_t i = 0; i < sizeof( file_manager_name ); i++ ) entry[ 0 ].name[ i ] = file_manager_name[ i ];
+		entry[ 0 ].shortcut	= (uint8_t *) calloc( sizeof( file_manager_shortcut ) ); for( uint8_t i = 0; i < sizeof( file_manager_shortcut ); i++ ) entry[ 0 ].shortcut[ i ] = file_manager_shortcut[ i ];;
+
+		uint64_t entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &file_manager_name, sizeof( file_manager_name ) - 1 );
+		if( entry[ 0 ].icon )		entry_pixel += LIB_UI_PADDING_DEFAULT + 16;
+		if( entry[ 0 ].shortcut )	entry_pixel += LIB_UI_PADDING_DEFAULT + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &file_manager_shortcut, sizeof( file_manager_shortcut ) - 1 );
+
+		// widest entry of menu
+		if( menu_width < entry_pixel ) menu_width = entry_pixel;
+
+		// expand by default entry height
+		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
+
+	//----------------------------------------------------------------------
+
+	// apply margins and header
+	menu_width	+= LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2;
+	menu_height	+= LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2;
+
 	// create menu object
-	wm -> menu = wm_object_create( 0, wm -> panel -> y - 320, 180, 320, LIB_WINDOW_FLAG_menu | LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy );
+	wm -> menu = wm_object_create( 0, wm -> panel -> y - menu_height, menu_width, menu_height, LIB_WINDOW_FLAG_menu | LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy );
 
 	// object name
 	uint8_t menu_name[] = "{menu}";
@@ -19,12 +84,12 @@ uint64_t wm_menu( void ) {
 	//----------------------------------------------------------------------
 
 	struct LIB_UI_STRUCTURE *ui = lib_ui( wm -> menu -> descriptor );
-	lib_ui_clean( ui );
 
+	lib_ui_add_label( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), (uint8_t *) &wm_menu_header, LIB_FONT_FLAG_ALIGN_center | LIB_FONT_FLAG_WEIGHT_bold );
 
-	// debug
-	uint8_t title[] = "Foton v0.628";
-	lib_font( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &title, sizeof( title ) - 1, 0xFFFFFFFF, wm -> menu -> descriptor -> pixel + (wm -> menu -> width >> STD_SHIFT_2) + (LIB_UI_MARGIN_DEFAULT * wm -> menu -> width), wm -> menu -> width, LIB_FONT_FLAG_ALIGN_center | LIB_FONT_FLAG_WEIGHT_bold );
+	lib_ui_add_list( ui, LIB_UI_MARGIN_DEFAULT, (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2) + LIB_FONT_HEIGHT_pixel, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), wm -> menu -> height - ((LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2) + LIB_FONT_HEIGHT_pixel), entry, 1 );
+
+	lib_ui_flush( ui );
 
 	//----------------------------------------------------------------------
 
