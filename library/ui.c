@@ -239,7 +239,13 @@ uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t 
 }
 
 void lib_ui_clean( struct LIB_UI_STRUCTURE *ui ) {
-	lib_ui_fill_rectangle( ui -> window -> pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, ui -> window -> current_width, ui -> window -> current_height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
+	lib_ui_fill_rectangle( ui -> window -> pixel, ui -> window -> current_width, EMPTY, ui -> window -> current_width, ui -> window -> current_height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
+
+	for( uint64_t y = 0; y < ui -> window -> current_height; y++ )
+		for( uint64_t x = 0; x < ui -> window -> current_width; x++ ) {
+			if( !x || !y ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = LIB_UI_COLOR_BACKGROUND_DEFAULT + LIB_UI_COLOR_INCREASE_LITTLE;
+			if( x == ui -> window -> current_width - 1 || y == ui -> window -> current_height - 1 ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = LIB_UI_COLOR_BACKGROUND_DEFAULT - LIB_UI_COLOR_INCREASE_LITTLE;
+		}
 }
 
 void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t r ) {
@@ -350,8 +356,21 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 	for( uint64_t i = 0; i < ui -> limit; i++ ) {
 		uint8_t flush_element = FALSE;
 
+		// outside of element?
 		if( ui -> window -> x < ui -> element[ i ] -> x || ui -> window -> x > (ui -> element[ i ] -> x + ui -> element[ i ] -> width) || ui -> window -> y < ui -> element[ i ] -> y || (ui -> window -> y > ui -> element[ i ] -> y + ui -> element[ i ] -> height) ) {
 			switch( ui -> element[ i ] -> type ) {
+				case LIST: {
+					struct LIB_UI_STRUCTURE_ELEMENT_LIST *list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST *) ui -> element[ i ];
+
+					for( uint64_t y = 0; y < list -> limit_entry; y++ ) {
+						if( list -> entry[ y ].flag & LIB_UI_ELEMENT_FLAG_hover ) flush_element = TRUE;
+
+						list -> entry[ y ].flag &= ~LIB_UI_ELEMENT_FLAG_hover;
+					}
+
+					break;
+				}
+
 				default: {
 					if( ui -> element[ i ] -> flag & LIB_UI_ELEMENT_FLAG_hover ) {
 						ui -> element[ i ] -> flag ^= LIB_UI_ELEMENT_FLAG_hover;
@@ -361,6 +380,8 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 				}
 			}
 		} else {
+			// inside of element
+
 			if( mouse -> button == STD_IPC_MOUSE_BUTTON_left ) {
 				switch( ui -> element[ i ] -> type ) {
 					case TABLE: {
@@ -408,21 +429,54 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 			}
 
 			if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) {
-				if( ui -> element[ i ] -> type == RADIO ) {
-					struct LIB_UI_STRUCTURE_ELEMENT_RADIO *radio = (struct LIB_UI_STRUCTURE_ELEMENT_RADIO *) ui -> element[ i ];
-					for( uint64_t j = 0; j < ui -> limit_radio; j++ )
-						if( ui -> radio[ j ] -> group == radio -> group ) {
-							ui -> radio[ j ] -> standard.flag &= ~LIB_UI_ELEMENT_FLAG_set;
-							lib_ui_show_element( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> radio[ j ] );
-						}
-				}
+				switch( ui -> element[ i ] -> type ) {
+					case LIST: {
+						struct LIB_UI_STRUCTURE_ELEMENT_LIST *list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST *) ui -> element[ i ];
 
-				ui -> element[ i ] -> flag ^= LIB_UI_ELEMENT_FLAG_set;
+						uint64_t r = ((ui -> window -> y - list -> standard.y) / LIB_UI_ELEMENT_LIST_ENTRY_height);
+
+						list -> entry[ r ].flag = LIB_UI_ELEMENT_FLAG_event;
+
+						break;
+					}
+
+					case RADIO: {
+						struct LIB_UI_STRUCTURE_ELEMENT_RADIO *radio = (struct LIB_UI_STRUCTURE_ELEMENT_RADIO *) ui -> element[ i ];
+
+						for( uint64_t j = 0; j < ui -> limit_radio; j++ )
+							if( ui -> radio[ j ] -> group == radio -> group ) {
+								ui -> radio[ j ] -> standard.flag &= ~LIB_UI_ELEMENT_FLAG_set;
+								lib_ui_show_element( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> radio[ j ] );
+							}
+						
+						break;
+					}
+
+					default: {
+						ui -> element[ i ] -> flag ^= LIB_UI_ELEMENT_FLAG_set;
+					}
+				}
 
 				flush_element = TRUE;
 			}
 
 			switch( ui -> element[ i ] -> type ) {
+				case LIST: {
+					struct LIB_UI_STRUCTURE_ELEMENT_LIST *list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST *) ui -> element[ i ];
+
+					uint64_t r = ((ui -> window -> y - list -> standard.y) / LIB_UI_ELEMENT_LIST_ENTRY_height);
+
+					if( ! (list -> entry[ r ].flag & LIB_UI_ELEMENT_FLAG_hover) ) {
+						for( uint64_t y = 0; y < list -> limit_entry; y++ ) list -> entry[ y ].flag &= ~LIB_UI_ELEMENT_FLAG_hover;
+
+						list -> entry[ r ].flag |= LIB_UI_ELEMENT_FLAG_hover;
+
+						flush_element = TRUE;
+					}
+
+					break;
+				}
+
 				case TABLE: {
 					struct LIB_UI_STRUCTURE_ELEMENT_TABLE *table = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE *) ui -> element[ i ];
 
@@ -698,12 +752,14 @@ void lib_ui_show_list( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEM
 	for( uint64_t i = 0; i < list -> limit_entry; i++ ) {
 		struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *entry = (struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *) &list -> entry[ i ];
 
+		uint32_t color_foreground = STD_COLOR_WHITE;
+		uint32_t color_background = LIB_UI_COLOR_BACKGROUND_LIST;
+		if( entry -> flag & LIB_UI_ELEMENT_FLAG_active || entry -> flag & LIB_UI_ELEMENT_FLAG_hover ) color_background = LIB_UI_COLOR_BACKGROUND_LIST_HOVER;
+
 		uint32_t *offset = pixel + (i * LIB_UI_ELEMENT_LIST_ENTRY_height * ui -> window -> current_width);
 
-		uint32_t color_foreground = STD_COLOR_WHITE;
-		uint32_t color_background = LIB_UI_COLOR_BACKGROUND_TABLE_ROW;
-
-		if( entry -> flag & LIB_UI_ELEMENT_FLAG_hover || entry -> flag & LIB_UI_ELEMENT_FLAG_active ) color_background += LIB_UI_COLOR_INCREASE;
+		// clean area
+		lib_ui_fill_rectangle( offset - (LIB_UI_PADDING_DEFAULT >> STD_SHIFT_2), ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, list_width + LIB_UI_PADDING_DEFAULT, LIB_UI_ELEMENT_LIST_ENTRY_height, color_background );
 
 		if( entry -> icon ) {
 			for( uint64_t y = 0; y < 16; y++ )
@@ -716,9 +772,9 @@ void lib_ui_show_list( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEM
 		lib_font( LIB_FONT_FAMILY_ROBOTO, entry -> name, lib_string_length( entry -> name ), color_foreground, offset, ui -> window -> current_width, EMPTY );
 
 		if( entry -> shortcut ) {
-			offset += lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, entry -> name, lib_string_length( entry -> name ) );
+			offset = pixel + (i * LIB_UI_ELEMENT_LIST_ENTRY_height * ui -> window -> current_width) + list_width;
 			
-			lib_font( LIB_FONT_FAMILY_ROBOTO, entry -> shortcut, lib_string_length( entry -> shortcut ), STD_COLOR_GRAY, offset, ui -> window -> current_width, EMPTY );
+			lib_font( LIB_FONT_FAMILY_ROBOTO, entry -> shortcut, lib_string_length( entry -> shortcut ), STD_COLOR_GRAY, offset, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_right );
 		}
 	}
 }

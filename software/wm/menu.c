@@ -2,11 +2,13 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+#include	"../../default.h"
+
 #include	"../../library/font.h"
 #include	"../../library/image.h"
 #include	"../../library/ui.h"
 
-uint8_t wm_menu_header[] = "Foton v0.629";
+uint8_t wm_menu_header[] = KERNEL_name" v"KERNEL_version"."KERNEL_revision"";
 
 uint32_t *menu_icon_load( uint8_t *path ) {
 	// file properties
@@ -39,6 +41,9 @@ uint32_t *menu_icon_load( uint8_t *path ) {
 }
 
 uint64_t wm_menu( void ) {
+	// retrieve our process ID
+	uint64_t wm_menu_pid = std_pid();
+
 	// initial dimension of menu window
 	uint64_t menu_width	= lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &wm_menu_header, sizeof( wm_menu_header ) - 1 );
 	uint64_t menu_height	= LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT;
@@ -46,7 +51,9 @@ uint64_t wm_menu( void ) {
 	//----------------------------------------------------------------------
 
 	// add entries to menu list
-	struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *entry = (struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY ) );
+	struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *entry = (struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY ) << STD_SHIFT_2 );
+
+		uint64_t entry_pixel = EMPTY;
 
 		// first entry
 		uint8_t file_manager_name[] = "File Manager";
@@ -55,9 +62,25 @@ uint64_t wm_menu( void ) {
 		entry[ 0 ].name		= (uint8_t *) calloc( sizeof( file_manager_name ) ); for( uint8_t i = 0; i < sizeof( file_manager_name ); i++ ) entry[ 0 ].name[ i ] = file_manager_name[ i ];
 		entry[ 0 ].shortcut	= (uint8_t *) calloc( sizeof( file_manager_shortcut ) ); for( uint8_t i = 0; i < sizeof( file_manager_shortcut ); i++ ) entry[ 0 ].shortcut[ i ] = file_manager_shortcut[ i ];;
 
-		uint64_t entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &file_manager_name, sizeof( file_manager_name ) - 1 );
+		entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &file_manager_name, sizeof( file_manager_name ) - 1 );
 		if( entry[ 0 ].icon )		entry_pixel += LIB_UI_PADDING_DEFAULT + 16;
 		if( entry[ 0 ].shortcut )	entry_pixel += LIB_UI_PADDING_DEFAULT + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &file_manager_shortcut, sizeof( file_manager_shortcut ) - 1 );
+
+		// widest entry of menu
+		if( menu_width < entry_pixel ) menu_width = entry_pixel;
+
+		// expand by default entry height
+		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
+
+		// second entry
+		uint8_t demo_3d_name[] = "3D Demo";
+		// uint8_t file_manager_shortcut[] = "Menu + f";
+		entry[ 1 ].icon		= lib_image_scale( menu_icon_load( (uint8_t *) "/var/share/media/icon/3d.tga" ), 48, 48, 16, 16 );
+		entry[ 1 ].name		= (uint8_t *) calloc( sizeof( demo_3d_name ) ); for( uint8_t i = 0; i < sizeof( demo_3d_name ); i++ ) entry[ 1 ].name[ i ] = demo_3d_name[ i ];
+		entry[ 1 ].shortcut	= EMPTY;
+
+		entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &demo_3d_name, sizeof( demo_3d_name ) - 1 );
+		if( entry[ 1 ].icon )		entry_pixel += LIB_UI_PADDING_DEFAULT + 16;
 
 		// widest entry of menu
 		if( menu_width < entry_pixel ) menu_width = entry_pixel;
@@ -74,6 +97,9 @@ uint64_t wm_menu( void ) {
 	// create menu object
 	wm -> menu = wm_object_create( 0, wm -> panel -> y - menu_height, menu_width, menu_height, LIB_WINDOW_FLAG_menu | LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy );
 
+	// required for incomming messages
+	wm -> menu -> pid = wm_menu_pid;
+
 	// object name
 	uint8_t menu_name[] = "{menu}";
 	for( uint8_t i = 0; i < sizeof( menu_name ); i++ ) wm -> menu -> descriptor -> name[ i ] = menu_name[ i ];
@@ -87,7 +113,7 @@ uint64_t wm_menu( void ) {
 
 	lib_ui_add_label( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), (uint8_t *) &wm_menu_header, LIB_FONT_FLAG_ALIGN_center | LIB_FONT_FLAG_WEIGHT_bold );
 
-	lib_ui_add_list( ui, LIB_UI_MARGIN_DEFAULT, (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2) + LIB_FONT_HEIGHT_pixel, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), wm -> menu -> height - ((LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2) + LIB_FONT_HEIGHT_pixel), entry, 1 );
+	lib_ui_add_list( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), wm -> menu -> height - (LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT), entry, 2 );
 
 	lib_ui_flush( ui );
 
@@ -97,7 +123,9 @@ uint64_t wm_menu( void ) {
 	wm -> menu -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 
 	while( TRUE ) {
-		
+		lib_ui_event( ui );
+
+		sleep( TRUE );
 	}
 
 	return EMPTY;
