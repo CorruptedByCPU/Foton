@@ -113,7 +113,16 @@ void wm_object_activate( void ) {
 	// search thru object list as far as to panel type object
 	for( uint64_t i = wm -> list_start; i < wm -> list_limit; i++ )
 		// object is visible?
-		if( wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) wm -> active = wm -> list[ i ];
+		if( wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) {
+			// set
+			wm -> active = wm -> list[ i ];
+
+			// mark
+			wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
+
+			// go
+			break;
+		}
 }
 
 struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t hidden ) {

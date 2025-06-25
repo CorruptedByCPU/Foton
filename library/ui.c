@@ -238,18 +238,21 @@ uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t 
 	return ui -> limit_textarea++;
 }
 
-void lib_ui_clean( struct LIB_UI_STRUCTURE *ui ) {
-	lib_ui_fill_rectangle( ui -> window -> pixel, ui -> window -> current_width, EMPTY, ui -> window -> current_width, ui -> window -> current_height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
+void lib_ui_border( struct LIB_UI_STRUCTURE *ui ) {
+	uint32_t color = LIB_UI_COLOR_BORDER_DEFAULT;
+	if( ui -> window_active ) color = LIB_UI_COLOR_BORDER_ACTIVE;
 
 	for( uint64_t y = 0; y < ui -> window -> current_height; y++ )
 		for( uint64_t x = 0; x < ui -> window -> current_width; x++ ) {
-			if( !x || !y ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = LIB_UI_COLOR_BACKGROUND_DEFAULT + LIB_UI_COLOR_INCREASE_LITTLE;
-			if( x == ui -> window -> current_width - 1 || y == ui -> window -> current_height - 1 ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = LIB_UI_COLOR_BACKGROUND_DEFAULT - LIB_UI_COLOR_INCREASE_LITTLE;
-
-			// // debug
-			// if( !x || !y ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = 0xFFFF0000;
-			// if( x == ui -> window -> current_width - 1 || y == ui -> window -> current_height - 1 ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = 0xFF00FF00;
+			if( !x || !y ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = color + LIB_UI_COLOR_INCREASE_LITTLE;
+			if( x == ui -> window -> current_width - 1 || y == ui -> window -> current_height - 1 ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = color - LIB_UI_COLOR_INCREASE_LITTLE;
 		}
+}
+
+void lib_ui_clean( struct LIB_UI_STRUCTURE *ui ) {
+	lib_ui_fill_rectangle( ui -> window -> pixel, ui -> window -> current_width, EMPTY, ui -> window -> current_width, ui -> window -> current_height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
+
+	lib_ui_border( ui );
 }
 
 void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t r ) {
@@ -274,6 +277,14 @@ void lib_ui_event( struct LIB_UI_STRUCTURE *ui ) {
 
 	lib_ui_event_mouse( ui, (uint8_t *) &sync );
 	lib_ui_event_keyboard( ui, (uint8_t *) &sync );
+
+	if( (ui -> window -> flags & LIB_WINDOW_FLAG_active) != ui -> window_active ) {
+		ui -> window_active = ui -> window -> flags & TRUE;
+
+		lib_ui_border( ui );
+
+		sync = TRUE;
+	}
 
 	if( sync ) ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
 }

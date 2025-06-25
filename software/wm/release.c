@@ -30,5 +30,8 @@ void wm_release( void ) {
 
 		// select new active object
 		wm_object_activate();
+
+		// refresh panel content
+		wm -> panel_semaphore = TRUE;
 	}
 }

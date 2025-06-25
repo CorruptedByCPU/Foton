@@ -58,8 +58,11 @@ void wm_event( void ) {
 				std_ipc_send( pid, (uint8_t *) answer );
 
 				// newly created object becomes active
-				// wm -> active = new; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
-				
+				wm -> active = new; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
+
+				// refresh panel content
+				wm -> panel_semaphore = TRUE;
+
 				// done
 				break;
 			}
@@ -165,10 +168,10 @@ void wm_event( void ) {
 					wm_object_move_up( object );
 
 					// show object inside cache
-					object -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
+					object -> descriptor -> flags |= LIB_WINDOW_FLAG_active | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 
 					// object is active now
-					wm -> active = object; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
+					wm -> active = object;
 				}
 			}
 		}
