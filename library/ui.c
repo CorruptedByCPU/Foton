@@ -245,6 +245,10 @@ void lib_ui_clean( struct LIB_UI_STRUCTURE *ui ) {
 		for( uint64_t x = 0; x < ui -> window -> current_width; x++ ) {
 			if( !x || !y ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = LIB_UI_COLOR_BACKGROUND_DEFAULT + LIB_UI_COLOR_INCREASE_LITTLE;
 			if( x == ui -> window -> current_width - 1 || y == ui -> window -> current_height - 1 ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = LIB_UI_COLOR_BACKGROUND_DEFAULT - LIB_UI_COLOR_INCREASE_LITTLE;
+
+			// // debug
+			// if( !x || !y ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = 0xFFFF0000;
+			// if( x == ui -> window -> current_width - 1 || y == ui -> window -> current_height - 1 ) ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = 0xFF00FF00;
 		}
 }
 
@@ -275,6 +279,8 @@ void lib_ui_event( struct LIB_UI_STRUCTURE *ui ) {
 }
 
 static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
+	if( ! ui -> limit ) return;
+
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ] = { EMPTY };
 
 	if( ! std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) return;

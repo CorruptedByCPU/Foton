@@ -82,10 +82,21 @@ void wm_event( void ) {
 	int16_t delta_y = mouse.y - wm -> cursor -> y;
 	int16_t delta_z = (int8_t) mouse.z - wm -> cursor -> z; wm -> cursor -> z = (int8_t) mouse.z;
 
-	// update pointer position inside current object
+	// except current
 	current -> descriptor -> x = (wm -> cursor -> x + delta_x) - current -> x;
 	current -> descriptor -> y = (wm -> cursor -> y + delta_y) - current -> y;
 	current -> descriptor -> z = delta_z;
+
+	// update pointer position inside objects
+	for( uint64_t i = 0; i < wm -> list_limit; i++ ) {
+		// except of current
+		if( wm -> list[ i ] == current ) continue;
+
+		// as default
+		wm -> list[ i ] -> descriptor -> x = STD_MAX_unsigned;
+		wm -> list[ i ] -> descriptor -> y = STD_MAX_unsigned;
+		wm -> list[ i ] -> descriptor -> z = EMPTY;
+	}
 
 	//--------------------------------------------------------------
 

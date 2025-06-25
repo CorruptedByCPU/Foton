@@ -12,7 +12,7 @@ void kuro_init( void ) {
 	kuro_icon_register( UNKNOWN, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );
 
 	// create window
-	struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, KURO_DEFAULT_WIDTH, KURO_DEFAULT_HEIGHT );
+	struct LIB_WINDOW_STRUCTURE *window = lib_window( 128, 96, KURO_DEFAULT_WIDTH, KURO_DEFAULT_HEIGHT );
 
 	// we allow window resize
 	window -> flags |= LIB_WINDOW_FLAG_resizable;

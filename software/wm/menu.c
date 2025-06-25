@@ -73,8 +73,7 @@ uint64_t wm_menu( void ) {
 		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
 
 		// second entry
-		uint8_t demo_3d_name[] = "3D Demo";
-		// uint8_t file_manager_shortcut[] = "Menu + f";
+		uint8_t demo_3d_name[] = "3D Viewer";
 		entry[ 1 ].icon		= lib_image_scale( menu_icon_load( (uint8_t *) "/var/share/media/icon/3d.tga" ), 48, 48, 16, 16 );
 		entry[ 1 ].name		= (uint8_t *) calloc( sizeof( demo_3d_name ) ); for( uint8_t i = 0; i < sizeof( demo_3d_name ); i++ ) entry[ 1 ].name[ i ] = demo_3d_name[ i ];
 		entry[ 1 ].shortcut	= EMPTY;
@@ -88,6 +87,12 @@ uint64_t wm_menu( void ) {
 		// expand by default entry height
 		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
 
+	// list of executables from menu
+	uint8_t *wm_menu_event[ 2 ] = {
+		(uint8_t *) "kuro",
+		(uint8_t *) "3d /var/share/media/obj/demo.obj"
+	};
+
 	//----------------------------------------------------------------------
 
 	// apply margins and header
@@ -95,7 +100,7 @@ uint64_t wm_menu( void ) {
 	menu_height	+= LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2;
 
 	// create menu object
-	wm -> menu = wm_object_create( 0, wm -> panel -> y - menu_height, menu_width, menu_height, LIB_WINDOW_FLAG_menu | LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy );
+	wm -> menu = wm_object_create( -1, wm -> panel -> y - menu_height + TRUE, menu_width, menu_height, LIB_WINDOW_FLAG_menu | LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy );
 
 	// required for incomming messages
 	wm -> menu -> pid = wm_menu_pid;
@@ -113,7 +118,7 @@ uint64_t wm_menu( void ) {
 
 	lib_ui_add_label( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), (uint8_t *) &wm_menu_header, LIB_FONT_FLAG_ALIGN_center | LIB_FONT_FLAG_WEIGHT_bold );
 
-	lib_ui_add_list( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), wm -> menu -> height - (LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT), entry, 2 );
+	lib_ui_add_list( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), wm -> menu -> height - (LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT + LIB_UI_MARGIN_DEFAULT), entry, 2 );
 
 	lib_ui_flush( ui );
 

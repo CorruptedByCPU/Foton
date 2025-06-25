@@ -1,0 +1,12 @@
+{
+	"entry": {
+		"name": "File Manager",
+		"event": "kuro",
+		"icon": "/var/share/media/icon/default/app/system-file-manager.tga"
+	},
+	"entry": {
+		"name": "3D Demo",
+		"event": "3d /var/share/media/obj/demo.obj",
+		"icon": "/var/share/media/icon/3d.tga"
+	}
+}
