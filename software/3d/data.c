@@ -19,3 +19,5 @@ struct LIB_RGL_STRUCTURE_TRIANGLE	*face = EMPTY;
 uint64_t microtime;
 uint64_t fps = EMPTY;
 uint64_t fps_show = EMPTY;
+uint64_t fps_avarage = EMPTY;
+uint64_t fps_avarage_c = EMPTY;

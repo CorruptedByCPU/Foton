@@ -31,9 +31,12 @@ void wm_init( void ) {
 	//----------------------------------------------------------------------
 
 	// create cache area
-	wm -> canvas.width		= wm -> framebuffer.width_pixel;
-	wm -> canvas.height		= wm -> framebuffer.height_pixel;
+	wm -> canvas.width	= wm -> framebuffer.width_pixel;
+	wm -> canvas.height	= wm -> framebuffer.height_pixel;
 	wm -> canvas.descriptor	= (struct LIB_WINDOW_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm -> canvas.width * wm -> canvas.height * STD_VIDEO_DEPTH_byte) + sizeof( struct LIB_WINDOW_STRUCTURE ) ) >> STD_SHIFT_PAGE );
+
+	// additional property, nice to have
+	wm -> canvas.descriptor -> pixel = (uint32_t *) ((uintptr_t) wm -> canvas.descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
 	// leave cache untouched, first object synchronization will fill it up
 
@@ -139,6 +142,6 @@ void wm_init( void ) {
 
 	// debug
 	std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
-	std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
+	// std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
 	std_exec( (uint8_t *) "3d /var/share/media/obj/demo.obj", 32, EMPTY, TRUE );
 }

@@ -4,10 +4,7 @@
 
 void wm_panel( void ) {
 	// check clock status
-	wm_panel_clock();
-
-	// nothing to do?
-	if( ! wm -> panel_semaphore ) return;	// done
+	if( ! wm_panel_clock() && ! wm -> panel_semaphore ) return;	// done
 
 	// count amount of object to show
 	for( uint64_t i = 0; i < wm -> list_limit; i++ )
@@ -70,7 +67,7 @@ void wm_panel( void ) {
 	wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
 }
 
-void wm_panel_clock( void ) {
+uint8_t wm_panel_clock( void ) {
 	// check current date and time
 	uint64_t time = std_time();
 
@@ -79,7 +76,7 @@ void wm_panel_clock( void ) {
 	uint8_t minutes = (uint8_t) (time >> 8);
 
 	// it's different than previous?
-	if( minutes == wm -> panel_clock_state ) return;	// no
+	if( minutes == wm -> panel_clock_state ) return FALSE;	// no
 
 	// preserve current date and time
 	wm -> panel_clock_state = minutes;
@@ -105,8 +102,8 @@ void wm_panel_clock( void ) {
 	// show clock on panel
 	lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &clock_string, sizeof( clock_string ), STD_COLOR_WHITE, clock_pixel + ((((WM_PANEL_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) + TRUE) * wm -> panel -> width) + (WM_PANEL_CLOCK_WIDTH_pixel >> STD_SHIFT_2), wm -> panel -> width, LIB_FONT_FLAG_ALIGN_center );
 
-	// update panel content on screen
-	wm -> panel -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+	// clock updated
+	return TRUE;
 }
 
 void wm_panel_insert( struct WM_STRUCTURE_OBJECT *object ) {

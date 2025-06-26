@@ -3,7 +3,7 @@
 ===============================================================================*/
 
 void init( void ) {
-	window = lib_window( 660, 32, 330, 300 );
+	window = lib_window( 306, 3, 330, 300 );
 	ui = lib_ui( window );
 
 	lib_ui_clean( ui );

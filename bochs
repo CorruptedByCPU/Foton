@@ -3,11 +3,11 @@
 # Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 #=================================================================================
 
-# default CORE count: 2
+# default CPU count: 1
 CORE="${1}"
-if [ -z "${CORE}" ]; then CORE="2"; fi
+if [ -z "${CORE}" ]; then CORE="1"; fi
 
-# default MEM amount: 64 MiB
+# default Memory size: 64 MiB
 MEM="${2}"
 if [ -z "${MEM}" ]; then MEM="64"; fi
 

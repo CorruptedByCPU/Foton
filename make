@@ -7,9 +7,8 @@
 green=$(tput setaf 2)
 default=$(tput sgr0)
 
-# default optimization
-if [[ ${#1} -eq 1 ]]; then OPT="${1}"; else RELEASE="-DRELEASE"; fi
-if [ -z "${OPT}" ]; then OPT="3 -ffast-math"; fi
+OPT="${1}"
+if [ -z "${OPT}" ]; then OPT="2"; fi
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 CC="clang"

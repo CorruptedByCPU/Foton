@@ -60,6 +60,8 @@ void wm_event( void ) {
 				// newly created object becomes active
 				wm -> active = new; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
 
+				wm -> workbench -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
+
 				// refresh panel content
 				wm -> panel_semaphore = TRUE;
 

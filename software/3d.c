@@ -165,19 +165,29 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// show FPS
 		uint32_t *pixel = (uint32_t *) ui -> window -> pixel + (LIB_UI_HEADER_HEIGHT * ui -> window -> current_width) + LIB_UI_BORDER_DEFAULT;
-		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "FPS", 3, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
-		pixel += ui -> window -> current_width * LIB_FONT_HEIGHT_pixel;
+		pixel += 4 + (ui -> window -> current_width * 4);
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "FPS: ~", 6, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
+		pixel += LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 6;
 		lib_font_value( LIB_FONT_FAMILY_ROBOTO_MONO, fps_show, 10, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
+		pixel += -(LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 6) + ui -> window -> current_width * LIB_FONT_HEIGHT_pixel;
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "Avg: ", 5, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
+		pixel += LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 5;
+		if( fps_avarage_c ) lib_font_value( LIB_FONT_FAMILY_ROBOTO_MONO, fps_avarage / fps_avarage_c, 10, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
 
 		// 1 second passed?
 		if( std_microtime() > microtime + 1024 ) {
 			// restart measurements variables
 			fps_show = fps;
+			fps_avarage += fps;
+			fps_avarage_c++;
 			fps = EMPTY;
 
 			// start new measurement
 			microtime = std_microtime();
 		}
+
+// debug
+// while( TRUE );
 	}
 
 	// should not happen

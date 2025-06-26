@@ -1,14 +1,14 @@
-plugin_ctrl: voodoo=true, e1000=true, sb16=true, es1370=true, usb_uhci=true, usb_ohci=true, usb_ehci=true, usb_xhci=true
+plugin_ctrl: e1000=true, usb_xhci=true
 config_interface: textconfig
 display_library: x
 memory: guest=MEM, host=MEM
 romimage: file="/opt/bochs-dbg/share/bochs/BIOS-bochs-latest", address=0x00000000, options=none
-vgaromimage: file="/opt/bochs-dbg/share/bochs/VGABIOS-lgpl-latest"
+vgaromimage: file="/opt/bochs-dbg/share/bochs/VGABIOS-lgpl-latest.bin"
 boot: cdrom
 ata0: enabled=true, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 ata0-master: type=cdrom, path="build/foton.iso", status=inserted, model="Generic 1234", biosdetect=auto
-pci: enabled=1, chipset=i440fx, slot1=pcivga, slot2=e1000, slot3=voodoo #, slot4=usb_xhci, slot5=none
-vga: extension=vbe, update_freq=30, realtime=0, ddc=builtin
+pci: enabled=1, chipset=i440fx, slot1=pcivga, slot2=e1000, slot3=usb_xhci, slot4=none, slot5=none
+vga: extension=vbe, update_freq=5, realtime=0, ddc=builtin
 cpu: count=1:CORE:1, ips=200000000, model=athlon64_venice, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
 magic_break: enabled=1
 clock: sync=none, time0=local, rtc_sync=0
@@ -18,10 +18,6 @@ mouse: type=imps2, enabled=false, toggle=ctrl+mbutton
 #usb_ehci: enabled=1, companion=uhci, port1=keyboard, options1="speed:low", port2=mouse, options2="speed:low"
 #usb_xhci: port3=keyboard, options3="speed:low", port4=mouse, options4="speed:low"
 #usb_xhci: port1="speed:super, disk:build/foton.iso"
-#usb_debug: type=uhci, reset=false, enable=false, start_frame=0, doorbell=false, data=false, event=false, non_exist=false
-#sound: waveoutdrv=alsa, waveout=none, waveindrv=alsa, wavein=none, midioutdrv=alsa, midiout=none
-#voodoo: enabled=true, model=voodoo1
+#usb_debug: type=xhci, reset=false, enable=false, start_frame=0, doorbell=false, data=false, event=false, non_exist=false
 com1: enabled=true, mode=file, dev="serial.log"
 e1000: enabled=true, mac=00:22:44:66:88:AA, ethmod=vnet
-#es1370: enabled=true, wavedev=alsa
-#sb16: enabled=true, midimode=0, wavemode=1

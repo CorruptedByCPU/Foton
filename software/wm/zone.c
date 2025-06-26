@@ -5,17 +5,30 @@
 void wm_zone( void ) {
 	// remove any overlapping
 	wm_zone_substract();
-	
+
+// //debug
+// log( "Zone list: (substracted)\n" );
+// for( uint64_t i = 0; i < wm -> zone_limit; i++ ) log( "z|%u: %u, %u (%u x %u)\n", i, wm -> zone[ i ].x, wm -> zone[ i ].y, wm -> zone[ i ].width, wm -> zone[ i ].height );
+
 	// properties of first entry inside zone list
 	struct WM_STRUCTURE_ZONE *zone = wm -> zone;
 
 	// properties of object list
 	struct WM_STRUCTURE_OBJECT **list = wm -> list;
 
+// // debug
+// log( "Parsing:\n" );
+
 	// parse zones on list
 	for( uint64_t i = 0; i < wm -> zone_limit; i++ ) {
 		// zone already assigned?
-		if( zone[ i ].z ) continue;	// yeah!
+		if( zone[ i ].object ) {
+// // debug
+// log( "z|%u, object assigned. (ignore)\n", i );
+
+			// yeah!
+			continue;
+		}
 
 		// analyze zone against each object
 		for( uint64_t j = 0; j < wm -> list_limit; j++ ) {
@@ -27,12 +40,18 @@ void wm_zone( void ) {
 			if( zone[ i ].x >= list[ j ] -> x + list[ j ] -> width ) continue;	// no
 			if( zone[ i ].y >= list[ j ] -> y + list[ j ] -> height ) continue;	// no
 
+// // debug
+// log( "z|%u meshes with o|%u: %u, %u (%u x %u)\n", i, j, list[ j ] -> x, list[ j ] -> y, list[ j ] -> width, list[ j ] -> height );
+
 			// left edge
 			if( zone[ i ].x < list[ j ] -> x ) {
 				// cut off part of zone
 				struct WM_STRUCTURE_ZONE cut = zone[ i ];
 				cut.width = list[ j ] -> x - zone[ i ].x;
 				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
+
+// // debug
+// log( "  cut left edge %u, %u, (%u x %u)\n", i, cut.x, cut.y, cut.width, cut.height );
 
 				// new dimension of zone
 				zone[ i ].x = list[ j ] -> x;
@@ -45,6 +64,9 @@ void wm_zone( void ) {
 				struct WM_STRUCTURE_ZONE cut = zone[ i ];
 				cut.height = list[ j ] -> y - zone[ i ].y;
 				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
+
+// // debug
+// log( "  cut top edge %u, %u, (%u x %u)\n", i, cut.x, cut.y, cut.width, cut.height );
 
 				// new dimension of zone
 				zone[ i ].y = list[ j ] -> y;
@@ -59,6 +81,9 @@ void wm_zone( void ) {
 				cut.width = (zone[ i ].x + zone[ i ].width) - (list[ j ] -> x + list[ j ] -> width);
 				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
 
+// // debug
+// log( "  cut right edge %u, %u, (%u x %u)\n", i, cut.x, cut.y, cut.width, cut.height );
+
 				// new dimension of zone
 				zone[ i ].width -= cut.width;
 			}
@@ -71,6 +96,9 @@ void wm_zone( void ) {
 				cut.height = (zone[ i ].y + zone[ i ].height) - (list[ j ] -> y + list[ j ] -> height);
 				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &cut, EMPTY );
 
+// // debug
+// log( "  cut bottom edge %u, %u, (%u x %u)\n", i, cut.x, cut.y, cut.width, cut.height );
+
 				// new dimension of zone
 				zone[ i ].height -= cut.height;
 			}
@@ -81,11 +109,11 @@ void wm_zone( void ) {
 			// fill zone with given object
 			zone[ i ].object = list[ j ];
 
+// // debug
+// log( "  z|%u assigned with object o|%u (id: 0x%X)\n", i, j, (uintptr_t) zone[ i ].object );
+
 			// next object?
 			if( list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_transparent ) {
-				// inherite!
-				zone[ i ].z = TRUE;
-
 				wm_zone_insert( (struct WM_STRUCTURE_ZONE *) &zone[ i ], TRUE );
 			
 				// next object
@@ -147,6 +175,9 @@ uint64_t wm_zone_insert( struct WM_STRUCTURE_ZONE *current, uint8_t object ) {
 	if( object ) zone -> object = current -> object;
 	else	// no
 		zone -> object = EMPTY;
+
+// // debig
+// log( "insert z|%u: %u, %u (%u x %u)\n", wm -> zone_limit, zone -> x, zone -> y, zone -> width, zone -> height );
 
 	// zone inserted
 	wm -> zone_limit++;

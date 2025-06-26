@@ -11,8 +11,8 @@ void wm_object( void ) {
 		// remove active flag from non-compliant objects
 		if( list[ i ] != wm -> active ) list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_active;
 
-		// requested hide or flush?
-		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_hide || list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_flush ) {
+		// visible object requested hide or flush?
+		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible && (list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_hide || list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_flush) ) {
 			// parse object area
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) list[ i ], FALSE );
 
@@ -131,9 +131,6 @@ struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t hidd
 
 	// find object at current cursor coordinates
 	for( uint64_t i = TRUE; i < wm -> list_limit; i++ ) {
-		// object marked as cursor?
-		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_cursor ) continue;	// ignore
-
 		// object is visible? (or include hidden ones too)
 		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible || hidden ) {
 			// coordinates at object area?

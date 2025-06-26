@@ -43,6 +43,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize Desktop environment
 	wm_init();
 
+// debug
+uint64_t phase = 0;
+
 	// hold the door
 	while( TRUE ) {
 		// remove obsolete objects
@@ -65,6 +68,11 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// lets go again
 			continue;
 		}
+
+// // debug
+// log( "[%u] -----------------------------------------------------\n", phase++ );
+// log( "Zone list:\n" );
+// for( uint64_t i = 0; i < wm -> zone_limit; i++ ) log( "z|%u: %u, %u (%u x %u)\n", i, wm -> zone[ i ].x, wm -> zone[ i ].y, wm -> zone[ i ].width, wm -> zone[ i ].height );
 
 		// assign objects to zones
 		wm_zone();
