@@ -68,42 +68,44 @@ void wm_panel( void ) {
 }
 
 uint8_t wm_panel_clock( void ) {
-	// check current date and time
-	uint64_t time = std_time();
+	// // check current date and time
+	// uint64_t time = std_time();
 
-	// properties of current time
-	uint8_t hours = (uint8_t) (time >> 16);
-	uint8_t minutes = (uint8_t) (time >> 8);
+	// // properties of current time
+	// uint8_t hours = (uint8_t) (time >> 16);
+	// uint8_t minutes = (uint8_t) (time >> 8);
 
-	// it's different than previous?
-	if( minutes == wm -> panel_clock_state ) return FALSE;	// no
+	// // it's different than previous?
+	// if( minutes == wm -> panel_clock_state ) return FALSE;	// no
 
-	// preserve current date and time
-	wm -> panel_clock_state = minutes;
+	// // preserve current date and time
+	// wm -> panel_clock_state = minutes;
 
-	// clock template
-	uint8_t clock_string[ 5 ] = "00:00";
+	// // clock template
+	// uint8_t clock_string[ 5 ] = "00:00";
 
-	// fill clock area with default background color
-	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
-	uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE )) + (wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel);
-	for( uint16_t y = 0; y < wm -> panel -> height; y++ )
-		for( uint16_t x = 0; x < WM_PANEL_CLOCK_WIDTH_pixel; x++ )
-			clock_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
+	// // fill clock area with default background color
+	// uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
+	// uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE )) + (wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel);
+	// for( uint16_t y = 0; y < wm -> panel -> height; y++ )
+	// 	for( uint16_t x = 0; x < WM_PANEL_CLOCK_WIDTH_pixel; x++ )
+	// 		clock_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
 
-	// hour
-	if( hours < 10 ) { clock_string[ 0 ] = STD_ASCII_SPACE; lib_integer_to_string( hours, 10, (uint8_t *) &clock_string[ 1 ] ); }
-	else lib_integer_to_string( hours, 10, (uint8_t *) &clock_string );
+	// // hour
+	// if( hours < 10 ) { clock_string[ 0 ] = STD_ASCII_SPACE; lib_integer_to_string( hours, 10, (uint8_t *) &clock_string[ 1 ] ); }
+	// else lib_integer_to_string( hours, 10, (uint8_t *) &clock_string );
 
-	// minute
-	if( minutes < 10 ) { clock_string[ 3 ] = STD_ASCII_DIGIT_0; lib_integer_to_string( minutes, 10, (uint8_t *) &clock_string[ 4 ] ); }
-	else lib_integer_to_string( minutes, 10, (uint8_t *) &clock_string[ 3 ] );
+	// // minute
+	// if( minutes < 10 ) { clock_string[ 3 ] = STD_ASCII_DIGIT_0; lib_integer_to_string( minutes, 10, (uint8_t *) &clock_string[ 4 ] ); }
+	// else lib_integer_to_string( minutes, 10, (uint8_t *) &clock_string[ 3 ] );
 
-	// show clock on panel
-	lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &clock_string, sizeof( clock_string ), STD_COLOR_WHITE, clock_pixel + ((((WM_PANEL_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) + TRUE) * wm -> panel -> width) + (WM_PANEL_CLOCK_WIDTH_pixel >> STD_SHIFT_2), wm -> panel -> width, LIB_FONT_FLAG_ALIGN_center );
+	// // show clock on panel
+	// lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &clock_string, sizeof( clock_string ), STD_COLOR_WHITE, clock_pixel + ((((WM_PANEL_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) / 2) + TRUE) * wm -> panel -> width) + (WM_PANEL_CLOCK_WIDTH_pixel >> STD_SHIFT_2), wm -> panel -> width, LIB_FONT_FLAG_ALIGN_center );
 
-	// clock updated
-	return TRUE;
+	// // clock updated
+	// return TRUE;
+
+	return FALSE;
 }
 
 void wm_panel_insert( struct WM_STRUCTURE_OBJECT *object ) {

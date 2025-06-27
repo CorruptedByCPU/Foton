@@ -60,8 +60,6 @@ void wm_event( void ) {
 				// newly created object becomes active
 				wm -> active = new; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active;
 
-				wm -> workbench -> descriptor -> flags |= LIB_WINDOW_FLAG_flush;
-
 				// refresh panel content
 				wm -> panel_semaphore = TRUE;
 
@@ -153,6 +151,24 @@ void wm_event( void ) {
 		if( ! wm -> key_menu && wm -> selected != wm -> panel ) { wm -> active = wm -> selected; wm -> active -> descriptor -> flags |= LIB_WINDOW_FLAG_active; }
 
 		//--------------------------------------------------------------
+
+		// mouse pointer in range of Menu button?
+		if( wm -> cursor -> y >= wm -> panel -> y && wm -> cursor -> x < LIB_UI_HEADER_HEIGHT ) {
+			// already visible?
+			if( wm -> menu -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) {
+				// disable flag
+				wm -> menu -> descriptor -> flags &= ~LIB_WINDOW_FLAG_visible;
+
+				// request hide
+				wm -> menu -> descriptor -> flags |= LIB_WINDOW_FLAG_hide;
+			} else {
+				// from now on is visible and active
+				wm -> menu -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_active | LIB_WINDOW_FLAG_flush;
+
+				// object is active now
+				wm -> active = wm -> menu;
+			}
+		}
 
 		// mouse pointer in range of any list entry of panel?
 		if( wm -> cursor -> y >= wm -> panel -> y && (wm -> panel -> descriptor -> x >= WM_PANEL_HEIGHT_pixel && wm -> panel -> descriptor -> x < (WM_PANEL_HEIGHT_pixel + (wm -> panel_entry_width * wm -> list_limit_panel))) ) {

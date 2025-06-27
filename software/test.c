@@ -271,7 +271,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	kuro_icon_register( KURO_MIMETYPE_directory, (uint8_t *) "/var/share/media/icon/default/places/folder.tga" );
 	kuro_icon_register( KURO_MIMETYPE_unknown, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );
 
-	struct LIB_WINDOW_STRUCTURE *window = lib_window( 200, 350, TEST_WIDTH_pixel, TEST_HEIGHT_pixel );
+	struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, TEST_WIDTH_pixel, TEST_HEIGHT_pixel );
 	window -> flags = LIB_WINDOW_FLAG_resizable;
 
 	ui = lib_ui( window );

@@ -17,15 +17,22 @@ struct KERNEL_STRUCTURE_TASK *kernel_task_add( uint8_t *name, uint16_t limit ) {
 		// ID of new task
 		kernel -> task_base_address[ i ].pid = ++kernel -> task_id;
 
-		// ID of its parent
-		kernel -> task_base_address[ i ].parent = kernel_task_current() -> pid;
-
 		// reset number of characters representing process name
 		kernel -> task_base_address[ i ].name_limit = limit;
 
 		// set process name
 		if( limit > KERNEL_TASK_NAME_limit ) kernel -> task_base_address[ i ].name_limit = KERNEL_TASK_NAME_limit; kernel -> task_base_address[ i ].name = (uint8_t *) kernel_memory_alloc( MACRO_PAGE_ALIGN_UP( KERNEL_TASK_NAME_limit ) >> STD_SHIFT_PAGE );
 		for( uint16_t n = 0; n < kernel -> task_base_address[ i ].name_limit; n++ ) kernel -> task_base_address[ i ].name[ n ] = name[ n ]; kernel -> task_base_address[ i ].name[ kernel -> task_base_address[ i ].name_limit ] = STD_ASCII_TERMINATOR;
+
+		// parent processs properties
+		struct KERNEL_STRUCTURE_TASK *parent = kernel_task_current();
+
+		// ID of its parent
+		kernel -> task_base_address[ i ].parent = parent -> pid;
+
+		// inherit storage and directory
+		kernel -> task_base_address[ i ].storage = parent -> storage;
+		kernel -> task_base_address[ i ].directory = parent -> directory;
 
 		// unlock
 		MACRO_UNLOCK( kernel -> task_lock );

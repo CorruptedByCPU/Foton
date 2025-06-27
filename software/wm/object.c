@@ -12,7 +12,8 @@ void wm_object( void ) {
 		if( list[ i ] != wm -> active ) list[ i ] -> descriptor -> flags &= ~LIB_WINDOW_FLAG_active;
 
 		// visible object requested hide or flush?
-		if( list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible && (list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_hide || list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_flush) ) {
+		// list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible &&
+		if(  (list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_hide || list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_flush) ) {
 			// parse object area
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) list[ i ], FALSE );
 

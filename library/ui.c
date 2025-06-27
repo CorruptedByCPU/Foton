@@ -778,6 +778,8 @@ void lib_ui_show_list( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEM
 		// clean area
 		lib_ui_fill_rectangle( offset - (LIB_UI_PADDING_DEFAULT >> STD_SHIFT_2), ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, list_width + LIB_UI_PADDING_DEFAULT, LIB_UI_ELEMENT_LIST_ENTRY_height, color_background );
 
+		if( LIB_UI_ELEMENT_LIST_ENTRY_height > LIB_FONT_HEIGHT_pixel ) offset += ((LIB_UI_ELEMENT_LIST_ENTRY_height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * ui -> window -> current_width;
+
 		if( entry -> icon ) {
 			for( uint64_t y = 0; y < 16; y++ )
 				for( uint64_t x = 0; x < 16; x++ )
@@ -790,6 +792,7 @@ void lib_ui_show_list( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEM
 
 		if( entry -> shortcut ) {
 			offset = pixel + (i * LIB_UI_ELEMENT_LIST_ENTRY_height * ui -> window -> current_width) + list_width;
+			if( LIB_UI_ELEMENT_LIST_ENTRY_height > LIB_FONT_HEIGHT_pixel ) offset += ((LIB_UI_ELEMENT_LIST_ENTRY_height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * ui -> window -> current_width;
 			
 			lib_font( LIB_FONT_FAMILY_ROBOTO, entry -> shortcut, lib_string_length( entry -> shortcut ), STD_COLOR_GRAY, offset, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_right );
 		}

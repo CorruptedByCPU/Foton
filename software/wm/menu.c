@@ -2,12 +2,6 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#include	"../../default.h"
-
-#include	"../../library/font.h"
-#include	"../../library/image.h"
-#include	"../../library/ui.h"
-
 uint8_t wm_menu_header[] = KERNEL_name" v"KERNEL_version"."KERNEL_revision"";
 
 uint32_t *menu_icon_load( uint8_t *path ) {
@@ -57,14 +51,17 @@ uint64_t wm_menu( void ) {
 
 		// first entry
 		uint8_t file_manager_name[] = "File Manager";
-		uint8_t file_manager_shortcut[] = "Menu + f";
+		uint8_t file_manager_event[] = "kuro";
+		// uint8_t file_manager_shortcut[] = "Menu + f";
 		entry[ 0 ].icon		= lib_image_scale( menu_icon_load( (uint8_t *) "/var/share/media/icon/default/app/system-file-manager.tga" ), 48, 48, 16, 16 );
 		entry[ 0 ].name		= (uint8_t *) calloc( sizeof( file_manager_name ) ); for( uint8_t i = 0; i < sizeof( file_manager_name ); i++ ) entry[ 0 ].name[ i ] = file_manager_name[ i ];
-		entry[ 0 ].shortcut	= (uint8_t *) calloc( sizeof( file_manager_shortcut ) ); for( uint8_t i = 0; i < sizeof( file_manager_shortcut ); i++ ) entry[ 0 ].shortcut[ i ] = file_manager_shortcut[ i ];;
+		entry[ 0 ].event	= (uint8_t *) calloc( sizeof( file_manager_event ) ); for( uint8_t i = 0; i < sizeof( file_manager_event ); i++ ) entry[ 0 ].event[ i ] = file_manager_event[ i ];
+		entry[ 0 ].shortcut	= EMPTY;
+		// entry[ 0 ].shortcut	= (uint8_t *) calloc( sizeof( file_manager_shortcut ) ); for( uint8_t i = 0; i < sizeof( file_manager_shortcut ); i++ ) entry[ 0 ].shortcut[ i ] = file_manager_shortcut[ i ];;
 
 		entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &file_manager_name, sizeof( file_manager_name ) - 1 );
 		if( entry[ 0 ].icon )		entry_pixel += LIB_UI_PADDING_DEFAULT + 16;
-		if( entry[ 0 ].shortcut )	entry_pixel += LIB_UI_PADDING_DEFAULT + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &file_manager_shortcut, sizeof( file_manager_shortcut ) - 1 );
+		// if( entry[ 0 ].shortcut )	entry_pixel += LIB_UI_PADDING_DEFAULT + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &file_manager_shortcut, sizeof( file_manager_shortcut ) - 1 );
 
 		// widest entry of menu
 		if( menu_width < entry_pixel ) menu_width = entry_pixel;
@@ -74,8 +71,10 @@ uint64_t wm_menu( void ) {
 
 		// second entry
 		uint8_t demo_3d_name[] = "3D Viewer";
+		uint8_t demo_3d_event[] = "3d /var/share/media/obj/demo.obj";
 		entry[ 1 ].icon		= lib_image_scale( menu_icon_load( (uint8_t *) "/var/share/media/icon/3d.tga" ), 48, 48, 16, 16 );
 		entry[ 1 ].name		= (uint8_t *) calloc( sizeof( demo_3d_name ) ); for( uint8_t i = 0; i < sizeof( demo_3d_name ); i++ ) entry[ 1 ].name[ i ] = demo_3d_name[ i ];
+		entry[ 1 ].event	= (uint8_t *) calloc( sizeof( demo_3d_event ) ); for( uint8_t i = 0; i < sizeof( demo_3d_event ); i++ ) entry[ 1 ].event[ i ] = demo_3d_event[ i ];
 		entry[ 1 ].shortcut	= EMPTY;
 
 		entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &demo_3d_name, sizeof( demo_3d_name ) - 1 );
@@ -86,12 +85,6 @@ uint64_t wm_menu( void ) {
 
 		// expand by default entry height
 		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
-
-	// list of executables from menu
-	uint8_t *wm_menu_event[ 2 ] = {
-		(uint8_t *) "kuro",
-		(uint8_t *) "3d /var/share/media/obj/demo.obj"
-	};
 
 	//----------------------------------------------------------------------
 
@@ -124,14 +117,39 @@ uint64_t wm_menu( void ) {
 
 	//----------------------------------------------------------------------
 
-	// show object at beginning
-	wm -> menu -> descriptor -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
-
 	while( TRUE ) {
 		lib_ui_event( ui );
+
+		// no action
+		uint8_t event = FALSE;
+
+		// check which entry acquired action
+		for( uint64_t i = 0; i < 2; i++ ) {
+			// action required?
+			if( entry[ i ].flag & LIB_UI_ELEMENT_FLAG_event ) {
+				// execute event content
+				std_exec( entry[ i ].event, lib_string_length( entry[ i ].event ), EMPTY, TRUE );
+
+				// flag parsed
+				entry[ i ].flag &= ~LIB_UI_ELEMENT_FLAG_event;
+
+				// event acquired
+				event = TRUE;
+			}
+		}
+
+		// Menu window not active and visible?
+		if( event || wm -> active != wm -> menu && wm -> menu -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) {
+			// disable flag
+			wm -> menu -> descriptor -> flags &= ~LIB_WINDOW_FLAG_visible;
+
+			// request hide
+			wm -> menu -> descriptor -> flags |= LIB_WINDOW_FLAG_hide;
+		}
 
 		sleep( TRUE );
 	}
 
+	// ok
 	return EMPTY;
 }

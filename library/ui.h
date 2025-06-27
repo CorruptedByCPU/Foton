@@ -170,6 +170,7 @@ struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY {
 	uint8_t						flag;
 	uint32_t 					*icon;
 	uint8_t						*name;
+	uint8_t						*event;
 	uint8_t						*shortcut;
 };
 
