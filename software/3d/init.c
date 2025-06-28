@@ -20,4 +20,7 @@ void init( void ) {
 
 	// initialize RGL library
 	rgl = lib_rgl( ui -> window -> current_width - (LIB_UI_BORDER_DEFAULT << STD_SHIFT_2), ui -> window -> current_height - (LIB_UI_HEADER_HEIGHT + LIB_UI_BORDER_DEFAULT), ui -> window -> current_width, (uint32_t *) ui -> window -> pixel + (LIB_UI_HEADER_HEIGHT * ui -> window -> current_width) + LIB_UI_BORDER_DEFAULT );
+
+	// change background color to UI type
+	rgl -> color_background = LIB_UI_COLOR_BACKGROUND_DEFAULT;
 }

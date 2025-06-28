@@ -25,10 +25,10 @@ void kuro_dir_add( struct STD_STRUCTURE_DIR *dir, struct LIB_UI_STRUCTURE_ELEMEN
 
 		// set cell: name
 		// only if thats not a special link
-		if( file != TRUE ) {
+		// if( file != TRUE ) {
 			row[ table_row ].cell[ 0 ].name = (uint8_t *) calloc( dir[ file ].name_limit + TRUE );
 			for( uint64_t i = 0; i < dir[ file ].name_limit; i++ ) row[ table_row ].cell[ 0 ].name[ i ] = dir[ file ].name[ i ];
-		}
+		// }
 
 		// column 1 --------------------------------------------
 
@@ -66,16 +66,18 @@ void kuro_dir( void ) {
 		table_header = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *) calloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER ) << STD_SHIFT_2 );
 
 		// column 0
-		uint8_t column_name[] = "Name";
+		uint8_t column_name[] = "File name:";
 		table_header[ FALSE ].cell.name	= (uint8_t *) malloc( sizeof( column_name ) );
 		for( uint8_t i = 0; i < sizeof( column_name ); i++ ) table_header[ FALSE ].cell.name[ i ] = column_name[ i ];
 
+		table_header[ FALSE ].cell.flag = LIB_FONT_FLAG_WEIGHT_bold;
+
 		// column 1
-		uint8_t column_size[] = "Size [Bytes]";
+		uint8_t column_size[] = "Bytes:";
 		table_header[ TRUE ].cell.name	= (uint8_t *) malloc( sizeof( column_size ) );
 		for( uint8_t i = 0; i < sizeof( column_size ); i++ ) table_header[ TRUE ].cell.name[ i ] = column_size[ i ];
 
-		table_header[ TRUE ].cell.flag	= LIB_FONT_FLAG_ALIGN_right;
+		table_header[ TRUE ].cell.flag	= LIB_FONT_FLAG_WEIGHT_bold | LIB_FONT_FLAG_ALIGN_right;
 	}
 
 	// there is no table content?

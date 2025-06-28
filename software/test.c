@@ -32,7 +32,7 @@ struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *table_content;
 
 uint32_t **kuro_icons = EMPTY;
 
-uint8_t textarea[] = "https://www.lipsum.com/\n\nWhat is Lorem Ipsum?\nLorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
+MACRO_IMPORT_FILE_AS_STRING( textarea, "root/LICENSE.txt" )
 
 uint32_t *lib_interface_icon( uint8_t *path ) {
 	// file properties
@@ -192,6 +192,7 @@ void create_ui( void ) {
 	lib_ui_add_radio( ui, x1, y1, column_width, (uint8_t *) "Radio.0 (Group.1)", 1, EMPTY );
 	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_PADDING_DEFAULT;
 	lib_ui_add_radio( ui, x1, y1, column_width, (uint8_t *) "Radio.1 (Group.1)", 1, LIB_UI_ELEMENT_FLAG_set );
+	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_PADDING_DEFAULT;
 
 	// column 2
 	uint64_t x2 = LIB_UI_MARGIN_DEFAULT + column_width + LIB_UI_PADDING_DEFAULT + column_width + LIB_UI_PADDING_DEFAULT;
@@ -203,21 +204,21 @@ void create_ui( void ) {
 	// header
 		// subcolumn 0
 		table_header[ 0 ].width	= EMPTY;
-		table_header[ 0 ].cell.flag	= EMPTY;
+		table_header[ 0 ].cell.flag	= LIB_FONT_FLAG_WEIGHT_bold;
 		table_header[ 0 ].cell.name	= (uint8_t *) calloc( 5 );
-		uint8_t name[ 4 ] = "Name";
-		for( uint8_t i = 0; i < 4; i++ ) table_header[ 0 ].cell.name[ i ] = name[ i ];
+		uint8_t name[] = "Name:";
+		for( uint8_t i = 0; i < sizeof( name ) - 1; i++ ) table_header[ 0 ].cell.name[ i ] = name[ i ];
 		table_header[ 0 ].cell.icon	= EMPTY;
 		// subcolumn 1
 		table_header[ 1 ].width	= EMPTY;
-		table_header[ 1 ].cell.flag	= LIB_FONT_FLAG_ALIGN_right;
+		table_header[ 1 ].cell.flag	= LIB_FONT_FLAG_WEIGHT_bold | LIB_FONT_FLAG_ALIGN_right;
 		table_header[ 1 ].cell.name	= (uint8_t *) calloc( 5 );
-		uint8_t size[] = "Size [Bytes]";
+		uint8_t size[] = "Bytes:";
 		for( uint8_t i = 0; i < sizeof( size ) - 1; i++ ) table_header[ 1 ].cell.name[ i ] = size[ i ];
 		table_header[ 1 ].cell.icon	= EMPTY;
 	// rows
 	table_content = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) malloc( FALSE );
-	uint64_t f = 0;
+	uint64_t f = 1;
 	while( dir[ ++f ].type ) {
 		table_content = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) realloc( table_content, (y + 1) * sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW ) );
 		//---
@@ -244,13 +245,13 @@ void create_ui( void ) {
 		//---
 		y++;
 	}
-	lib_ui_add_table( ui, x2, y2, -1, TEST_HEIGHT_pixel - y2 - LIB_UI_MARGIN_DEFAULT, EMPTY, table_header, table_content, 2, y );
+	lib_ui_add_table( ui, x2, y2, -1, y1 - (LIB_UI_HEADER_HEIGHT + LIB_UI_PADDING_DEFAULT), EMPTY, table_header, table_content, 2, y );
 
 	// row 1
 
 	// column 0
 	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_PADDING_DEFAULT;
-	lib_ui_add_textarea( ui, x0, y1, column_width + LIB_UI_PADDING_DEFAULT + column_width, -1, EMPTY, (uint8_t *) &textarea );
+	lib_ui_add_textarea( ui, x0, y1, -1, -1, EMPTY, (uint8_t *) &textarea );
 
 	lib_window_name( ui -> window, (uint8_t *) "GUI Debug Window" );
 
@@ -266,7 +267,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	kuro_icons = (uint32_t **) malloc( TRUE );
 
 	// register initial icon (directory change)
-	kuro_icon_register( KURO_MIMETYPE_up, (uint8_t *) "/var/share/media/icon/default/up.tga" );
+	kuro_icon_register( KURO_MIMETYPE_up, (uint8_t *) "/var/share/media/icon/default/empty.tga" );
 	kuro_icon_register( KURO_MIMETYPE_plain_text, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-plain.tga" );
 	kuro_icon_register( KURO_MIMETYPE_directory, (uint8_t *) "/var/share/media/icon/default/places/folder.tga" );
 	kuro_icon_register( KURO_MIMETYPE_unknown, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );

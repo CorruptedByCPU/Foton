@@ -377,7 +377,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	kuro_icon = (uint32_t **) malloc( TRUE );
 
 	// register initial icon (directory change)
-	kuro_icon_register( KURO_MIMETYPE_up, (uint8_t *) "system:/var/gfx/icons/go-up.tga" );
+	kuro_icon_register( KURO_MIMETYPE_up, (uint8_t *) "system:/var/gfx/icons/go-empty.tga" );
 
 	//----------------------------------------------------------------------
 

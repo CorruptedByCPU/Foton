@@ -9,10 +9,10 @@ void wm_panel( void ) {
 	// count amount of object to show
 	for( uint64_t i = 0; i < wm -> list_limit; i++ )
 		// it's not our object? and visible? (except without name)
-		if( wm -> list[ i ] -> pid != wm -> pid && wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible && wm -> list[ i ] -> descriptor -> name_length )
+		if( wm -> list[ i ] -> pid != wm -> pid && wm -> list[ i ] -> descriptor -> name_length )
 			// insert on panel list
 			wm_panel_insert( wm -> list[ i ] );
-
+ 
 	// properties of task list area
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
@@ -45,16 +45,21 @@ void wm_panel( void ) {
 
 	// show
 	for( uint64_t i = 0; i < wm -> list_limit_panel; i++ ) {
-		// select default background color for entry
-		uint32_t color = 0xFFFFFFFF;
-		// invisible?
-		if( ! (wm -> list_panel[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) color = 0xFF808080;
+		// select default foreground color for entry
+		uint32_t foreground = 0xFF808080;
+		uint32_t background = WM_PANEL_COLOR_default;
+
+		// visible?
+		if( wm -> list_panel[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) { foreground = 0xFFFFFFFF; background = LIB_UI_COLOR_BACKGROUND_BUTTON_DISABLED; }
 
 		// mark active entry
-		if( wm -> list_panel[ i ] == wm -> active ) for( uint16_t y = WM_PANEL_HEIGHT_pixel - 2; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_active;
+		if( wm -> list_panel[ i ] == wm -> active ) background = WM_PANEL_COLOR_active;
+		
+		// mark entry
+		for( uint16_t y = WM_PANEL_HEIGHT_pixel - 2; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width - TRUE; x++ ) pixel[ (y * wm -> panel -> width) + x ] = background;
 
 		// show entry name
-		lib_font( LIB_FONT_FAMILY_ROBOTO, wm -> list_panel[ i ] -> descriptor -> name, wm -> list_panel[ i ] -> descriptor -> name_length, color, pixel + (4 * wm -> panel -> width) + 4, wm -> panel -> width, LIB_FONT_FLAG_ALIGN_left );
+		lib_font( LIB_FONT_FAMILY_ROBOTO, wm -> list_panel[ i ] -> descriptor -> name, wm -> list_panel[ i ] -> descriptor -> name_length, foreground, pixel + (4 * wm -> panel -> width) + 4, wm -> panel -> width, LIB_FONT_FLAG_ALIGN_left );
 
 		// next entry location
 		pixel += wm -> panel_entry_width;

@@ -58,7 +58,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	vector3f *vector_ready = (vector3f *) malloc( sizeof( vector3f ) * vector_limit );
 
 	// speed of rotation
-	double speed = 2.0f;
+	double speed = 0.128f;
 	double time = 0.10f;	// 1/60 of second
 
 	// current angle
@@ -160,18 +160,15 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// frame ready
 		fps++;
 
-		// tell window manager to flush window
-		ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
-
 		// show FPS
 		uint32_t *pixel = (uint32_t *) ui -> window -> pixel + (LIB_UI_HEADER_HEIGHT * ui -> window -> current_width) + LIB_UI_BORDER_DEFAULT;
 		pixel += 4 + (ui -> window -> current_width * 4);
-		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "FPS: ~", 6, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
-		pixel += LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 6;
-		lib_font_value( LIB_FONT_FAMILY_ROBOTO_MONO, fps_show, 10, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
-		pixel += -(LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 6) + ui -> window -> current_width * LIB_FONT_HEIGHT_pixel;
-		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "Avg: ", 5, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "FPS: ", 5, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
 		pixel += LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 5;
+		lib_font_value( LIB_FONT_FAMILY_ROBOTO_MONO, fps_show, 10, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
+		pixel += -(LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 5) + ui -> window -> current_width * LIB_FONT_HEIGHT_pixel;
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "Avg: ~", 6, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
+		pixel += LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 6;
 		if( fps_avarage_c ) lib_font_value( LIB_FONT_FAMILY_ROBOTO_MONO, fps_avarage / fps_avarage_c, 10, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
 
 		// 1 second passed?
@@ -185,6 +182,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 			// start new measurement
 			microtime = std_microtime();
 		}
+
+		// tell window manager to flush window
+		ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
 
 // debug
 // while( TRUE );

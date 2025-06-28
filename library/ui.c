@@ -240,7 +240,7 @@ uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t 
 
 void lib_ui_border( struct LIB_UI_STRUCTURE *ui ) {
 	uint32_t color = LIB_UI_COLOR_BORDER_DEFAULT;
-	if( ui -> window_active ) color = LIB_UI_COLOR_BORDER_ACTIVE;
+	// if( ui -> window_active ) color = LIB_UI_COLOR_BORDER_ACTIVE;
 
 	for( uint64_t y = 0; y < ui -> window -> current_height; y++ )
 		for( uint64_t x = 0; x < ui -> window -> current_width; x++ ) {
@@ -429,6 +429,14 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 						break;
 					}
 
+					case TEXTAREA: {
+						// // slider bottom?
+						// if( ui -> window -> y >= table -> standard.y + textarea -> standard.height - LIB_UI_SLIDER_SIZE) {
+						// }
+
+						break;
+					}
+
 					default: {
 						ui -> element[ ui -> element_active ] -> flag &= ~LIB_UI_ELEMENT_FLAG_active;
 
@@ -465,14 +473,16 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 								ui -> radio[ j ] -> standard.flag &= ~LIB_UI_ELEMENT_FLAG_set;
 								lib_ui_show_element( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> radio[ j ] );
 							}
-						
+
 						break;
 					}
 
 					default: {
-						ui -> element[ i ] -> flag ^= LIB_UI_ELEMENT_FLAG_set;
+						// nothing
 					}
 				}
+
+				ui -> element[ i ] -> flag ^= LIB_UI_ELEMENT_FLAG_set;
 
 				flush_element = TRUE;
 			}
@@ -666,7 +676,7 @@ void lib_ui_show_control( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_E
 	}
 
 	pixel += (ui -> window -> current_width * ((LIB_UI_HEADER_HEIGHT - LIB_UI_ELEMENT_LABEL_height) >> TRUE) + ((LIB_UI_HEADER_HEIGHT - LIB_UI_ELEMENT_LABEL_height) >> TRUE));
-	lib_ui_fill_rectangle( pixel + ui -> window -> current_width, ui -> window -> current_width, LIB_UI_ELEMENT_LABEL_height >> TRUE, LIB_UI_ELEMENT_LABEL_height, LIB_UI_ELEMENT_LABEL_height, LIB_UI_COLOR_BACKGROUND_SHADOW );
+	// lib_ui_fill_rectangle( pixel + ui -> window -> current_width, ui -> window -> current_width, LIB_UI_ELEMENT_LABEL_height >> TRUE, LIB_UI_ELEMENT_LABEL_height, LIB_UI_ELEMENT_LABEL_height, LIB_UI_COLOR_BACKGROUND_SHADOW );
 	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, LIB_UI_ELEMENT_LABEL_height >> TRUE, LIB_UI_ELEMENT_LABEL_height, LIB_UI_ELEMENT_LABEL_height, color_background );
 
 	switch( control -> type ) {
@@ -853,8 +863,8 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 	if( table -> pixel ) free( table -> pixel );
 	table -> pixel = (uint32_t *) malloc( (content_width * content_height) << STD_VIDEO_DEPTH_shift );
 
-	lib_ui_fill_rectangle( table -> pixel, content_width, EMPTY, content_width, LIB_UI_ELEMENT_TABLE_height, LIB_UI_COLOR_BACKGROUND_TABLE_HEADER );
-	lib_ui_fill_rectangle( table -> pixel + (LIB_UI_ELEMENT_TABLE_height * content_width), content_width, EMPTY, content_width, content_height - LIB_UI_ELEMENT_TABLE_height, LIB_UI_COLOR_BACKGROUND_TABLE_ROW );
+	// lib_ui_fill_rectangle( table -> pixel, content_width, EMPTY, content_width, LIB_UI_ELEMENT_TABLE_height, LIB_UI_COLOR_BACKGROUND_TABLE_HEADER );
+	lib_ui_fill_rectangle( table -> pixel, content_width, EMPTY, content_width, content_height, LIB_UI_COLOR_BACKGROUND_TABLE_ROW );
 
 	for( uint64_t x = 0; x < table -> limit_column; x++ ) {
 		if( ! table -> header[ x ].cell.name ) continue;
@@ -880,7 +890,7 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 		color_background = LIB_UI_COLOR_BACKGROUND_TABLE_ROW;
 		if( table -> row[ y ].flag & LIB_UI_ELEMENT_FLAG_set ) { color_background = LIB_UI_COLOR_BACKGROUND_TABLE_ROW_SET; color_foreground = STD_COLOR_BLACK; }
 		if( table -> row[ y ].flag & LIB_UI_ELEMENT_FLAG_hover ) color_background += LIB_UI_COLOR_INCREASE;
-		lib_ui_fill_rectangle( pixel_table_row, content_width, EMPTY, content_width, LIB_UI_ELEMENT_TABLE_height, color_background );
+		lib_ui_fill_rectangle( pixel_table_row, content_width, EMPTY, content_width, LIB_UI_ELEMENT_TABLE_height - 1, color_background );
 
 		for( uint64_t x = 0; x < table -> limit_column; x++ ) {
 			uint64_t table_width_column = content_width / table -> limit_column;
@@ -922,51 +932,89 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA *textarea ) {
 	// in progress
 
-// 	// set pointer location of element inside window
-// 	uint32_t *pixel = ui -> window -> pixel + (textarea -> standard.y * ui -> window -> current_width) + textarea -> standard.x;
+	// set pointer location of element inside window
+	uint32_t *pixel = ui -> window -> pixel + (textarea -> standard.y * ui -> window -> current_width) + textarea -> standard.x;
 
-// 	uint16_t textarea_width = textarea -> standard.width; if( textarea -> standard.width == (uint16_t) STD_MAX_unsigned ) textarea_width = ui -> window -> current_width - textarea -> standard.x - LIB_UI_MARGIN_DEFAULT;
-// 	uint16_t textarea_height = textarea -> standard.height; if( textarea -> standard.height == (uint16_t) STD_MAX_unsigned ) textarea_height = ui -> window -> current_height - textarea -> standard.y - LIB_UI_MARGIN_DEFAULT;
+	uint16_t textarea_width = textarea -> standard.width; if( textarea -> standard.width == (uint16_t) STD_MAX_unsigned ) textarea_width = ui -> window -> current_width - textarea -> standard.x - LIB_UI_MARGIN_DEFAULT;
+	uint16_t textarea_height = textarea -> standard.height; if( textarea -> standard.height == (uint16_t) STD_MAX_unsigned ) textarea_height = ui -> window -> current_height - textarea -> standard.y - LIB_UI_MARGIN_DEFAULT;
 
-// 	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, textarea_width, textarea_height, LIB_UI_COLOR_BACKGROUND_TEXTAREA );
+	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, textarea_width, textarea_height, LIB_UI_COLOR_BACKGROUND_TEXTAREA );
 
-// 	uint64_t content_width = EMPTY;
+	for( uint64_t y = 0; y < textarea_height; y++ )
+		for( uint64_t x = 0; x < textarea_width; x++ ) {
+			if( !x || !y ) pixel[ (y * ui -> window -> current_width) + x ] = LIB_UI_COLOR_BACKGROUND_TEXTAREA - LIB_UI_COLOR_INCREASE_LITTLE;
+			if( x == textarea_width - 1 || y == textarea_height - 1 ) pixel[ (y * ui -> window -> current_width) + x ] = LIB_UI_COLOR_BACKGROUND_TEXTAREA + LIB_UI_COLOR_INCREASE_LITTLE;
+		}
 
-// 	uint8_t *line = textarea -> string; while( *line ) {
-// 		uint64_t line_in_characters = lib_string_length_line( line );
-// 		uint64_t line_in_pixels = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, line, line_in_characters );
-// 		if( content_width < line_in_pixels ) content_width = line_in_pixels + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2);
+	uint64_t content_width = EMPTY;
 
-// 		line += line_in_characters + TRUE;
-// 	}
+	uint8_t *line = textarea -> string; while( *line ) {
+		uint64_t line_in_characters = lib_string_length_line( line );
+		uint64_t line_in_pixels = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, line, line_in_characters );
+		if( content_width < line_in_pixels ) content_width = line_in_pixels + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2);
+
+		line += line_in_characters + TRUE;
+	}
 	
-// 	uint64_t string_lines = lib_string_count( textarea -> string, lib_string_length( textarea -> string ), '\n' ) + 1;
-// 	uint64_t content_height = (LIB_FONT_HEIGHT_pixel * string_lines) + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2); if( content_height < textarea_height ) content_height = textarea_height;
+	uint64_t string_lines = lib_string_count( textarea -> string, lib_string_length( textarea -> string ), '\n' ) + 1;
+	uint64_t content_height = (LIB_FONT_HEIGHT_pixel * string_lines) + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2); if( content_height < textarea_height ) content_height = textarea_height;
 
-// 	if( textarea -> pixel ) free( textarea -> pixel );
-// 	textarea -> pixel = (uint32_t *) malloc( (content_width * content_height) << STD_VIDEO_DEPTH_shift );
+	if( textarea -> pixel ) free( textarea -> pixel );
+	textarea -> pixel = (uint32_t *) malloc( (content_width * content_height) << STD_VIDEO_DEPTH_shift );
 
-// 	lib_ui_fill_rectangle( textarea -> pixel, content_width, EMPTY, content_width, content_height, LIB_UI_COLOR_BACKGROUND_TEXTAREA );
+	lib_ui_fill_rectangle( textarea -> pixel, content_width, EMPTY, content_width, content_height, LIB_UI_COLOR_BACKGROUND_TEXTAREA );
 
-// 	uint32_t *pixel_paragraph = (uint32_t *) textarea -> pixel + (LIB_UI_PADDING_TEXTAREA * content_width) + LIB_UI_PADDING_TEXTAREA;
+	uint32_t *pixel_paragraph = (uint32_t *) textarea -> pixel + (LIB_UI_PADDING_TEXTAREA * content_width) + LIB_UI_PADDING_TEXTAREA;
 
-// 	uint8_t *paragraph = textarea -> string; while( *paragraph != STD_ASCII_TERMINATOR ) {
-// 		uint64_t line_in_characters = lib_string_length_line( paragraph );
-// 		if( line_in_characters ) lib_font( LIB_FONT_FAMILY_ROBOTO, paragraph, line_in_characters, STD_COLOR_WHITE, pixel_paragraph, content_width, LIB_FONT_FLAG_ALIGN_left );
+	uint8_t *paragraph = textarea -> string; while( *paragraph != STD_ASCII_TERMINATOR ) {
+		uint64_t line_in_characters = lib_string_length_line( paragraph );
+		if( line_in_characters ) lib_font( LIB_FONT_FAMILY_ROBOTO, paragraph, line_in_characters, STD_COLOR_WHITE, pixel_paragraph, content_width, LIB_FONT_FLAG_ALIGN_left );
 
-// 		pixel_paragraph += (LIB_FONT_HEIGHT_pixel * content_width );
+		pixel_paragraph += (LIB_FONT_HEIGHT_pixel * content_width );
 
-// 		paragraph += line_in_characters;
-// 		if( *paragraph == STD_ASCII_NEW_LINE ) paragraph++;
-// 	}
+		paragraph += line_in_characters;
+		if( *paragraph == STD_ASCII_NEW_LINE ) paragraph++;
+	}
 
-// 	uint64_t y_limit = textarea_height;
-// 	if( content_height < textarea_height ) y_limit = content_height;
+	uint64_t x_limit = textarea_width;
+	uint64_t y_limit = textarea_height;
+	if( content_width < textarea_width ) x_limit = content_width;
+	if( content_height < textarea_height ) y_limit = content_height;
 
-// 	uint32_t *pixel_at_offset = (uint32_t *) textarea -> pixel + (textarea -> offset_y * content_width) + textarea -> offset_x;
-// 	for( uint64_t y = 0; y < y_limit; y++ )
-// 		for( uint64_t x = 0; x < textarea_width; x++ )
-// 			pixel[ (y * ui -> window -> current_width) + x ] = pixel_at_offset[ (y * content_width) + x ];
+	uint32_t *pixel_at_offset = (uint32_t *) textarea -> pixel + (textarea -> offset_y * content_width) + textarea -> offset_x;
+	for( uint64_t y = TRUE; y < y_limit - TRUE; y++ )
+		for( uint64_t x = TRUE; x < x_limit - TRUE; x++ )
+			pixel[ (y * ui -> window -> current_width) + x ] = pixel_at_offset[ (y * content_width) + x ];
+
+	// slider bottom
+	if( content_width > textarea_width ) {
+		double percent = (textarea_width / (double) content_width);
+		textarea -> slider_width = textarea_width * percent;
+
+		if( textarea -> slider_x + textarea -> slider_width > textarea_width ) textarea -> slider_x -= (textarea -> slider_x + textarea -> slider_width) - textarea_width;
+
+		for( uint64_t y = textarea_height - LIB_UI_SLIDER_SIZE; y < textarea_height; y++ ) {
+			for( uint64_t x = textarea -> slider_x; x < textarea -> slider_x + textarea -> slider_width; x++ ) {
+				uint32_t target = pixel_at_offset[ (y * content_width) + x ];
+				pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( target, LIB_UI_COLOR_BACKGROUND_BUTTON );
+			}
+		}
+	}
+
+	// slider right
+	if( content_height > textarea_height ) {
+		double percent = (textarea_height / (double) content_height);
+		textarea -> slider_height = textarea_height * percent;
+
+		if( textarea -> slider_y + textarea -> slider_height > textarea_height ) textarea -> slider_y -= (textarea -> slider_y + textarea -> slider_height) - textarea_height;
+
+		for( uint64_t y = textarea -> slider_y; y < textarea -> slider_y + textarea -> slider_height; y++ ) {
+			for( uint64_t x = textarea_width - LIB_UI_SLIDER_SIZE; x < textarea_width; x++ ) {
+				uint32_t target = pixel_at_offset[ (y * content_width) + x ];
+				pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( target, LUB_UI_COLOR_BACKGROUND_SLIDER );
+			}
+		}
+	}
 }
 
 static uint64_t lib_ui_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t width_pixel ) {

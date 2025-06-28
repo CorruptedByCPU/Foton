@@ -7,7 +7,7 @@ void kuro_init( void ) {
 	kuro_icon = (uint32_t **) malloc( TRUE );
 
 	// register initial icon (directory change)
-	kuro_icon_register( UP, (uint8_t *) "/var/share/media/icon/default/up.tga" );
+	kuro_icon_register( UP, (uint8_t *) "/var/share/media/icon/default/empty.tga" );
 	kuro_icon_register( DIRECTORY, (uint8_t *) "/var/share/media/icon/default/places/folder.tga" );
 	kuro_icon_register( UNKNOWN, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );
 

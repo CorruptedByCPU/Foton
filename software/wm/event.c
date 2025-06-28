@@ -7,7 +7,7 @@ void wm_event_shade_fill( void ) {
 	uint32_t *shade = (uint32_t *) ((uintptr_t) wm -> shade -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 	for( uint16_t y = 0; y < wm -> shade -> height; y++ )
 		for( uint16_t x = 0; x < wm -> shade -> width; x++ )
-			shade[ (y * wm -> shade -> width) + x ] = 0xFF000000 | WM_OBJECT_OVERSHADE_COLOR;
+			shade[ (y * wm -> shade -> width) + x ] = WM_OBJECT_OVERSHADE_COLOR;
 
 	// and border
 	for( uint16_t y = 0; y < wm -> shade -> height; y++ )
@@ -37,7 +37,7 @@ void wm_event( void ) {
 				struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &ipc_data;
 
 				// properties of new object
-				struct WM_STRUCTURE_OBJECT *new = wm_object_create( create -> x, create -> y, create -> width, create -> height, EMPTY );
+				struct WM_STRUCTURE_OBJECT *new = wm_object_create( create -> x, create -> y, create -> width, create -> height, LIB_WINDOW_FLAG_visible );
 
 				// by default, couldn't create object
 				answer -> descriptor = EMPTY;

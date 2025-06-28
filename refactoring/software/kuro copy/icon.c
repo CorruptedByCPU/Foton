@@ -76,7 +76,7 @@ void kuro_icon_set( struct LIB_INTERFACE_STRUCTURE_ELEMENT_FILE_ENTRY *entry ) {
 			// 3D object?
 			if( entry -> name_length > KURO_FILE_EXTENSION_LENGTH_4 && lib_string_compare( (uint8_t *) &entry -> name[ entry -> name_length - KURO_FILE_EXTENSION_LENGTH_4 ], (uint8_t *) ".obj", KURO_FILE_EXTENSION_LENGTH_4 ) ) {
 				// load text icon (if not present)
-				if( ! kuro_icons[ KURO_MIMETYPE_3d_object ] ) kuro_icon_register( KURO_MIMETYPE_3d_object, (uint8_t *) "/var/share/media/icon/default/object-group.tga" );
+				if( ! kuro_icons[ KURO_MIMETYPE_3d_object ] ) kuro_icon_register( KURO_MIMETYPE_3d_object, (uint8_t *) "/var/share/media/icon/default/object-groempty.tga" );
 
 				// set image icon
 				entry -> mimetype = KURO_MIMETYPE_3d_object;

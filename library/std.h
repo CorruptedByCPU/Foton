@@ -282,6 +282,12 @@
 	#define	STD_MOUSE_BUTTON_right				0x02
 	#define	STD_MOUSE_BUTTON_middle				0x04
 
+	struct	STD_STRUCTURE_MOUSE_STATE {
+		uint8_t	semaphore_left;
+		uint8_t	semaphore_right;
+		uint8_t	semaphore_middle;
+	};
+
 	struct STD_STRUCTURE_MOUSE_SYSCALL {
 		uint16_t	x;
 		uint16_t	y;

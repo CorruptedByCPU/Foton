@@ -142,6 +142,6 @@ void wm_init( void ) {
 
 	// debug
 	// std_exec( (uint8_t *) "kuro", 4, EMPTY, TRUE );
-	// std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
+	std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
 	// std_exec( (uint8_t *) "3d /var/share/media/obj/demo.obj", 32, EMPTY, TRUE );
 }
