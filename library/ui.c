@@ -46,6 +46,9 @@ struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window ) {
 	ui -> window -> width_minimal = ui -> window -> current_width;
 	ui -> window -> height_minimal = ui -> window -> current_height;
 
+	// by default no icon provided
+	ui -> icon = EMPTY;
+
 	// no elements by default
 	ui -> limit = ui -> limit_button = ui -> limit_checkbox = ui -> limit_control = ui -> limit_input = ui -> limit_label = ui -> limit_list = ui -> limit_radio = ui -> limit_table = ui -> limit_textarea = EMPTY;
 
@@ -253,14 +256,6 @@ void lib_ui_clean( struct LIB_UI_STRUCTURE *ui ) {
 	lib_ui_fill_rectangle( ui -> window -> pixel, ui -> window -> current_width, EMPTY, ui -> window -> current_width, ui -> window -> current_height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
 
 	lib_ui_border( ui );
-}
-
-void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t r ) {
-	ui -> table[ id ] -> limit_row = r;
-	ui -> table[ id ] -> row = row;
-
-	ui -> table[ id ] -> offset_x = EMPTY;
-	ui -> table[ id ] -> offset_y = EMPTY;
 }
 
 void lib_ui_event( struct LIB_UI_STRUCTURE *ui ) {
@@ -619,6 +614,36 @@ void lib_ui_flush( struct LIB_UI_STRUCTURE *ui ) {
 		lib_ui_show_control( ui, (struct LIB_UI_STRUCTURE_ELEMENT_CONTROL *) ui -> control[ i ] );
 }
 
+uint32_t *lib_ui_icon( uint8_t *path ) {
+	// file properties
+	FILE *file = EMPTY;
+
+	// file exist?
+	if( (file = fopen( path, EMPTY )) ) {
+		// assign area for file
+		struct LIB_IMAGE_STRUCTURE_TGA *image = (struct LIB_IMAGE_STRUCTURE_TGA *) malloc( MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
+
+		// load file content
+		fread( file, (uint8_t *) image, file -> byte );
+
+		// copy image content to cursor object
+		uint32_t *icon = (uint32_t *) malloc( image -> width * image -> height * STD_VIDEO_DEPTH_byte );
+		lib_image_tga_parse( (uint8_t *) image, icon, file -> byte );
+
+		// release file content
+		free( image );
+
+		// close file
+		fclose( file );
+
+		// done
+		return icon;
+	}
+
+	// cannot locate specified file
+	return EMPTY;
+}
+
 static void lib_ui_list_insert( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT *element ) {
 	ui -> element = (struct LIB_UI_STRUCTURE_ELEMENT **) realloc( ui -> element, sizeof( struct LIB_UI_STRUCTURE_ELEMENT ) * (ui -> limit + TRUE) );
 
@@ -816,11 +841,21 @@ void lib_ui_show_name( struct LIB_UI_STRUCTURE *ui ) {
 	// clean area
 	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, 0, ui -> window -> current_width - LIB_UI_MARGIN_DEFAULT - LIB_UI_PADDING_DEFAULT - (ui -> limit_control * LIB_UI_HEADER_HEIGHT), LIB_FONT_HEIGHT_pixel, LIB_UI_COLOR_BACKGROUND_DEFAULT );
 
+	// icon exist?
+	uint64_t offset = EMPTY;
+	if( ui -> icon ) {
+		offset = 16 + LIB_UI_PADDING_DEFAULT;
+
+		for( uint64_t y = 0; y < 16; y++ )
+			for( uint64_t x = 0; x < 16; x++ )
+				pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( pixel[ (y * ui -> window -> current_width) + x ], ui -> icon[ (y * 16) + x ] );
+	}
+
 	// limit name length to header width
-	uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, ui -> window -> name_length, ui -> window -> current_width - LIB_UI_MARGIN_DEFAULT - LIB_UI_PADDING_DEFAULT - (ui -> limit_control * LIB_UI_HEADER_HEIGHT) );
+	uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, ui -> window -> name_length, ui -> window -> current_width - LIB_UI_MARGIN_DEFAULT - LIB_UI_PADDING_DEFAULT - (ui -> limit_control * LIB_UI_HEADER_HEIGHT) - offset );
 
 	// show description
-	lib_font( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, limit, LIB_UI_COLOR_DEFAULT, pixel, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, limit, LIB_UI_COLOR_DEFAULT, pixel + offset, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_left );
 
 	ui -> window -> header_height	= LIB_UI_HEADER_HEIGHT;
 	ui -> window -> header_width	= ui -> window -> current_width - (LIB_UI_HEADER_HEIGHT * (ui -> limit_control + TRUE));
@@ -1023,4 +1058,12 @@ static uint64_t lib_ui_string( uint8_t font_family, uint8_t *string, uint64_t li
 
 	// new string limit
 	return limit;
+}
+
+void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t r ) {
+	ui -> table[ id ] -> limit_row = r;
+	ui -> table[ id ] -> row = row;
+
+	ui -> table[ id ] -> offset_x = EMPTY;
+	ui -> table[ id ] -> offset_y = EMPTY;
 }

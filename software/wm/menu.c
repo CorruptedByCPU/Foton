@@ -86,6 +86,23 @@ uint64_t wm_menu( void ) {
 		// expand by default entry height
 		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
 
+		// third entry
+		uint8_t palette_name[] = "Palette";
+		uint8_t palette_event[] = "palette";
+		entry[ 2 ].icon		= lib_image_scale( menu_icon_load( (uint8_t *) "/var/share/media/icon/default/app/gcolor3.tga" ), 48, 48, 16, 16 );
+		entry[ 2 ].name		= (uint8_t *) calloc( sizeof( palette_name ) ); for( uint8_t i = 0; i < sizeof( palette_name ); i++ ) entry[ 2 ].name[ i ] = palette_name[ i ];
+		entry[ 2 ].event	= (uint8_t *) calloc( sizeof( palette_event ) ); for( uint8_t i = 0; i < sizeof( palette_event ); i++ ) entry[ 2 ].event[ i ] = palette_event[ i ];
+		entry[ 2 ].shortcut	= EMPTY;
+
+		entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &palette_name, sizeof( palette_name ) - 1 );
+		if( entry[ 2 ].icon )		entry_pixel += LIB_UI_PADDING_DEFAULT + 16;
+
+		// widest entry of menu
+		if( menu_width < entry_pixel ) menu_width = entry_pixel;
+
+		// expand by default entry height
+		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
+
 	//----------------------------------------------------------------------
 
 	// apply margins and header
@@ -111,7 +128,7 @@ uint64_t wm_menu( void ) {
 
 	lib_ui_add_label( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), (uint8_t *) &wm_menu_header, LIB_FONT_FLAG_ALIGN_center | LIB_FONT_FLAG_WEIGHT_bold );
 
-	lib_ui_add_list( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), wm -> menu -> height - (LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT + LIB_UI_MARGIN_DEFAULT), entry, 2 );
+	lib_ui_add_list( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), wm -> menu -> height - (LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT + LIB_UI_MARGIN_DEFAULT), entry, 3 );
 
 	lib_ui_flush( ui );
 
@@ -124,7 +141,7 @@ uint64_t wm_menu( void ) {
 		uint8_t event = FALSE;
 
 		// check which entry acquired action
-		for( uint64_t i = 0; i < 2; i++ ) {
+		for( uint64_t i = 0; i < 3; i++ ) {
 			// action required?
 			if( entry[ i ].flag & LIB_UI_ELEMENT_FLAG_event ) {
 				// execute event content

@@ -27,11 +27,15 @@ void wm_event( void ) {
 		// choose behavior
 		switch( request -> properties ) {
 			case STD_IPC_WINDOW_create: {
+				// log( "new window request\n" );
+
 				// properties of window create request
 				struct STD_STRUCTURE_IPC_WINDOW_CREATE *create = (struct STD_STRUCTURE_IPC_WINDOW_CREATE *) &ipc_data;
-				
+
+				// log( "resolution: %ux%u at %d, %d\n", create -> width, create -> height, create -> x, create -> y );
+
 				// invalid request?
-				if( ! create -> width || ! create -> height ) break;	// done
+				if( ! create -> width || ! create -> height ) { log( "invalid!\n" ); break; }	// done
 
 				// properties of answer
 				struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &ipc_data;

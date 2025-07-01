@@ -5,6 +5,9 @@
 #ifndef	LIB_FONT
 	#include	"../library/font.h"
 #endif
+#ifndef	LIB_IMAGE
+	#include	"./image.h"
+#endif
 #ifndef	LIB_STRING
 	#include	"../library/string.h"
 #endif
@@ -68,13 +71,14 @@
 
 #define	LIB_UI_LATENCY_microtime		256
 
-#define	LIB_UI_MARGIN_DEFAULT		5
+#define	LIB_UI_MARGIN_DEFAULT		4
 
 #define	LIB_UI_BORDER_DEFAULT		1
 
 #define	LIB_UI_PADDING_DEFAULT		4
 #define	LIB_UI_PADDING_TABLE		4
 #define	LIB_UI_PADDING_TEXTAREA		4
+#define	LIB_UI_PADDING_ICON		2
 
 #define	LIB_UI_RADIUS_DEFAULT		1
 
@@ -93,6 +97,7 @@ enum LIB_UI_ELEMENT_TYPE {
 
 struct LIB_UI_STRUCTURE {
 	struct LIB_WINDOW_STRUCTURE			*window;
+	uint32_t					*icon;
 
 	struct LIB_UI_STRUCTURE_ELEMENT			**element;
 
@@ -253,6 +258,7 @@ void lib_ui_event( struct LIB_UI_STRUCTURE *ui );
 static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync );
 static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync );
 void lib_ui_flush( struct LIB_UI_STRUCTURE *ui );
+uint32_t *lib_ui_icon( uint8_t *path );
 static void lib_ui_list_insert( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT *element );
 void lib_ui_show_button( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_BUTTON *button );
 void lib_ui_show_checkbox( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX *checkbox );

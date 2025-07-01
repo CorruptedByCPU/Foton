@@ -18,6 +18,7 @@
 	#define	LIB_WINDOW_FLAG_release		(1 << 4)	// window marked as ready to be removed
 	#define	LIB_WINDOW_FLAG_name		(1 << 5)
 	#define	LIB_WINDOW_FLAG_transparent	(1 << 6)	// window contains transparent pixels (high CPU usage...)
+	#define	LIB_WINDOW_FLAG_icon		(1 << 7)	// icon exist
 	#define	LIB_WINDOW_FLAG_resizable	(1 << 8)
 	#define	LIB_WINDOW_FLAG_properties	(1 << 9)	// Window Manager proposed new window properties
 	#define	LIB_WINDOW_FLAG_enlarge		(1 << 10)
@@ -61,9 +62,10 @@
 		uint8_t		header_offset;
 		uint8_t		header_height;
 		uint16_t	header_width;
-		// window name, it will appear at header/panel
+		// window name and icon, it will appear at header/panel
 		uint8_t		name_length;
 		uint8_t		name[ 32 + TRUE ];
+		uint32_t	icon[ 16 * 16 ];
 	} __attribute__( (aligned( STD_PAGE_byte )) );
 
 	struct LIB_WINDOW_LIST {

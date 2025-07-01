@@ -58,8 +58,20 @@ void wm_panel( void ) {
 		// mark entry
 		for( uint16_t y = WM_PANEL_HEIGHT_pixel - 2; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width - TRUE; x++ ) pixel[ (y * wm -> panel -> width) + x ] = background;
 
+		uint32_t *pixel_entry = (uint32_t *) pixel + (((WM_PANEL_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * wm -> panel -> width) + LIB_UI_PADDING_ICON;
+
+		// show icon?
+		uint64_t offset = LIB_UI_PADDING_DEFAULT;
+		if( wm -> list_panel[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_icon ) {
+			offset += 16;
+
+			for( uint64_t y = 0; y < 16; y++ )
+				for( uint64_t x = 0; x < 16; x++ )
+					pixel_entry[ (y * wm -> panel -> width) + x ] = lib_color_blend( pixel_entry[ (y * wm -> panel -> width) + x ], wm -> list_panel[ i ] -> descriptor -> icon[ (y * 16) + x ] );
+		}
+
 		// show entry name
-		lib_font( LIB_FONT_FAMILY_ROBOTO, wm -> list_panel[ i ] -> descriptor -> name, wm -> list_panel[ i ] -> descriptor -> name_length, foreground, pixel + (4 * wm -> panel -> width) + 4, wm -> panel -> width, LIB_FONT_FLAG_ALIGN_left );
+		lib_font( LIB_FONT_FAMILY_ROBOTO, wm -> list_panel[ i ] -> descriptor -> name, wm -> list_panel[ i ] -> descriptor -> name_length, foreground, pixel_entry - LIB_UI_PADDING_ICON + offset, wm -> panel -> width, LIB_FONT_FLAG_ALIGN_left );
 
 		// next entry location
 		pixel += wm -> panel_entry_width;

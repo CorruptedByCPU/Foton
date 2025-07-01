@@ -9,7 +9,7 @@
 #include	"../library/window.h"
 
 #define	TEST_WIDTH_pixel	600
-#define	TEST_HEIGHT_pixel	300
+#define	TEST_HEIGHT_pixel	297
 
 #define	KURO_MIMETYPE_unknown		0x00
 #define	KURO_MIMETYPE_up		0x01
@@ -161,7 +161,7 @@ void create_ui( void ) {
 
 	// column 0
 	uint64_t x0 = LIB_UI_MARGIN_DEFAULT;
-	uint64_t y0 = LIB_UI_HEADER_HEIGHT + LIB_UI_PADDING_DEFAULT;
+	uint64_t y0 = LIB_UI_HEADER_HEIGHT;
 	lib_ui_add_label( ui, x0, y0, column_width, (uint8_t *) "Use TAB/SHIFT key or mouse for interaction.", EMPTY );
 	y0 += LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT;
 	lib_ui_add_input( ui, x0, y0, column_width, (uint8_t *) "Input.0", EMPTY );
@@ -178,7 +178,7 @@ void create_ui( void ) {
 
 	// column 1
 	uint64_t x1 = LIB_UI_MARGIN_DEFAULT + column_width + LIB_UI_PADDING_DEFAULT;
-	uint64_t y1 = LIB_UI_HEADER_HEIGHT + LIB_UI_PADDING_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT;
+	uint64_t y1 = LIB_UI_HEADER_HEIGHT + LIB_UI_ELEMENT_LABEL_height;
 	lib_ui_add_input( ui, x1, y1, column_width, (uint8_t *) "Input.1 (disabled)", LIB_UI_ELEMENT_FLAG_disabled );
 	y1 += LIB_UI_ELEMENT_INPUT_height + LIB_UI_PADDING_DEFAULT;
 	lib_ui_add_radio( ui, x1, y1, column_width, (uint8_t *) "Radio.0 (Group.0)", 0, EMPTY );
@@ -272,15 +272,21 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	kuro_icon_register( KURO_MIMETYPE_directory, (uint8_t *) "/var/share/media/icon/default/places/folder.tga" );
 	kuro_icon_register( KURO_MIMETYPE_unknown, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );
 
-	struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, TEST_WIDTH_pixel, TEST_HEIGHT_pixel );
+	struct LIB_WINDOW_STRUCTURE *window = lib_window( 3, 289, TEST_WIDTH_pixel, TEST_HEIGHT_pixel );
 	window -> flags = LIB_WINDOW_FLAG_resizable;
 
 	ui = lib_ui( window );
+
+	ui -> icon = lib_image_scale( lib_ui_icon( (uint8_t *) "/var/share/media/icon/default/app/duckstation.tga" ), 48, 48, 16, 16 );
+
+	// add icon to window properties
+	for( uint64_t i = 0; i < 16 * 16; i++ ) window -> icon[ i ] = ui -> icon[ i ];
+
 	lib_ui_clean( ui );
 
 	create_ui();
 
-	ui -> window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
+	ui -> window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_icon | LIB_WINDOW_FLAG_flush;
 
 	while( TRUE ) {
 		lib_ui_event( ui );

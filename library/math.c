@@ -9,6 +9,15 @@
 		#include	"./math.h"
 	#endif
 
+double lib_math_fabs( double x ) {
+	uint64_t *p = (uint64_t *) &x;
+	return *p &= 0x7FFFFFFFFFFFFFFFULL;
+}
+
+double lib_math_fmod( double x, double y ) {
+	return x - (double) ((int64_t) (x / y)) * y;
+}
+
 int8_t lib_math_compare_double( double f1, double f2 ) {
 	// lower than
 	if( (f1 - LIB_MATH_EPSILON) < f2 ) return -1;
