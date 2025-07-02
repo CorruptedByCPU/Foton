@@ -162,9 +162,9 @@ void create_ui( void ) {
 	// column 0
 	uint64_t x0 = LIB_UI_MARGIN_DEFAULT;
 	uint64_t y0 = LIB_UI_HEADER_HEIGHT;
-	lib_ui_add_label( ui, x0, y0, column_width, (uint8_t *) "Use TAB/SHIFT key or mouse for interaction.", EMPTY );
+	lib_ui_add_label( ui, x0, y0, column_width, (uint8_t *) "Use TAB/SHIFT key or mouse for interaction.", EMPTY, EMPTY );
 	y0 += LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT;
-	lib_ui_add_input( ui, x0, y0, column_width, (uint8_t *) "Input.0", EMPTY );
+	lib_ui_add_input( ui, x0, y0, column_width, (uint8_t *) "Input.0", EMPTY, EMPTY );
 	y0 += LIB_UI_ELEMENT_INPUT_height + LIB_UI_PADDING_DEFAULT;
 	lib_ui_add_checkbox( ui, x0, y0, column_width, (uint8_t *) "Checkbox.0", EMPTY );
 	y0 += LIB_UI_ELEMENT_CHECKBOX_height + LIB_UI_PADDING_DEFAULT;
@@ -178,8 +178,8 @@ void create_ui( void ) {
 
 	// column 1
 	uint64_t x1 = LIB_UI_MARGIN_DEFAULT + column_width + LIB_UI_PADDING_DEFAULT;
-	uint64_t y1 = LIB_UI_HEADER_HEIGHT + LIB_UI_ELEMENT_LABEL_height;
-	lib_ui_add_input( ui, x1, y1, column_width, (uint8_t *) "Input.1 (disabled)", LIB_UI_ELEMENT_FLAG_disabled );
+	uint64_t y1 = LIB_UI_HEADER_HEIGHT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT;
+	lib_ui_add_input( ui, x1, y1, column_width, (uint8_t *) "Input.1 (disabled)", LIB_UI_ELEMENT_FLAG_disabled, EMPTY );
 	y1 += LIB_UI_ELEMENT_INPUT_height + LIB_UI_PADDING_DEFAULT;
 	lib_ui_add_radio( ui, x1, y1, column_width, (uint8_t *) "Radio.0 (Group.0)", 0, EMPTY );
 	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_PADDING_DEFAULT;
@@ -245,7 +245,7 @@ void create_ui( void ) {
 		//---
 		y++;
 	}
-	lib_ui_add_table( ui, x2, y2, -1, y1 - (LIB_UI_HEADER_HEIGHT + LIB_UI_PADDING_DEFAULT), EMPTY, table_header, table_content, 2, y );
+	lib_ui_add_table( ui, x2, y2, -1, y1 - (LIB_UI_HEADER_HEIGHT + LIB_UI_PADDING_DEFAULT), table_header, table_content, 2, y );
 
 	// row 1
 

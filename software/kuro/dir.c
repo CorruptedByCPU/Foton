@@ -89,7 +89,7 @@ void kuro_dir( void ) {
 		kuro_dir_add( dir, table_content );
 
 		// add table to ui interface
-		table_id = lib_ui_add_table( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, -1, -1, EMPTY, table_header, table_content, 2, table_row );
+		table_id = lib_ui_add_table( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, -1, -1, table_header, table_content, 2, table_row );
 	} else {
 		// release old table content
 		for( uint64_t y = 0; y < table_row; y++ ) {

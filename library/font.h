@@ -10,7 +10,6 @@
 	#endif
 
         // display management
-	#define	LIB_FONT_FLAG_mask			0x1F		
 	#define LIB_FONT_FLAG_ALIGN_left             	0x00
 	#define LIB_FONT_FLAG_ALIGN_center           	0x01
 	#define LIB_FONT_FLAG_ALIGN_right            	0x02

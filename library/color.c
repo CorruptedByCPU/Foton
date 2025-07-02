@@ -63,7 +63,7 @@ double fmod(double x, double y) {
     return x - (double)((long long)(x / y)) * y;
 }
 
-uint32_t lib_color_from_hsv( double h, double s, double b ) {
+uint32_t lib_color_hsv( double h, double s, double b ) {
 	// keep in range
     	while( h < 0.0f ) h += 360.0f;
 	while( h >= 360.0f ) h -= 360.0f;

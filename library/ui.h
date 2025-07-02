@@ -28,7 +28,7 @@
 #define	LIB_UI_COLOR_BORDER_ACTIVE		LIB_UI_COLOR_BORDER_DEFAULT + LIB_UI_COLOR_INCREASE
 
 #define	LIB_UI_COLOR_BACKGROUND_DEFAULT		0xFF181818
-#define	LIB_UI_COLOR_BACKGROUND_BUTTON		0xFF8AB256
+#define	LIB_UI_COLOR_BACKGROUND_BUTTON		0xFF86B057
 #define	LIB_UI_COLOR_BACKGROUND_BUTTON_DISABLED	0xFF404040
 #define	LIB_UI_COLOR_BACKGROUND_CHECKBOX	(LIB_UI_COLOR_BACKGROUND_DEFAULT + 0x00101010)
 #define	LIB_UI_COLOR_BACKGROUND_CONTROL_CLOSE	LIB_UI_COLOR_BACKGROUND_BUTTON
@@ -57,11 +57,11 @@
 #define	LIB_UI_ELEMENT_FLAG_disabled		0x80
 
 #define	LIB_UI_ELEMENT_BUTTON_height		LIB_UI_HEADER_HEIGHT
-#define	LIB_UI_ELEMENT_CHECKBOX_height		LIB_FONT_HEIGHT_pixel
-#define	LIB_UI_ELEMENT_INPUT_height		20
+#define	LIB_UI_ELEMENT_CHECKBOX_height		LIB_UI_ELEMENT_LABEL_height
+#define	LIB_UI_ELEMENT_INPUT_height		LIB_UI_ELEMENT_LABEL_height
 #define	LIB_UI_ELEMENT_LABEL_height		LIB_FONT_HEIGHT_pixel
 #define	LIB_UI_ELEMENT_LIST_ENTRY_height	LIB_UI_ELEMENT_INPUT_height
-#define	LIB_UI_ELEMENT_RADIO_height		LIB_FONT_HEIGHT_pixel
+#define	LIB_UI_ELEMENT_RADIO_height		LIB_UI_ELEMENT_LABEL_height
 #define	LIB_UI_ELEMENT_TABLE_height		LIB_UI_HEADER_HEIGHT
 
 #define	LIB_UI_ELEMENT_INPUT_length_max		256
@@ -144,6 +144,7 @@ struct LIB_UI_STRUCTURE_ELEMENT {
 
 struct LIB_UI_STRUCTURE_ELEMENT_BUTTON {
 	struct LIB_UI_STRUCTURE_ELEMENT	standard;
+	uint8_t				flag;
 };
 
 struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX {
@@ -158,12 +159,14 @@ struct LIB_UI_STRUCTURE_ELEMENT_CONTROL {
 
 struct LIB_UI_STRUCTURE_ELEMENT_INPUT {
 	struct LIB_UI_STRUCTURE_ELEMENT	standard;
+	uint8_t				flag;
 	uint64_t			offset;
 	uint64_t			index;
 };
 
 struct LIB_UI_STRUCTURE_ELEMENT_LABEL {
 	struct LIB_UI_STRUCTURE_ELEMENT	standard;
+	uint8_t				flag;
 };
 
 struct LIB_UI_STRUCTURE_ELEMENT_LIST {
@@ -244,15 +247,15 @@ struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA {
 };
 
 struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window );
-uint64_t lib_ui_add_button( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint16_t height, uint8_t flag );
+uint64_t lib_ui_add_button( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint16_t height, uint8_t flag_ui );
 uint64_t lib_ui_add_checkbox( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t flag );
 uint64_t lib_ui_add_control( struct LIB_UI_STRUCTURE *ui, uint8_t type );
-uint64_t lib_ui_add_input( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t flag );
-uint64_t lib_ui_add_label( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t flag );
+uint64_t lib_ui_add_input( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t flag_ui, uint8_t flag_font );
+uint64_t lib_ui_add_label( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t flag_ui, uint8_t flag_font );
 uint64_t lib_ui_add_list( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *entry, uint64_t limit );
-uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t group, uint8_t flag );
-uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t flag, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *header, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t c, uint64_t r );
-uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint64_t height, uint8_t flag, uint8_t *string );
+uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t group, uint8_t flag_ui );
+uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *header, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t c, uint64_t r );
+uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint64_t height, uint8_t flag_ui, uint8_t *string );
 void lib_ui_clean( struct LIB_UI_STRUCTURE *ui );
 void lib_ui_event( struct LIB_UI_STRUCTURE *ui );
 static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync );
