@@ -9,15 +9,19 @@
 	#include	"../library/rgl.h"
 	#include	"../library/ui.h"
 	//----------------------------------------------------------------------
+	// static, structures, definitions
+	//----------------------------------------------------------------------
+	#include	"3d/config.h"
+	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
 	#include	"3d/data.c"
 	//----------------------------------------------------------------------
 	// routines, procedures
 	//----------------------------------------------------------------------
-	#include	"3d/config.h"
 	#include	"3d/object.c"
 	#include	"3d/init.c"
+	//----------------------------------------------------------------------
 
 void close( void ) {
 	// end of program
@@ -86,7 +90,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// recieve key
 		uint16_t key = getkey();
 
-		// exit game?
+		// exit?
 		if( key == STD_ASCII_ESC ) return 0;	// yes
 
 		// next angle

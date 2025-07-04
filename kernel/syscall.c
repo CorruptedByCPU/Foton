@@ -12,11 +12,23 @@ static struct KERNEL_STRUCTURE_VFS_FILE kernel_syscall_support_path( uint8_t *pa
 	// default directory
 	uint64_t directory = current -> directory;
 
-	// change to root directory?
-	if( *path == STD_ASCII_SLASH ) directory = kernel -> storage_base_address[ storage ].vfs -> root;
-
 	// properties of file from path
 	struct KERNEL_STRUCTURE_VFS_FILE file;
+
+	// change to root directory?
+	if( *path == STD_ASCII_SLASH ) {
+		// yes
+		directory = kernel -> storage_base_address[ storage ].vfs -> root;
+
+		// and only root directory
+		if( limit == TRUE ) {
+			// obtain root directory properties
+			file = kernel -> storage_base_address[ storage ].vfs -> file( (struct KERNEL_STRUCTURE_STORAGE *) &kernel -> storage_base_address[ storage ], directory, (uint8_t *) ".", limit );
+
+			// end of path resolving
+			return file;
+		}
+	}
 
 	// until found
 	while( TRUE ) {

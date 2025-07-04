@@ -11,15 +11,18 @@
 	#include	"../library/string.h"
 	#include	"../library/ui.h"
 	//----------------------------------------------------------------------
-	// variables, structures, definitions
+	// static, structures, definitions
 	//----------------------------------------------------------------------
 	#include	"./kuro/config.h"
 	#include	"./kuro/dir.h"
 	#include	"./kuro/icon.h"
 	//----------------------------------------------------------------------
-	// variables, routines, procedures
+	// variables
 	//----------------------------------------------------------------------
 	#include	"./kuro/data.c"
+	//----------------------------------------------------------------------
+	// routines, procedures
+	//----------------------------------------------------------------------
 	#include	"./kuro/dir.c"
 	#include	"./kuro/icon.c"
 	#include	"./kuro/init.c"
@@ -39,6 +42,12 @@ reload:
 		while( TRUE ) {
 			// check for
 			lib_ui_event( ui );
+
+			// recieve key
+			uint16_t key = getkey();
+
+			// exit?
+			if( key == STD_ASCII_ESC ) return EMPTY;	// yes
 
 			// check if there is any action required with entry of table
 			for( uint64_t i = 0; i < table_row; i++ ) {

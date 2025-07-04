@@ -2,11 +2,15 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#include	"../library/image.h"
-#include	"../library/integer.h"
-#include	"../library/ui.h"
-#include	"../library/string.h"
-#include	"../library/window.h"
+	//----------------------------------------------------------------------
+	// required libraries
+	//----------------------------------------------------------------------
+	#include	"../library/image.h"
+	#include	"../library/integer.h"
+	#include	"../library/ui.h"
+	#include	"../library/string.h"
+	#include	"../library/window.h"
+	//----------------------------------------------------------------------
 
 #define	TEST_WIDTH_pixel	600
 #define	TEST_HEIGHT_pixel	297
@@ -263,6 +267,9 @@ void create_ui( void ) {
 }
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
+	// always start from root directory
+	std_cd( (uint8_t *) "/", TRUE );
+
 	// initialize icon list
 	kuro_icons = (uint32_t **) malloc( TRUE );
 

@@ -62,6 +62,9 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 	// properties of object array
 	struct WM_STRUCTURE_OBJECT *object = wm -> object;
 
+	// lock exclusive access
+	MACRO_LOCK( wm -> object_semaphore );
+
 	// find available entry
 	for( uint64_t i = 0; i < WM_OBJECT_LIMIT; i++ ) {
 		// record in use?
@@ -81,9 +84,13 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 		object -> pid = wm -> pid;
 
 		// assign area for object
-		if( ! (object -> descriptor = (struct LIB_WINDOW_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( object -> limit ) >> STD_SHIFT_PAGE )) )
+		if( ! (object -> descriptor = (struct LIB_WINDOW_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( object -> limit ) >> STD_SHIFT_PAGE )) ) {
+			// unlock access
+			MACRO_UNLOCK( wm -> object_semaphore );
+
 			// no enough memory
 			return EMPTY;
+		}
 
 		// set crucial properties
 		object -> descriptor -> pixel		= (uint32_t *) ((uintptr_t) object -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
@@ -101,9 +108,15 @@ struct WM_STRUCTURE_OBJECT *wm_object_create( uint16_t x, uint16_t y, uint16_t w
 		// update panel content
 		wm -> panel_semaphore = TRUE;
 
+		// unlock access
+		MACRO_UNLOCK( wm -> object_semaphore );
+
 		// ready
 		return object;
 	}
+
+	// unlock access
+	MACRO_UNLOCK( wm -> object_semaphore );
 
 	// cancel
 	return EMPTY;

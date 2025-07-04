@@ -33,7 +33,7 @@
 	#define	LIB_WINDOW_ANSWER_create	0b10000000 | LIB_WINDOW_REQUEST_create
 
 	struct	LIB_WINDOW_STRUCTURE {
-		uint16_t	flags;
+		volatile uint16_t	flags;
 		// base address of window content
 		uint32_t	*pixel;
 		// pointer position inside window
@@ -58,6 +58,9 @@
 		int16_t		old_y;
 		uint16_t	old_width;
 		uint16_t	old_height;
+		// pointer position regardless of window
+		uint16_t	absolute_x;
+		uint16_t	absolute_y;
 		// header properties, used by window movement
 		uint8_t		header_offset;
 		uint8_t		header_height;

@@ -387,6 +387,11 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 	// receive pending messages of mouse
 	std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_mouse );
 
+	if( mouse -> button == STD_IPC_MOUSE_BUTTON_left ) ui -> mouse.semaphore_left = TRUE;
+	if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_left ) ui -> mouse.semaphore_left = FALSE;
+	if( mouse -> button == STD_IPC_MOUSE_BUTTON_right ) ui -> mouse.semaphore_right = TRUE;
+	if( mouse -> button == (uint8_t) ~STD_IPC_MOUSE_BUTTON_right ) ui -> mouse.semaphore_right = FALSE;
+
 	for( uint64_t i = 0; i < ui -> limit; i++ ) {
 		uint8_t flush_element = FALSE;
 
@@ -622,8 +627,6 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 }
 
 void lib_ui_flush( struct LIB_UI_STRUCTURE *ui ) {
-	lib_ui_clean( ui );
-
 	lib_ui_show_name( ui );
 
 	for( uint64_t i = 0; i < ui -> limit; i++ )
@@ -793,8 +796,10 @@ void lib_ui_show_input( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 	uint64_t name_length_max = lib_string_length( input -> standard.name ) - input -> offset;
 	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max ) > input -> standard.width - LIB_UI_PADDING_DEFAULT ) { if( ! --name_length_max ) break; }
 
-	if( input -> flag & LIB_FONT_FLAG_ALIGN_center ) pixel += input -> standard.width >> STD_SHIFT_2;
-	else pixel += LIB_UI_PADDING_DEFAULT;
+	// default
+	pixel += LIB_UI_PADDING_DEFAULT;
+
+	// if( input -> flag & LIB_FONT_FLAG_ALIGN_center ) pixel += -LIB_UI_PADDING_DEFAULT + (input -> standard.width >> STD_SHIFT_2);
 
 	if( name_length_max ) lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max, color_foreground, pixel, ui -> window -> current_width, input -> flag );
 
@@ -802,7 +807,7 @@ void lib_ui_show_input( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 
 	uint64_t x = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, input -> index - input -> offset );
 	for( uint64_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ )
-		pixel[ (y * ui -> window -> current_width) + x + LIB_UI_PADDING_DEFAULT ] = STD_COLOR_WHITE;
+		pixel[ (y * ui -> window -> current_width) + x ] = STD_COLOR_WHITE;
 }
 
 void lib_ui_show_label( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_LABEL *label ) {
