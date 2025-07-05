@@ -3,44 +3,29 @@
 ===============================================================================*/
 
 void init( void ) {
-	// get our PID number
-	int64_t d3_pid = std_pid();
+	window = lib_window( 273, 3, V3D_WIDTH + (LIB_UI_BORDER_DEFAULT << STD_SHIFT_2), V3D_HEIGHT + LIB_UI_HEADER_HEIGHT + LIB_UI_BORDER_DEFAULT );
+	ui = lib_ui( window );
 
-	// obtain information about kernel framebuffer
-	std_framebuffer( (struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *) &kernel_framebuffer );
+	lib_ui_clean( ui );
 
-	// alloc area for interface properties
-	d3_interface = (struct LIB_INTERFACE_STRUCTURE *) malloc( sizeof( struct LIB_INTERFACE_STRUCTURE ) );
+	ui -> icon = lib_image_scale( lib_ui_icon( (uint8_t *) "/var/share/media/icon/3d.tga" ), 48, 48, 16, 16 );
 
-	// framebuffer belongs to us?
-	if( d3_pid == kernel_framebuffer.pid ) {
-		// look at me, i'm the captain now
-		the_master_of_puppets = TRUE;
+	// add icon to window properties
+	for( uint64_t i = 0; i < 16 * 16; i++ ) window -> icon[ i ] = ui -> icon[ i ];
 
-		// initialize RGL library
-		rgl = lib_rgl( kernel_framebuffer.width_pixel, kernel_framebuffer.height_pixel, kernel_framebuffer.width_pixel, kernel_framebuffer.base_address );
-	} else {
-		// for future window resize, set limits
-		d3_interface -> min_width = 1 + 32 + 1;
-		d3_interface -> min_height = LIB_INTERFACE_HEADER_HEIGHT_pixel + 32 + 1;
+	lib_window_name( ui -> window, (uint8_t *) "3D Viewer (Demo)" );
 
-		// initialize interface library
-		d3_interface -> properties = (uint8_t *) &file_interface_start;
-		if( ! lib_interface( d3_interface ) ) { log( "Cannot create window.\n" ); exit(); }
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_close );
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_max );
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_min );
 
-		// allow window to be resiable
-		d3_interface -> descriptor -> flags |= STD_WINDOW_FLAG_resizable;
+	lib_ui_flush( ui );
 
-		// find control element of type: close
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *control = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_CONTROL *) lib_interface_element_by_id( d3_interface, 0 );
+	ui -> window -> flags = LIB_WINDOW_FLAG_resizable | LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_icon | LIB_WINDOW_FLAG_flush;
 
-		// assign executable function to element
-		control -> event = (void *) close;
+	// initialize RGL library
+	rgl = lib_rgl( V3D_WIDTH, V3D_HEIGHT, V3D_WIDTH + (LIB_UI_BORDER_DEFAULT << STD_SHIFT_2), (uint32_t *) ui -> window -> pixel + (LIB_UI_HEADER_HEIGHT * ui -> window -> current_width) + LIB_UI_BORDER_DEFAULT );
 
-		// initialize RGL library
-		rgl = lib_rgl( d3_interface -> width - (LIB_INTERFACE_BORDER_pixel << STD_SHIFT_2), d3_interface -> height - (LIB_INTERFACE_HEADER_HEIGHT_pixel + LIB_INTERFACE_BORDER_pixel), d3_interface -> width, (uint32_t *) ((uintptr_t) d3_interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ) + (((LIB_INTERFACE_HEADER_HEIGHT_pixel * d3_interface -> width) + LIB_INTERFACE_BORDER_pixel) << STD_VIDEO_DEPTH_shift)) );
-
-		// window content ready for display
-		d3_interface -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
-	}
+	// change background color to UI type
+	rgl -> color_background = LIB_UI_COLOR_BACKGROUND_DEFAULT;
 }

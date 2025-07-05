@@ -15,7 +15,7 @@ void kernel_init_apic( void ) {
 	// enable APIC controller on the BSP/logical processor
 	kernel -> apic_base_address -> siv = kernel -> apic_base_address -> siv | KERNEL_APIC_SIV_FLAG_enable_apic | KERNEL_APIC_SIV_FLAG_spurious_vector;
 
-	// turn on internal interrupts time on APIC controller of BSP/logical processor
+	// turn on internal interrupts time on APIC controller of BS/A processor
 	kernel -> apic_base_address -> lvt = kernel -> apic_base_address -> lvt & ~KERNEL_APIC_LVT_TR_FLAG_mask_interrupts;
 
 	// number of hardware interrupt at the end of the timer

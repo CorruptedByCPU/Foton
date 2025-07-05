@@ -45,15 +45,15 @@
 		uint32_t	elf_version;
 		//---------------------------------
 		uint64_t	entry_ptr;
-		uint64_t	headers_offset;
-		uint64_t	sections_offset;
+		uint64_t	header_offset;
+		uint64_t	section_offset;
 		//---------------------------------
 		uint32_t	flags;
 		uint16_t	header_size;
-		uint16_t	header_table_size;
-		uint16_t	h_entry_count;
-		uint16_t	section_table_size;
-		uint16_t	s_entry_count;
+		uint16_t	header_table_limit;
+		uint16_t	header_count;
+		uint16_t	section_table_limit;
+		uint16_t	section_count;
 		uint16_t	correlation;
 	} __attribute__( (packed) );
 
@@ -81,7 +81,7 @@
 		uint64_t	entry_count;
 	} __attribute__( (packed) );
 
-	struct	LIB_ELF_STRUCTURE_DYNAMIC_ENTRY {
+	struct	LIB_ELF_STRUCTURE_DYNAMIC {
 		uint64_t	type;
 		uint64_t	name_offset;
 	} __attribute__( (packed) );

@@ -5,8 +5,13 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
-	#include	"../library/interface.h"
+	#include	"../library/font.h"
 	#include	"../library/rgl.h"
+	#include	"../library/ui.h"
+	//----------------------------------------------------------------------
+	// static, structures, definitions
+	//----------------------------------------------------------------------
+	#include	"3d/config.h"
 	//----------------------------------------------------------------------
 	// variables
 	//----------------------------------------------------------------------
@@ -14,16 +19,16 @@
 	//----------------------------------------------------------------------
 	// routines, procedures
 	//----------------------------------------------------------------------
-	#include	"3d/config.h"
 	#include	"3d/object.c"
 	#include	"3d/init.c"
+	//----------------------------------------------------------------------
 
 void close( void ) {
 	// end of program
 	exit();
 }
 
-int64_t _main( uint64_t argc, uint8_t *argv[] ) {
+uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// initialize environment
 	init();
 
@@ -33,6 +38,9 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	object_load( argc, argv );
 
 	//----------------------------------------------------------------------
+
+	// change camera position
+	rgl -> camera.y = -1.0f;
 
 	// array of parsed faces
 	struct LIB_RGL_STRUCTURE_TRIANGLE *parse = (struct LIB_RGL_STRUCTURE_TRIANGLE *) malloc( sizeof( struct LIB_RGL_STRUCTURE_TRIANGLE ) * face_limit );
@@ -49,39 +57,44 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// array of world
 	struct LIB_RGL_STRUCTURE_MATRIX w_matrix = lib_rgl_multiply_matrix( v_matrix, p_matrix );
 
-	// rotation angle
-	double a = 0.0f;
-
 	// alloc area for modified vectors
 	vector3f *vector_transformed = (vector3f *) malloc( sizeof( vector3f ) * vector_limit );
 	vector3f *vector_ready = (vector3f *) malloc( sizeof( vector3f ) * vector_limit );
 
+	// speed of rotation
+	double speed = 0.128f;
+	double time = 0.10f;	// 1/60 of second
+
+	// current angle
+	double a = 0.0f;
+
+	// start measuring
+	microtime = std_microtime();
+
 	// main loop
 	while( TRUE ) {
-		// check events from interface
-		if( ! the_master_of_puppets ) {
-			// check incomming events
-			struct LIB_INTERFACE_STRUCTURE *new = EMPTY;
-			if( (new = lib_interface_event( d3_interface )) ) {
-				// update interface pointer
-				d3_interface = new;
-
-				// reinitizalize RGL areas
-				lib_rgl_resize( rgl, d3_interface -> width - (LIB_INTERFACE_BORDER_pixel << STD_SHIFT_2), d3_interface -> height - (LIB_INTERFACE_HEADER_HEIGHT_pixel + LIB_INTERFACE_BORDER_pixel), d3_interface -> width, (uint32_t *) ((uintptr_t) d3_interface -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ) + (((LIB_INTERFACE_HEADER_HEIGHT_pixel * d3_interface -> width) + LIB_INTERFACE_BORDER_pixel) << STD_VIDEO_DEPTH_shift)) );
-
-				// update window content on screen
-				d3_interface -> descriptor -> flags |= STD_WINDOW_FLAG_resizable | STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
-			}
-		}
+		// check for
+		lib_ui_event( ui );
 
 		// recieve key
 		uint16_t key = getkey();
 
-		// exit game?
+		// exit?
 		if( key == STD_ASCII_ESC ) return 0;	// yes
 
+		// changed window properties?
+		if( window != ui -> window ) {
+			// update
+			window = ui -> window;
+			
+			// reinitialize RGL library
+			rgl = lib_rgl( ui -> window -> current_width - (LIB_UI_BORDER_DEFAULT << STD_SHIFT_2), ui -> window -> current_height - (LIB_UI_HEADER_HEIGHT + LIB_UI_BORDER_DEFAULT), ui -> window -> current_width, (uint32_t *) ui -> window -> pixel + (LIB_UI_HEADER_HEIGHT * ui -> window -> current_width) + LIB_UI_BORDER_DEFAULT );
+
+			ui -> window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
+		}
+
 		// next angle
-		a += 0.02f;
+		a += speed * time;
 
 		// clean workbench with default background color
 		lib_rgl_clean( rgl );
@@ -148,8 +161,37 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// synchronize workbench with window
 		lib_rgl_flush( rgl );
 
+		// frame ready
+		fps++;
+
+		// show FPS
+		uint32_t *pixel = (uint32_t *) ui -> window -> pixel + (LIB_UI_HEADER_HEIGHT * ui -> window -> current_width) + LIB_UI_BORDER_DEFAULT;
+		pixel += 4 + (ui -> window -> current_width * 4);
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "FPS: ", 5, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
+		pixel += LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 5;
+		lib_font_value( LIB_FONT_FAMILY_ROBOTO_MONO, fps_show, 10, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
+		pixel += -(LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 5) + ui -> window -> current_width * LIB_FONT_HEIGHT_pixel;
+		lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "Avg: ~", 6, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
+		pixel += LIB_FONT_FAMILY_ROBOTO_MONO_KERNING * 6;
+		if( fps_avarage_c ) lib_font_value( LIB_FONT_FAMILY_ROBOTO_MONO, fps_avarage / fps_avarage_c, 10, STD_COLOR_WHITE, pixel, ui -> window -> current_width, EMPTY );
+
+		// 1 second passed?
+		if( std_microtime() > microtime + 1024 ) {
+			// restart measurements variables
+			fps_show = fps;
+			fps_avarage += fps;
+			fps_avarage_c++;
+			fps = EMPTY;
+
+			// start new measurement
+			microtime = std_microtime();
+		}
+
 		// tell window manager to flush window
-		if( ! the_master_of_puppets ) d3_interface -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
+
+// debug
+// while( TRUE );
 	}
 
 	// should not happen

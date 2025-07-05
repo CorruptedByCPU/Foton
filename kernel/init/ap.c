@@ -2,9 +2,12 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void kernel_init_ap( void ) {
+void kernel_init_ap( struct limine_smp_info *info ) {
+	// set Write-Combining on framebuffer memory area
+	kernel_init_mtrr();
+
 	// reload kernel environment paging array
-	__asm__ volatile( "movq %0, %%cr3" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_PAGE_mirror) );
+	__asm__ volatile( "movq %0, %%cr3" :: "r" ((uintptr_t) kernel -> page_base_address & ~KERNEL_MEMORY_mirror) );
 
 	// reload Global Descriptor Table
 	__asm__ volatile( "lgdt (%0)" :: "r" (&kernel -> gdt_header) );
@@ -16,24 +19,24 @@ void kernel_init_ap( void ) {
 	__asm__ volatile( "lidt (%0)" :: "r" (&kernel -> idt_header) );
 
 	// create a TSS descriptor for current BS/A processor
-	uint8_t current_cpu_id = kernel_lapic_id();
+	uint8_t id = kernel_apic_id();
 
 	// Task State Segment descriptor properties
 	struct KERNEL_STRUCTURE_TSS_ENTRY *tss = (struct KERNEL_STRUCTURE_TSS_ENTRY *) &kernel -> gdt_header.base_address[ KERNEL_TSS_OFFSET ];
 
 	// insert descriptor data for BSP/logical processor
-	tss[ current_cpu_id ].limit_low = sizeof( struct KERNEL_STRUCTURE_TSS );	// size of Task State Segment array in Bytes
-	tss[ current_cpu_id ].base_low = (uint64_t) &kernel -> tss_table;		// TSS table address (bits 15..0)
-	tss[ current_cpu_id ].base_middle = (uint64_t) &kernel -> tss_table >> 16;	// TSS table address (bits 23..16)
-	tss[ current_cpu_id ].access = 0b10001001;					// TSS descriptor access attributes
-	tss[ current_cpu_id ].base_high = (uint64_t) &kernel -> tss_table >> 24;	// TSS table address (bits 31..24)
-	tss[ current_cpu_id ].base_64bit = (uint64_t) &kernel -> tss_table >> 32;	// TSS table address (bits 63..32)
+	tss[ id ].limit_low	= sizeof( struct KERNEL_STRUCTURE_TSS );	// size of Task State Segment array in Bytes
+	tss[ id ].base_low	= (uint64_t) &kernel -> tss;			// TSS table address (bits 15..0)
+	tss[ id ].base_middle	= (uint64_t) &kernel -> tss >> 16;		// TSS table address (bits 23..16)
+	tss[ id ].access	= 0x89;						// TSS descriptor access attributes
+	tss[ id ].base_high	= (uint64_t) &kernel -> tss >> 24;		// TSS table address (bits 31..24)
+	tss[ id ].base_64bit	= (uint64_t) &kernel -> tss >> 32;		// TSS table address (bits 63..32)
 
 	// set TSS descriptor for BS/A processor
-	__asm__ volatile( "ltr %%ax" :: "a" ((uintptr_t) &tss[ current_cpu_id ] & ~STD_PAGE_mask) );
+	__asm__ volatile( "ltr %%ax" :: "a" ((uintptr_t) &tss[ id ] & ~STD_PAGE_mask) );
 
 	// select task from queue which CPU is now processing
-	kernel -> task_cpu_address[ current_cpu_id ] = &kernel -> task_base_address[ 0 ];
+	kernel -> task_ap_address[ id ] = 0;
 
 	// disable x87 FPU Emulation, enable co-processor Monitor
 	__asm__ volatile( "movq %cr0, %rax\nand $0xFFFB, %ax\nor $0x02, %ax\nmovq %rax, %cr0" );
@@ -44,11 +47,14 @@ void kernel_init_ap( void ) {
 	// allow all BS/A processors to write on read-only pages
 	__asm__ volatile( "movq %cr0, %rax\nandq $~(1 << 16), %rax\nmovq %rax, %cr0" );
 
-	// enable FXSAVE/FXRSTOR (bit 9), OSXMMEXCPT (bit 10) and OSXSAVE (bit 18)
-	__asm__ volatile( "movq %cr4, %rax\norq $0b000001000000011000000000, %rax\nmovq %rax, %cr4" );
+	// enable FXSAVE/FXRSTOR (bit 9), OSXMMEXCPT (bit 10)
+	// INFO:
+	// XCR0 was first introduced with Intel’s Sandy Bridge architecture (2nd generation Core processors, launched in 2011)
+	// DISABLED to be compliant with first x64 CPU
+	__asm__ volatile( "movq %cr4, %rax\nandq $0xFFFB, %rax\norq $0b000000000000011000000000, %rax\nmovq %rax, %cr4" );	// 0b000001000000011000000000, enable access to XCR0 by OSXSAVE (bit 18)
 
-	// enable X87, SSE, AVX support
-	__asm__ volatile( "xor %ecx, %ecx\nxgetbv\nor $0x3, %eax\nxsetbv" );
+	// enable X87, SSE support (AVX bit 2, no support for now)
+	// __asm__ volatile( "xor %ecx, %ecx\nxgetbv\nor $0b11, %eax\nxsetbv" );
 
 	//--------------------------------------------------------------------------
 	// enable syscall/sysret support
@@ -61,17 +67,17 @@ void kernel_init_ap( void ) {
 	__asm__ volatile( "wrmsr" :: "a" ((uint32_t) KERNEL_TASK_EFLAGS_if | KERNEL_TASK_EFLAGS_df), "c" (KERNEL_INIT_AP_MSR_EFLAGS), "d" (EMPTY) );
 	//--------------------------------------------------------------------------
 
-	// re/initialize LAPIC of BS/A processor
-	kernel_init_lapic();
+	// re/initialize APIC of BS/A processor
+	kernel_init_apic();
 
-	// reload cpu cycle counter in LAPIC controller
-	kernel_lapic_reload();
+	// reload cpu cycle counter in APIC controller
+	kernel_apic_reload();
 
 	// accept current interrupt call (if exist)
-	kernel_lapic_accept();
+	kernel_apic_accept();
 
 	// BS/A initialized
-	kernel -> cpu_count++;
+	kernel -> cpu_limit++;
 
 	// enable interrupt handling
 	__asm__ volatile( "sti" );

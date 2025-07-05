@@ -56,7 +56,7 @@ int64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// main look
 	while( TRUE ) {
 		// end of shell?
-		if( ! std_pid_check( console_pid_of_shell ) ) return 0;	// quit from console too
+		if( ! std_pid_exist( console_pid_of_shell ) ) return 0;	// quit from console too
 
 		// check events from interface
 		if( ! console_the_master_of_puppets ) {

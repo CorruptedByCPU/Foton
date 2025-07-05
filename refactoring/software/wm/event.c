@@ -3,69 +3,98 @@
 ===============================================================================*/
 
 void wm_event( void ) {
-	// retrieve current mouse status and position
-	struct STD_STRUCTURE_MOUSE_SYSCALL mouse_syscall;
-	std_mouse( (struct STD_STRUCTURE_MOUSE_SYSCALL *) &mouse_syscall );
+	// incomming/outgoing messages
+	uint8_t ipc_data[ STD_IPC_SIZE_byte ];
 
-	// incomming message
-	uint8_t data[ STD_IPC_SIZE_byte ]; int64_t source = EMPTY;
-	while( (source = std_ipc_receive_by_type( (uint8_t *) &data, STD_IPC_TYPE_event )) ) {
+	// check every incomming message
+	uint64_t source_pid = EMPTY;
+	while( (source_pid = std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_default )) ) {
 		// properties of request
-		struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &data;
+		struct STD_STRUCTURE_IPC_WINDOW *request = (struct STD_STRUCTURE_IPC_WINDOW *) &ipc_data;
 
-		// properties of answer
-		struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &data;
+		// choose behavior
+		switch( request -> properties ) {
+			case STD_IPC_WINDOW_create: {
+				// properties of window create request
+				struct STD_STRUCTURE_IPC_WINDOW_CREATE *create = (struct STD_STRUCTURE_IPC_WINDOW_CREATE *) &ipc_data;
 
-		// properties of new object
-		struct WM_STRUCTURE_OBJECT *object = EMPTY;
+				// properties of answer
+				struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &ipc_data;
 
-		// pointer to shared object descriptor
-		uintptr_t descriptor = EMPTY;
+				// properties of new object
+				struct WM_STRUCTURE_OBJECT *object = EMPTY;
 
-		// if request is valid
-		if( request -> width && request -> height ) {
-			// try to create new object
-			object = wm_object_create( request -> x, request -> y, request -> width, request -> height );
+				// pointer to shared object descriptor
+				uintptr_t descriptor = EMPTY;
 
-			// if created properly
-			if( object )
-				// try to share object descriptor with process
-				descriptor = std_memory_share( source, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE );
+				// if request is valid
+				if( create -> width && create -> height ) {
+					// try to create new object
+					object = wm_object_create( create -> x, create -> y, create -> width, create -> height );
+
+					// if created properly
+					if( object )
+						// try to share object descriptor with process
+						descriptor = std_memory_share( source_pid, (uintptr_t) object -> descriptor, MACRO_PAGE_ALIGN_UP( object -> size_byte ) >> STD_SHIFT_PAGE, TRUE );
+				}
+
+				// if everything was done properly
+				if( object && descriptor ) {
+					// update PID of object
+					object -> pid = source_pid;
+
+					// and return object descriptor
+					answer -> descriptor = descriptor;
+				} else
+					// reject window creation
+					answer -> descriptor = EMPTY;
+
+				// send answer
+				std_ipc_send( source_pid, (uint8_t *) answer );
+
+				// done
+				break;
+			}
+
+			case STD_IPC_WINDOW_list: {
+				// properties of window list request
+				struct STD_STRUCTURE_IPC_WINDOW_CREATE *list = (struct STD_STRUCTURE_IPC_WINDOW_CREATE *) &ipc_data;
+
+				// properties of answer
+				struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *answer = (struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR *) &ipc_data;
+
+				// prepare object list
+				struct LIB_WINDOW_STRUCTURE_LIST *entry = (struct LIB_WINDOW_STRUCTURE_LIST *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( (wm_list_limit + TRUE) * sizeof( struct LIB_WINDOW_STRUCTURE_LIST ) ) >> STD_SHIFT_PAGE );	// last list element is empty
+				if( ! entry )
+					// return empty list
+					answer -> descriptor = EMPTY;
+				else {
+					// fill up will all existing objects
+					for( uint64_t i = TRUE; i < wm_list_limit; i++ ) {
+						// ignore entries of source
+						if( wm_list_base_address[ i ] -> pid == source_pid ) continue;
+
+						// object id
+						entry[ i ].id = (uintptr_t) wm_list_base_address[ i ] - (uintptr_t) wm_object_base_address;
+
+						// its flags
+						entry[ i ].flags = wm_list_base_address[ i ] -> descriptor -> flags;
+
+						// and name
+						for( uint8_t n = INIT; n < wm_list_base_address[ i ] -> descriptor -> name_length; ) entry[ i ].name[ entry[ i ].name_limit++ ] = wm_list_base_address[ i ] -> descriptor -> name[ n ]; entry[ i ].name[ entry -> name_limit ] = STD_ASCII_TERMINATOR;
+					}
+
+					// move list area to process environment
+					answer -> descriptor = std_memory_move( source_pid, (uintptr_t) entry, MACRO_PAGE_ALIGN_UP( (wm_list_limit + TRUE) * sizeof( struct LIB_WINDOW_STRUCTURE_LIST ) ) >> STD_SHIFT_PAGE );
+				}
+
+				// send answer
+				std_ipc_send( source_pid, (uint8_t *) answer );
+
+				// done
+				break;
+			}
 		}
-
-		// if everything was done properly
-		if( object && descriptor ) {
-			// update PID of object
-			object -> pid = source;
-
-			// and return object descriptor
-			answer -> descriptor = descriptor;
-		} else
-			// reject window creation
-			answer -> descriptor = EMPTY;
-
-		// send answer
-		std_ipc_send( source, (uint8_t *) answer );
-	}
-
-	// incomming mouse event
-	while( (source = std_ipc_receive_by_type( (uint8_t *) &data, STD_IPC_TYPE_mouse )) ) {
-		// ignore if workbench locked
-		if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
-
-		// properties of mouse event
-		struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
-
-		// different button than required?
-		if( ! wm_mouse_button_left_semaphore || ! (mouse -> button & STD_IPC_MOUSE_BUTTON_left) ) continue;	// yes
-
-		// select object under cursor position
-		struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse_syscall.x, mouse_syscall.y, FALSE );
-
-		// thats an icon object?
-		if( object -> descriptor -> flags & STD_WINDOW_FLAG_icon )
-			// execute command inside object name
-			std_exec( (uint8_t *) object -> descriptor -> name, object -> descriptor -> name_length, EMPTY, TRUE );
 	}
 
 	// check keyboard cache
@@ -74,7 +103,7 @@ void wm_event( void ) {
 	// incomming key?
 	if( key ) {
 		// properties of keyboard message
-		struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &data;
+		struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_data;
 
 		// IPC type
 		keyboard -> ipc.type = STD_IPC_TYPE_keyboard;
@@ -85,293 +114,195 @@ void wm_event( void ) {
 
 		// remember state of special behavior - key, or take action immediately
 		switch( key ) {
-			// left alt pressed
-			case STD_KEY_ALT_LEFT: { wm_keyboard_status_alt_left = TRUE; break; }
+			// left ctrl pressed
+			case STD_KEY_CTRL_LEFT: { wm_keyboard_ctrl_left = TRUE; break; }
 
-			// left alt released
-			case STD_KEY_ALT_LEFT | 0x80: { wm_keyboard_status_alt_left = FALSE; break; }
+			// left ctrl released
+			case STD_KEY_CTRL_LEFT | 0x80: { wm_keyboard_ctrl_left = FALSE; break; }
 
-			// shift left pressed
-			case STD_KEY_SHIFT_LEFT: { wm_keyboard_status_shift_left = TRUE; break; }
-		
-			// shift left released
-			case STD_KEY_SHIFT_LEFT | 0x80: { wm_keyboard_status_shift_left = FALSE; break; }
+			// // tab pressed
+			// case STD_KEY_TAB: {
+			// 	// if left ctrl key is on hold
+			// 	if( ! wm_keyboard_ctrl_left ) break;	// nope
 
-			// ctrl left pressed
-			case STD_KEY_CTRL_LEFT: { wm_keyboard_status_ctrl_left = TRUE; break; }
+			// 	// search forward for object to show
+			// 	for( uint16_t i = INIT; i < wm_list_limit; i++ ) { wm_object_selected = wm_list_base_address[ i ]; break; }
 
-			// ctrl left released
-			case STD_KEY_CTRL_LEFT | 0x80: { wm_keyboard_status_ctrl_left = FALSE; break; }
+			// 	// move it up
+			// 	if( wm_object_move_up( wm_object_selected ) ) {
+			// 		// force object to be visible
+			// 		wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_visible;
 
-			// menu pressed
-			case STD_KEY_MENU: {
-				// remember menu state
-				wm_keyboard_status_menu = TRUE;
+			// 		// redraw object
+			// 		wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
-				// ignore key
-				send = FALSE;
+			// 		// cursor pointer may be obscured, redraw
+			// 		if( wm_object_cursor ) wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
-				// done
-				break;
-			}
+			// 		// set as active
+			// 		wm_object_active = wm_object_selected;
+			// 	}
 
-			case STD_ASCII_LETTER_l: {
-				// menu key on hold?
-				if( wm_keyboard_status_menu ) {
-					// lock workbench
-					wm_object_lock -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
+			// 	// ignore key
+			// 	send = FALSE;
 
-					// set new active object
-					wm_object_active = wm_object_lock;
-
-					// update taskbar status
-					wm_taskbar_modified = TRUE;
-
-					// ignore key
-					send = FALSE;
-				}
-
-				// done
-				break;
-			}
-
-			// menu released
-			case STD_KEY_MENU | 0x80: {
-				// ignore if workbench locked
-				if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
-
-				// show/hide menu
-				if( wm_keyboard_status_menu ) wm_menu_switch( FALSE );
-				
-				// remember menu state
-				wm_keyboard_status_menu = FALSE;
-				
-				// ignore key
-				// send = FALSE;
-
-				// done
-				break;
-			}
-
-			// tab pressed
-			case STD_KEY_TAB: {
-				// ignore if workbench locked
-				if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
-
-				// if left alt key is holded
-				if( ! wm_keyboard_status_alt_left ) break;	// nope
-
-				// search forward for object to show
-				for( uint16_t i = 0; i < wm_list_limit; i++ ) if( wm_list_base_address[ i ] -> pid != wm_pid ) { wm_object_selected = wm_list_base_address[ i ]; break; }
-
-				// move it up
-				if( wm_object_move_up( wm_object_selected ) ) {
-					// force object to be visible
-					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_visible;
-
-					// redraw object
-					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-
-					// cursor pointer may be obscured, redraw
-					wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-
-					// set as active
-					wm_object_active = wm_object_selected;
-
-					// update taskbar status
-					wm_taskbar_modified = TRUE;
-				}
-
-				// ignore key
-				send = FALSE;
-
-				// done
-				break;
-			}
-
-			// return pressed
-			case STD_ASCII_RETURN: {
-				// ignore if workbench locked
-				if( wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible ) break;
-
-				// alt key is on hold
-				if( wm_keyboard_status_alt_left ) {
-					// execute console application
-					std_exec( (uint8_t *) "console", 7, EMPTY, TRUE );
-
-					// do not send this key to current process
-					send = FALSE;
-				}
-
-				// done
-				break;
-			}
+			// 	// done
+			// 	break;
+			// }
 		}
 
 		// send event to active object process
 		if( send ) std_ipc_send( wm_object_active -> pid, (uint8_t *) keyboard );
 	}
 
-	// calculate delta of cursor new position
-	int16_t delta_x = mouse_syscall.x - wm_object_cursor -> x;
-	int16_t delta_y = mouse_syscall.y - wm_object_cursor -> y;
-	int16_t delta_z = mouse_syscall.z - wm_mouse_z; wm_mouse_z = mouse_syscall.z;
+	//----------------------------------------------------------------------
 
-	//--------------------------------------------------------------------------
+	// retrieve current mouse status and position
+	struct STD_STRUCTURE_MOUSE_SYSCALL mouse;
+	std_mouse( (struct STD_STRUCTURE_MOUSE_SYSCALL *) &mouse );
+
+	// calculate delta of cursor new position
+	int16_t	delta_x = EMPTY;
+	int16_t	delta_y = EMPTY;
+	int8_t	delta_z = EMPTY;
 
 	// select object under cursor position
-	struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse_syscall.x, mouse_syscall.y, FALSE );
+	struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse.x, mouse.y, FALSE );
 
-	// update pointer position
-	object -> descriptor -> x = (wm_object_cursor -> x + delta_x) - object -> x;
-	object -> descriptor -> y = (wm_object_cursor -> y + delta_y) - object -> y;
+	// if cursor object exist
+	if( wm_object_cursor ) { 
+		// calculate delta of cursor new position
+		delta_x = mouse.x - wm_object_cursor -> x;
+		delta_y = mouse.y - wm_object_cursor -> y;
+		delta_z = mouse.z - wm_mouse_z; wm_mouse_z = mouse.z;
 
-	//--------------------------------------------------------------------------
+		//--------------------------------------------------------------
+
+		// update pointer position
+		object -> descriptor -> x = (wm_object_cursor -> x + delta_x) - object -> x;
+		object -> descriptor -> y = (wm_object_cursor -> y + delta_y) - object -> y;
+		object -> descriptor -> z = delta_z;
+	}
+
+	//----------------------------------------------------------------------
 
 	// left mouse button pressed?
-	if( mouse_syscall.status & STD_MOUSE_BUTTON_left ) {
+	if( mouse.status & STD_MOUSE_BUTTON_left ) {
 		// isn't holded down?
-		if( ! wm_mouse_button_left_semaphore ) {
+		if( ! wm_mouse_button_left ) {
 			// remember mouse button state
-			wm_mouse_button_left_semaphore = TRUE;
+			wm_mouse_button_left = TRUE;
 
 			// select object under cursor position
-			wm_object_selected = wm_object_find( mouse_syscall.x, mouse_syscall.y, FALSE );
+			wm_object_selected = object;
 
 			// if cursor over selected object is in place of possible header
-			if( wm_object_selected -> descriptor -> y > 0 && wm_object_selected -> descriptor -> y < LIB_INTERFACE_HEADER_HEIGHT_pixel && wm_object_selected -> descriptor -> x < wm_object_selected -> width - ((LIB_INTERFACE_HEADER_HEIGHT_pixel * 0x03)) ) wm_object_drag_semaphore = TRUE;
+			if( wm_object_selected -> descriptor -> y < wm_object_selected -> descriptor -> header_height ) wm_object_drag_allow = TRUE;
 
 			// check if object can be moved along Z axis
-			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_status_alt_left ) {
+			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_fixed_z) && ! wm_keyboard_ctrl_left ) {
 				// move object up inside list
 				if( wm_object_move_up( wm_object_selected ) ) {
 					// redraw object
 					wm_object_selected -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
 					// cursor pointer may be obscured, redraw
-					wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+					if( wm_object_cursor ) wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 				}
 			}
 
-			// if left ALT key is not on hold
-			if( ! wm_keyboard_status_alt_left ) {
-				// selected object is menu?
-				if( wm_object_selected == wm_object_menu )
-					// check incomming interface events
-					lib_interface_event_handler_release( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
+			// make object as active if not with taskbar flag
+			if( ! (wm_object_selected -> descriptor -> flags & STD_WINDOW_FLAG_taskbar) ) wm_object_active = wm_object_selected;
 
-				// make object as active if not a taskbar or icon
-				if( ! (wm_object_selected -> descriptor -> flags & (STD_WINDOW_FLAG_taskbar | STD_WINDOW_FLAG_icon)) ) wm_object_active = wm_object_selected;
+			//------------------------------------------------------
 
-				// properties of mouse message
-				struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
+			// properties of mouse message
+			struct STD_STRUCTURE_IPC_MOUSE *ipc_mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
 
-				// default values
-				mouse -> ipc.type = STD_IPC_TYPE_mouse;
-				mouse -> scroll = EMPTY;
+			// default values
+			ipc_mouse -> ipc.type = STD_IPC_TYPE_mouse;
+			ipc_mouse -> scroll = EMPTY;
 
-				// left mouse button pressed
-				mouse -> button = STD_IPC_MOUSE_BUTTON_left;
+			// left mouse button pressed
+			ipc_mouse -> button = STD_IPC_MOUSE_BUTTON_left;
 
-				// send event to selected object process
-				std_ipc_send( wm_object_selected -> pid, (uint8_t *) mouse );
+			// send event to selected object process
+			std_ipc_send( wm_object_selected -> pid, (uint8_t *) ipc_mouse );
 
-				// update taskbar status
-				wm_taskbar_modified = TRUE;
+			//------------------------------------------------------
 
-				// hide unstable objects
-				for( uint64_t i = 0; i < wm_list_limit; i++ ) {
-					// unstable object?
-					if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_unstable) ) continue;	// no
-					
-					// don't show anymore
-					wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
+			// hide all unstable objects
+			for( uint64_t i = INIT; i < wm_list_limit; i++ ) {
+				// unstable object?
+				if( ! (wm_list_base_address[ i ] -> descriptor -> flags & STD_WINDOW_FLAG_unstable) ) continue;	// no
+				
+				// don't show anymore
+				wm_list_base_address[ i ] -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
 
-					// and redraw area behind
-					wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
-				}
-
-				// substitute of menu
-				//--------------------
-
-				// menu button click?
-				if( mouse_syscall.x < (wm_object_taskbar -> x + WM_OBJECT_TASKBAR_HEIGHT_pixel) && mouse_syscall.y >= wm_object_taskbar -> y )
-					// ignore if workbench locked
-					if( ! (wm_object_lock -> descriptor -> flags & STD_WINDOW_FLAG_visible) )
-						// show/hide menu window
-						wm_menu_switch( FALSE );
+				// and redraw area behind
+				wm_list_base_address[ i ] -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 			}
 		}
 	} else {
-		// left mouse button was held?
-		if( wm_mouse_button_left_semaphore ) {
+		// left mouse button was on hold, but no left CTRL key?
+		if( wm_mouse_button_left && ! wm_keyboard_ctrl_left ) {
 			// properties of mouse message
-			struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
-
+			struct STD_STRUCTURE_IPC_MOUSE *ipc_mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
+	
 			// default values
-			mouse -> ipc.type = STD_IPC_TYPE_mouse;
-			mouse -> scroll = EMPTY;
-
+			ipc_mouse -> ipc.type = STD_IPC_TYPE_mouse;
+			ipc_mouse -> scroll = EMPTY;
+	
 			// left mouse button released
-			mouse -> button = ~STD_IPC_MOUSE_BUTTON_left;
-
+			ipc_mouse -> button = ~STD_IPC_MOUSE_BUTTON_left;
+	
 			// send event to selected object process
-			std_ipc_send( wm_object_selected -> pid, (uint8_t *) mouse );
+			std_ipc_send( wm_object_selected -> pid, (uint8_t *) ipc_mouse );
 		}
 
 		// release mouse button state
-		wm_mouse_button_left_semaphore = FALSE;
+		wm_mouse_button_left = FALSE;
 
 		// by default object is not draggable
-		wm_object_drag_semaphore = FALSE;
+		wm_object_drag_allow = FALSE;
 	}
 
-	//--------------------------------------------------------------------------
+	//----------------------------------------------------------------------
 
 	// right mouse button pressed?
-	if( mouse_syscall.status & STD_IPC_MOUSE_BUTTON_right ) {
-		// left ALT key is on hold
-		if( wm_keyboard_status_alt_left && ! wm_object_hover_semaphore ) {
-			// first initialization executed
-			wm_object_hover_semaphore = TRUE;
+	if( mouse.status & STD_IPC_MOUSE_BUTTON_right ) {
+		// current object resizable?
+		if( object -> descriptor -> flags & STD_WINDOW_FLAG_resizable ) {	// yes
+			// left ALT key is hold and first occurence
+			if( wm_keyboard_ctrl_left && ! wm_object_resize_init ) {	// yes
+				// start resize procedure
+				wm_object_resize_init = TRUE;
 
-			// find object under cursor position
-			wm_object_modify = wm_object_find( mouse_syscall.x, mouse_syscall.y, FALSE );
+				// set current object
+				tiwyn -> resized = object;
 
-			// object resizable?
-			if( wm_object_modify -> descriptor -> flags & STD_WINDOW_FLAG_resizable ) {
 				// select zone modification
 
-				// by default
-				wm_zone_modify.width = TRUE;
-				wm_zone_modify.height = TRUE;
+				// by default, user holds right or bottom side
+				tiwyn -> direction.width = TRUE;
+				tiwyn -> direction.height = TRUE;
 
-				// X axis
-				if( wm_object_modify -> descriptor -> x < (wm_object_modify -> width >> STD_SHIFT_2) ) wm_zone_modify.x = TRUE;	// yes
-				else wm_zone_modify.x = FALSE;	// no
+				// is it left side?
+				if( tiwyn -> resized -> descriptor -> x < (tiwyn -> resized -> width >> STD_SHIFT_2) ) tiwyn -> direction.x = TRUE;	// yes
+				else tiwyn -> direction.x = FALSE;	// no
 
 				// Y axis
-				if( wm_object_modify -> descriptor -> y < (wm_object_modify -> height >> STD_SHIFT_2) ) wm_zone_modify.y = TRUE;	// yes
-				else wm_zone_modify.y = FALSE;	// no
+				if( tiwyn -> resized -> descriptor -> y < (tiwyn -> resized -> height >> STD_SHIFT_2) ) tiwyn -> direction.y = TRUE;	// yes
+				else tiwyn -> direction.y = FALSE;	// no
 
 				// initialize hover object
 
 				// create initial resize object
-				wm_object_hover = wm_object_create( wm_object_modify -> x, wm_object_modify -> y, wm_object_modify -> width, wm_object_modify -> height );
+				wm_object_hover = wm_object_create( tiwyn -> resized -> x, tiwyn -> resized -> y, tiwyn -> resized -> width, tiwyn -> resized -> height );
 
 				// mark it as our
 				wm_object_hover -> pid = wm_pid;
 
-				// fill object with default pattern/color
-				uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
-				for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
-					for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
-						hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x20008000;
-
-				// and point border
-				for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
-					for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
-						if( ! x || ! y || x == wm_object_hover -> width - 1 || y == wm_object_hover -> height - 1 ) hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x80008000;
 
 				// show object
 				wm_object_hover -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
@@ -379,18 +310,18 @@ void wm_event( void ) {
 		}
 	} else {
 		// stop hover phase
-		wm_object_hover_semaphore = FALSE;
+		wm_object_resize_init = FALSE;
 
 		// if enabled
 		if( wm_object_hover && wm_object_hover -> descriptor ) {
 			// copy hover object properties to selected object
-			wm_object_modify -> descriptor -> new_x		= wm_object_hover -> x;
-			wm_object_modify -> descriptor -> new_y		= wm_object_hover -> y;
-			wm_object_modify -> descriptor -> new_width	= wm_object_hover -> width;
-			wm_object_modify -> descriptor -> new_height	= wm_object_hover -> height;
+			tiwyn -> resized -> descriptor -> new_x		= wm_object_hover -> x;
+			tiwyn -> resized -> descriptor -> new_y		= wm_object_hover -> y;
+			tiwyn -> resized -> descriptor -> new_width	= wm_object_hover -> width;
+			tiwyn -> resized -> descriptor -> new_height	= wm_object_hover -> height;
 
 			// inform application interface about requested properties
-			wm_object_modify -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
+			tiwyn -> resized -> descriptor -> flags |= STD_WINDOW_FLAG_properties;
 
 			// remove hover object
 			wm_object_hover -> descriptor -> flags = STD_WINDOW_FLAG_release;
@@ -400,21 +331,18 @@ void wm_event( void ) {
 		}
 	}
 
-	// scroll movement?
-	if( delta_z ) {
-		// properties of mouse message
-		struct STD_STRUCTURE_IPC_MOUSE *mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &data;
+	// // scroll movement?
+	// if( delta_z ) {
+	// 	// properties of mouse message
+	// 	struct STD_STRUCTURE_IPC_MOUSE *ipc_mouse = (struct STD_STRUCTURE_IPC_MOUSE *) &ipc_data;
 
-		// default values
-		mouse -> ipc.type = STD_IPC_TYPE_mouse;
-		mouse -> scroll = delta_z;
+	// 	// default values
+	// 	ipc_mouse -> ipc.type = STD_IPC_TYPE_mouse;
+	// 	ipc_mouse -> scroll = delta_z;
 
-		// select object under cursor position
-		struct WM_STRUCTURE_OBJECT *object = wm_object_find( mouse_syscall.x, mouse_syscall.y, FALSE );
-
-		// send event to selected object process
-		std_ipc_send( object -> pid, (uint8_t *) mouse );
-	}
+	// 	// send event to selected object process
+	// 	std_ipc_send( object -> pid, (uint8_t *) ipc_mouse );
+	// }
 
 	//--------------------------------------------------------------------------
 	// if cursor pointer movement occurs
@@ -423,25 +351,20 @@ void wm_event( void ) {
 		wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_cursor, FALSE );
 
 		// update cursor position
-		wm_object_cursor -> x = mouse_syscall.x;
-		wm_object_cursor -> y = mouse_syscall.y;
+		wm_object_cursor -> x = mouse.x;
+		wm_object_cursor -> y = mouse.y;
 
 		// redisplay cursor at new location
 		wm_object_cursor -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
 
-		// if object selected and left mouse button is held with left ALT key
-		if( wm_object_drag_semaphore || (wm_object_selected && wm_mouse_button_left_semaphore && wm_keyboard_status_alt_left) )
+		// with left mouse button
+		// left ALT key is on hold or not required?
+		if( wm_mouse_button_left && (wm_keyboard_ctrl_left || wm_object_drag_allow) )
 			// move object along with cursor pointer
 			wm_object_move( delta_x, delta_y );
 
 		// if hover object is created
-		if( wm_object_hover_semaphore && wm_object_hover ) {
-			// block access to object array
-			MACRO_LOCK( wm_list_semaphore );
-
-			// block access to object array
-			MACRO_LOCK( wm_object_semaphore );
-
+		if( wm_object_resize_init && wm_object_hover ) {
 			// remove old instance from cache
 			wm_zone_insert( (struct WM_STRUCTURE_ZONE *) wm_object_hover, FALSE );
 
@@ -449,7 +372,7 @@ void wm_event( void ) {
 			std_memory_release( (uintptr_t) wm_object_hover -> descriptor, MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
 
 			// left zone?
-			if( wm_zone_modify.x && wm_zone_modify.width ) {
+			if( tiwyn -> direction.x && tiwyn -> direction.width ) {
 				// do not move hover zone
 				if( wm_object_hover -> x + delta_x < wm_object_hover -> x + wm_object_hover -> width ) {
 					wm_object_hover -> x += delta_x;
@@ -458,7 +381,7 @@ void wm_event( void ) {
 			} else wm_object_hover -> width += delta_x;	// right
 
 			// up zone?
-			if( wm_zone_modify.y && wm_zone_modify.height ) {
+			if( tiwyn -> direction.y && tiwyn -> direction.height ) {
 				// do not move hover zone
 				if( wm_object_hover -> y + delta_y < wm_object_hover -> y + wm_object_hover -> height ) {
 					wm_object_hover -> y += delta_y;
@@ -471,38 +394,28 @@ void wm_event( void ) {
 			if( wm_object_hover -> height < TRUE ) wm_object_hover -> height = TRUE;
 
 			// and larger than current screen properties
-			if( wm_object_hover -> width > wm_object_workbench -> width ) wm_object_hover -> width = wm_object_workbench -> width;
-			if( wm_object_hover -> height > wm_object_workbench -> height ) wm_object_hover -> height = wm_object_workbench -> height;
+			if( wm_object_hover -> width > wm_object_cache.width ) wm_object_hover -> width = wm_object_cache.width;
+			if( wm_object_hover -> height > wm_object_cache.height ) wm_object_hover -> height = wm_object_cache.height;
 
 			// calculate new object area size in Bytes
-			wm_object_hover -> size_byte = ( wm_object_hover -> width * wm_object_hover -> height * STD_VIDEO_DEPTH_byte) + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR );
+			wm_object_hover -> size_byte = ( wm_object_hover -> width * wm_object_hover -> height * STD_VIDEO_DEPTH_byte) + sizeof( struct LIB_WINDOW_DESCRIPTOR );
 
 			// assign new area for object
-			wm_object_hover -> descriptor = (struct STD_STRUCTURE_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
+			wm_object_hover -> descriptor = (struct LIB_WINDOW_DESCRIPTOR *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( wm_object_hover -> size_byte ) >> STD_SHIFT_PAGE );
 
 			// fill object with default pattern/color
-			uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+			uint32_t *hover_pixel = (uint32_t *) ((uintptr_t) wm_object_hover -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 			for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
 				for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
-					hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x10008000;
+					hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x80008000;
 
 			// and point border
 			for( uint16_t y = 0; y < wm_object_hover -> height; y++ )
 				for( uint16_t x = 0; x < wm_object_hover -> width; x++ )
 					if( ! x || ! y || x == wm_object_hover -> width - 1 || y == wm_object_hover -> height - 1 ) hover_pixel[ (y * wm_object_hover -> width) + x ] = 0x80008000;
 
-			// release access to object array
-			MACRO_UNLOCK( wm_object_semaphore );
-
-			// release access to object array
-			MACRO_UNLOCK( wm_list_semaphore );
-
 			// show object
 			wm_object_hover -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_flush;
 		}
 	}
-
-	// Hmmm....
-	// check events from keyboard
-	lib_interface_event_keyboard( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
 }

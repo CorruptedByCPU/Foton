@@ -1,56 +1,12 @@
 {
-	"window": {
-		"width": 122,
-		"height": 145
+	"entry": {
+		"name": "File Manager",
+		"event": "kuro",
+		"icon": "/var/share/media/icon/default/app/system-file-manager.tga"
 	},
-	"menu": {
-		"id": 0,
-		"x": 1,
-		"y": 24,
-		"width": 120,
-		"height": 24,
-		"name": "Console",
-		"command": "console",
-		"icon": "System:/var/gfx/icons/terminal.tga"
-	},
-	"menu": {
-		"id": 0,
-		"x": 1,
-		"y": 48,
-		"width": 120,
-		"height": 24,
-		"name": "Kuro",
-		"command": "kuro",
-		"icon": "System:/var/gfx/icons/system-file-manager.tga"
-	},
-	"menu": {
-		"id": 0,
-		"x": 1,
-		"y": 72,
-		"width": 120,
-		"height": 24,
-		"name": "Moko",
-		"command": "console moko",
-		"icon": "System:/var/gfx/icons/accessories-text-editor.tga"
-	},
-	"menu": {
-		"id": 0,
-		"x": 1,
-		"y": 96,
-		"width": 120,
-		"height": 24,
-		"name": "Taris",
-		"command": "taris",
-		"icon": "System:/var/gfx/icons/taris.tga"
-	},
-	"menu": {
-		"id": 0,
-		"x": 1,
-		"y": 120,
-		"width": 120,
-		"height": 24,
-		"name": "Task Manager",
-		"command": "console tm",
-		"icon": "System:/var/gfx/icons/utilities-system-monitor.tga"
+	"entry": {
+		"name": "3D Demo",
+		"event": "3d /var/share/media/obj/demo.obj",
+		"icon": "/var/share/media/icon/3d.tga"
 	}
 }

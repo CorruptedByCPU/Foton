@@ -7,13 +7,12 @@
 green=$(tput setaf 2)
 default=$(tput sgr0)
 
-# default optimization
 OPT="${1}"
-if [ -z "${OPT}" ]; then OPT="3 -ffast-math"; fi
+if [ -z "${OPT}" ]; then OPT="2"; fi
 
 # we use clang, as no cross-compiler needed, include std.h header as default for all
 CC="clang"
-C="${CC} -std=c99 -include ./library/std.h" # -g -pedantic-errors 
+C="${CC} ${RELEASE} -std=c99 -include ./library/std.h -pedantic-errors" # -g 
 LD="ld.lld"
 ASM="nasm"
 ISO="xorriso"
@@ -27,38 +26,38 @@ clear
 # check environment software, required!
 ENV=true
 echo -n "Foton environment: "
-	type -a ${CC} &> /dev/null || (echo -en "\e[38;5;196m${C}\e[0m" && ENV=false)
-	type -a ${LD} &> /dev/null || (echo -en "\e[38;5;196m${LD}\e[0m" && ENV=false)
-	type -a ${ASM} &> /dev/null || (echo -en "\e[38;5;196m${ASM}\e[0m" && ENV=false)
-	type -a ${ISO} &> /dev/null || (echo -en "\e[38;5;196m${ISO}\e[0m" && ENV=false)
-if [ "${ENV}" = false ]; then echo -e "\n[please install missing software]"; exit 1; else echo -e "\e[38;5;2m\xE2\x9C\x94\e[0m"; fi
+	type -a ${CC} &> /dev/null || (echo -en "\033[38;5;196m${C}\033[0m" && ENV=false)
+	type -a ${LD} &> /dev/null || (echo -en "\033[38;5;196m${LD}\033[0m" && ENV=false)
+	type -a ${ASM} &> /dev/null || (echo -en "\033[38;5;196m${ASM}\033[0m" && ENV=false)
+	type -a ${ISO} &> /dev/null || (echo -en "\033[38;5;196m${ISO}\033[0m" && ENV=false)
+if [ "${ENV}" = false ]; then echo -e "\n[please install missing software]"; exit 1; else echo -e "\033[38;5;2m\xE2\x9C\x94\033[0m"; fi
 
 # optional
-type -a qemu-system-x86_64 &> /dev/null || echo -e "Optional \e[38;5;11mqemu\e[0m not installed. ISO file will be generated regardless of that."
+type -a qemu-system-x86_64 &> /dev/null || echo -e "Optional \033[38;5;11mqemu\033[0m not installed. ISO file will be generated regardless of that."
 
 # external resources initialization
-git submodule update --init
+if [ ! -d limine ]; then git clone https://github.com/limine-bootloader/limine -b v9.x-binary;fi
 
 # remove all obsolete files, which could interference
 rm -rf build && mkdir -p build/iso
 rm -f bx_enh_dbg.ini	# just to make clean directory, if you executed bochs.sh
 
-# git deosn't allow empty folder
-mkdir -p root/{bin,lib}
+# git doesn't allow empty folder
+mkdir -p root/{bin,lib/{include,modules}}
 
 # copy default filesystem structure
 cp -rf root build
+# cp library/*.h build/root/lib/include
 
 # build subroutines required by kernel
 EXT=""
+${ASM} -f elf64 kernel/driver/rtc.asm	-o build/rtc.o		|| exit 1; EXT="${EXT} build/rtc.o"
 ${ASM} -f elf64 kernel/init/gdt.asm	-o build/gdt.o		|| exit 1; EXT="${EXT} build/gdt.o"
 ${ASM} -f elf64 kernel/idt.asm		-o build/idt.o		|| exit 1; EXT="${EXT} build/idt.o"
 ${ASM} -f elf64 kernel/task.asm		-o build/task.o		|| exit 1; EXT="${EXT} build/task.o"
-${ASM} -f elf64 kernel/driver/rtc.asm	-o build/rtc.o		|| exit 1; EXT="${EXT} build/rtc.o"
 ${ASM} -f elf64 kernel/syscall.asm	-o build/syscall.o	|| exit 1; EXT="${EXT} build/syscall.o"
 
 # default configuration of clang for kernel making
-if [ ! -z "${2}" ]; then DEBUG="-DDEBUG"; fi
 CFLAGS="${FLAGS} -mno-mmx -mno-sse -mno-sse2 -mno-3dnow ${DEBUG}"
 CFLAGS_SOFTWARE="${FLAGS} ${DEBUG}"
 LDFLAGS="-nostdlib -static -no-dynamic-linker"
@@ -114,7 +113,7 @@ done
 lib=""	# include list of libraries
 
 # keep parsing libraries by. dependencies and alphabetically
-for library in type path color elf integer float string network input math json font std window image interface random rgl terminal; do
+for library in color elf integer string input font std window math image float ui type rgl; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 
@@ -178,6 +177,3 @@ echo -e "|root.vfs.gz|${root_size}" | awk -F "|" '{printf "%s  %-33s %s\n", $1, 
 
 # convert iso directory to iso file
 xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label build/iso -o build/foton.iso > /dev/null 2>&1
-
-# install bootloader limine inside created
-limine/limine bios-install build/foton.iso > /dev/null 2>&1

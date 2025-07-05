@@ -6,7 +6,7 @@
 extern	module_ps2_keyboard
 extern	module_ps2_mouse
 
-; 64 bit procedure code
+; 64 bit code
 [BITS 64]
 
 ; information for linker

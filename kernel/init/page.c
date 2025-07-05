@@ -3,62 +3,84 @@
 ===============================================================================*/
 
 void kernel_init_page( void ) {
-	// allow all BS/A processors to write on read-only pages inside ring0
+	// allow BSP to write on read-only pages inside ring0
 	__asm__ volatile( "movq %cr0, %rax\nandq $~(1 << 16), %rax\nmovq %rax, %cr0" );
 
-	// alloc 1 page for PML4 kernel environment array
+	// alloc page for PML4 kernel environment array
 	kernel -> page_base_address = (uint64_t *) kernel_memory_alloc( TRUE );
 
 	// --------------------------------------------------------------------
 
-	// map all memory areas marked as USABLE, KERNEL_AND_MODULES, FRAMEBUFFER, BOOTLOADER_RECLAIMABLE, ACPI_RECLAIMABLE
-	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ )
-		// USABLE, KERNEL_AND_MODULES, FRAMEBUFFER, BOOTLOADER_RECLAIMABLE or ACPI_RECLAIMABLE memory area?
-		if( limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_USABLE || limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_KERNEL_AND_MODULES || limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE || limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_FRAMEBUFFER || limine_memmap_request.response -> entries[ i ] -> type == LIMINE_MEMMAP_ACPI_RECLAIMABLE )
-			// map memory area to kernel paging arrays
-			kernel_page_map( kernel -> page_base_address, limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base | KERNEL_PAGE_mirror, MACRO_PAGE_ALIGN_UP( limine_memmap_request.response -> entries[ i ] -> length ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	// map required memory area
+	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
+		switch( limine_memmap_request.response -> entries[ i ] -> type ) {
+			case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
+			case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
+			case LIMINE_MEMMAP_KERNEL_AND_MODULES:
+			// case LIMINE_MEMMAP_FRAMEBUFFER:
+			case LIMINE_MEMMAP_USABLE: {
+				// map memory area to kernel paging array
+				kernel_page_map( kernel -> page_base_address, limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base | KERNEL_MEMORY_mirror, MACRO_PAGE_ALIGN_UP( limine_memmap_request.response -> entries[ i ] -> length ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+
+				// done
+				break;
+			}
+		}
+	}
+
+	//---------------------------------------------------------------------
+
+	// https://github.com/limine-bootloader/limine/blob/v9.x/PROTOCOL.md#caching
+	//
+	//			PAT PCD PWT
+	// PAT0 -> WB		 0   0   0
+	// PAT1 -> WT		 0   0   1
+	// PAT2 -> UC-		 0   1   0
+	// PAT3 -> UC		 0   1   1
+	// PAT4 -> WP		 1   0   0
+	// PAT5 -> WC		 1   0   1
+	// PAT6 -> unspecified	 1   1   0
+	// PAT7 -> unspecified	 1   1   1
+	//
+	// The MTRRs are left as the firmware set them up.
+
+	// map Framebuffer area with Write-Combining (PAT5)
+	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> framebuffer_base_address & ~KERNEL_MEMORY_mirror, (uintptr_t) kernel -> framebuffer_base_address, MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write | KERNEL_PAGE_FLAG_pat | KERNEL_PAGE_FLAG_pwt );
 
 	// --------------------------------------------------------------------
 
-	// map LAPIC controller area
-	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> lapic_base_address & ~KERNEL_PAGE_mirror, (uintptr_t) kernel -> lapic_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	// map APIC controller area
+	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> apic_base_address & ~KERNEL_MEMORY_mirror, (uintptr_t) kernel -> apic_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// map I/O APIC controller area
-	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> io_apic_base_address & ~KERNEL_PAGE_mirror, (uintptr_t) kernel -> io_apic_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
-
-	// map HPET controller area
-	// kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> hpet_base_address & ~KERNEL_PAGE_mirror, (uintptr_t) kernel -> hpet_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	kernel_page_map( kernel -> page_base_address, (uintptr_t) kernel -> io_apic_base_address & ~KERNEL_MEMORY_mirror, (uintptr_t) kernel -> io_apic_base_address, TRUE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 
 	// now something harder ------------------------------------------------
 
-	// kernel file properties
-	struct limine_file *local_limine_file = limine_kernel_file_request.response -> kernel_file;
-
 	// kernel file ELF64 properties
-	struct LIB_ELF_STRUCTURE *local_limine_file_elf64_header = (struct LIB_ELF_STRUCTURE *) local_limine_file -> address;
+	struct LIB_ELF_STRUCTURE *elf = (struct LIB_ELF_STRUCTURE *) ((struct limine_file *) limine_kernel_file_request.response -> kernel_file) -> address;
 
 	// kernel file ELF64 header properties
-	struct LIB_ELF_STRUCTURE_HEADER *local_limine_file_elf64_header_entry = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) local_limine_file_elf64_header + local_limine_file_elf64_header -> headers_offset);
+	struct LIB_ELF_STRUCTURE_HEADER *elf_header = (struct LIB_ELF_STRUCTURE_HEADER *) ((uint64_t) elf + elf -> header_offset);
 
-	// retrieve flags and map kernel file segments in proper place
-	for( uint16_t i = 0; i < local_limine_file_elf64_header -> h_entry_count; i++ ) {
-		// ignore blank entries
-		if( ! local_limine_file_elf64_header_entry[ i ].type || ! local_limine_file_elf64_header_entry[ i ].memory_size ) continue;
+	// calculate loaded kernel limit
+	uint64_t kernel_limit = EMPTY;
+	for( uint16_t i = 0; i < elf -> header_count; i++ ) {
+		// ignore blank entry or not loadable
+ 		if( elf_header[ i ].type != LIB_ELF_HEADER_TYPE_load || ! elf_header[ i ].memory_size ) continue;
 
-		// segment properties
-		uintptr_t local_segment_offset = MACRO_PAGE_ALIGN_DOWN( local_limine_file_elf64_header_entry[ i ].virtual_address ) - KERNEL_BASE_address;
-		uint64_t local_segment_page = (MACRO_PAGE_ALIGN_UP( local_limine_file_elf64_header_entry[ i ].virtual_address + local_limine_file_elf64_header_entry[ i ].memory_size ) - KERNEL_BASE_address) >> STD_SHIFT_PAGE;
-
-		// default flag, for every segment
-		uint16_t local_segment_flags = KERNEL_PAGE_FLAG_present;
-
-		// update with additional flag (if exist)
-		if( local_limine_file_elf64_header_entry[ i ].flags & LIB_ELF_FLAG_write ) local_segment_flags |= KERNEL_PAGE_FLAG_write;
-
-		// map kernel memory area
-		kernel_page_map( kernel -> page_base_address, limine_kernel_address_request.response -> physical_base + local_segment_offset, KERNEL_BASE_address + local_segment_offset, local_segment_page, local_segment_flags );
+		// update kernel limit?
+		if( kernel_limit < MACRO_PAGE_ALIGN_UP( elf_header[ i ].virtual_address + elf_header[ i ].memory_size ) - KERNEL_BASE_address ) kernel_limit = MACRO_PAGE_ALIGN_UP( elf_header[ i ].virtual_address + elf_header[ i ].memory_size ) - KERNEL_BASE_address;
 	}
 
+	// make a copy of currently working kernel
+	uint64_t *source = (uint64_t *) KERNEL_BASE_address;
+	uint64_t *target = (uint64_t *) kernel_memory_alloc( kernel_limit >> STD_SHIFT_PAGE );
+	for( uint64_t i = 0; i < kernel_limit >> STD_SHIFT_8; i++ ) target[ i ] = source[ i ];
+
+	// connect kernel area to destination
+	kernel_page_map( (uint64_t *) kernel -> page_base_address, (uintptr_t) target & ~KERNEL_MEMORY_mirror, KERNEL_BASE_address, MACRO_PAGE_ALIGN_UP( kernel_limit ) >> STD_SHIFT_PAGE, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write ); 
+
 	// and last thing, create kernel stack area
-	kernel_page_alloc( (uint64_t *) kernel -> page_base_address, KERNEL_STACK_address, KERNEL_STACK_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
+	kernel_page_alloc( (uint64_t *) kernel -> page_base_address, KERNEL_STACK_address, KERNEL_STACK_LIMIT_page, KERNEL_PAGE_FLAG_present | KERNEL_PAGE_FLAG_write );
 }

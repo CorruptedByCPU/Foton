@@ -3,49 +3,45 @@
 ===============================================================================*/
 
 void wm_fill( void ) {
-	// block access to object array
-	MACRO_LOCK( wm_object_semaphore );
+	// properties of object list
+	struct WM_STRUCTURE_OBJECT **list = wm -> list;
 
-	// block access to object list
-	MACRO_LOCK( wm_list_semaphore );
+	// sort zones from bottom to top
+	uint64_t limit = 0;
+	struct WM_STRUCTURE_ZONE *tmp = (struct WM_STRUCTURE_ZONE *) malloc( sizeof( struct WM_STRUCTURE_ZONE ) * wm -> zone_limit );
+
+	// according to list
+	for( uint64_t i = wm -> list_limit; i > 0; i-- ) for( uint64_t z = 0; z < wm -> zone_limit; z++ ) if( wm -> zone[ z ].object == wm -> list[ i - 1 ] ) tmp[ limit++ ] = wm -> zone[ z ];
 
 	// fill every zone with assigned object
-	for( uint64_t i = 0; i < wm_zone_limit; i++ ) {
-		// object assigned to zone?
-		if( ! wm_zone_base_address[ i ].object ) continue;	// no
-
+	for( uint64_t i = 0; i < limit; i++ ) {
 		// fill zone with selected object
-		uint32_t *source = (uint32_t *) ((uintptr_t) wm_zone_base_address[ i ].object -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
-		uint32_t *target = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
-		for( uint64_t y = wm_zone_base_address[ i ].y; y < wm_zone_base_address[ i ].height + wm_zone_base_address[ i ].y; y++ )
-			for( uint64_t x = wm_zone_base_address[ i ].x; x < wm_zone_base_address[ i ].width + wm_zone_base_address[ i ].x; x++ ) {
+		uint32_t *source = (uint32_t *) ((uintptr_t) tmp[ i ].object -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
+		uint32_t *target = (uint32_t *) ((uintptr_t) wm -> canvas.descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
+
+		// connect pixels
+		for( uint64_t y = tmp[ i ].y; y < tmp[ i ].height + tmp[ i ].y; y++ )
+			for( uint64_t x = tmp[ i ].x; x < tmp[ i ].width + tmp[ i ].x; x++ ) {
+				uint32_t color_new = source[ (x - tmp[ i ].object -> x) + (tmp[ i ].object -> width * (y - tmp[ i ].object -> y)) ];
+
 				// color properties
-				uint32_t color_current = target[ (y * wm_object_cache.width) + x ];
-				uint32_t color_new = source[ (x - wm_zone_base_address[ i ].object -> x) + (wm_zone_base_address[ i ].object -> width * (y - wm_zone_base_address[ i ].object -> y)) ];
+				uint32_t color_current = target[ (y * wm -> canvas.width) + x ];
 
 				// perform the operation based on the alpha channel
 				switch( color_new >> 24 ) {
 					// transparent
-					case 0x00: { break; }
-		
+					case 0x00: { continue; }
+	
 					// opaque
-					case (uint8_t) 0xFF: { target[ (y * wm_object_cache.width) + x ] = color_new; break; }
+					case (uint8_t) 0xFF: { target[ (y * wm -> canvas.width) + x ] = color_new; break; }
 
 					// calculate the color based on the alpha channel
-					default: { target[ (y * wm_object_cache.width) + x ] = lib_color_blend( color_current, color_new ); }
+					default: { target[ (y * wm -> canvas.width) + x ] = lib_color_blend( color_current, color_new ); }
 				}
 			}
-
-		// synchronize workbench with framebuffer
-		wm_object_cache.descriptor -> flags |= STD_WINDOW_FLAG_flush;
 	}
 
-	// all zones filled
-	wm_zone_limit = EMPTY;
+	// release temporary list of zones
+	free( tmp );
 
-	// release access to object list
-	MACRO_UNLOCK( wm_list_semaphore );
-
-	// release access to object array
-	MACRO_UNLOCK( wm_object_semaphore );
 }

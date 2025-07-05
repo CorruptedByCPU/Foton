@@ -3,20 +3,14 @@
 ===============================================================================*/
 
 void wm_fill( void ) {
-	// block access to object array
-	MACRO_LOCK( wm_object_semaphore );
-
-	// block access to object list
-	MACRO_LOCK( wm_list_semaphore );
-
 	// fill every zone with assigned object
 	for( uint64_t i = 0; i < wm_zone_limit; i++ ) {
 		// object assigned to zone?
 		if( ! wm_zone_base_address[ i ].object ) continue;	// no
 
 		// fill zone with selected object
-		uint32_t *source = (uint32_t *) ((uintptr_t) wm_zone_base_address[ i ].object -> descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
-		uint32_t *target = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
+		uint32_t *source = (uint32_t *) ((uintptr_t) wm_zone_base_address[ i ].object -> descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
+		uint32_t *target = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct LIB_WINDOW_DESCRIPTOR ));
 		for( uint64_t y = wm_zone_base_address[ i ].y; y < wm_zone_base_address[ i ].height + wm_zone_base_address[ i ].y; y++ )
 			for( uint64_t x = wm_zone_base_address[ i ].x; x < wm_zone_base_address[ i ].width + wm_zone_base_address[ i ].x; x++ ) {
 				// color properties
@@ -42,10 +36,4 @@ void wm_fill( void ) {
 
 	// all zones filled
 	wm_zone_limit = EMPTY;
-
-	// release access to object list
-	MACRO_UNLOCK( wm_list_semaphore );
-
-	// release access to object array
-	MACRO_UNLOCK( wm_object_semaphore );
 }

@@ -14,7 +14,7 @@ extern	kernel_syscall_log
 extern	kernel_syscall_thread
 extern	kernel_syscall_pid
 extern	kernel_syscall_exec
-extern	kernel_syscall_pid_check
+extern	kernel_syscall_pid_exist
 extern	kernel_syscall_ipc_send
 extern	kernel_syscall_ipc_receive
 extern	kernel_syscall_memory_share
@@ -27,7 +27,7 @@ extern	kernel_syscall_keyboard
 extern	kernel_syscall_stream_set
 extern	kernel_syscall_stream_get
 extern	kernel_syscall_memory
-; empty
+extern	kernel_syscall_memory_move
 extern	kernel_syscall_file_open
 extern	kernel_syscall_file_close
 extern	kernel_syscall_cd
@@ -48,6 +48,8 @@ extern	kernel_syscall_network_receive
 extern	kernel_syscall_storage
 extern	kernel_syscall_storage_select
 extern	kernel_syscall_dir
+extern	kernel_syscall_storage_id
+extern	kernel_syacall_memory_purge
 
 ;------------------------------------------------------------------------------
 ; share routines and list
@@ -70,20 +72,20 @@ kernel_syscall_list:
 	dq	kernel_syscall_thread			; 0x06
 	dq	kernel_syscall_pid			; 0x07
 	dq	kernel_syscall_exec			; 0x08
-	dq	kernel_syscall_pid_check		; 0x09
+	dq	kernel_syscall_pid_exist		; 0x09
 	dq	kernel_syscall_ipc_send			; 0x0A
 	dq	kernel_syscall_ipc_receive		; 0x0B
 	dq	kernel_syscall_memory_share		; 0x0C
 	dq	kernel_syscall_mouse			; 0x0D
-	dq	kernel_syscall_framebuffer_change	; 0x0E
+	dq	0x00	;dq	kernel_syscall_framebuffer_change	; 0x0E
 	dq	kernel_syscall_ipc_receive_by_pid	; 0x0F
-	dq	kernel_syscall_stream_out		; 0x10
-	dq	kernel_syscall_stream_in		; 0x11
+	dq	0x00	;dq	kernel_syscall_stream_out		; 0x10
+	dq	0x00	;dq	kernel_syscall_stream_in		; 0x11
 	dq	kernel_syscall_keyboard			; 0x12
-	dq	kernel_syscall_stream_set		; 0x13
-	dq	kernel_syscall_stream_get		; 0x14
-	dq	kernel_syscall_memory			; 0x15
-	dq	0x00					; 0x16
+	dq	0x00	;dq	kernel_syscall_stream_set		; 0x13
+	dq	0x00	;dq	kernel_syscall_stream_get		; 0x14
+	dq	0x00	;dq	kernel_syscall_memory			; 0x15
+	dq	kernel_syscall_memory_move		; 0x16
 	dq	kernel_syscall_file_open		; 0x17
 	dq	kernel_syscall_file_close		; 0x18
 	dq	kernel_syscall_cd			; 0x19
@@ -92,21 +94,23 @@ kernel_syscall_list:
 	dq	kernel_syscall_time			; 0x1C
 	dq	kernel_syscall_file_read		; 0x1D
 	dq	kernel_syscall_file			; 0x1E
-	dq	kernel_syscall_file_write		; 0x1F
-	dq	kernel_syscall_file_touch		; 0x20
-	dq	kernel_syscall_task			; 0x21
-	dq	kernel_syscall_kill			; 0x22
-	dq	kernel_syscall_network_interface	; 0x23
-	dq	kernel_syscall_network_open		; 0x24
-	dq	kernel_syscall_network_send		; 0x25
-	dq	kernel_syscall_network_interface_set	; 0x26
-	dq	kernel_syscall_network_receive		; 0x27
+	dq	0x00	;; dq	kernel_sycall_file_write		; 0x1F
+	dq	0x00	;; dq	kernel_syscall_file_touch		; 0x20
+	dq	0x00	;; dq	kernel_syscall_task			; 0x21
+	dq	0x00	;; dq	kernel_syscall_kill			; 0x22
+	dq	0x00	;; dq	kernel_syscall_network_interface	; 0x23
+	dq	0x00	;; dq	kernel_syscall_network_open		; 0x24
+	dq	0x00	;; dq	kernel_syscall_network_send		; 0x25
+	dq	0x00	;; dq	kernel_syscall_network_interface_set	; 0x26
+	dq	0x00	;; dq	kernel_syscall_network_receive		; 0x27
 	dq	kernel_syscall_storage			; 0x28
-	dq	kernel_syscall_storage_select		; 0x29
+	dq	0x00	;; dq	kernel_syscall_storage_select		; 0x29
 	dq	kernel_syscall_dir			; 0x2A
+	dq	0x00	;; dq	kernel_syscall_storage_id		; 0x2B
+	dq	kernel_syacall_memory_purge		; 0x2C
 kernel_syscall_list_end:
 
-; 64 bit procedure code
+; 64 bit code
 [BITS 64]
 
 ; information for linker

@@ -11,6 +11,8 @@
 
 	int8_t lib_math_compare_double( double f1, double f2 );
 	double lib_math_cos( double x );
+	double lib_math_fabs( double x );
+	double lib_math_fmod( double x, double y );
 	double lib_math_sin( double x );
 	double lib_math_tan( double x );
 	double lib_math_ctan( double x );

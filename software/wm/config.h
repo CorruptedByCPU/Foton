@@ -2,77 +2,95 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-	// hint
-	// all operations are performed on pixels
+#define	WM_OBJECT_LIMIT				64
+#define	WM_LIST_LIMIT				(WM_OBJECT_LIMIT + TRUE)
+#define	WM_ZONE_LIMIT				(WM_OBJECT_LIMIT << STD_SHIFT_512)
 
-	#define	WM_DEBUG_STARVATION_limit	1
+#define	WM_OBJECT_OVERSHADE_COLOR		0x208AB256
+#define	WM_OBJECT_OVERSHADE_COLOR_BORDER	WM_OBJECT_OVERSHADE_COLOR + 0x108AB256
 
-	//----------------------------------------------------------------------
-	// for debugging
-	//----------------------------------------------------------------------
-	#include	"../../kernel/config.h"
+#define	WM_PANEL_COLOR_default			0xFF202020
+#define	WM_PANEL_COLOR_visible			0xFF0C0C0C
+#define	WM_PANEL_COLOR_active			0xFF8AB256
+#define	WM_PANEL_CLOCK_WIDTH_pixel		50
+#define	WM_PANEL_HEIGHT_pixel			22
+#define	WM_PANEL_ENTRY_WIDTH_limit		256
 
-	//----------------------------------------------------------------------
-	// required libraries
-	//----------------------------------------------------------------------
-	#include	"../../library/integer.h"
-	#include	"../../library/interface.h"
+struct	WM_STRUCTURE_OBJECT {
+	int16_t		x;
+	int16_t		y;
+	int16_t		z;
+	int16_t		width;
+	int16_t		height;
+	uint64_t	limit;
+	uint64_t	pid;
+	struct LIB_WINDOW_STRUCTURE	*descriptor;
+};
 
-	//----------------------------------------------------------------------
-	// constants, structures, definitions
-	//----------------------------------------------------------------------
-	#define	WM_OBJECT_LIMIT			64	// no more than 64 windows
-	#define	WM_LIST_LIMIT			WM_OBJECT_LIMIT
-	#define	WM_ZONE_LIMIT			(WM_OBJECT_LIMIT << STD_SHIFT_4)	// 4 edges per window
-	#define	WM_TASKBAR_LIMIT		WM_OBJECT_LIMIT
+struct	WM_STRUCTURE_ZONE {
+	int16_t		x;
+	int16_t		y;
+	int16_t		z;
+	int16_t		width;
+	int16_t		height;
+	struct WM_STRUCTURE_OBJECT	*object;
+};
 
-	#define	WM_OBJECT_CURSOR_width		32
-	#define	WM_OBJECT_CURSOR_height		32
+struct	WM_STRUCTURE {
+	// by default FALSE, until Desktop Environment - end of initialization
+	uint8_t						enable;
 
-	#define	WM_OBJECT_TASKBAR_HEIGHT_pixel	LIB_INTERFACE_HEADER_HEIGHT_pixel
-	#define	WM_OBJECT_TASKBAR_ENTRY_pixel	(255 + 1)
+	// process ID of Window Manager
+	uint64_t					pid;
 
-	#define	WM_OBJECT_TASKBAR_CLOCK_pixel	50
+	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER	framebuffer;
 
-	#define	WM_TASKBAR_BG_default		0xE8000000
-	#define	WM_TASKBAR_BG_visible		0xFF101010
-	#define	WM_TASKBAR_BG_invisible		0xFF000000
-	#define	WM_TASKBAR_BG_active		0xFF181818
+	// array off all "windows"
+	struct WM_STRUCTURE_OBJECT			*object;
+	// list off all objects in order of creation time or Z axis
+	struct WM_STRUCTURE_OBJECT			**list;
+	struct WM_STRUCTURE_OBJECT			**list_panel;
+	// list of fragments of object to parse
+	struct WM_STRUCTURE_ZONE			*zone;
 
-	#define	WM_LOCK_BACKGROUND_color	0xCC111111
+	uint64_t					list_start;
 
-	struct	WM_STRUCTURE_OBJECT {
-		int16_t		x;
-		int16_t		y;
-		int16_t		width;
-		int16_t		height;
-		int64_t		pid;
-		uint64_t	size_byte;
-		struct STD_STRUCTURE_WINDOW_DESCRIPTOR	*descriptor;
-	};
+	// lists length
+	uint64_t					list_limit;
+	uint64_t					list_limit_panel;
+	volatile uint64_t				zone_limit;
 
-	struct	WM_STRUCTURE_ZONE {
-		int16_t		x;
-		int16_t		y;
-		int16_t		width;
-		int16_t		height;
-		struct WM_STRUCTURE_OBJECT *object;
-	};
+	// do not allow modification of object array/list
+	uint8_t						object_lock;
+	uint8_t						list_lock;
 
-	void wm_event( void );
-	void wm_sync( void );
-	void wm_zone_insert( struct WM_STRUCTURE_ZONE *zone, uint8_t object );
-	void wm_zone( void );
-	void wm_fill( void );
-	struct WM_STRUCTURE_OBJECT *wm_object_create( int16_t x, int16_t y, uint16_t width, uint16_t height );
-	struct WM_STRUCTURE_OBJECT *wm_object_find( uint16_t x, uint16_t y, uint8_t parse_hidden );
-	uint8_t wm_object_move_up( struct WM_STRUCTURE_OBJECT *object );
-	void wm_object_move( int16_t x, int16_t y );
-	void wm_object_remove( uint16_t i );
-	void wm_object_active_new( void );
-	int64_t wm_menu( void );
-	int64_t wm_logo( void );
-	int64_t wm_workbench( void );
-	void wm_menu_switch( uint8_t menu_semaphore );
-	void wm_menu_exec( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu );
-	void wm_lock( void );
+	// draw on canvas, before sync with Graphics Card
+	struct WM_STRUCTURE_OBJECT			canvas;
+
+	// currently active object, which will receive keyboard/mouse input
+	struct WM_STRUCTURE_OBJECT			*active;
+	struct WM_STRUCTURE_OBJECT			*selected;
+	struct WM_STRUCTURE_OBJECT			*resized;
+	struct WM_STRUCTURE_OBJECT			*shade;
+
+	uint64_t					panel_entry_width;
+
+	// default objects
+	struct WM_STRUCTURE_OBJECT			*workbench;
+	struct WM_STRUCTURE_OBJECT			*panel;
+	struct WM_STRUCTURE_OBJECT			*menu;
+	struct WM_STRUCTURE_OBJECT			*cursor;
+
+	struct WM_STRUCTURE_ZONE			direction;
+
+	uint64_t					panel_clock_state;
+
+	// semaphores
+	uint8_t						panel_semaphore;
+	uint8_t						object_semaphore;
+	uint8_t						drag_allow;
+	uint8_t 					key_menu;
+	uint8_t						mouse_button_left;
+	uint8_t						mouse_button_right;
+	uint8_t						shade_initialized;
+};

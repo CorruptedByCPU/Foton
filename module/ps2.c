@@ -9,10 +9,10 @@
 	//----------------------------------------------------------------------
 	// variables, structures, definitions of kernel
 	//----------------------------------------------------------------------
-	#include	"../kernel/config.h"
 	#include	"../kernel/idt.h"
 	#include	"../kernel/io_apic.h"
-	#include	"../kernel/lapic.h"
+	#include	"../kernel/apic.h"
+	#include	"../kernel/config.h"
 	//----------------------------------------------------------------------
 	// drivers
 	//----------------------------------------------------------------------
@@ -81,6 +81,18 @@ void module_ps2_mouse( void ) {
 	if( driver_port_in_byte( MODULE_PS2_PORT_COMMAND_OR_STATUS ) & MODULE_PS2_STATUS_output_second ) {
 		// retrieve package from PS2 controller
 		int8_t package = module_ps2_data_read();
+
+		// VMware absolute pointer enabled?
+		if( (uintptr_t) kernel -> device_mouse )  {
+			// ignore PS2 interrupt, and change behavior
+			kernel -> device_mouse();
+
+			// tell APIC of current logical processor that hardware interrupt was handled, propely
+			kernel -> apic_base_address -> eoi = EMPTY;
+
+			// done
+			return;
+		}
 
 		// perform operation depending on number of package
 		switch( module_ps2_mouse_package_id ) {
@@ -163,7 +175,7 @@ void module_ps2_mouse( void ) {
 	}
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely
-	kernel -> lapic_base_address -> eoi = EMPTY;
+	kernel -> apic_base_address -> eoi = EMPTY;
 }
 
 __attribute__(( preserve_most ))
@@ -179,7 +191,7 @@ void module_ps2_keyboard( void ) {
 		module_ps2_scancode = 0xE000;
 
 		// tell APIC of current logical processor that hardware interrupt was handled, propely
-		kernel -> lapic_base_address -> eoi = EMPTY;
+		kernel -> apic_base_address -> eoi = EMPTY;
 
 		// end of interrupt
 		return;
@@ -191,7 +203,7 @@ void module_ps2_keyboard( void ) {
 		module_ps2_scancode = 0xE100;
 
 		// tell APIC of current logical processor that hardware interrupt was handled, propely
-		kernel -> lapic_base_address -> eoi = EMPTY;
+		kernel -> apic_base_address -> eoi = EMPTY;
 
 		// end of interrupt
 		return;
@@ -228,11 +240,10 @@ void module_ps2_keyboard( void ) {
 		if( ! kernel -> device_keyboard[ i ] ) { kernel -> device_keyboard[ i ] = module_ps2_scancode; break; }
 
 	// key processed
-	// kernel -> log( (uint8_t *) "PS2: 0x%X\n", module_ps2_scancode );
 	module_ps2_scancode = EMPTY;
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely
-	kernel -> lapic_base_address -> eoi = EMPTY;
+	kernel -> apic_base_address -> eoi = EMPTY;
 }
 
 uint8_t module_ps2_rate_set( uint8_t value ) {
@@ -304,27 +315,16 @@ void module_ps2_init( void ) {
 	if( module_ps2_data_read() != MODULE_PS2_ANSWER_ACKNOWLEDGED ) return;	// nope
 
 	// connect PS2 controller interrupt handler for device: mouse
-	kernel -> idt_mount( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, KERNEL_IDT_TYPE_irq, (uintptr_t) module_ps2_mouse_entry );
+	kernel -> idt_attach( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, KERNEL_IDT_TYPE_irq, (uintptr_t) module_ps2_mouse_entry );
 
 	// connect interrupt vector from IDT table in IOAPIC controller
-	kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, MODULE_PS2_MOUSE_IO_APIC_register );
-
-	// debug
-	// kernel -> log( (uint8_t *) "[PS2] IRQ 0x%2X, connected.\n", MODULE_PS2_MOUSE_IRQ_number );
-
-	// set default position of pointer
-	kernel -> device_mouse_x = kernel -> framebuffer_width_pixel >> STD_SHIFT_2;
-	kernel -> device_mouse_y = kernel -> framebuffer_height_pixel >> STD_SHIFT_2;
-	kernel -> device_mouse_z = EMPTY;
+	kernel -> io_apic_attach( KERNEL_IDT_IRQ_offset + MODULE_PS2_MOUSE_IRQ_number, MODULE_PS2_MOUSE_IO_APIC_register );
 
 	// connect PS2 controller interrupt handler for device: keyboard
-	kernel -> idt_mount( KERNEL_IDT_IRQ_offset + MODULE_PS2_KEYBOARD_IRQ_number, KERNEL_IDT_TYPE_irq, (uint64_t) module_ps2_keyboard_entry );
+	kernel -> idt_attach( KERNEL_IDT_IRQ_offset + MODULE_PS2_KEYBOARD_IRQ_number, KERNEL_IDT_TYPE_irq, (uint64_t) module_ps2_keyboard_entry );
 
 	// connect interrupt vector from IDT table in IOAPIC controller
-	kernel -> io_apic_connect( KERNEL_IDT_IRQ_offset + MODULE_PS2_KEYBOARD_IRQ_number, MODULE_PS2_KEYBOARD_IO_APIC_register );
-
-	// debug
-	// kernel -> log( (uint8_t *) "[PS2] IRQ 0x%2X, connected.\n", MODULE_PS2_KEYBOARD_IRQ_number );
+	kernel -> io_apic_attach( KERNEL_IDT_IRQ_offset + MODULE_PS2_KEYBOARD_IRQ_number, MODULE_PS2_KEYBOARD_IO_APIC_register );
 }
 
 void _entry( uintptr_t kernel_ptr ) {
@@ -335,5 +335,5 @@ void _entry( uintptr_t kernel_ptr ) {
 	module_ps2_init();
 
 	// hold the door
-	while( TRUE ) kernel -> time_sleep( TRUE );
+	while( TRUE ) kernel -> time_sleep( (uint64_t) STD_MAX_unsigned );
 }

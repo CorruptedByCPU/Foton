@@ -85,7 +85,7 @@ struct KERNEL_STRUCTURE_TASK *kernel_task_add( uint8_t *name, uint8_t length ) {
 	MACRO_LOCK( kernel -> task_semaphore );
 
 	// find an free entry
-	for( uint64_t i = 0; i < kernel -> task_limit; i++ ) {
+	for( uint64_t i = INIT; i < kernel -> task_limit; i++ ) {
 		// free entry?
 		if( kernel -> task_base_address[ i ].flags ) continue;	// no
 

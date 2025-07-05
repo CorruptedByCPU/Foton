@@ -24,6 +24,266 @@
 	// multiples of 0x10, but not less than 0x10
 	#define	STD_ALLOC_METADATA_byte	0x10
 
+void log( const char *string, ... ) {
+	// properties of argument list
+	va_list argv;
+
+	// start of argument list
+	va_start( argv, string );
+
+	// cache for values
+	uint8_t digits[ 64 ];
+
+	// alloc area for output string and its index
+	uint64_t c = 0;
+	uint8_t *cache = (uint8_t *) malloc( EMPTY );
+
+	// for every character from string
+	uint64_t length = lib_string_length( (uint8_t *) string );
+	for( uint64_t s = 0; s < length; s++ ) {
+		// special character?
+		if( string[ s ] == '%' ) {	
+			// prefix before type?
+			uint64_t prefix = lib_string_length_scope_digit( (uint8_t *) &string[ ++s ] );
+			uint64_t p_value = lib_string_to_integer( (uint8_t *) &string[ s ], 10 );
+
+			// omit prefix value if existed
+			s += prefix;
+
+			// definied prefix length?
+			if( string[ s ] == '*' ) {
+				// amount of digits after digit delimiter
+				p_value = va_arg( argv, uint64_t );
+
+				// leave predefinied prefix
+				s += 1;
+			}
+
+			// definied suffix length?
+			uint64_t pre_suffix = EMPTY;
+			if( string[ s ] == '.' && string[ s + 1 ] == '*' ) {
+				// amount of digits after digit delimiter
+				pre_suffix = va_arg( argv, uint64_t );
+
+				// leave predefinied suffix
+				s += 2;
+			}
+
+			// check sequence type
+			switch( string[ s ] ) {
+				case '%': {
+					// just show '%' character
+					break;
+				}
+
+				case 'b': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// convert value to string
+					uint8_t v = lib_integer_to_string( value, 2, (uint8_t *) &digits );
+
+					// set prefix before value if higher than value ifself
+					while( p_value-- > v ) {
+						// insert prefix before value
+						cache = (uint8_t *) realloc( cache, c + 1 );
+						cache[ c++ ] = STD_ASCII_SPACE;
+					}
+
+					// insert valuse string into cache
+					cache = (uint8_t *) realloc( cache, c + v );
+					for( uint8_t i = 0; i < v; i++ ) cache[ c++ ] = digits[ i ];
+
+					// next character from string
+					continue;
+				}
+
+				case 'c': {
+					// resize cache for substring
+					cache = (uint8_t *) realloc( cache, c + 1 );
+
+					// insert substring into cache
+					cache[ c++ ] = va_arg( argv, uint64_t );
+
+					// next character from string
+					continue;
+				}
+
+				case '.':
+				case 'f': {
+					// retrieve value
+					double value = va_arg( argv, double );
+
+					// convert value to string
+					uint8_t v_digits = lib_integer_to_string( (uint64_t) value, 10, (uint8_t *) &digits );
+
+					// align
+					while( p_value-- > v_digits ) {
+						// insert space before value
+						cache = (uint8_t *) realloc( cache, c + 1 );
+						cache[ c++ ] = STD_ASCII_SPACE;
+					}
+
+					// resize cache for value
+					cache = (uint8_t *) realloc( cache, c + v_digits );
+
+					// insert prefix of value on cache
+					for( uint8_t i = 0; i < v_digits; i++ ) cache[ c++ ] = digits[ i ];
+
+					// resize cache for delimiter
+					cache = (uint8_t *) realloc( cache, c + 1 );
+
+					// add DOT delimiter
+					cache[ c++ ] = STD_ASCII_DOT;
+
+					// amount of digits after digit delimiter
+					uint64_t suffix = lib_string_length_scope_digit( (uint8_t *) &string[ ++s ] );
+					uint64_t s_value = lib_string_to_integer( (uint8_t *) &string[ s ], 10 );
+
+					// number of digits after dot
+					uint64_t s_digits = 1;	// fraction magnitude
+					if( s_value ) for( uint8_t m = 0; m < s_value; m++ ) s_digits *= 10;	// additional ZERO in magnitude
+					else s_digits = 1000000;	// if not specified set default
+
+					// convert fraction to string
+					uint8_t f_digits = lib_integer_to_string( (uint64_t) ((double) (value - (uint64_t) value) * (double) s_digits), 10, (uint8_t *) &digits );
+
+					// resize cache for fraction
+					cache = (uint8_t *) realloc( cache, c + f_digits );
+
+					// insert suffix of value on cache
+					for( uint8_t i = 0; i < f_digits; i++ ) cache[ c++ ] = digits[ i ];
+
+					// align
+					while( s_value-- > f_digits ) {
+						// insert space after fraction
+						cache = (uint8_t *) realloc( cache, c + 1 );
+						cache[ c++ ] = STD_ASCII_DIGIT_0;
+					}
+
+					// omit suffix value if existed
+					s += suffix;
+
+					// next character from string
+					continue;
+				}
+
+				case 's': {
+					// string properties
+					uint8_t *substring = va_arg( argv, uint8_t * );
+					uint64_t length = lib_string_length( substring );
+
+					// change string length if predefinied value exist
+					if( pre_suffix ) {
+						// new length
+						length = pre_suffix;
+
+						// resize cache for substring
+						cache = (uint8_t *) realloc( cache, c + length );
+					} else {
+						// extend with prefix
+						if( p_value > length ) {
+							// resize cache for substring with prefix
+							cache = (uint8_t *) realloc( cache, c + p_value ); for( uint64_t i = 0; i < (p_value - length); i++ ) cache[ c++ ] = STD_ASCII_SPACE;
+						} else
+							// resize cache for substring without prefix
+							cache = (uint8_t *) realloc( cache, c + length );
+					}
+
+					// insert substring into cache
+					for( uint64_t i = 0; i < length; i++ ) cache[ c++ ] = substring[ i ];
+
+					// next character from string
+					continue;
+				}
+
+				case 'u': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// convert value to string
+					uint8_t v = lib_integer_to_string( value, 10, (uint8_t *) &digits );
+
+					// set prefix before value if higher than value ifself
+					while( p_value-- > v ) {
+						// insert prefix before value
+						cache = (uint8_t *) realloc( cache, c + 1 );
+						cache[ c++ ] = STD_ASCII_SPACE;
+					}
+
+					// insert valuse string into cache
+					cache = (uint8_t *) realloc( cache, c + v );
+					for( uint8_t i = 0; i < v; i++ ) cache[ c++ ] = digits[ i ];
+
+					// next character from string
+					continue;
+				}
+
+				case 'd': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// signed?
+					if( value & STD_SIZE_QWORD_sign ) { value = ~value + 1; print( "-" ); }
+
+					// convert value to string
+					uint8_t v = lib_integer_to_string( value, 10, (uint8_t *) &digits );
+
+					// set prefix before value if higher than value ifself
+					while( p_value-- > v ) {
+						// insert prefix before value
+						cache = (uint8_t *) realloc( cache, c + 1 );
+						cache[ c++ ] = STD_ASCII_SPACE;
+					}
+
+					// insert valuse string into cache
+					cache = (uint8_t *) realloc( cache, c + v );
+					for( uint8_t i = 0; i < v; i++ ) cache[ c++ ] = digits[ i ];
+
+					// next character from string
+					continue;
+				}
+
+				case 'X': {
+					// retrieve value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// convert value to string
+					uint8_t v = lib_integer_to_string( value, 16, (uint8_t *) &digits );
+
+					// set prefix before value if higher than value ifself
+					while( p_value-- > v ) {
+						// insert prefix before value
+						cache = (uint8_t *) realloc( cache, c + 1 );
+						cache[ c++ ] = STD_ASCII_DIGIT_0;
+					}
+
+					// insert valuse string into cache
+					cache = (uint8_t *) realloc( cache, c + v );
+					for( uint8_t i = 0; i < v; i++ ) cache[ c++ ] = digits[ i ];
+
+					// next character from string
+					continue;
+				}
+			}
+		}
+
+		// insert character into cache
+		cache = (uint8_t *) realloc( cache, c + 1 );
+		cache[ c++ ] = string[ s ];
+	}
+
+	// send prepared string to default output
+	std_log( cache, c );
+
+	// release cached string
+	free( cache );
+
+	// end of arguemnt list
+	va_end( argv );
+}
+	
+
 void *malloc( size_t byte ) {
 	// assign place for area of definied size
 	uint64_t *target = (uint64_t *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( byte + STD_ALLOC_METADATA_byte ) >> STD_SHIFT_PAGE );
@@ -159,134 +419,6 @@ double minf( double first, double second ) {
 double maxf( double first, double second ) {
 	if( first > second ) return first;
 	else return second;
-}
-
-void log( const char *string, ... ) {
-	// properties of argument list
-	va_list argv;
-
-	// start of argument list
-	va_start( argv, string );
-
-	// cache for values
-	uint8_t digits[ 64 ];
-
-	// for every character from string
-	uint64_t length = lib_string_length( (uint8_t *) string );
-	for( uint64_t i = 0; i < length; i++ ) {
-		// special character?
-		if( string[ i ] == '%' ) {	
-			// prefix before type?
-			uint64_t prefix = lib_string_length_scope_digit( (uint8_t *) &string[ ++i ] );
-			uint64_t p_value = lib_string_to_integer( (uint8_t *) &string[ i ], 10 );
-
-			// omit prefix value if existed
-			i += prefix;
-
-			// definied suffix length?
-			uint64_t pre_suffix = EMPTY;
-			if( string[ i ] == '.' && string[ i + 1 ] == '*' ) {
-				// amount of digits after digit delimiter
-				pre_suffix = va_arg( argv, uint64_t );
-
-				// leave predefinied suffix
-				i += 2;
-			}
-
-			// check sequence type
-			switch( string[ i ] ) {
-				case '%': {
-					// just show '%' character
-					break;
-				}
-
-				case 'b': {
-					// retrieve value
-					uint64_t value = va_arg( argv, uint64_t );
-
-					// show 'value' on terminal
-					std_log( (uint8_t *) &digits, lib_integer_to_string( value, 2, (uint8_t *) &digits ) );
-
-					// next character from string
-					continue;
-				}
-
-				case 'c': {
-					// retrieve character
-					uint8_t c = va_arg( argv, uint64_t );
-					
-					// show 'character' on terminal
-					std_log( (uint8_t *) &c, 1 );
-
-					// next character from string
-					continue;
-				}
-
-				case 'd': {
-					// retrieve value
-					uint64_t value = va_arg( argv, uint64_t );
-
-					// value signed?
-					if( value & 0x8000000000000000 ) {
-						// show 'character' on terminal
-						std_log( (uint8_t *) "-", 1 );
-
-						// remove sign
-						value = ~value + 1;
-					}
-
-					// show 'value' on terminal
-					std_log( (uint8_t *) &digits, lib_integer_to_string( value, 10, (uint8_t *) &digits ) );
-
-					// next character from string
-					continue;
-				}
-
-				case 's': {
-					// string properties
-					uint8_t *substring = va_arg( argv, uint8_t * );
-					uint64_t length = lib_string_length( substring );
-
-					// change string length if predefinied value exist
-					if( pre_suffix ) length = pre_suffix;
-
-					// show 'substring' on terminal
-					std_log( substring, length );
-
-					// next character from string
-					continue;
-				}
-
-				case 'u': {
-					// retrieve value
-					uint64_t value = va_arg( argv, uint64_t );
-
-					// show 'value' on terminal
-					std_log( (uint8_t *) &digits, lib_integer_to_string( value, 10, (uint8_t *) &digits ) );
-
-					// next character from string
-					continue;
-				}
-
-				case 'X': {
-					// retrieve value
-					uint64_t value = va_arg( argv, uint64_t );
-
-					// show 'value' on terminal
-					std_log( (uint8_t *) &digits, lib_integer_to_string( value, 16, (uint8_t *) &digits ) );
-
-					// next character from string
-					continue;
-				}
-			}
-		}
-
-		// no, show it
-		std_log( (uint8_t *) &string[ i ], 1 );
-	}
-
-	// end of arguemnt list
-	va_end( argv );
 }
 
 void print( const char *string ) {
@@ -706,7 +838,7 @@ void fclose( FILE *file ) {
 
 void fread( FILE *file, uint8_t *cache, uint64_t byte ) {
 	// read N Bytes into provided cache
-	std_file_read( file, cache, byte );
+	std_file_read( file -> socket, cache, file -> seek, byte );
 }
 
 void fwrite( FILE *file, uint8_t *cache, uint64_t byte ) {
@@ -737,10 +869,10 @@ FILE *touch( uint8_t *path, uint8_t type ) {
 	return file;
 }
 
-void sleep( uint64_t ms ) {
+void sleep( uint64_t units ) {
 	// set release in future
-	uint64_t wait = std_microtime() + ms;
+	uint64_t wait = std_microtime() + units;
 
-	// release CPU time until we are ready
+	// release BS/A time until we are ready
 	while( wait > std_microtime() ) __asm__ volatile( "int $0x40" );
 }

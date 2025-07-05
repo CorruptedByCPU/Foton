@@ -3,15 +3,23 @@
 ===============================================================================*/
 
 void wm_sync( void ) {
-	// requested synchronization?
-	if( ! (wm_object_cache.descriptor -> flags & STD_WINDOW_FLAG_flush) ) return;	// no
+	// remove any overlapping
+	wm_zone_substract();
 
-	// copy the contents of the buffer to the memory space of the graphics card
-	uint32_t *source = (uint32_t *) ((uintptr_t) wm_object_cache.descriptor + sizeof( struct STD_STRUCTURE_WINDOW_DESCRIPTOR ));
-	for( uint64_t y = 0; y < kernel_framebuffer.height_pixel; y++ )
-		for( uint64_t x = 0; x < kernel_framebuffer.width_pixel; x++ )
-			kernel_framebuffer.base_address[ (y * (kernel_framebuffer.pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = source[ (y * kernel_framebuffer.width_pixel) + x ];
+	// for each object from bottom
+	for( uint64_t j = wm -> list_limit; j > 0; j-- ) {
+		// for every zone
+		for( uint64_t i = 0; i < wm -> zone_limit; i++ ) {
+			if( wm -> list[ j - 1 ] != wm -> zone[ i ].object ) continue;
 
-	// request accepted
-	wm_object_cache.descriptor -> flags ^= STD_WINDOW_FLAG_flush;
+			// copy the contents of the buffer to the memory space of the graphics card
+			uint32_t *source = (uint32_t *) ((uintptr_t) wm -> canvas.descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
+			for( uint64_t y = wm -> zone[ i ].y; y < wm -> zone[ i ].y + wm -> zone[ i ].height; y++ )
+				for( uint64_t x = wm -> zone[ i ].x; x < wm -> zone[ i ].x + wm -> zone[ i ].width; x++ )
+					wm -> framebuffer.base_address[ (y * (wm -> framebuffer.pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = source[ (y * wm -> canvas.width) + x ] & ~STD_COLOR_mask;
+		}
+	}
+
+	// all zones parsed
+	wm -> zone_limit = EMPTY;
 }

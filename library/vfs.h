@@ -5,10 +5,6 @@
 #ifndef	LIB_VFS
 	#define	LIB_VFS
 
-	#ifndef	LIB_STRING
-		#include	"./string.h"
-	#endif
-
 	#define	LIB_VFS_length			4		// length of magic in Bytes
 	#define	LIB_VFS_magic			0x53465623	// "#VFS"
 	#define	LIB_VFS_BLOCK_byte		STD_PAGE_byte

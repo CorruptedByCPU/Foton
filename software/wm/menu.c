@@ -2,104 +2,171 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-int64_t wm_menu( void ) {
-	// prepare JSON structure for parsing
-	lib_json_squeeze( (uint8_t *) &file_menu_json_start );
+uint8_t wm_menu_header[] = KERNEL_name" v"KERNEL_version"."KERNEL_revision"";
 
-	// convert interface properties to a more accessible format
-	menu_interface.properties = (uint8_t *) &file_menu_json_start;
-	lib_interface_convert( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
+uint32_t *menu_icon_load( uint8_t *path ) {
+	// file properties
+	FILE *file = EMPTY;
 
-	// find control element of type: close
-	struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu;
-	menu = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) lib_interface_element_by_id( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface, 0 );
-	menu -> event = (void *) wm_menu_exec;
+	// file exist?
+	if( (file = fopen( path, EMPTY )) ) {
+		// assign area for file
+		struct LIB_IMAGE_STRUCTURE_TGA *image = (struct LIB_IMAGE_STRUCTURE_TGA *) malloc( MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
 
-	// connect each menu entry to execution function
-	uint8_t *element = (uint8_t *) menu_interface.properties; uint64_t e = 0;
-	while( element[ e ] != LIB_INTERFACE_ELEMENT_TYPE_null ) {
-		// element properties
-		struct LIB_INTERFACE_STRUCTURE_ELEMENT *properties = (struct LIB_INTERFACE_STRUCTURE_ELEMENT *) &element[ e ];
+		// load file content
+		fread( file, (uint8_t *) image, file -> byte );
 
-		// menu entry?
-		if( properties -> type & LIB_INTERFACE_ELEMENT_TYPE_menu ) {
-			// properties of control
-			struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu = (struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *) properties;
+		// copy image content to cursor object
+		uint32_t *icon = (uint32_t *) malloc( image -> width * image -> height * STD_VIDEO_DEPTH_byte );
+		lib_image_tga_parse( (uint8_t *) image, icon, file -> byte );
 
-			// connect
-			menu -> event = (void *) wm_menu_exec;
-		}
+		// release file content
+		free( image );
 
-		// next element from list
-		e += properties -> size_byte;
+		// close file
+		fclose( file );
+
+		// done
+		return icon;
 	}
 
-	// create menu object
-	wm_object_menu = wm_object_create( -1, wm_object_taskbar -> y - menu_interface.height + 1, menu_interface.width, menu_interface.height );
-
-	// mark it as own
-	wm_object_menu -> pid = wm_pid;
-
-	// special flag for menu window
-	wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_unstable;
-
-	// update menu interface descriptor
-	menu_interface.descriptor = wm_object_menu -> descriptor;
-
-	// clear window content
-	lib_interface_clear( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
-
-	// set window name
-	uint8_t system_release[] = "Foton v"KERNEL_version"."KERNEL_revision;
-	for( uint64_t i = 0; i < lib_string_length( system_release ); i++ ) menu_interface.name[ menu_interface.name_length++ ] = system_release[ i ];
-
-	// show window name in header if set
-	lib_interface_name( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
-
-	// show interface elements
-	lib_interface_draw( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
-
-	// main loop
-	while( TRUE ) {
-		// check events
-		lib_interface_event( (struct LIB_INTERFACE_STRUCTURE *) &menu_interface );
-
-		// release CPU time
-		sleep( TRUE );
-	}
-
-	// dummy
+	// cannot locate specified file
 	return EMPTY;
 }
 
+uint64_t wm_menu( void ) {
+	// retrieve our process ID
+	uint64_t wm_menu_pid = std_pid();
 
-void wm_menu_exec( struct LIB_INTERFACE_STRUCTURE_ELEMENT_MENU *menu ) {
-	// execute command provieded with menu entry
-	std_exec( menu -> command, lib_string_length( menu -> command ), EMPTY, TRUE );
+	// initial dimension of menu window
+	uint64_t menu_width	= lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &wm_menu_header, sizeof( wm_menu_header ) - 1 );
+	uint64_t menu_height	= LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT;
 
-	// hide menu window
-	wm_menu_switch( FALSE );
-}
+	//----------------------------------------------------------------------
 
-void wm_menu_switch( uint8_t menu_semaphore ) {
-	// menu window already visible?
-	if( menu_semaphore || wm_object_menu -> descriptor -> flags & STD_WINDOW_FLAG_active ) {
-		// don't show anymore
-		wm_object_menu -> descriptor -> flags &= ~STD_WINDOW_FLAG_visible;
+	// add entries to menu list
+	struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *entry = (struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY ) << STD_SHIFT_2 );
 
-		// and redraw area behind
-		wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_flush;
+		uint64_t entry_pixel = EMPTY;
 
-		// search for next active window
-		wm_object_active_new();
-	} else {
-		// generate and show menu window
-		wm_object_menu -> descriptor -> flags |= STD_WINDOW_FLAG_visible | STD_WINDOW_FLAG_active | STD_WINDOW_FLAG_flush;
+		// first entry
+		uint8_t file_manager_name[] = "File Manager";
+		uint8_t file_manager_event[] = "kuro";
+		// uint8_t file_manager_shortcut[] = "Menu + f";
+		entry[ 0 ].icon		= lib_image_scale( menu_icon_load( (uint8_t *) "/var/share/media/icon/default/app/system-file-manager.tga" ), 48, 48, 16, 16 );
+		entry[ 0 ].name		= (uint8_t *) calloc( sizeof( file_manager_name ) ); for( uint8_t i = 0; i < sizeof( file_manager_name ); i++ ) entry[ 0 ].name[ i ] = file_manager_name[ i ];
+		entry[ 0 ].event	= (uint8_t *) calloc( sizeof( file_manager_event ) ); for( uint8_t i = 0; i < sizeof( file_manager_event ); i++ ) entry[ 0 ].event[ i ] = file_manager_event[ i ];
+		entry[ 0 ].shortcut	= EMPTY;
+		// entry[ 0 ].shortcut	= (uint8_t *) calloc( sizeof( file_manager_shortcut ) ); for( uint8_t i = 0; i < sizeof( file_manager_shortcut ); i++ ) entry[ 0 ].shortcut[ i ] = file_manager_shortcut[ i ];;
 
-		// show above other objects
-		wm_object_move_up( wm_object_menu );
+		entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &file_manager_name, sizeof( file_manager_name ) - 1 );
+		if( entry[ 0 ].icon )		entry_pixel += LIB_UI_PADDING_DEFAULT + 16;
+		// if( entry[ 0 ].shortcut )	entry_pixel += LIB_UI_PADDING_DEFAULT + lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) &file_manager_shortcut, sizeof( file_manager_shortcut ) - 1 );
 
-		// mark as active
-		wm_object_active = wm_object_menu;
+		// widest entry of menu
+		if( menu_width < entry_pixel ) menu_width = entry_pixel;
+
+		// expand by default entry height
+		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
+
+		// second entry
+		uint8_t demo_3d_name[] = "3D Viewer";
+		uint8_t demo_3d_event[] = "3d /var/share/media/obj/demo.obj";
+		entry[ 1 ].icon		= lib_image_scale( menu_icon_load( (uint8_t *) "/var/share/media/icon/3d.tga" ), 48, 48, 16, 16 );
+		entry[ 1 ].name		= (uint8_t *) calloc( sizeof( demo_3d_name ) ); for( uint8_t i = 0; i < sizeof( demo_3d_name ); i++ ) entry[ 1 ].name[ i ] = demo_3d_name[ i ];
+		entry[ 1 ].event	= (uint8_t *) calloc( sizeof( demo_3d_event ) ); for( uint8_t i = 0; i < sizeof( demo_3d_event ); i++ ) entry[ 1 ].event[ i ] = demo_3d_event[ i ];
+		entry[ 1 ].shortcut	= EMPTY;
+
+		entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &demo_3d_name, sizeof( demo_3d_name ) - 1 );
+		if( entry[ 1 ].icon )		entry_pixel += LIB_UI_PADDING_DEFAULT + 16;
+
+		// widest entry of menu
+		if( menu_width < entry_pixel ) menu_width = entry_pixel;
+
+		// expand by default entry height
+		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
+
+		// third entry
+		uint8_t palette_name[] = "Palette";
+		uint8_t palette_event[] = "palette";
+		entry[ 2 ].icon		= lib_image_scale( menu_icon_load( (uint8_t *) "/var/share/media/icon/default/app/gcolor3.tga" ), 48, 48, 16, 16 );
+		entry[ 2 ].name		= (uint8_t *) calloc( sizeof( palette_name ) ); for( uint8_t i = 0; i < sizeof( palette_name ); i++ ) entry[ 2 ].name[ i ] = palette_name[ i ];
+		entry[ 2 ].event	= (uint8_t *) calloc( sizeof( palette_event ) ); for( uint8_t i = 0; i < sizeof( palette_event ); i++ ) entry[ 2 ].event[ i ] = palette_event[ i ];
+		entry[ 2 ].shortcut	= EMPTY;
+
+		entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &palette_name, sizeof( palette_name ) - 1 );
+		if( entry[ 2 ].icon )		entry_pixel += LIB_UI_PADDING_DEFAULT + 16;
+
+		// widest entry of menu
+		if( menu_width < entry_pixel ) menu_width = entry_pixel;
+
+		// expand by default entry height
+		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
+
+	//----------------------------------------------------------------------
+
+	// apply margins and header
+	menu_width	+= LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2;
+	menu_height	+= LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2;
+
+	// create menu object
+	wm -> menu = wm_object_create( -1, wm -> panel -> y - menu_height + TRUE, menu_width, menu_height, LIB_WINDOW_FLAG_menu | LIB_WINDOW_FLAG_fixed_z | LIB_WINDOW_FLAG_fixed_xy );
+
+	// required for incomming messages
+	wm -> menu -> pid = wm_menu_pid;
+
+	// object name
+	uint8_t menu_name[] = "{menu}";
+	for( uint8_t i = 0; i < sizeof( menu_name ); i++ ) wm -> menu -> descriptor -> name[ i ] = menu_name[ i ];
+
+	// properties of menu area content
+	uint32_t *menu_pixel = (uint32_t *) ((uintptr_t) wm -> menu -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
+
+	//----------------------------------------------------------------------
+
+	struct LIB_UI_STRUCTURE *ui = lib_ui( wm -> menu -> descriptor );
+
+	lib_ui_add_label( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), (uint8_t *) &wm_menu_header, EMPTY, LIB_FONT_FLAG_ALIGN_center | LIB_FONT_FLAG_WEIGHT_bold );
+
+	lib_ui_add_list( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT, wm -> menu -> width - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), wm -> menu -> height - (LIB_UI_MARGIN_DEFAULT + LIB_UI_ELEMENT_LABEL_height + LIB_UI_PADDING_DEFAULT + LIB_UI_MARGIN_DEFAULT), entry, 3 );
+
+	lib_ui_flush( ui );
+
+	//----------------------------------------------------------------------
+
+	while( TRUE ) {
+		lib_ui_event( ui );
+
+		// no action
+		uint8_t event = FALSE;
+
+		// check which entry acquired action
+		for( uint64_t i = 0; i < 3; i++ ) {
+			// action required?
+			if( entry[ i ].flag & LIB_UI_ELEMENT_FLAG_event ) {
+				// execute event content
+				std_exec( entry[ i ].event, lib_string_length( entry[ i ].event ), EMPTY, TRUE );
+
+				// flag parsed
+				entry[ i ].flag &= ~LIB_UI_ELEMENT_FLAG_event;
+
+				// event acquired
+				event = TRUE;
+			}
+		}
+
+		// Menu window not active and visible?
+		if( event || wm -> active != wm -> menu && wm -> menu -> descriptor -> flags & LIB_WINDOW_FLAG_visible ) {
+			// disable flag
+			wm -> menu -> descriptor -> flags &= ~LIB_WINDOW_FLAG_visible;
+
+			// request hide
+			wm -> menu -> descriptor -> flags |= LIB_WINDOW_FLAG_hide;
+		}
+
+		sleep( TRUE );
 	}
+
+	// ok
+	return EMPTY;
 }

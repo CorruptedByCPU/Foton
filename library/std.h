@@ -15,6 +15,10 @@
 		#include	"./vfs.h"
 	#endif
 
+	#ifndef	LIB_STRING
+		#include	"./string.h"
+	#endif
+
 	#define	EMPTY						0
 	#define	INIT						EMPTY
 
@@ -93,6 +97,9 @@
 	#define	STD_ASCII_TILDE					0x7E
 	#define	STD_ASCII_DELETE				0x7F
 
+	#define	STD_BIT_CONTROL_DWORD_bit			31	// or 0b00011111
+	#define	STD_BIT_CONTROL_WORD_bit			15	// or 0b00001111
+
 	#define	STD_COLOR_mask					0xFF000000
 	#define	STD_COLOR_BLACK					0xFF000000
 	#define	STD_COLOR_DARK					0xFF272727
@@ -102,8 +109,8 @@
 	#define	STD_COLOR_BLUE					0xFF000080
 	#define	STD_COLOR_MAGENTA				0xFF800080
 	#define	STD_COLOR_CYAN					0xFF008080
-	#define	STD_COLOR_GRAY_LIGHT				0xFFC0C0C0
-	#define	STD_COLOR_GRAY					0xFF808080
+	#define	STD_COLOR_GRAY_LIGHT				0xFF808080
+	#define	STD_COLOR_GRAY					0xFF404040
 	#define	STD_COLOR_REG_LIGHT				0xFFFF0000
 	#define	STD_COLOR_GREEN_LIGHT				0xFFFFFF00
 	#define	STD_COLOR_YELLOW				0xFF00FF00
@@ -123,38 +130,47 @@
 	#define	STD_ERROR_locked				-9
 	#define	STD_ERROR_unavailable				-10
 
-	#define	STD_FILE_TYPE_file				0b00000001
-	#define	STD_FILE_TYPE_directory				0b00000010
-	#define	STD_FILE_TYPE_link				0b00000100
+	#define	STD_FILE_TYPE_file				0x01
+	#define	STD_FILE_TYPE_directory				0x02
+	#define	STD_FILE_TYPE_link				0x04
 
-	#define	STD_FILE_MODE_modify				0b00000001
+	#define	STD_FILE_MODE_modify				0x01
 
 	#define	STD_FILE_NAME_limit				LIB_VFS_NAME_limit
 
 	struct	STD_STRUCTURE_FILE {
-		int64_t		socket;
+		uint64_t	socket;
 		uint64_t	byte;
 		uint64_t	seek;
-		uint16_t	name_length;
-		uint8_t		name[ STD_FILE_NAME_limit ];
+		uint8_t		type;
+	};
+
+	struct	STD_STRUCTURE_DIR {
+		uint64_t	limit;
+		uint8_t		type;
+		uint8_t		name_limit;
+		uint8_t		name[ LIB_VFS_NAME_limit + 1 ];
 	};
 
 	#define	STD_IPC_SIZE_byte				40
 
-	#define	STD_IPC_TYPE_keyboard				0x00
-	#define	STD_IPC_TYPE_mouse				0x01
-	#define	STD_IPC_TYPE_event				0xFF
+	#define	STD_IPC_TYPE_default				0x00
+	#define	STD_IPC_TYPE_keyboard				0x01
+	#define	STD_IPC_TYPE_mouse				0x02
 
-	#define	STD_IPC_MOUSE_BUTTON_left			0b00000001
-	#define	STD_IPC_MOUSE_BUTTON_right			0b00000010
-	#define	STD_IPC_MOUSE_BUTTON_middle			0b00000100
-	#define	STD_IPC_MOUSE_BUTTON_release			0b10000000
+	#define	STD_IPC_MOUSE_BUTTON_left			0x01
+	#define	STD_IPC_MOUSE_BUTTON_right			0x02
+	#define	STD_IPC_MOUSE_BUTTON_middle			0x04
+	#define	STD_IPC_MOUSE_BUTTON_release			0x80
+
+	#define	STD_IPC_WINDOW_create				0x00
+	#define	STD_IPC_WINDOW_list				0x01
 
 	struct	STD_STRUCTURE_IPC {
 		volatile uint64_t	ttl;
-		int64_t		source;
-		int64_t		target;
-		uint8_t		data[ STD_IPC_SIZE_byte ];	// first Byte of data defines TYPE
+		uint64_t		source;
+		uint64_t		target;
+		uint8_t			data[ STD_IPC_SIZE_byte ];	// first Byte of data defines TYPE
 	} __attribute__( (packed) );
 
 	struct	STD_STRUCTURE_IPC_DEFAULT {
@@ -163,26 +179,32 @@
 
 	struct	STD_STRUCTURE_IPC_KEYBOARD {
 		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
-		uint16_t	key;
+		uint16_t				key;
 	} __attribute__( (packed) );
 
 	struct	STD_STRUCTURE_IPC_MOUSE {
 		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
-		uint8_t		button;
-		int16_t		scroll;
+		uint8_t					button;
+		int8_t					scroll;	// deprecated, remove if no one else is using (todo)
 	} __attribute__( (packed) );
 
 	struct STD_STRUCTURE_IPC_WINDOW {
 		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
-		int16_t		x;
-		int16_t		y;
-		uint16_t	width;
-		uint16_t	height;
+		uint8_t					properties;
+	} __attribute__( (packed) );
+
+	struct STD_STRUCTURE_IPC_WINDOW_CREATE {
+		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
+		uint8_t					properties;
+		int16_t					x;
+		int16_t					y;
+		uint16_t				width;
+		uint16_t				height;
 	} __attribute__( (packed) );
 
 	struct STD_STRUCTURE_IPC_WINDOW_DESCRIPTOR {
 		struct STD_STRUCTURE_IPC_DEFAULT	ipc;
-		uintptr_t	descriptor;
+		uintptr_t				descriptor;
 	} __attribute__( (packed) );
 
 	#define	STD_KEY_BACKSPACE				0x0008
@@ -241,6 +263,12 @@
 	#define	STD_KEY_MENU					0xE05B
 	#define	STD_KEY_SUBMENU					0xE05D
 
+	struct	STD_STRUCTURE_KEYBOARD_STATE {
+		uint8_t	semaphore_alt_left;
+		uint8_t	semaphore_ctrl_left;
+		uint8_t	semaphore_shift;
+	};
+
 	struct	STD_STRUCTURE_SYSCALL_MEMORY {
 		uint64_t	total;
 		uint64_t	available;
@@ -250,9 +278,15 @@
 
 	#define	STD_MAX_unsigned				-1
 
-	#define	STD_MOUSE_BUTTON_left				0b00000001
-	#define	STD_MOUSE_BUTTON_right				0b00000010
-	#define	STD_MOUSE_BUTTON_middle				0b00000100
+	#define	STD_MOUSE_BUTTON_left				0x01
+	#define	STD_MOUSE_BUTTON_right				0x02
+	#define	STD_MOUSE_BUTTON_middle				0x04
+
+	struct	STD_STRUCTURE_MOUSE_STATE {
+		uint8_t	semaphore_left;
+		uint8_t	semaphore_right;
+		uint8_t	semaphore_middle;
+	};
 
 	struct STD_STRUCTURE_MOUSE_SYSCALL {
 		uint16_t	x;
@@ -310,6 +344,7 @@
 	#define	STD_SHIFT_2048					11
 	#define	STD_SHIFT_4096					12
 	#define	STD_SHIFT_PAGE					STD_SHIFT_4096
+	#define	STD_SHIFT_32768					15
 	#define	STD_SHIFT_65536					16
 
 	#define	STD_SIZE_BYTE_byte				1
@@ -323,8 +358,10 @@
 	#define	STD_SIZE_QWORD_bit				64
 	#define	STD_SIZE_PTR_byte				STD_SIZE_QWORD_byte
 
-	#define	STD_STORAGE_TYPE_memory				0b00000001
-	#define	STD_STORAGE_TYPE_disk				0b00000010
+	#define	STD_STORAGE_NAME_length				31				
+
+	#define	STD_STORAGE_TYPE_memory				0x01
+	#define	STD_STORAGE_TYPE_disk				0x02
 
 	struct	STD_STRUCTURE_STORAGE {
 		uint64_t 	id;
@@ -337,8 +374,8 @@
 
 	#define	STD_STREAM_SIZE_page				1	// less or equal to 16, limited by struct KERNEL_STRUCTURE_STREAM
 
-	#define	STD_STREAM_FLOW_out_to_parent_in		0b00000001
-	#define	STD_STREAM_FLOW_out_to_in			0b00000010
+	#define	STD_STREAM_FLOW_out_to_parent_in		0x01
+	#define	STD_STREAM_FLOW_out_to_in			0x02
 
 	#define	STD_STREAM_OUT					0x00
 	#define	STD_STREAM_IN					0x01
@@ -374,7 +411,7 @@
 	#define	STD_SYSCALL_STREAM_SET				0x13
 	#define	STD_SYSCALL_STREAM_GET				0x14
 	#define	STD_SYSCALL_MEMORY				0x15
-	// #define	STD_SYSCALL_SLEEP				0x16
+	#define	STD_SYSCALL_MEMORY_MOVE				0x16
 	#define	STD_SYSCALL_FILE_OPEN				0x17
 	#define	STD_SYSCALL_FILE_CLOSE				0x18
 	#define	STD_SYSCALL_CD					0x19
@@ -395,23 +432,25 @@
 	#define	STD_SYSCALL_STORAGE				0x28
 	#define	STD_SYSCALL_STORAGE_SELECT			0x29
 	#define	STD_SYSCALL_DIR					0x2A
+	#define	STD_SYSCALL_STORAGE_ID				0x2B
+	#define	STD_SYSCALL_MEMORY_PURGE			0x2C
 
 	struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER {
 		uint32_t	*base_address;
 		uint16_t	width_pixel;
 		uint16_t	height_pixel;
 		uint64_t	pitch_byte;
-		int64_t		pid;
+		uint64_t	pid;
 	};
 
-	#define	STD_TASK_FLAG_active				0b0000000000000001
-	#define	STD_TASK_FLAG_exec				0b0000000000000010
-	#define	STD_TASK_FLAG_close				0b0000000000000100
-	#define	STD_TASK_FLAG_module				0b0000000000001000
-	#define	STD_TASK_FLAG_thread				0b0000000000010000
-	#define	STD_TASK_FLAG_sleep				0b0000000000100000
-	#define	STD_TASK_FLAG_init				0b0100000000000000
-	#define	STD_TASK_FLAG_secured				0b1000000000000000
+	#define	STD_TASK_FLAG_active				0x0001	// 0b0000000000000001
+	#define	STD_TASK_FLAG_exec				0x0002	// 0b0000000000000010
+	#define	STD_TASK_FLAG_close				0x0004	// 0b0000000000000100
+	#define	STD_TASK_FLAG_module				0x0008	// 0b0000000000001000
+	#define	STD_TASK_FLAG_thread				0x0010	// 0b0000000000010000
+	#define	STD_TASK_FLAG_sleep				0x0020	// 0b0000000000100000
+	#define	STD_TASK_FLAG_init				0x4000	// 0b0100000000000000
+	#define	STD_TASK_FLAG_secured				0x8000	// 0b1000000000000000
 
 	struct STD_STRUCTURE_SYSCALL_TASK {
 		int64_t		pid;
@@ -427,56 +466,12 @@
 	#define	STD_VIDEO_DEPTH_byte				4
 	#define	STD_VIDEO_DEPTH_bit				32
 
-	#define	STD_WINDOW_FLAG_active		(1 << 0)
-	#define	STD_WINDOW_FLAG_visible		(1 << 1)
-	#define	STD_WINDOW_FLAG_fixed_xy	(1 << 2)
-	#define	STD_WINDOW_FLAG_fixed_z		(1 << 3)
-	#define	STD_WINDOW_FLAG_release		(1 << 4)	// window marked as ready to be removed
-	#define	STD_WINDOW_FLAG_name		(1 << 5)
-	#define	STD_WINDOW_FLAG_minimize	(1 << 6)
-	#define	STD_WINDOW_FLAG_unstable	(1 << 7)	// hide window on any mouse button press
-	#define	STD_WINDOW_FLAG_resizable	(1 << 8)
-	#define	STD_WINDOW_FLAG_properties	(1 << 9)	// Window Manager proposed new window properties
-	#define	STD_WINDOW_FLAG_maximize	(1 << 10)
-	#define	STD_WINDOW_FLAG_icon		(1 << 11)
-	#define	STD_WINDOW_FLAG_workbench	(1 << 12)
-	#define	STD_WINDOW_FLAG_flush		(1 << 13)
-	#define	STD_WINDOW_FLAG_taskbar		(1 << 14)
-	#define	STD_WINDOW_FLAG_cursor		(1 << 15)
-	#define	STD_WINDOW_FLAG_lock		(1 << 16)
-
-	#define	STD_WINDOW_REQUEST_create	0b00000001
-	#define	STD_WINDOW_REQUEST_active	0b00000010
-
-	#define	STD_WINDOW_ANSWER_create	0b10000000 | STD_WINDOW_REQUEST_create
-	#define	STD_WINDOW_ANSWER_active	0b10000000 | STD_WINDOW_REQUEST_active
-
-	struct	STD_STRUCTURE_WINDOW_DESCRIPTOR {
-		uint32_t	flags;
-		// pointer position inside window
-		uint16_t	x;
-		uint16_t	y;
-		// assigned window dimension
-		uint16_t	width;
-		uint16_t	height;
-		// minimal dimension of window allowed
-		uint16_t	width_limit;
-		uint16_t	height_limit;
-		// proposed window properties
-		int16_t		new_x;
-		int16_t		new_y;
-		uint16_t	new_width;
-		uint16_t	new_height;
-		// window name, it will appear at header and taskbar
-		uint8_t		name_length;
-		uint8_t		name[ 64 ];
-	} __attribute__( (aligned( STD_PAGE_byte )) );
-
 	#define	STD_MASK_byte_half		0x000000000000000F
 	#define	STD_MASK_byte			0x00000000000000FF
 	#define	STD_MASK_word			0x000000000000FFFF
+	#define	STD_MASK_dword			0x00000000FFFFFFFF
 
-	// returns properties of available framebuffer ()
+	// returns properties of available framebuffer
 	void std_framebuffer( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer );
 
 	// returns current miliseconds from system initialization
@@ -498,7 +493,7 @@
 	int64_t std_exec( uint8_t *string, uint64_t length, uint8_t stream_flow, uint8_t detach );
 
 	// returns TRUE/FALSE, task exist?
-	uint8_t std_pid_check( int64_t pid );
+	uint8_t std_pid_exist( int64_t pid );
 
 	// send data string to process with ID
 	void std_ipc_send( int64_t pid, uint8_t *data );
@@ -507,13 +502,18 @@
 	int64_t std_ipc_receive( uint8_t *data );
 
 	// connect source memory area with targets and inform about target pointer address
-	uintptr_t std_memory_share( int64_t pid, uintptr_t address, uint64_t page );
+	uintptr_t std_memory_share( uint64_t pid, uintptr_t address, uint64_t page, uint8_t write );
+
+	uintptr_t std_memory_move( uint64_t pid, uintptr_t address, uint64_t page );
 
 	// returns properties of mouse pointing device
 	void std_mouse( struct STD_STRUCTURE_MOUSE_SYSCALL *mouse );
 
 	// modify properties of kernels framebuffer
 	void std_framebuffer_change( struct STD_STRUCTURE_SYSCALL_FRAMEBUFFER *framebuffer );
+
+	// release memory marked as EXTERNAL
+	void std_memory_purge( void );
 
 	// check for message from process of ID
 	uint8_t std_ipc_receive_by_pid( uint8_t *data, int64_t pid );
@@ -561,7 +561,7 @@
 	void std_file( struct STD_STRUCTURE_FILE *file );
 
 	// read file content into memory
-	void std_file_read( struct STD_STRUCTURE_FILE *file, uint8_t *target, uint64_t byte );
+	void std_file_read( uint64_t socket_id, uint8_t *target, uint64_t seek, uint64_t byte );
 
 	// write content of memory into file
 	void std_file_write( struct STD_STRUCTURE_FILE *file, uint8_t *source, uint64_t byte );
@@ -596,8 +596,14 @@
 	// change main storage
 	uint8_t std_storage_select( uint8_t *name );
 
+	// returns storage id in use
+	uint64_t std_storage_id( void );
+
 	// return content of directory (in VFS structure)
-	uintptr_t std_dir( uint8_t *path );
+	uintptr_t std_dir( uint8_t *path, uint64_t limit );
+
+	// debug purposes only
+	void std_log( uint8_t *string, uint64_t length );
 
 	#ifdef	SOFTWARE
 		struct	STD_STRUCTURE_ENTRY {
@@ -611,7 +617,7 @@
 		void std_syscall_empty( void );
 
 		// initial function of every process
-		extern int64_t _main( uint64_t argc, uint8_t *argv[] );
+		extern uint64_t _main( uint64_t argc, uint8_t *argv[] );
 
 		// initialization of process environment
 		void _entry( struct STD_STRUCTURE_ENTRY entry ) {
@@ -658,16 +664,11 @@
 	// substitute of internal functions required by clang
 	//------------------------------------------------------------------------------
 
-	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) {
-		// copy source content inside target
-		for( uint64_t i = 0; i < length; i++) target[ i ] = source[ i ];
-	}
+	// copy source content inside target
+	void memcpy( uint8_t *target, uint8_t *source, uint64_t length ) { for( uint64_t i = 0; i < length; i++) target[ i ] = source[ i ]; }
 
-	void memset( uint8_t *cache, uint8_t value, uint64_t length ) {
-		// fill cache with definied value
-		for( uint64_t i = 0; i < length; i++ )
-			cache[ i ] = value;
-	}
+	// fill cache with definied value
+	void memset( uint8_t *cache, uint8_t value, uint64_t length ) { for( uint64_t i = 0; i < length; i++ ) cache[ i ] = value; }
 
 	//------------------------------------------------------------------------------
 	// substitute of libc
@@ -685,7 +686,6 @@
 	float sqrtf( float x );
 	double minf( double first, double second );
 	double maxf( double first, double second );
-	void log( const char *string, ... );
 	void print( const char *string );
 	void printf( const char *string, ... );
 	void sprintf( const char *string, ... );
@@ -698,4 +698,5 @@
 	void fwrite( FILE *file, uint8_t *cache, uint64_t byte );
 	FILE *touch( uint8_t *path, uint8_t type );
 	void sleep( uint64_t ms );
+	void log( const char *string, ... );
 #endif

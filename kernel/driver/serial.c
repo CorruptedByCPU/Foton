@@ -16,8 +16,8 @@ void driver_serial_init( void ) {
 	// enable DLAB (frequency divider)
 	driver_port_out_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_line_control_or_dlab, 0x80 );
 
-	// communication frequency: 38400
-	driver_port_out_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_data_or_divisor_low, 0x03 );
+	// communication frequency: max 115200
+	driver_port_out_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_data_or_divisor_low, 0x01 );
 	driver_port_out_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_interrupt_enable_or_divisor_high, 0x00 );
 
 	// 8 bits per sign, no parity, 1 stop bit
@@ -32,15 +32,20 @@ void driver_serial_init( void ) {
 
 void driver_serial_char( uint8_t character ) {
 	// controller is busy?
-	driver_serial_pool();
+	driver_serial_pool_out();
 
 	// send character
 	driver_port_out_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_data_or_divisor_low, character );
 }
 
-void driver_serial_pool( void ) {
+void driver_serial_pool_in( void ) {
 	// controller is busy?
-	while( !( driver_port_in_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_line_status ) & 0b00100000 ) );
+	while( !( driver_port_in_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_line_status ) & TRUE ) );
+}
+
+void driver_serial_pool_out( void ) {
+	// controller is busy?
+	while( !( driver_port_in_byte( DRIVER_SERIAL_PORT_COM1 + DRIVER_SERIAL_REGISTER_line_status ) & 0x20 ) );
 }
 
 uint8_t driver_serial_value( uint64_t value, uint8_t base, uint8_t prefix, uint8_t character ) {
@@ -78,4 +83,124 @@ uint8_t driver_serial_value( uint64_t value, uint8_t base, uint8_t prefix, uint8
 
 	// return amount of digits
 	return digits;
+}
+
+void driver_serial( uint8_t *string, ... ) {
+	#ifndef	RELEASE
+	// properties of argument list
+	va_list argv;
+
+	// start of argument list
+	va_start( argv, string );
+
+	// for every character from string
+	uint64_t limit = lib_string_length( string );
+	for( uint64_t i = 0; i < limit; i++ ) {
+		// special character?
+		if( string[ i ] != '%' ) {
+			// no, show it
+			driver_serial_char( (uint8_t) string[ i ] );
+
+			// next character
+			continue;
+		}
+
+		// prefix before type?
+		uint64_t prefix = lib_string_length_scope_digit( (uint8_t *) &string[ ++i ] );
+		uint64_t p_value = lib_string_to_integer( (uint8_t *) &string[ i ], 10 );
+
+		// omit prefix value if existed
+		i += prefix;
+
+		// check sequence type
+		switch( string[ i ] ) {
+			case '%': {
+				// just show '%' character
+				driver_serial_char( '%' );
+
+				// next character
+				break;
+			}
+
+			case 'b': {
+				// retrieve value
+				uint64_t value = va_arg( argv, uint64_t );
+
+				// show 'value' on terminal
+				driver_serial_value( value, 2, p_value, STD_ASCII_DIGIT_0 );
+
+				// next character from string
+				continue;
+			}
+
+			case 'c': {
+				// retrieve character
+				uint8_t c = va_arg( argv, uint64_t );
+				
+				// show 'character' on terminal
+				driver_serial_char( c );
+
+				// next character from string
+				continue;
+			}
+
+			case 'd': {
+				// retrieve value
+				uint64_t value = va_arg( argv, uint64_t );
+
+				// value signed?
+				if( value & 0x8000000000000000 ) {
+					// show 'character' on terminal
+					driver_serial_char( '-' );
+
+					// remove sign
+					value = ~value + 1;
+				}
+
+				// show 'value' on terminal
+				driver_serial_value( value, 10, p_value, STD_ASCII_DIGIT_0 );
+
+				// next character from string
+				continue;
+			}
+
+			case 's': {
+				// retrieve substring
+				uint8_t *substring = va_arg( argv, uint8_t * );
+				
+				// show 'substring' on terminal
+				for( uint64_t j = 0; j < lib_string_length( substring ); j++ )
+					driver_serial_char( substring[ j ] );
+
+				// next character from string
+				continue;
+			}
+
+			case 'u': {
+				// retrieve value
+				uint64_t value = va_arg( argv, uint64_t );
+
+				// show 'value' on terminal
+				driver_serial_value( value, 10, p_value, STD_ASCII_DIGIT_0 );
+
+				// next character from string
+				continue;
+			}
+
+			case 'X': {
+				// retrieve value
+				uint64_t value = va_arg( argv, uint64_t );
+
+				// show 'value' on terminal
+				driver_serial_value( value, 16, p_value, STD_ASCII_DIGIT_0 );
+
+				// next character from string
+				continue;
+			}
+		}
+	}
+
+	// end of arguemnt list
+	va_end( argv );
+	#endif
 }

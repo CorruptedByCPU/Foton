@@ -5,18 +5,19 @@
 
 clear
 
-# default CPUs amount: 2
-SMP="${1}"
-if [ -z "${SMP}" ]; then SMP="2"; fi
+# default CPU count: 1
+CORE="${1}"
+if [ -z "${CORE}" ]; then CORE="4"; fi
 
 # default Memory size: 64 MiB
 MEM="${2}"
 if [ -z "${MEM}" ]; then MEM="64"; fi
 
 qemu-system-x86_64								\
+	-display gtk,show-menubar=off						\
 	--enable-kvm								\
-	-cpu max								\
-	-smp ${SMP}								\
+	-cpu core2duo								\
+	-smp ${CORE}								\
 	-m ${MEM}								\
 	-cdrom build/foton.iso							\
 	-rtc base=localtime							\
@@ -26,10 +27,12 @@ qemu-system-x86_64								\
 	-object filter-dump,id=eth0,netdev=eth0,file=network.pcap		\
 	-device virtio-blk-pci-transitional,drive=vfs,id=vfs			\
 	-drive format=raw,file=build/storage.vfs,if=none,id=vfs			\
-	-serial stdio								\
+	-serial mon:stdio							\
+#	-usb									\
+#        -device usb-kbd,bus=usb-bus.0,port=1					\
+#        -device usb-mouse,bus=usb-bus.0,port=2					\
+
 #	-readconfig tools/qemu-ehci-uhci.cfg			\
 #	-device usb-kbd,bus=ehci.0				\
 #	-device usb-mouse,bus=ehci.0				\
 #	-device qemu-xhci					\
-#	-device usb-kbd						\
-#	-device usb-mouse					\

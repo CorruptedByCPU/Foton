@@ -19,7 +19,8 @@
 	void driver_serial_init( void );
 	void driver_serial_char( uint8_t byte );
 	void driver_serial_memory( uintptr_t address, int64_t length );
-	void driver_serial_pool( void );
+	void driver_serial_pool_in( void );
+	void driver_serial_pool_out( void );
 	void driver_serial_string( uint8_t *string, uint64_t length );
 	uint8_t driver_serial_value( uint64_t value, uint8_t base, uint8_t prefix, uint8_t character );
 #endif

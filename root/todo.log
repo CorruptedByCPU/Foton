@@ -3,21 +3,17 @@ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 -----------------------------------------------------------------------------*/
 
 started:
-- file management on external stoarges (like VirtIO-Block)
+- refactoring UI library
 
 yet to be done:
+- remove hover from element if cursor ousite of window,
+- file management on external stoarges (like VirtIO-Block)
 - UI of libinterface.so
 - element input of libinterface.so connect with libinput.so
 - unused library, remove from memory
 - audio controller SB16
-- hexedit software, show content of files in binary mode (with ASCII overview)
 - kernels internal debugger
 - libinput.so library (alike libreadline from GNU/Linux)
   replenishment
-- software: cal, cp, cut, date, df, du, echo, find, grep, halt, head, kill,
-  less/more, ln, mv, ps, reboot, rm, sleep, tail, time,
-  uname, uptime, wc
 - one instance of application code in memory (data per running task)
-- lock screen (gaussian blur), something like sway is doing
-- if you open file only for read, connect original content via paging,
-  if for write retrieve copy of it,
+- lock screen (gaussian blur), something like manjaro/sway is doing
