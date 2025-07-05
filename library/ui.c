@@ -280,7 +280,7 @@ void lib_ui_clean( struct LIB_UI_STRUCTURE *ui ) {
 	lib_ui_border( ui );
 }
 
-void lib_ui_event( struct LIB_UI_STRUCTURE *ui ) {
+uint16_t lib_ui_event( struct LIB_UI_STRUCTURE *ui ) {
 	uint8_t sync = FALSE;
 
 	struct LIB_WINDOW_STRUCTURE *new = EMPTY;
@@ -293,25 +293,27 @@ void lib_ui_event( struct LIB_UI_STRUCTURE *ui ) {
 	}
 
 	lib_ui_event_mouse( ui, (uint8_t *) &sync );
-	lib_ui_event_keyboard( ui, (uint8_t *) &sync );
+	uint16_t key = lib_ui_event_keyboard( ui, (uint8_t *) &sync );
 
 	if( (ui -> window -> flags & LIB_WINDOW_FLAG_active) != ui -> window_active ) {
 		ui -> window_active = ui -> window -> flags & TRUE;
 
-		lib_ui_border( ui );
+		lib_ui_show_name( ui );
 
 		sync = TRUE;
 	}
 
 	if( sync ) ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
+
+	return key;
 }
 
-static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
-	if( ! ui -> limit ) return;
+static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
+	if( ! ui -> limit ) return EMPTY;
 
 	uint8_t ipc_data[ STD_IPC_SIZE_byte ] = { EMPTY };
 
-	if( ! std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) return;
+	if( ! std_ipc_receive_by_type( (uint8_t *) &ipc_data, STD_IPC_TYPE_keyboard ) ) return EMPTY;
 
 	struct STD_STRUCTURE_IPC_KEYBOARD *keyboard = (struct STD_STRUCTURE_IPC_KEYBOARD *) &ipc_data;
 
@@ -373,6 +375,8 @@ static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) 
 
 		*sync = TRUE;
 	}
+
+	return keyboard -> key;
 }
 
 static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
@@ -884,8 +888,11 @@ void lib_ui_show_name( struct LIB_UI_STRUCTURE *ui ) {
 	// limit name length to header width
 	uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, ui -> window -> name_length, ui -> window -> current_width - LIB_UI_MARGIN_DEFAULT - LIB_UI_PADDING_DEFAULT - (ui -> limit_control * LIB_UI_HEADER_HEIGHT) - offset );
 
+	uint32_t color = LIB_UI_COLOR_INACTIVE;
+	if( ui -> window -> flags & LIB_WINDOW_FLAG_active ) color = LIB_UI_COLOR_DEFAULT;
+
 	// show description
-	lib_font( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, limit, LIB_UI_COLOR_DEFAULT, pixel + offset, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, limit, color, pixel + offset, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_left );
 
 	ui -> window -> header_height	= LIB_UI_HEADER_HEIGHT;
 	ui -> window -> header_width	= ui -> window -> current_width - (LIB_UI_HEADER_HEIGHT * (ui -> limit_control + TRUE));

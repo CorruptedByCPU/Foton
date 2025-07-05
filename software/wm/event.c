@@ -124,7 +124,7 @@ void wm_event( void ) {
 	}
 
 	// send event to active object process
-	if( keyboard -> key ) std_ipc_send( current -> pid, (uint8_t *) keyboard );
+	if( keyboard -> key ) std_ipc_send( wm -> active -> pid, (uint8_t *) keyboard );
 
 	//--------------------------------------------------------------
 

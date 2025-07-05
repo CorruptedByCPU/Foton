@@ -296,7 +296,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	ui -> window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_icon | LIB_WINDOW_FLAG_flush;
 
 	while( TRUE ) {
-		lib_ui_event( ui );
+		uint16_t key = lib_ui_event( ui );
+		
+		if( key == STD_ASCII_ESC ) return EMPTY;
 
 		sleep( TRUE );
 	}

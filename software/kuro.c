@@ -41,10 +41,7 @@ reload:
 		// event loop
 		while( TRUE ) {
 			// check for
-			lib_ui_event( ui );
-
-			// recieve key
-			uint16_t key = getkey();
+			uint16_t key = lib_ui_event( ui );
 
 			// exit?
 			if( key == STD_ASCII_ESC ) return EMPTY;	// yes

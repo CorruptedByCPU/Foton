@@ -76,6 +76,12 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		// check for
 		lib_ui_event( ui );
 
+		// recieve key
+		uint16_t key = getkey();
+
+		// exit?
+		if( key == STD_ASCII_ESC ) return 0;	// yes
+
 		// changed window properties?
 		if( window != ui -> window ) {
 			// update
@@ -86,12 +92,6 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 			ui -> window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_flush;
 		}
-
-		// recieve key
-		uint16_t key = getkey();
-
-		// exit?
-		if( key == STD_ASCII_ESC ) return 0;	// yes
 
 		// next angle
 		a += speed * time;

@@ -222,10 +222,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	while( TRUE ) {
 		sleep( TRUE );
 
-		lib_ui_event( ui );
-
-		// recieve key
-		uint16_t key = getkey();
+		uint16_t key = lib_ui_event( ui );
 
 		// exit?
 		if( key == STD_ASCII_ESC ) return EMPTY;	// yes

@@ -16,6 +16,7 @@
 #endif
 
 #define	LIB_UI_COLOR_DEFAULT			0xFFFFFFFF
+#define	LIB_UI_COLOR_INACTIVE			0xFFC0C0C0
 #define	LIB_UI_COLOR_INCREASE			0x00202020
 #define	LIB_UI_COLOR_INCREASE_LITTLE		0x00080808
 #define	LIB_UI_COLOR_INCREASE_LITTLE_BIT	0x00020202
@@ -257,8 +258,8 @@ uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *header, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t c, uint64_t r );
 uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint64_t height, uint8_t flag_ui, uint8_t *string );
 void lib_ui_clean( struct LIB_UI_STRUCTURE *ui );
-void lib_ui_event( struct LIB_UI_STRUCTURE *ui );
-static void lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync );
+uint16_t lib_ui_event( struct LIB_UI_STRUCTURE *ui );
+static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync );
 static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync );
 void lib_ui_flush( struct LIB_UI_STRUCTURE *ui );
 uint32_t *lib_ui_icon( uint8_t *path );

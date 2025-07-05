@@ -7,4 +7,3 @@ cp build/{kernel,root.vfs} /mnt
 umount /mnt
 losetup -d $LO
 tar cJf tools/pendrive-64MiB.raw.xz build/pendrive-64MiB.raw
-rm build/pendrive-64MiB.raw
