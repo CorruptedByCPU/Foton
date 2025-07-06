@@ -55,6 +55,9 @@ struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window ) {
 	// prepare area for element list
 	ui -> element = (struct LIB_UI_STRUCTURE_ELEMENT **) malloc( ui -> limit );
 
+	// element selected by default
+	ui -> element_active = EMPTY;
+
 	// prepare area for all ui elements
 	ui -> button = (struct LIB_UI_STRUCTURE_ELEMENT_BUTTON **) malloc( ui -> limit_button );
 	ui -> checkbox = (struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX **) malloc( ui -> limit_checkbox );
@@ -168,6 +171,7 @@ uint64_t lib_ui_add_label( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	ui -> label[ ui -> limit_label ] -> standard.y			= y;
 	ui -> label[ ui -> limit_label ] -> standard.width		= width;
 	ui -> label[ ui -> limit_label ] -> standard.height		= LIB_UI_ELEMENT_LABEL_height;
+	ui -> label[ ui -> limit_label ] -> standard.type		= LABEL;
 	ui -> label[ ui -> limit_label ] -> standard.flag		= flag_ui;
 
 	if( *name ) {
@@ -869,14 +873,20 @@ void lib_ui_show_list( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEM
 }
 
 void lib_ui_show_name( struct LIB_UI_STRUCTURE *ui ) {
+	uint64_t offset = EMPTY;
+
 	// set pointer location of element inside window
 	uint32_t *pixel = ui -> window -> pixel + (((LIB_UI_HEADER_HEIGHT - LIB_FONT_HEIGHT_pixel) >> TRUE) * ui -> window -> current_width) + LIB_UI_MARGIN_DEFAULT;
+
+	// limit name length to header width
+	uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, ui -> window -> name_length, ui -> window -> current_width - LIB_UI_MARGIN_DEFAULT - LIB_UI_PADDING_DEFAULT - (ui -> limit_control * LIB_UI_HEADER_HEIGHT) - offset );
+
+	if( ! limit ) return;
 
 	// clean area
 	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, 0, ui -> window -> current_width - LIB_UI_MARGIN_DEFAULT - LIB_UI_PADDING_DEFAULT - (ui -> limit_control * LIB_UI_HEADER_HEIGHT), LIB_FONT_HEIGHT_pixel, LIB_UI_COLOR_BACKGROUND_DEFAULT );
 
 	// icon exist?
-	uint64_t offset = EMPTY;
 	if( ui -> icon ) {
 		offset = 16 + LIB_UI_PADDING_DEFAULT;
 
@@ -885,14 +895,11 @@ void lib_ui_show_name( struct LIB_UI_STRUCTURE *ui ) {
 				pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( pixel[ (y * ui -> window -> current_width) + x ], ui -> icon[ (y * 16) + x ] );
 	}
 
-	// limit name length to header width
-	uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, ui -> window -> name_length, ui -> window -> current_width - LIB_UI_MARGIN_DEFAULT - LIB_UI_PADDING_DEFAULT - (ui -> limit_control * LIB_UI_HEADER_HEIGHT) - offset );
-
 	uint32_t color = LIB_UI_COLOR_INACTIVE;
 	if( ui -> window -> flags & LIB_WINDOW_FLAG_active ) color = LIB_UI_COLOR_DEFAULT;
 
 	// show description
-	lib_font( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, limit, color, pixel + offset, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, limit, color, pixel + ui -> window -> current_width + offset, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_left );
 
 	ui -> window -> header_height	= LIB_UI_HEADER_HEIGHT;
 	ui -> window -> header_width	= ui -> window -> current_width - (LIB_UI_HEADER_HEIGHT * (ui -> limit_control + TRUE));
@@ -1028,6 +1035,8 @@ void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 		line += line_in_characters + TRUE;
 	}
 	
+	if( content_width < textarea_width ) content_width = textarea_width;
+
 	uint64_t string_lines = lib_string_count( textarea -> string, lib_string_length( textarea -> string ), '\n' ) + 1;
 	uint64_t content_height = (LIB_FONT_HEIGHT_pixel * string_lines) + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2); if( content_height < textarea_height ) content_height = textarea_height;
 
@@ -1057,6 +1066,9 @@ void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 	for( uint64_t y = TRUE; y < y_limit - TRUE; y++ )
 		for( uint64_t x = TRUE; x < x_limit - TRUE; x++ )
 			pixel[ (y * ui -> window -> current_width) + x ] = pixel_at_offset[ (y * content_width) + x ];
+
+	// if( textarea -> standard.flag & LIB_UI_ELEMENT_FLAG_active )
+		for( uint64_t y = LIB_UI_PADDING_TEXTAREA; y < LIB_UI_PADDING_TEXTAREA + LIB_FONT_HEIGHT_pixel; y++ ) pixel[ (y * ui -> window -> current_width) + LIB_UI_PADDING_TEXTAREA ] = 0xFFFFFFFF;
 
 	// slider bottom
 	if( content_width > textarea_width ) {

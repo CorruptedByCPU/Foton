@@ -1,0 +1,75 @@
+/*===============================================================================
+ Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
+===============================================================================*/
+
+	//----------------------------------------------------------------------
+	// required libraries
+	//----------------------------------------------------------------------
+	#include	"../library/font.h"
+	#include	"../library/window.h"
+	#include	"../library/ui.h"
+	// //----------------------------------------------------------------------
+	// // static, structures, definitions
+	// //----------------------------------------------------------------------
+	// #include	"./kuro/config.h"
+	// #include	"./kuro/dir.h"
+	// #include	"./kuro/icon.h"
+	// //----------------------------------------------------------------------
+	// // variables
+	// //----------------------------------------------------------------------
+	// #include	"./kuro/data.c"
+	// //----------------------------------------------------------------------
+	// // routines, procedures
+	// //----------------------------------------------------------------------
+	// #include	"./kuro/dir.c"
+	// #include	"./kuro/icon.c"
+	// #include	"./kuro/init.c"
+	// //----------------------------------------------------------------------
+
+
+
+#define	WINDOW_WIDTH	LIB_UI_MARGIN_DEFAULT + 256 + LIB_UI_PADDING_DEFAULT + 25 + LIB_UI_PADDING_DEFAULT + 108 + LIB_UI_MARGIN_DEFAULT
+#define	WINDOW_HEIGHT	297
+
+#define	TEXTAREA_WIDTH	WINDOW_WIDTH - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2)
+#define	TEXTAREA_HEIGHT	WINDOW_HEIGHT - LIB_UI_HEADER_HEIGHT - LIB_UI_MARGIN_DEFAULT
+
+struct LIB_WINDOW_STRUCTURE *window;
+struct LIB_UI_STRUCTURE *ui;
+
+uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
+	window = lib_window( 606, 289, WINDOW_WIDTH, WINDOW_HEIGHT );
+
+	ui = lib_ui( window );
+
+	ui -> icon = lib_image_scale( lib_ui_icon( (uint8_t *) "/var/share/media/icon/default/app/accessories-text-editor.tga" ), 48, 48, 16, 16 );
+
+	// add icon to window properties
+	for( uint64_t i = 0; i < 16 * 16; i++ ) window -> icon[ i ] = ui -> icon[ i ];
+
+	lib_ui_clean( ui );
+
+	lib_window_name( ui -> window, (uint8_t *) "Moko - Text Editor" );
+
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_close );
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_max );
+	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_min );
+
+	uint8_t *document = (uint8_t *) malloc( TRUE );
+	lib_ui_add_textarea( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, WINDOW_WIDTH - (LIB_UI_MARGIN_DEFAULT << STD_SHIFT_2), WINDOW_HEIGHT - LIB_UI_HEADER_HEIGHT - LIB_UI_MARGIN_DEFAULT, EMPTY, document );
+
+	lib_ui_flush( ui );
+
+	window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_icon | LIB_WINDOW_FLAG_flush;
+
+	while( TRUE ) {
+		sleep( TRUE );
+
+		uint16_t key = lib_ui_event( ui );
+
+		// exit?
+		if( key == STD_ASCII_ESC ) break;	// yes
+	}
+
+	return EMPTY;
+}
