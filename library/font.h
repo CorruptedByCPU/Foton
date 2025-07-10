@@ -42,6 +42,8 @@
 	// main function of printing strings
 	uint64_t lib_font( uint8_t font, uint8_t *string, uint64_t length, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t flag );
 
+	uint8_t lib_font_length_char( uint8_t font, uint8_t character );
+
 	// convert value to string and print it
 	uint64_t lib_font_value( uint8_t font, uint64_t value, uint8_t base, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t flag );
 

@@ -74,7 +74,7 @@ uint64_t lib_string_length_line( uint8_t *string ) {
 	return length;
 }
 
-uint64_t lib_string_length_line_previous( uint8_t *string, uint64_t length ) {
+uint64_t lib_string_length_line_backward( uint8_t *string, uint64_t length ) {
 	// length of string
 	uint64_t n = 0;
 

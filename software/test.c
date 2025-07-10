@@ -255,7 +255,7 @@ void create_ui( void ) {
 
 	// column 0
 	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_PADDING_DEFAULT;
-	lib_ui_add_textarea( ui, x0, y1, -1, -1, EMPTY, (uint8_t *) &textarea );
+	lib_ui_add_textarea( ui, x0, y1, -1, -1, LIB_UI_ELEMENT_FLAG_disabled, (uint8_t *) &textarea, LIB_FONT_FAMILY_ROBOTO );
 
 	lib_window_name( ui -> window, (uint8_t *) "GUI Debug Window" );
 

@@ -227,11 +227,22 @@ struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA {
 	struct LIB_UI_STRUCTURE_ELEMENT	standard;
 
 	uint8_t				*string;
+	uint64_t			length;
 
 	uint32_t			*pixel;
 
+	uint8_t				font;
+
+	uint64_t			width_current;
+	uint64_t			height_current;
+
 	uint64_t			offset_x;
 	uint64_t			offset_y;
+
+	uint64_t			pointer;	// location of cursor inside string
+
+	uint64_t			cursor_x;
+	uint64_t			cursor_y;
 
 	uint64_t			slider_x;
 	uint64_t			slider_y;
@@ -256,7 +267,7 @@ uint64_t lib_ui_add_label( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 uint64_t lib_ui_add_list( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *entry, uint64_t limit );
 uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint8_t group, uint8_t flag_ui );
 uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *header, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t c, uint64_t r );
-uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint64_t height, uint8_t flag_ui, uint8_t *string );
+uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint64_t height, uint8_t flag_ui, uint8_t *string, uint8_t font );
 void lib_ui_clean( struct LIB_UI_STRUCTURE *ui );
 uint16_t lib_ui_event( struct LIB_UI_STRUCTURE *ui );
 static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *sync );

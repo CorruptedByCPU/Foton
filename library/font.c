@@ -48,7 +48,7 @@ static uint64_t lib_font_offset( uint8_t font, uint8_t character ) {
 }
 
 // return character width in pixels
-static uint8_t lib_font_length_char( uint8_t font, uint8_t character ) {
+uint8_t lib_font_length_char( uint8_t font, uint8_t character ) {
 	// if font style is not monospace
 	if( font == LIB_FONT_FAMILY_ROBOTO ) return lib_font_family_roboto_kerning[ character ];
 
