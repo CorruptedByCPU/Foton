@@ -26,10 +26,10 @@
 	// #include	"./kuro/init.c"
 	// //----------------------------------------------------------------------
 
-// #define	WINDOW_WIDTH	LIB_UI_MARGIN_DEFAULT + 256 + LIB_UI_PADDING_DEFAULT + 25 + LIB_UI_PADDING_DEFAULT + 108 + LIB_UI_MARGIN_DEFAULT
-// #define	WINDOW_HEIGHT	256
-#define	WINDOW_WIDTH	131
-#define	WINDOW_HEIGHT	128
+#define	WINDOW_WIDTH	LIB_UI_MARGIN_DEFAULT + 256 + LIB_UI_PADDING_DEFAULT + 25 + LIB_UI_PADDING_DEFAULT + 108 + LIB_UI_MARGIN_DEFAULT
+#define	WINDOW_HEIGHT	256
+// #define	WINDOW_WIDTH	131
+// #define	WINDOW_HEIGHT	72
 
 #define	TEXTAREA_WIDTH	-1
 #define	TEXTAREA_HEIGHT	-1
@@ -38,8 +38,8 @@ struct LIB_WINDOW_STRUCTURE *window;
 struct LIB_UI_STRUCTURE *ui;
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	// window = lib_window( 606, 289, WINDOW_WIDTH, WINDOW_HEIGHT );
-	window = lib_window( -1, -1, WINDOW_WIDTH, WINDOW_HEIGHT );
+	window = lib_window( 606, 289, WINDOW_WIDTH, WINDOW_HEIGHT );
+	// window = lib_window( -1, -1, WINDOW_WIDTH, WINDOW_HEIGHT );
 
 	ui = lib_ui( window );
 

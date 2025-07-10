@@ -433,35 +433,54 @@ static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *syn
 
 					if( textarea -> string[ textarea -> pointer ] == STD_ASCII_NEW_LINE ) {
 						uint64_t x = lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer ], textarea -> pointer );
-						textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer - x ], x );
+						textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer - x ], x ) + LIB_UI_PADDING_TEXTAREA;
 						textarea -> cursor_y -= LIB_FONT_HEIGHT_pixel;
 					} else {
 						uint64_t character = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer ] - 0x20 );
 						textarea -> cursor_x -= character;
-
-						// if( textarea -> cursor_x < textarea -> offset_x ) textarea -> offset_x -= character;
 					}
 				}
 
 				break;
 			}
 
-			// if( keyboard -> key == STD_KEY_ARROW_RIGHT ) {
-			// 	if( textarea -> pointer < textarea -> length ) {
-			// 		textarea -> pointer++;
+			case STD_KEY_ARROW_RIGHT: {
+				if( textarea -> pointer < textarea -> length ) {
+					textarea -> pointer++;
 
-			// 		if( textarea -> string[ textarea -> pointer - 1 ] == STD_ASCII_NEW_LINE ) {
-			// 			uint64_t x = lib_string_length_line( (uint8_t *) &textarea -> string[ textarea -> pointer ] );
-			// 			textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer - x ], x );
-			// 			textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
-			// 		} else {
-			// 			uint64_t character = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer - 1 ] - 0x20 );
-			// 			textarea -> cursor_x += character;
+					if( textarea -> string[ textarea -> pointer - 1 ] == STD_ASCII_NEW_LINE ) {
+						uint64_t x = lib_string_length_line( (uint8_t *) &textarea -> string[ textarea -> pointer ] );
+						textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer - x ], x ) + LIB_UI_PADDING_TEXTAREA;
+						textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
+					} else {
+						uint64_t character = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer - 1 ] - 0x20 );
+						textarea -> cursor_x += character;
 
-			// 			if( textarea -> cursor_x - textarea -> offset_x >= textarea -> width_current ) textarea -> offset_x = textarea -> cursor_x - textarea -> width_current;
-			// 		}
-			// 	}
-			// }
+						if( textarea -> cursor_x - textarea -> offset_x >= textarea -> width_current ) textarea -> offset_x = textarea -> cursor_x - textarea -> width_current;
+					}
+				}
+
+				break;
+			}
+
+			case STD_KEY_HOME: {
+				if( textarea -> pointer ) {
+					textarea -> pointer -= lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer ], textarea -> pointer );
+					textarea -> cursor_x = LIB_UI_PADDING_TEXTAREA;
+				}
+
+				break;
+			}
+
+			case STD_KEY_END: {
+				if( textarea -> pointer < textarea -> length ) {
+					uint64_t c = lib_string_length_line( (uint8_t *) &textarea -> string[ textarea -> pointer ] );
+					textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer ], c ) + LIB_UI_PADDING_TEXTAREA;
+					textarea -> pointer += c;
+				}
+
+				break;
+			}
 
 			default: {
 				if( keyboard -> key >= STD_ASCII_SPACE && keyboard -> key <= STD_ASCII_TILDE ) {
@@ -1219,22 +1238,16 @@ void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 	// offset
 	//---------------------------------------------------------------------
 
-		// todo:
-		// zapamietaj pozycje starą offset x/y gdy trzymasz slider i przywróć gdy nacisniesz jakikolwiek klawisz
+	// todo:
+	// zapamietaj pozycje starą offset x/y gdy trzymasz slider i przywróć gdy nacisniesz jakikolwiek klawisz
 
 	// offset of X axis
 	if( textarea -> cursor_x > textarea -> offset_x && (textarea -> cursor_x - textarea -> offset_x >= textarea -> width_current - LIB_UI_PADDING_TEXTAREA) ) textarea -> offset_x = (textarea -> cursor_x - textarea -> width_current) + LIB_UI_PADDING_TEXTAREA;
 	if( textarea -> cursor_x - LIB_UI_PADDING_TEXTAREA < textarea -> offset_x ) textarea -> offset_x = textarea -> cursor_x - LIB_UI_PADDING_TEXTAREA;
 
-	// local temporary (fot simplicity)
-	uint64_t cy = (textarea -> cursor_y / LIB_FONT_HEIGHT_pixel);
-	uint64_t th = (textarea -> height_current / LIB_FONT_HEIGHT_pixel);
-	uint64_t oy = (textarea -> offset_y / LIB_FONT_HEIGHT_pixel);
-
 	// offset of Y axis
-	if( cy >= th ) { oy = cy - (th - TRUE); }
-	if( cy < th ) oy = EMPTY;
-	textarea -> offset_y = oy * LIB_FONT_HEIGHT_pixel;
+	if( textarea -> cursor_y > textarea -> offset_y && ((textarea -> cursor_y + LIB_FONT_HEIGHT_pixel) - textarea -> offset_y >= textarea -> height_current - LIB_UI_PADDING_TEXTAREA) ) textarea -> offset_y = ((textarea -> cursor_y + LIB_FONT_HEIGHT_pixel) - textarea -> height_current) + LIB_UI_PADDING_TEXTAREA;
+	if( textarea -> cursor_y < textarea -> offset_y ) textarea -> offset_y = textarea -> cursor_y - LIB_UI_PADDING_TEXTAREA;
 
 	//---------------------------------------------------------------------
 	// sync
@@ -1248,7 +1261,7 @@ void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 	uint32_t *plane_offset = (uint32_t *) textarea -> plane + (textarea -> offset_y * plane_width) + textarea -> offset_x;
 
 	// copy
-	for( uint64_t y = 0; y < limit_y; y++ ) for( uint64_t x = 0; x < limit_x && textarea -> offset_x + x < plane_width; x++ ) element[ (y * ui -> window -> current_width) + x ] = plane_offset[ (y * plane_width) + x ];
+	for( uint64_t y = 0; y < limit_y && textarea -> offset_y + y < plane_height; y++ ) for( uint64_t x = 0; x < limit_x && textarea -> offset_x + x < plane_width; x++ ) element[ (y * ui -> window -> current_width) + x ] = plane_offset[ (y * plane_width) + x ];
 
 	//---------------------------------------------------------------------
 	// sliders
