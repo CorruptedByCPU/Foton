@@ -229,20 +229,23 @@ struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA {
 	uint8_t				*string;
 	uint64_t			length;
 
-	uint32_t			*pixel;
+	uint32_t			*plane;
 
 	uint8_t				font;
 
 	uint64_t			width_current;
 	uint64_t			height_current;
 
-	uint64_t			offset_x;
-	uint64_t			offset_y;
+	int64_t				offset_x;
+	int64_t				offset_y;
+	// uint64_t			offset_line;
 
-	uint64_t			pointer;	// location of cursor inside string
+	// all relative
+	uint64_t			pointer;	// cursor location inside string
+	// uint64_t			pointer_line;	// begining location of current line
 
-	uint64_t			cursor_x;
-	uint64_t			cursor_y;
+	volatile int64_t				cursor_x;
+	volatile int64_t				cursor_y;
 
 	uint64_t			slider_x;
 	uint64_t			slider_y;

@@ -265,8 +265,8 @@ uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t 
 
 	ui -> textarea[ ui -> limit_textarea ] -> font			= font;
 
-	ui -> textarea[ ui -> limit_textarea ] -> cursor_x		= EMPTY;
-	ui -> textarea[ ui -> limit_textarea ] -> cursor_y		= EMPTY;
+	ui -> textarea[ ui -> limit_textarea ] -> cursor_x		= LIB_UI_PADDING_TEXTAREA;
+	ui -> textarea[ ui -> limit_textarea ] -> cursor_y		= LIB_UI_PADDING_TEXTAREA;
 
 	lib_ui_list_insert( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> textarea[ ui -> limit_textarea ] );
 
@@ -397,75 +397,86 @@ static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *syn
 		if( keyboard -> key == STD_ASCII_RETURN || ! (keyboard -> key < STD_ASCII_SPACE || keyboard -> key > STD_ASCII_TILDE) )
 			textarea -> string = (uint8_t *) realloc( textarea -> string, textarea -> length + TRUE );
 
-		if( keyboard -> key == STD_ASCII_BACKSPACE ) {
-			if( textarea -> pointer ) {
-				textarea -> pointer--;
+		switch( keyboard -> key ) {
+			case STD_KEY_BACKSPACE: {
+				if( textarea -> pointer ) {
+					textarea -> pointer--;
 
-				if( textarea -> string[ textarea -> pointer ] == STD_ASCII_NEW_LINE ) {
-					uint64_t x = lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer ], textarea -> pointer );
-					textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer - x ], x );
-					textarea -> cursor_y -= LIB_FONT_HEIGHT_pixel;
-				} else
-					textarea -> cursor_x -= lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer ] - 0x20 );
+					if( textarea -> string[ textarea -> pointer ] == STD_ASCII_NEW_LINE ) {
+						uint64_t x = lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer ], textarea -> pointer );
+						textarea -> cursor_x = LIB_UI_PADDING_TEXTAREA + lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer - x ], x );
+						textarea -> cursor_y -= LIB_FONT_HEIGHT_pixel;
+					}
+						textarea -> cursor_x -= lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer ] - 0x20 );
 
-				for( uint64_t i = textarea -> pointer; i < textarea -> length; i++ ) textarea -> string[ i ] = textarea -> string[ i + 1 ];
+					for( uint64_t i = textarea -> pointer; i < textarea -> length; i++ ) textarea -> string[ i ] = textarea -> string[ i + 1 ]; textarea -> string[ --textarea -> length ] = STD_ASCII_TERMINATOR;
+				}
 
-				textarea -> length--;
+				break;
+			}
+
+			case STD_KEY_ENTER: {
+				if( textarea -> pointer < textarea -> length ) for( uint64_t i = textarea -> length; i > textarea -> pointer; i-- ) textarea -> string[ i ] = textarea -> string[ i - 1 ];
+				textarea -> string[ textarea -> pointer++ ] = STD_ASCII_NEW_LINE;
+
+				textarea -> cursor_x = LIB_UI_PADDING_TEXTAREA;
+				textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
+
+				textarea -> length++;
+
+				break;
+			}
+
+			case STD_KEY_ARROW_LEFT: {
+				if( textarea -> pointer ) {
+					textarea -> pointer--;
+
+					if( textarea -> string[ textarea -> pointer ] == STD_ASCII_NEW_LINE ) {
+						uint64_t x = lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer ], textarea -> pointer );
+						textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer - x ], x );
+						textarea -> cursor_y -= LIB_FONT_HEIGHT_pixel;
+					} else {
+						uint64_t character = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer ] - 0x20 );
+						textarea -> cursor_x -= character;
+
+						// if( textarea -> cursor_x < textarea -> offset_x ) textarea -> offset_x -= character;
+					}
+				}
+
+				break;
+			}
+
+			// if( keyboard -> key == STD_KEY_ARROW_RIGHT ) {
+			// 	if( textarea -> pointer < textarea -> length ) {
+			// 		textarea -> pointer++;
+
+			// 		if( textarea -> string[ textarea -> pointer - 1 ] == STD_ASCII_NEW_LINE ) {
+			// 			uint64_t x = lib_string_length_line( (uint8_t *) &textarea -> string[ textarea -> pointer ] );
+			// 			textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer - x ], x );
+			// 			textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
+			// 		} else {
+			// 			uint64_t character = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer - 1 ] - 0x20 );
+			// 			textarea -> cursor_x += character;
+
+			// 			if( textarea -> cursor_x - textarea -> offset_x >= textarea -> width_current ) textarea -> offset_x = textarea -> cursor_x - textarea -> width_current;
+			// 		}
+			// 	}
+			// }
+
+			default: {
+				if( keyboard -> key >= STD_ASCII_SPACE && keyboard -> key <= STD_ASCII_TILDE ) {
+					if( textarea -> pointer < textarea -> length ) for( uint64_t i = textarea -> length; i > textarea -> pointer; i-- ) textarea -> string[ i ] = textarea -> string[ i - 1 ];
+					textarea -> string[ textarea -> pointer++ ] = keyboard -> key;
+
+					uint64_t character = lib_font_length_char( textarea -> font, keyboard -> key - 0x20 );
+					textarea -> cursor_x += character;
+
+					// if( textarea -> cursor_x - textarea -> offset_x >= textarea -> width_current ) textarea -> offset_x = textarea -> cursor_x - (textarea -> width_current - TRUE);
+
+					textarea -> length++;
+				}
 			}
 		}
-
-		if( keyboard -> key == STD_ASCII_RETURN ) {
-			if( textarea -> pointer < textarea -> length ) for( uint64_t i = textarea -> length; i > textarea -> pointer; i-- ) textarea -> string[ i ] = textarea -> string[ i - 1 ];
-			textarea -> string[ textarea -> pointer++ ] = STD_ASCII_NEW_LINE;
-
-			textarea -> cursor_x = EMPTY;
-			textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
-
-			textarea -> length++;
-		}
-
-		if( keyboard -> key >= STD_ASCII_SPACE && keyboard -> key <= STD_ASCII_TILDE ) {
-			if( textarea -> pointer < textarea -> length ) for( uint64_t i = textarea -> length; i > textarea -> pointer; i-- ) textarea -> string[ i ] = textarea -> string[ i - 1 ];
-			textarea -> string[ textarea -> pointer++ ] = keyboard -> key;
-
-			textarea -> cursor_x += lib_font_length_char( textarea -> font, keyboard -> key - 0x20 );
-
-			textarea -> length++;
-		}
-
-		// if( keyboard -> key == STD_KEY_ARROW_LEFT ) {
-		// 	if( textarea -> pointer ) {
-		// 		textarea -> pointer--;
-
-		// 		if( textarea -> string[ textarea -> pointer ] == STD_ASCII_NEW_LINE ) {
-		// 			uint64_t x = lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer ], textarea -> pointer );
-		// 			textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer - x ], x );
-		// 			textarea -> cursor_y -= LIB_FONT_HEIGHT_pixel;
-		// 		} else {
-		// 			uint64_t character = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer ] - 0x20 );
-		// 			textarea -> cursor_x -= character;
-
-		// 			if( textarea -> cursor_x < textarea -> offset_x ) textarea -> offset_x -= character;
-		// 		}
-		// 	}
-		// }
-
-		// if( keyboard -> key == STD_KEY_ARROW_RIGHT ) {
-		// 	if( textarea -> pointer < textarea -> length ) {
-		// 		textarea -> pointer++;
-
-		// 		if( textarea -> string[ textarea -> pointer - 1 ] == STD_ASCII_NEW_LINE ) {
-		// 			uint64_t x = lib_string_length_line( (uint8_t *) &textarea -> string[ textarea -> pointer ] );
-		// 			textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer - x ], x );
-		// 			textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
-		// 		} else {
-		// 			uint64_t character = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer - 1 ] - 0x20 );
-		// 			textarea -> cursor_x += character;
-
-		// 			if( textarea -> cursor_x - textarea -> offset_x >= textarea -> width_current ) textarea -> offset_x = textarea -> cursor_x - textarea -> width_current;
-		// 		}
-		// 	}
-		// }
 
 		// ignore key release
 		if( ! (keyboard -> key & STD_KEY_RELEASE) ) {
@@ -1104,123 +1115,176 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 }
 
 void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA *textarea ) {
-	// in progress
+	// calculate current dimension of element
+	textarea -> width_current	= textarea -> standard.width; if( textarea -> standard.width == (uint16_t) STD_MAX_unsigned ) textarea -> width_current = ui -> window -> current_width - textarea -> standard.x - LIB_UI_MARGIN_DEFAULT;
+	textarea -> height_current	= textarea -> standard.height; if( textarea -> standard.height == (uint16_t) STD_MAX_unsigned ) textarea -> height_current = ui -> window -> current_height - textarea -> standard.y - LIB_UI_MARGIN_DEFAULT;
+
+	// by default, element is enabled
+	uint32_t color_background = STD_COLOR_WHITE;
+	uint32_t color_foreground = LIB_UI_COLOR_BACKGROUND_TEXTAREA;
+
+	// or set it as disbaled?
+	if( textarea -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) {
+		color_background = STD_COLOR_GRAY_LIGHT;
+		color_foreground = LIB_UI_COLOR_BACKGROUND_TEXTAREA + LIB_UI_COLOR_INCREASE_LITTLE;
+	}
 
 	// set pointer location of element inside window
-	uint32_t *pixel = ui -> window -> pixel + (textarea -> standard.y * ui -> window -> current_width) + textarea -> standard.x;
+	uint32_t *element = ui -> window -> pixel + (textarea -> standard.y * ui -> window -> current_width) + textarea -> standard.x;
 
-	textarea -> width_current = textarea -> standard.width; if( textarea -> standard.width == (uint16_t) STD_MAX_unsigned ) textarea -> width_current = ui -> window -> current_width - textarea -> standard.x - LIB_UI_MARGIN_DEFAULT;
-	textarea -> height_current = textarea -> standard.height; if( textarea -> standard.height == (uint16_t) STD_MAX_unsigned ) textarea -> height_current = ui -> window -> current_height - textarea -> standard.y - LIB_UI_MARGIN_DEFAULT;
+	// set default background color
+	lib_ui_fill_rectangle( element, ui -> window -> current_width, EMPTY, textarea -> width_current, textarea -> height_current, color_foreground );
 
-	uint32_t color = STD_COLOR_WHITE;
-	uint32_t foreground = LIB_UI_COLOR_BACKGROUND_TEXTAREA;
-	if( textarea -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) {
-		color = STD_COLOR_GRAY_LIGHT;
-		foreground = LIB_UI_COLOR_BACKGROUND_TEXTAREA + LIB_UI_COLOR_INCREASE_LITTLE;
+	// show border around element (it's not part of element itself)
+	for( int64_t y = -TRUE; y <= textarea -> height_current; y++ ) for( int64_t x = -TRUE; x <= textarea -> width_current; x++ ) { if( x == -TRUE || y == -TRUE ) element[ (y * ui -> window -> current_width) + x ] = color_foreground - LIB_UI_COLOR_INCREASE_LITTLE; if( x == textarea -> width_current || y == textarea -> height_current ) element[ (y * ui -> window -> current_width) + x ] = color_foreground + LIB_UI_COLOR_INCREASE_LITTLE; }
+
+	//---------------------------------------------------------------------
+
+	// by default, plane will have same width as element
+	uint64_t plane_width = textarea -> width_current;
+
+	// counted number of lines
+	uint64_t lines = TRUE;
+
+	// local variable
+	uint8_t *string = textarea -> string;
+
+	// find longest line inside string
+	for( uint64_t i = 0; i < textarea -> length; i++ ) {
+		// count current line characters
+		uint64_t c = lib_string_length_line( (uint8_t *) &string[ i ] );
+
+		// convert to pixels (in point of used font)
+		uint64_t p = lib_font_length_string( textarea -> font, (uint8_t *) &string[ i ], c );
+
+		// expand plane horizontaly?
+		if( plane_width < p ) plane_width = p;	// yes
+
+		// count the line
+		lines++;
+
+		// next line
+		i += c;
 	}
 
-	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, EMPTY, textarea -> width_current, textarea -> height_current, foreground );
+	// expand plane width by padding and element
+	plane_width += LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2;
 
-	for( int64_t y = -TRUE; y <= textarea -> height_current; y++ )
-		for( int64_t x = -TRUE; x <= textarea -> width_current; x++ ) {
-			if( x == -1 || y == -1 ) pixel[ (y * ui -> window -> current_width) + x ] = foreground - LIB_UI_COLOR_INCREASE_LITTLE;
-			if( x == textarea -> width_current || y == textarea -> height_current ) pixel[ (y * ui -> window -> current_width) + x ] = foreground + LIB_UI_COLOR_INCREASE_LITTLE;
-		}
+	// height of plane calculated from amount of lines
+	uint64_t plane_height = (lines * LIB_FONT_HEIGHT_pixel) + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2);
 
-	uint64_t content_width = EMPTY;
+	// plane height less than element height?
+	if( plane_height < textarea -> height_current ) plane_height = textarea -> height_current;
 
-	uint8_t *line = textarea -> string; while( *line ) {
-		uint64_t line_in_characters = lib_string_length_line( line );
-		uint64_t line_in_pixels = lib_font_length_string( textarea -> font, line, line_in_characters );
-		if( content_width < line_in_pixels ) content_width = line_in_pixels;
+	//---------------------------------------------------------------------
 
-		line += line_in_characters + TRUE;
-	}
-	
-	content_width += (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2);
-	if( content_width < textarea -> width_current ) content_width = textarea -> width_current;
+	// acquire plane area
+	if( textarea -> plane ) free( textarea -> plane );
+	textarea -> plane = (uint32_t *) malloc( (plane_width * plane_height) << STD_VIDEO_DEPTH_shift );
 
-	uint64_t string_lines = lib_string_count( textarea -> string, lib_string_length( textarea -> string ), '\n' ) + 1;
-	uint64_t content_height = (LIB_FONT_HEIGHT_pixel * string_lines); if( content_height < textarea -> height_current ) content_height = textarea -> height_current;
-	content_height += LIB_FONT_HEIGHT_pixel;
+	// local value
+	uint32_t *plane = textarea -> plane;
 
-	if( textarea -> pixel ) free( textarea -> pixel );
-	textarea -> pixel = (uint32_t *) malloc( (content_width * content_height) << STD_VIDEO_DEPTH_shift );
+	// set default background color
+	lib_ui_fill_rectangle( plane, plane_width, EMPTY, plane_width, plane_height, color_foreground );
 
-	lib_ui_fill_rectangle( textarea -> pixel, content_width, EMPTY, content_width, content_height, foreground );
+	// apply padding
+	plane += (LIB_UI_PADDING_TEXTAREA * plane_width) + LIB_UI_PADDING_TEXTAREA;
 
-	uint32_t *pixel_paragraph = (uint32_t *) textarea -> pixel;
+	// print string inside plane
+	for( uint64_t i = 0; i < textarea -> length; i++ ) {
+		// current line length
+		uint64_t c = lib_string_length_line( (uint8_t *) &string[ i ] );
 
-	uint8_t *paragraph = textarea -> string; while( *paragraph != STD_ASCII_TERMINATOR ) {
-		uint64_t line_in_characters = lib_string_length_line( paragraph );
-		if( line_in_characters ) lib_font( textarea -> font, paragraph, line_in_characters, color, pixel_paragraph, content_width, LIB_FONT_FLAG_ALIGN_left );
+		// if empty, ignore
+		if( c ) lib_font( textarea -> font, (uint8_t *) &string[ i ], c, color_background, plane, plane_width, EMPTY );
 
-		pixel_paragraph += (LIB_FONT_HEIGHT_pixel * content_width );
+		// next line inside plane
+		plane += LIB_FONT_HEIGHT_pixel * plane_width;
 
-		paragraph += line_in_characters;
-		if( *paragraph == STD_ASCII_NEW_LINE ) paragraph++;
+		// next line
+		i += c;
 	}
 
-	if( ! (textarea -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled) ) {
-		// if( textarea -> standard.flag & LIB_UI_ELEMENT_FLAG_active )
-		for( uint64_t y = textarea -> cursor_y; y < textarea -> cursor_y + LIB_FONT_HEIGHT_pixel; y++ )
-			textarea -> pixel[ (y * content_width) + textarea -> cursor_x ] = 0xFFFFFFFF;
+	//---------------------------------------------------------------------
+	// cursor
+	//---------------------------------------------------------------------
 
-		if( textarea -> cursor_x >= textarea -> width_current ) textarea -> offset_x = textarea -> cursor_x - (textarea -> width_current - TRUE);
-		if( textarea -> cursor_x < textarea -> width_current ) textarea -> offset_x = EMPTY;
+	// element enabled?
+	if( ! (textarea -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled) )
+		// show cursor at position
+		for( uint64_t y = textarea -> cursor_y; y < textarea -> cursor_y + LIB_FONT_HEIGHT_pixel; y++ ) textarea -> plane[ (y * plane_width) + textarea -> cursor_x ] = ~textarea -> plane[ (y * plane_width) + textarea -> cursor_x ] | STD_COLOR_mask;
 
-		uint64_t cy = textarea -> cursor_y / LIB_FONT_HEIGHT_pixel;
-		uint64_t th = textarea -> height_current / LIB_FONT_HEIGHT_pixel;
-		uint64_t oy = textarea -> offset_y / LIB_FONT_HEIGHT_pixel;
+	//---------------------------------------------------------------------
+	// offset
+	//---------------------------------------------------------------------
 
-		if( cy >= th ) { oy = cy - (th - 1); }
-		if( cy < th ) oy = EMPTY;
+		// todo:
+		// zapamietaj pozycje starą offset x/y gdy trzymasz slider i przywróć gdy nacisniesz jakikolwiek klawisz
 
-		textarea -> offset_y = oy * LIB_FONT_HEIGHT_pixel;
-	}
+	// offset of X axis
+	if( textarea -> cursor_x > textarea -> offset_x && (textarea -> cursor_x - textarea -> offset_x >= textarea -> width_current - LIB_UI_PADDING_TEXTAREA) ) textarea -> offset_x = (textarea -> cursor_x - textarea -> width_current) + LIB_UI_PADDING_TEXTAREA;
+	if( textarea -> cursor_x - LIB_UI_PADDING_TEXTAREA < textarea -> offset_x ) textarea -> offset_x = textarea -> cursor_x - LIB_UI_PADDING_TEXTAREA;
 
-	uint64_t x_limit = textarea -> width_current;
-	uint64_t y_limit = textarea -> height_current;
-	if( content_width < textarea -> width_current ) x_limit = content_width;
-	if( content_height < textarea -> height_current ) y_limit = content_height;
+	// local temporary (fot simplicity)
+	uint64_t cy = (textarea -> cursor_y / LIB_FONT_HEIGHT_pixel);
+	uint64_t th = (textarea -> height_current / LIB_FONT_HEIGHT_pixel);
+	uint64_t oy = (textarea -> offset_y / LIB_FONT_HEIGHT_pixel);
 
-	// content
-	uint32_t *pixel_at_offset = (uint32_t *) textarea -> pixel + (textarea -> offset_y * content_width) + textarea -> offset_x;
-	for( uint64_t y = 0; y < y_limit; y++ )
-		for( uint64_t x = 0; x < x_limit; x++ )
-			pixel[ (y * ui -> window -> current_width) + x ] = pixel_at_offset[ (y * content_width) + x ];
+	// offset of Y axis
+	if( cy >= th ) { oy = cy - (th - TRUE); }
+	if( cy < th ) oy = EMPTY;
+	textarea -> offset_y = oy * LIB_FONT_HEIGHT_pixel;
 
-	// slider bottom
-	if( content_width > textarea -> width_current ) {
-		double percent = (textarea -> width_current / (double) content_width);
-		textarea -> slider_width = textarea -> width_current * percent;
+	//---------------------------------------------------------------------
+	// sync
+	//---------------------------------------------------------------------
 
-		if( textarea -> slider_x + textarea -> slider_width > textarea -> width_current ) textarea -> slider_x -= (textarea -> slider_x + textarea -> slider_width) - textarea -> width_current;
+	// copy only part of plane to element based on element dimension
+	uint64_t limit_x = textarea -> width_current;
+	uint64_t limit_y = textarea -> height_current;
 
-		for( uint64_t y = textarea -> height_current - LIB_UI_SLIDER_SIZE; y < textarea -> height_current; y++ ) {
-			for( uint64_t x = textarea -> slider_x; x < (textarea -> slider_x + textarea -> slider_width); x++ ) {
-				uint32_t target = pixel_at_offset[ (y * content_width) + x ];
-				pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( target, LUB_UI_COLOR_BACKGROUND_SLIDER );
-			}
-		}
-	}
+	// and offsets
+	uint32_t *plane_offset = (uint32_t *) textarea -> plane + (textarea -> offset_y * plane_width) + textarea -> offset_x;
 
-	// slider right
-	if( content_height - LIB_FONT_HEIGHT_pixel > textarea -> height_current ) {
-		double percent = (textarea -> height_current / (double) content_height);
+	// copy
+	for( uint64_t y = 0; y < limit_y; y++ ) for( uint64_t x = 0; x < limit_x && textarea -> offset_x + x < plane_width; x++ ) element[ (y * ui -> window -> current_width) + x ] = plane_offset[ (y * plane_width) + x ];
 
-		textarea -> slider_height = textarea -> height_current * percent;
-		if( textarea -> slider_height < LIB_UI_SLIDER_SIZE ) textarea -> slider_height = LIB_UI_SLIDER_SIZE;
+	//---------------------------------------------------------------------
+	// sliders
+	//---------------------------------------------------------------------
 
-		if( textarea -> slider_y + textarea -> slider_height > textarea -> height_current ) textarea -> slider_y -= (textarea -> slider_y + textarea -> slider_height) - textarea -> height_current;
+	// // slider bottom
+	// // if( plane_width > textarea -> width_current ) {
+	// // 	double percent = (textarea -> width_current / (double) plane_width);
+	// // 	textarea -> slider_width = textarea -> width_current * percent;
 
-		for( uint64_t y = textarea -> slider_y; y < textarea -> slider_y + textarea -> slider_height; y++ ) {
-			for( uint64_t x = textarea -> width_current - LIB_UI_SLIDER_SIZE; x < textarea -> width_current; x++ ) {
-				uint32_t target = pixel_at_offset[ (y * content_width) + x ];
-				pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( target, LUB_UI_COLOR_BACKGROUND_SLIDER );
-			}
-		}
-	}
+	// // 	if( textarea -> slider_x + textarea -> slider_width > textarea -> width_current ) textarea -> slider_x -= (textarea -> slider_x + textarea -> slider_width) - textarea -> width_current;
+
+	// // 	for( uint64_t y = textarea -> height_current - LIB_UI_SLIDER_SIZE; y < textarea -> height_current; y++ ) {
+	// // 		for( uint64_t x = textarea -> slider_x; x < (textarea -> slider_x + textarea -> slider_width); x++ ) {
+	// // 			uint32_t target = pixel_at_offset[ (y * plane_width) + x ];
+	// // 			pixel[ (y * ui -> window -> current_width) + x ] = lib_color_background_blend( target, LUB_UI_COLOR_BACKGROUND_SLIDER );
+	// // 		}
+	// // 	}
+	// // }
+
+	// // // slider right
+	// // if( plane_height - LIB_FONT_HEIGHT_pixel > textarea -> height_current ) {
+	// // 	double percent = (textarea -> height_current / (double) plane_height);
+
+	// // 	textarea -> slider_height = textarea -> height_current * percent;
+	// // 	if( textarea -> slider_height < LIB_UI_SLIDER_SIZE ) textarea -> slider_height = LIB_UI_SLIDER_SIZE;
+
+	// // 	if( textarea -> slider_y + textarea -> slider_height > textarea -> height_current ) textarea -> slider_y -= (textarea -> slider_y + textarea -> slider_height) - textarea -> height_current;
+
+	// // 	for( uint64_t y = textarea -> slider_y; y < textarea -> slider_y + textarea -> slider_height; y++ ) {
+	// // 		for( uint64_t x = textarea -> width_current - LIB_UI_SLIDER_SIZE; x < textarea -> width_current; x++ ) {
+	// // 			uint32_t target = pixel_at_offset[ (y * plane_width) + x ];
+	// // 			pixel[ (y * ui -> window -> current_width) + x ] = lib_color_background_blend( target, LUB_UI_COLOR_BACKGROUND_SLIDER );
+	// // 		}
+	// // 	}
+	// // }
 }
 
 static uint64_t lib_ui_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t width_pixel ) {
