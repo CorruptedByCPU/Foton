@@ -9,9 +9,6 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	// action based on exception id
 	switch( exception -> id ) {
 		case 14: {
-			MACRO_DEBUF();
-			return;
-
 			// exception for process stack space?
 			if( MACRO_PAGE_ALIGN_UP( exception -> cr2 ) == KERNEL_TASK_STACK_pointer - (current -> stack_page << STD_SHIFT_PAGE) ) {
 				// describe additional space under process stack
@@ -29,7 +26,7 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	// time to hunt some BUGs
 
 	// say, hello!
-	kernel -> serial( (uint8_t *) "Simple debuffer by Blackdev.org\n" );
+	kernel -> log( (uint8_t *) "Simple debuffer by Blackdev.org\n" );
 
 	// hold the door
 	MACRO_DEBUF();

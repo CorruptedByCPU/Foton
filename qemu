@@ -7,7 +7,7 @@ clear
 
 # default CPU count: 1
 CORE="${1}"
-if [ -z "${CORE}" ]; then CORE="4"; fi
+if [ -z "${CORE}" ]; then CORE="1"; fi
 
 # default Memory size: 64 MiB
 MEM="${2}"

@@ -34,6 +34,8 @@
 	// returns length of first printable word
 	uint64_t lib_string_word( uint8_t *string, uint64_t length );
 
+	// uint64_t lib_string_word_backward( volatile uint8_t *string, uint64_t length );
+
 	// returns length of string before separator
 	uint64_t lib_string_word_end( uint8_t *string, uint64_t length, uint8_t separator );
 

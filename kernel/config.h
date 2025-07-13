@@ -72,8 +72,6 @@ struct KERNEL {
 	void						(*page_deconstruct)( uint64_t *pml4, uint8_t type );
 	uint8_t						(*page_map)( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t n, uint16_t flags );
 
-	void						(*serial)( uint8_t *string, ... );
-
 	struct KERNEL_STRUCTURE_STORAGE			*storage_base_address;
 	uint64_t					storage_limit;
 	uint8_t						storage_lock;
