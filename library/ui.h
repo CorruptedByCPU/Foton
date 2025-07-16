@@ -241,10 +241,11 @@ struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA {
 	// uint64_t			offset_line;
 
 	// all relative
-	uint64_t			pointer;	// cursor location inside string
-	// uint64_t			pointer_line;	// begining location of current line
+	uint64_t			pointer;	// cursor location inside line
+	uint64_t			pointer_line;	// begining location of current line
 
 	volatile int64_t				cursor_x;
+	volatile int64_t				cursor_x_old;
 	volatile int64_t				cursor_y;
 
 	uint64_t			slider_x;

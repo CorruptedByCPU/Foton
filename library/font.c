@@ -50,7 +50,7 @@ static uint64_t lib_font_offset( uint8_t font, uint8_t character ) {
 // return character width in pixels
 uint8_t lib_font_length_char( uint8_t font, uint8_t character ) {
 	// if font style is not monospace
-	if( font == LIB_FONT_FAMILY_ROBOTO ) return lib_font_family_roboto_kerning[ character ];
+	if( font == LIB_FONT_FAMILY_ROBOTO ) return lib_font_family_roboto_kerning[ character - STD_ASCII_SPACE ];
 
 	// else
 	return LIB_FONT_FAMILY_ROBOTO_MONO_KERNING;
@@ -67,7 +67,7 @@ static uint8_t lib_font_char( uint8_t font, uint64_t scanline_pixel, uint32_t *p
 
 	// for every pixel from character matrix
 	for( uint8_t y = 0; y < LIB_FONT_MATRIX_height_pixel; y++ )
-		for( uint16_t x = 0; x < lib_font_length_char( font, character ); x++ )
+		for( uint16_t x = 0; x < lib_font_length_char( font, character + STD_ASCII_SPACE ); x++ )
 			// show him if is visible
 			if( matrix[ (y * LIB_FONT_MATRIX_width_pixel) + x ] ) {
 				// simple bold function :>
@@ -78,7 +78,7 @@ static uint8_t lib_font_char( uint8_t font, uint64_t scanline_pixel, uint32_t *p
 			}
 
 	// return to string function width of displayed character in pixels
-	return lib_font_length_char( font, character );
+	return lib_font_length_char( font, character + STD_ASCII_SPACE );
 }
 
 // calculate string width in pixels
@@ -91,7 +91,7 @@ uint64_t lib_font_length_string( uint8_t font, uint8_t *string, uint64_t length 
 		// for every character inside string
 		for( uint64_t i = 0; i < length; i++ ) {
 			// apply matrix offset of character if is printable
-			if( string[ i ] > 0x1F && string[ i ] < 0x7F ) width += lib_font_family_roboto_kerning[ string[ i ] - 0x20 ];
+			if( string[ i ] > 0x1F && string[ i ] < 0x7F ) width += lib_font_family_roboto_kerning[ string[ i ] - STD_ASCII_SPACE ];
 			else return EMPTY;	// or no support if there is at least 1 character not printable
 		}
 
@@ -115,7 +115,7 @@ uint64_t lib_font( uint8_t font, uint8_t *string, uint64_t length, uint32_t colo
 	if( flag & LIB_FONT_FLAG_ALIGN_right ) pixel -= string_pixel;
 
 	// print all characters from string
-	for( uint64_t i = 0; i < length; i++ ) pixel += lib_font_char( font, scanline_pixel, pixel, string[ i ] - 0x20, color, flag );
+	for( uint64_t i = 0; i < length; i++ ) pixel += lib_font_char( font, scanline_pixel, pixel, string[ i ] - STD_ASCII_SPACE, color, flag );
 
 	// return length of string in pixels
 	return string_pixel;

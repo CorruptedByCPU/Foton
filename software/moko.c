@@ -27,7 +27,7 @@
 	// //----------------------------------------------------------------------
 
 #define	WINDOW_WIDTH	LIB_UI_MARGIN_DEFAULT + 256 + LIB_UI_PADDING_DEFAULT + 25 + LIB_UI_PADDING_DEFAULT + 108 + LIB_UI_MARGIN_DEFAULT
-#define	WINDOW_HEIGHT	256
+#define	WINDOW_HEIGHT	297
 // #define	WINDOW_WIDTH	131
 // #define	WINDOW_HEIGHT	72
 
@@ -36,6 +36,8 @@
 
 struct LIB_WINDOW_STRUCTURE *window;
 struct LIB_UI_STRUCTURE *ui;
+
+uint8_t *document;
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	window = lib_window( 606, 289, WINDOW_WIDTH, WINDOW_HEIGHT );
@@ -56,8 +58,22 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_max );
 	lib_ui_add_control( ui, LIB_UI_ELEMENT_CONTROL_TYPE_min );
 
-	uint8_t *document = (uint8_t *) malloc( TRUE );
-	lib_ui_add_textarea( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, TEXTAREA_WIDTH, -1, EMPTY, document, LIB_FONT_FAMILY_ROBOTO );
+	document = (uint8_t *) malloc( TRUE );
+
+	// file properties
+	FILE *file = EMPTY;
+
+	// file exist?
+	if( (file = fopen( (uint8_t *) "/todo.log", EMPTY )) ) {
+		// load file content
+		document = (uint8_t *) realloc( document, file -> byte );
+		fread( file, document, file -> byte );
+
+		// close file
+		fclose( file );
+	}
+
+	lib_ui_add_textarea( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, TEXTAREA_WIDTH, -1, EMPTY, document, LIB_FONT_FAMILY_ROBOTO_MONO );
 
 	lib_ui_flush( ui );
 

@@ -94,7 +94,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		}
 
 		// next angle
+		// a = ((double) std_microtime() / 360.0f) * 5.0f;
 		a += speed * time;
+		if( a > 360.0f ) a-= 360.0f;
 
 		// clean workbench with default background color
 		lib_rgl_clean( rgl );
