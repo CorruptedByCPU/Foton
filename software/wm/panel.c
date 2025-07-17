@@ -56,7 +56,7 @@ void wm_panel( void ) {
 		if( wm -> list_panel[ i ] == wm -> active ) background = WM_PANEL_COLOR_active;
 		
 		// mark entry
-		for( uint16_t y = WM_PANEL_HEIGHT_pixel - 2; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width - TRUE; x++ ) pixel[ (y * wm -> panel -> width) + x ] = background;
+		for( uint16_t y = WM_PANEL_HEIGHT_pixel - TRUE; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width - TRUE; x++ ) pixel[ (y * wm -> panel -> width) + x ] = background;
 
 		uint32_t *pixel_entry = (uint32_t *) pixel + (((WM_PANEL_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * wm -> panel -> width) + LIB_UI_PADDING_ICON;
 

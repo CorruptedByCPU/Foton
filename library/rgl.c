@@ -326,7 +326,7 @@ uint8_t lib_rgl_projection( struct LIB_RGL_STRUCTURE *rgl, vector3f *vr, struct 
 	if( lib_rgl_vector_product_dot( normal, camera_ray ) > 0.0f ) return FALSE;
 
 	// light source position
-	vector3f light = { 0.0f, -1.0f, 0.0f };
+	vector3f light = { 1.0f, -1.0f, 0.0f };
 	light = lib_rgl_return_vector_normalize( light );
 
 	// dot product

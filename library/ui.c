@@ -1295,12 +1295,12 @@ void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 	lib_ui_fill_rectangle( element, ui -> window -> current_width, EMPTY, textarea -> width_current, textarea -> height_current, color_foreground );
 
 	// show border around element (it's not part of element itself)
-	for( int64_t y = -TRUE; y <= textarea -> height_current; y++ ) for( int64_t x = -TRUE; x <= textarea -> width_current; x++ ) { if( x == -TRUE || y == -TRUE ) element[ (y * ui -> window -> current_width) + x ] = color_foreground - LIB_UI_COLOR_INCREASE_LITTLE; if( x == textarea -> width_current || y == textarea -> height_current ) element[ (y * ui -> window -> current_width) + x ] = color_foreground + LIB_UI_COLOR_INCREASE_LITTLE; }
+	for( uint64_t y = 0; y < textarea -> height_current + 1; y++ ) for( uint64_t x = 0; x < textarea -> width_current + 1; x++ ) { if( ! x || ! y ) element[ ((y - 1) * ui -> window -> current_width) + x - 1 ] = color_foreground - LIB_UI_COLOR_INCREASE_LITTLE; if( x == textarea -> width_current || y == textarea -> height_current ) element[ (y * ui -> window -> current_width) + x ] = color_foreground + LIB_UI_COLOR_INCREASE_LITTLE; }
 
 	//---------------------------------------------------------------------
 
 	// by default, plane will have same width as element
-	uint64_t plane_width = textarea -> width_current;
+	uint64_t plane_width = EMPTY;
 
 	// counted number of lines
 	uint64_t lines = TRUE;
@@ -1319,8 +1319,10 @@ void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 		// expand plane horizontaly?
 		if( plane_width < p ) plane_width = p;	// yes
 
-		// count the line
-		lines++;
+		// New Line character exist?
+		if( i + c < textarea -> length && textarea -> string[ i + c ] == STD_ASCII_NEW_LINE )	// yes
+			// count line
+			lines++;
 
 		// next line
 		i += c;
@@ -1332,7 +1334,8 @@ void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 	// height of plane calculated from amount of lines
 	uint64_t plane_height = (lines * LIB_FONT_HEIGHT_pixel) + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2);
 
-	// plane height less than element height?
+	// correct plane width/height up to element dimension
+	if( plane_width < textarea -> width_current ) plane_width = textarea -> width_current;
 	if( plane_height < textarea -> height_current ) plane_height = textarea -> height_current;
 
 	//---------------------------------------------------------------------
@@ -1351,9 +1354,12 @@ void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 	plane += (LIB_UI_PADDING_TEXTAREA * plane_width) + LIB_UI_PADDING_TEXTAREA;
 
 	// print string inside plane
-	for( uint64_t i = 0; i < textarea -> length; i++ ) {
+	for( uint64_t i = 0; i <= textarea -> length; i++ ) {
 		// current line length
 		uint64_t c = lib_string_length_line( (uint8_t *) &string[ i ] );
+
+		// change background color for current line
+		if( textarea -> pointer_line == i ) lib_ui_fill_rectangle( plane - LIB_UI_PADDING_TEXTAREA, plane_width, EMPTY, plane_width, LIB_FONT_HEIGHT_pixel, color_foreground + LIB_UI_COLOR_INCREASE_LITTLE );
 
 		// if empty, ignore
 		if( c ) lib_font( textarea -> font, (uint8_t *) &string[ i ], c, color_background, plane, plane_width, EMPTY );
@@ -1412,10 +1418,13 @@ void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 
 	// slider bottom
 	if( plane_width > textarea -> width_current ) {
-		double percent = (textarea -> width_current / (double) plane_width);
+		double percent_offset = textarea -> offset_x / (double) plane_width;
+		textarea -> slider_x = textarea -> width_current * percent_offset;
+		
+		double percent = textarea -> width_current / (double) plane_width;
 		textarea -> slider_width = textarea -> width_current * percent;
 
-		if( textarea -> slider_x + textarea -> slider_width > textarea -> width_current ) textarea -> slider_x -= (textarea -> slider_x + textarea -> slider_width) - textarea -> width_current;
+		if( textarea -> slider_x + textarea -> slider_width > textarea -> width_current) textarea -> slider_x -= (textarea -> slider_x + textarea -> slider_width) - textarea -> width_current;
 
 		for( uint64_t y = textarea -> height_current - LIB_UI_SLIDER_SIZE; y < textarea -> height_current; y++ ) {
 			for( uint64_t x = textarea -> slider_x; x < (textarea -> slider_x + textarea -> slider_width); x++ ) {
@@ -1425,22 +1434,23 @@ void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_
 		}
 	}
 
-	// // // slider right
-	// // if( plane_height - LIB_FONT_HEIGHT_pixel > textarea -> height_current ) {
-	// // 	double percent = (textarea -> height_current / (double) plane_height);
+	// slider right
+	if( plane_height > textarea -> height_current ) {
+		double percent_offset = textarea -> offset_y / (double) plane_height;
+		textarea -> slider_y = textarea -> height_current * percent_offset;
+		
+		double percent = textarea -> height_current / (double) plane_height;
+		textarea -> slider_height = textarea -> height_current * percent;
 
-	// // 	textarea -> slider_height = textarea -> height_current * percent;
-	// // 	if( textarea -> slider_height < LIB_UI_SLIDER_SIZE ) textarea -> slider_height = LIB_UI_SLIDER_SIZE;
+		if( textarea -> slider_y + textarea -> slider_height > textarea -> height_current ) textarea -> slider_y -= (textarea -> slider_y + textarea -> slider_height) - textarea -> height_current;
 
-	// // 	if( textarea -> slider_y + textarea -> slider_height > textarea -> height_current ) textarea -> slider_y -= (textarea -> slider_y + textarea -> slider_height) - textarea -> height_current;
-
-	// // 	for( uint64_t y = textarea -> slider_y; y < textarea -> slider_y + textarea -> slider_height; y++ ) {
-	// // 		for( uint64_t x = textarea -> width_current - LIB_UI_SLIDER_SIZE; x < textarea -> width_current; x++ ) {
-	// // 			uint32_t target = pixel_at_offset[ (y * plane_width) + x ];
-	// // 			pixel[ (y * ui -> window -> current_width) + x ] = lib_color_background_blend( target, LUB_UI_COLOR_BACKGROUND_SLIDER );
-	// // 		}
-	// // 	}
-	// // }
+		for( uint64_t y = textarea -> slider_y; y < textarea -> slider_y + textarea -> slider_height; y++ ) {
+			for( uint64_t x = textarea -> width_current - LIB_UI_SLIDER_SIZE; x < textarea -> width_current; x++ ) {
+				uint32_t target = element[ (y * ui -> window -> current_width) + x ];
+				element[ (y * ui -> window -> current_width) + x ] = lib_color_blend( target, LUB_UI_COLOR_BACKGROUND_SLIDER );
+			}
+		}
+	}
 }
 
 static uint64_t lib_ui_string( uint8_t font_family, uint8_t *string, uint64_t limit, uint64_t width_pixel ) {
