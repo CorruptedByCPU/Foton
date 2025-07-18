@@ -420,7 +420,7 @@ static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *syn
 					uint64_t line_length_in_font = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line ], y );
 
 					// if old cursor position 
-					if( textarea -> cursor_x_old <= line_length_in_font ) {
+					if( ! ui -> keyboard.semaphore_ctrl_left && textarea -> cursor_x_old <= line_length_in_font ) {
 						// find a character which is near to old cursor x position
 						while( textarea -> pointer < y ) {
 							uint64_t x_offset = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer_line + textarea -> pointer ] );
@@ -434,6 +434,8 @@ static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *syn
 					} else {
 						textarea -> pointer = y;
 						textarea -> cursor_x = line_length_in_font;
+
+						if( ui -> keyboard.semaphore_ctrl_left ) textarea -> cursor_x_old = textarea -> cursor_x;
 					}
 				} else {
 					textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line ], x );
@@ -528,7 +530,7 @@ static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *syn
 					uint64_t line_length_in_font = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line ], x );
 
 					// if old cursor position 
-					if( textarea -> cursor_x_old <= line_length_in_font ) {
+					if( ! ui -> keyboard.semaphore_ctrl_left && textarea -> cursor_x_old <= line_length_in_font ) {
 						// find a character which is near to old cursor x position
 						while( textarea -> pointer < x ) {
 							uint64_t x_offset = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer_line + textarea -> pointer ] );
@@ -542,6 +544,11 @@ static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *syn
 					} else {
 						textarea -> pointer = x;
 						textarea -> cursor_x = line_length_in_font;
+
+						if( ui -> keyboard.semaphore_ctrl_left ) {
+							textarea -> pointer = EMPTY;
+							textarea -> cursor_x_old = textarea -> cursor_x = EMPTY;
+						}
 					}
 				} else {
 					textarea -> pointer = EMPTY;
@@ -624,8 +631,64 @@ static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *syn
 				break;
 			}
 
+			case STD_KEY_PAGE_UP: {
+				// calculate amount of lines to move up
+				uint64_t height_in_lines = ((textarea -> height_current - (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2)) / LIB_FONT_HEIGHT_pixel) - 1;
+				
+				// until beginning of document
+				while( textarea -> pointer_line ) {
+					// we are already in first line?
+					if( ! textarea -> cursor_y ) break;	// yes
+
+					// count each line
+					if( textarea -> string[ --textarea -> pointer_line ] == STD_ASCII_NEW_LINE ) {
+						// with moving cursor up
+						textarea -> cursor_y -= LIB_FONT_HEIGHT_pixel;
+
+						// amount of line moved?
+						if( ! --height_in_lines ) break;	// yea
+					}
+				}
+				
+				// set cursor at beginning of line
+				textarea -> pointer_line -= lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer_line ], textarea -> pointer_line );
+				textarea -> pointer = EMPTY;
+
+				// with cursor
+				textarea -> cursor_x_old = textarea -> cursor_x = EMPTY;
+
+				break;
+			}
+
+			case STD_KEY_PAGE_DOWN: {
+				// calculate amount of lines to move down
+				uint64_t height_in_lines = ((textarea -> height_current - (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2)) / LIB_FONT_HEIGHT_pixel) - 1;
+
+				// until end of document
+				while( ++textarea -> pointer_line <= textarea -> length ) {
+					// count each line
+					if( textarea -> string[ textarea -> pointer_line - 1 ] == STD_ASCII_NEW_LINE ) {
+						// with moving cursor down
+						textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
+
+						// amount of line moved?
+						if( ! --height_in_lines ) break;	// yea
+					}
+				}
+
+				// set cursor at beginning of line
+				textarea -> pointer_line -= lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer_line ], textarea -> pointer_line );
+				textarea -> pointer = EMPTY;
+
+				// with cursor
+				textarea -> cursor_x_old = textarea -> cursor_x = EMPTY;
+
+				// done
+				break;
+			}
+
 			default: {
-				if( keyboard -> key >= STD_ASCII_SPACE && keyboard -> key <= STD_ASCII_TILDE ) {
+				if( ! ui -> keyboard.semaphore_alt_left && ! ui -> keyboard.semaphore_ctrl_left && keyboard -> key >= STD_ASCII_SPACE && keyboard -> key <= STD_ASCII_TILDE ) {
 					if( textarea -> pointer_line + textarea -> pointer < textarea -> length ) for( uint64_t i = textarea -> length; i > textarea -> pointer_line + textarea -> pointer; i-- ) textarea -> string[ i ] = textarea -> string[ i - 1 ];
 	
 					textarea -> string[ textarea -> pointer_line + textarea -> pointer++ ] = keyboard -> key;

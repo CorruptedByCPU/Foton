@@ -1,0 +1,33 @@
+Simple and really small (~1.2 KiB without ELF overhead) text editor
+created specifically for this operating system.
+
+to do:
+
+  ctrl + backspace - delete previous word,
+  ctrl + delete - delete next word,
+  ctrl + o - open file,
+  ctrl + s - save file
+
+in the future (at the moment I don't suffer from their absence):
+
+  text highlight,
+  ctrl + a, ctrl + c, ctrl + v, ctrl + x
+
+implemented:
+
+  - current line highlighted,
+  - sliders only indicate which part of document is visible, there is no
+    possibility of interfering with them,
+
+  standard keys:
+    enter :D,
+    backspace/delete,
+    home/end,
+    arrows,
+    page up/down
+
+  ctrl + arrow left - move cursor to beginning of previous word,
+  ctrl + arrow right - move cursor to end of next word,
+  ctrl + arrow up - move cursor at beginning of previous line,
+  ctrl + arrow down - move cursor at end of next line
+

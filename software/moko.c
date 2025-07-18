@@ -8,25 +8,9 @@
 	#include	"../library/font.h"
 	#include	"../library/window.h"
 	#include	"../library/ui.h"
-	// //----------------------------------------------------------------------
-	// // static, structures, definitions
-	// //----------------------------------------------------------------------
-	// #include	"./kuro/config.h"
-	// #include	"./kuro/dir.h"
-	// #include	"./kuro/icon.h"
-	// //----------------------------------------------------------------------
-	// // variables
-	// //----------------------------------------------------------------------
-	// #include	"./kuro/data.c"
-	// //----------------------------------------------------------------------
-	// // routines, procedures
-	// //----------------------------------------------------------------------
-	// #include	"./kuro/dir.c"
-	// #include	"./kuro/icon.c"
-	// #include	"./kuro/init.c"
-	// //----------------------------------------------------------------------
+	//----------------------------------------------------------------------
 
-#define	WINDOW_WIDTH	LIB_UI_MARGIN_DEFAULT + 256 + LIB_UI_PADDING_DEFAULT + 25 + LIB_UI_PADDING_DEFAULT + 108 + LIB_UI_MARGIN_DEFAULT
+#define	WINDOW_WIDTH	(LIB_UI_MARGIN_DEFAULT + (LIB_FONT_WIDTH_pixel * 80) + LIB_UI_MARGIN_DEFAULT)
 #define	WINDOW_HEIGHT	297
 // #define	WINDOW_WIDTH	136 + 1
 // #define	WINDOW_HEIGHT	146
@@ -64,7 +48,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	FILE *file = EMPTY;
 
 	// file exist?
-	if( (file = fopen( (uint8_t *) "/todo.log", EMPTY )) ) {
+	if( (file = fopen( (uint8_t *) "/moko.txt", EMPTY )) ) {
 		// load file content
 		document = (uint8_t *) realloc( document, file -> byte );
 		fread( file, document, file -> byte );
