@@ -47,7 +47,7 @@ mkdir -p root/{bin,lib/{include,modules}}
 
 # copy default filesystem structure
 cp -rf root build
-# cp library/*.h build/root/lib/include
+cp library/*.h build/root/lib/include
 
 # build subroutines required by kernel
 EXT=""
@@ -113,7 +113,7 @@ done
 lib=""	# include list of libraries
 
 # keep parsing libraries by. dependencies and alphabetically
-for library in color elf integer string input font std window math image float ui type rgl; do
+for library in color elf integer string input font std window math image float ui kuro type rgl; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 

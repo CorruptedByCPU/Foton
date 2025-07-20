@@ -70,6 +70,10 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// exit?
 		if( key == STD_ASCII_ESC ) break;	// yes
+
+		if( key == 'o' && ui -> keyboard.semaphore_ctrl_left ) {
+			FILE *file = lib_ui_read_file( ui );
+		}
 	}
 
 	return EMPTY;

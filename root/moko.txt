@@ -30,4 +30,3 @@ implemented:
   ctrl + arrow right - move cursor to end of next word,
   ctrl + arrow up - move cursor at beginning of previous line,
   ctrl + arrow down - move cursor at end of next line
-

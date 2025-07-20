@@ -264,6 +264,22 @@ uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t 
 	ui -> textarea[ ui -> limit_textarea ] -> string		= string;
 	ui -> textarea[ ui -> limit_textarea ] -> length		= lib_string_length( string );
 
+	// ui -> textarea[ ui -> limit_textarea ] -> count			= FALSE;
+	// ui -> textarea[ ui -> limit_textarea ] -> line			= (struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA_LINE *) malloc( ui -> textarea[ ui -> limit_textarea ] -> count );
+
+	// for( uint64_t i = 0; i < lib_string_length( string ); ) {
+	// 	ui -> textarea[ ui -> limit_textarea ] -> line = (struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA_LINE *) realloc( ui -> textarea[ ui -> limit_textarea ] -> line, ui -> textarea[ ui -> limit_textarea ] -> count + 1 );
+
+	// 	ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].length = lib_string_length_line( string );
+	// 	ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].string = (uint8_t *) calloc( ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].length + 1 );
+
+	// 	for( uint64_t k = 0; k < ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].length; k++ ) ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].string[ k ] = ui -> textarea[ ui -> limit_textarea ] -> string[ k ];
+
+	// 	i += ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].length + 1;
+
+	// 	ui -> textarea[ ui -> limit_textarea ] -> count++;
+	// }
+
 	ui -> textarea[ ui -> limit_textarea ] -> font			= font;
 
 	ui -> textarea[ ui -> limit_textarea ] -> cursor_x		= EMPTY;
@@ -1009,6 +1025,37 @@ static void lib_ui_list_insert( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUC
 	ui -> element = (struct LIB_UI_STRUCTURE_ELEMENT **) realloc( ui -> element, sizeof( struct LIB_UI_STRUCTURE_ELEMENT ) * (ui -> limit + TRUE) );
 
 	ui -> element[ ui -> limit++ ] = element;
+}
+
+FILE *lib_ui_read_file( struct LIB_UI_STRUCTURE *ui ) {
+	uint32_t color;
+	for( uint64_t y = 0; y < ui -> window -> current_height; y++ ) {
+		for( uint64_t x = 0; x < ui -> window -> current_width; x++ ) {
+			if( ((x + y) / 20 ) % 2 ) color = 0x80202020;
+			else color = 0x80181818;
+			ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( ui -> window -> pixel[ (y * ui -> window -> current_width) + x ], color );
+		}
+	}
+
+	ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
+
+	struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, 267, 283 );
+	struct LIB_UI_STRUCTURE *internal = lib_ui( window );
+	internal -> icon = lib_image_scale( lib_ui_icon( (uint8_t *) "/var/share/media/icon/default/app/system-file-manager.tga" ), 48, 48, 16, 16 );
+	for( uint64_t i = 0; i < 16 * 16; i++ ) window -> icon[ i ] = internal -> icon[ i ];
+	lib_ui_clean( internal );
+	lib_window_name( internal -> window, (uint8_t *) "Open File" );
+	lib_ui_add_control( internal, LIB_UI_ELEMENT_CONTROL_TYPE_close );
+	lib_ui_flush( internal );
+	window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_icon | LIB_WINDOW_FLAG_resizable | LIB_WINDOW_FLAG_flush;
+
+	while( TRUE ) {
+		sleep( TRUE );
+
+		// uint16_t key = lib_ui_event( internal );
+	}
+
+	return EMPTY;
 }
 
 void lib_ui_show_button( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_BUTTON *button ) {
