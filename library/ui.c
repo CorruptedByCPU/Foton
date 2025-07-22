@@ -1340,6 +1340,9 @@ void lib_ui_show_label( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 	// set pointer location of element inside window
 	uint32_t *pixel = ui -> window -> pixel + (label -> standard.y * ui -> window -> current_width) + label -> standard.x;
 
+	// clean under label
+	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, EMPTY, label -> standard.width, label -> standard.height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
+
 	if( label -> standard.height > LIB_FONT_HEIGHT_pixel ) pixel += ((label -> standard.height - LIB_FONT_HEIGHT_pixel) >> 1) * ui -> window -> current_width;
 
 	if( label -> flag & LIB_FONT_FLAG_ALIGN_center ) pixel += label -> standard.width >> STD_SHIFT_2;

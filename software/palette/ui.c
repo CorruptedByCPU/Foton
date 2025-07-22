@@ -3,6 +3,49 @@
 ===============================================================================*/
 
 void palette_ui( void ) {
+	// local variable
+	uint64_t length;
+
+	// get current RGB color from HSV
+	uint64_t color = lib_color_hsv( h, s, v );
+
+	// insert Red value as string to input
+	length = lib_integer_to_string( (uint8_t) (color >> 16), 10, (uint8_t *) &input );
+	input[ length ] = STD_ASCII_TERMINATOR;
+	lib_ui_update_input( ui, ui_id_input_r, (uint8_t *) &input );
+
+	// insert Green value as string to input
+	length = lib_integer_to_string( (uint8_t) (color >> 8), 10, (uint8_t *) &input );
+	input[ length ] = STD_ASCII_TERMINATOR;
+	lib_ui_update_input( ui, ui_id_input_g, (uint8_t *) &input );
+
+	// insert Blue value as string to input
+	length = lib_integer_to_string( (uint8_t) color, 10, (uint8_t *) &input );
+	input[ length ] = STD_ASCII_TERMINATOR;
+	lib_ui_update_input( ui, ui_id_input_b, (uint8_t *) &input );
+
+	// insert Hue value as string to input
+	length = lib_integer_to_string( (uint64_t) h, 10, (uint8_t *) &input );
+	input[ length ] = STD_ASCII_TERMINATOR;
+	lib_ui_update_input( ui, ui_id_input_h, (uint8_t *) &input );
+
+	// insert Saturation value as string to input
+	length = lib_integer_to_string( (uint64_t) (s * 100.0f), 10, (uint8_t *) &input );
+	input[ length ] = STD_ASCII_TERMINATOR;
+	lib_ui_update_input( ui, ui_id_input_s, (uint8_t *) &input );
+
+	// insert Value number as string to input
+	length = lib_integer_to_string( (uint64_t) (v * 100.0f), 10, (uint8_t *) &input );
+	input[ length ] = STD_ASCII_TERMINATOR;
+	lib_ui_update_input( ui, ui_id_input_v, (uint8_t *) &input );
+
+	// insert combined RGB value as string to input
+	lib_integer_to_string( color, 16, (uint8_t *) &input );
+	input[ 8 ] = STD_ASCII_TERMINATOR;
+	lib_ui_update_input( ui, ui_id_input_rgb, (uint8_t *) &input[ 2 ] );
+
+	//---------------------------------------------------------------------
+
 	// set pointer to canvas location
 	uint32_t *canvas = (uint32_t *) ui -> window -> pixel + ((LIB_UI_HEADER_HEIGHT) * ui -> window -> current_width) + LIB_UI_MARGIN_DEFAULT;
 
@@ -30,44 +73,12 @@ void palette_ui( void ) {
 	uint32_t *sample = spectrum + SPECTRUM_WIDTH + LIB_UI_PADDING_DEFAULT;
 
 	// current HSV color to RGB
-	uint32_t color = lib_color_hsv( h, s, v );
+	color = lib_color_hsv( h, s, v );
 
 	// fill sample with current color
 	for( uint64_t y = 0; y < SAMPLE_HEIGHT; y++ ) for( uint64_t x = 0; x < SAMPLE_WIDTH; x++ ) sample[ (y * ui -> window -> current_width) + x ] = color;
 
 	//---------------------------------------------------------------------
-
-	// uint64_t length;
-
-	// color = lib_color_hsv( h, s, v );
-
-	// length = lib_integer_to_string( (uint8_t) (color >> 16), 10, (uint8_t *) &input );
-	// input[ length ] = STD_ASCII_TERMINATOR;
-	// lib_ui_update_input( ui, ui_id_input_r, (uint8_t *) &input );
-
-	// length = lib_integer_to_string( (uint8_t) (color >> 8), 10, (uint8_t *) &input );
-	// input[ length ] = STD_ASCII_TERMINATOR;
-	// lib_ui_update_input( ui, ui_id_input_g, (uint8_t *) &input );
-
-	// length = lib_integer_to_string( (uint8_t) color, 10, (uint8_t *) &input );
-	// input[ length ] = STD_ASCII_TERMINATOR;
-	// lib_ui_update_input( ui, ui_id_input_b, (uint8_t *) &input );
-
-	// length = lib_integer_to_string( (uint64_t) h, 10, (uint8_t *) &input );
-	// input[ length ] = STD_ASCII_TERMINATOR;
-	// lib_ui_update_input( ui, ui_id_input_h, (uint8_t *) &input );
-
-	// length = lib_integer_to_string( (uint64_t) (s * 100.0f), 10, (uint8_t *) &input );
-	// input[ length ] = STD_ASCII_TERMINATOR;
-	// lib_ui_update_input( ui, ui_id_input_s, (uint8_t *) &input );
-
-	// length = lib_integer_to_string( (uint64_t) (v * 100.0f), 10, (uint8_t *) &input );
-	// input[ length ] = STD_ASCII_TERMINATOR;
-	// lib_ui_update_input( ui, ui_id_input_v, (uint8_t *) &input );
-
-	// lib_integer_to_string( color, 16, (uint8_t *) &input );
-	// input[ 8 ] = STD_ASCII_TERMINATOR;
-	// lib_ui_update_input( ui, ui_id_input_rgb, (uint8_t *) &input[ 2 ] );
 
 	lib_ui_flush( ui );
 }

@@ -4,6 +4,6 @@
 
 #define	KERNEL_name		"Foton"
 #define	KERNEL_version		"0"
-#define	KERNEL_revision		"655"
+#define	KERNEL_revision		"660"
 #define	KERNEL_architecture	"x86_64"
 #define	KERNEL_language		"C"
