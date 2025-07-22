@@ -213,6 +213,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	x += lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, (uint8_t *) "#", 1 ) + LIB_UI_PADDING_DEFAULT;
 	irgb = lib_ui_add_input( ui, x, y, 64, (uint8_t *) "86B057", LIB_UI_ELEMENT_FLAG_disabled, EMPTY );
 
+	update( );
 	lib_ui_flush( ui );
 
 	canvas();
