@@ -23,6 +23,8 @@
 
 	void lib_image_blur( uint32_t *image, uint8_t level, uint64_t width, uint64_t height );
 
+	uint32_t *lib_icon_icon( uint8_t *path );
+
 	uint8_t lib_image_tga_parse( uint8_t *source, uint32_t *target, uint64_t bytes );
 
 	uint32_t *lib_image_scale( uint32_t *source, uint64_t source_width, uint64_t source_height, uint64_t target_width, uint64_t target_height );

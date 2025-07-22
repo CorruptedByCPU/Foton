@@ -6,6 +6,7 @@
 	// required libraries
 	//----------------------------------------------------------------------
 	#include	"../library/font.h"
+	#include	"../library/image.h"
 	#include	"../library/rgl.h"
 	#include	"../library/ui.h"
 	//----------------------------------------------------------------------

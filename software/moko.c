@@ -6,6 +6,7 @@
 	// required libraries
 	//----------------------------------------------------------------------
 	#include	"../library/font.h"
+	#include	"../library/image.h"
 	#include	"../library/window.h"
 	#include	"../library/ui.h"
 	//----------------------------------------------------------------------
@@ -29,7 +30,7 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 	ui = lib_ui( window );
 
-	ui -> icon = lib_image_scale( lib_ui_icon( (uint8_t *) "/var/share/media/icon/default/app/accessories-text-editor.tga" ), 48, 48, 16, 16 );
+	ui -> icon = lib_image_scale( lib_icon_icon( (uint8_t *) "/var/share/media/icon/default/app/accessories-text-editor.tga" ), 48, 48, 16, 16 );
 
 	// add icon to window properties
 	for( uint64_t i = 0; i < 16 * 16; i++ ) window -> icon[ i ] = ui -> icon[ i ];
@@ -47,17 +48,20 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	// file properties
 	FILE *file = EMPTY;
 
-	// file exist?
-	if( (file = fopen( (uint8_t *) "/moko.txt", EMPTY )) ) {
-		// load file content
-		document = (uint8_t *) realloc( document, file -> byte );
-		fread( file, document, file -> byte );
+	// file default selected?
+	if( argc > 1 )	{
+		// try
+		if( (file = fopen( argv[ TRUE ], EMPTY )) ) {
+			// load file content
+			document = (uint8_t *) realloc( document, file -> byte );
+			fread( file, document, file -> byte );
 
-		// close file
-		fclose( file );
+			// close file
+			fclose( file );
+		}
 	}
 
-	lib_ui_add_textarea( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, TEXTAREA_WIDTH, -1, EMPTY, document, LIB_FONT_FAMILY_ROBOTO_MONO );
+	uint64_t id = lib_ui_add_textarea( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, TEXTAREA_WIDTH, -1, EMPTY, document, LIB_FONT_FAMILY_ROBOTO_MONO );
 
 	lib_ui_flush( ui );
 
@@ -72,7 +76,22 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 		if( key == STD_ASCII_ESC ) break;	// yes
 
 		if( key == 'o' && ui -> keyboard.semaphore_ctrl_left ) {
-			FILE *file = lib_ui_read_file( ui );
+			if( (file = lib_ui_read_file( ui )) ) {
+				// extend/shrink document area up to file size
+				document = (uint8_t *) realloc( document, file -> byte );
+
+				// load file content
+				fread( file, document, file -> byte );
+
+				// set document end
+				document[ file -> byte ] = STD_ASCII_TERMINATOR;
+
+				// close file
+				fclose( file );
+
+				// inform UI about new Textarea content
+				lib_ui_update_textarea( ui, id, document, LIB_FONT_FAMILY_ROBOTO_MONO );
+			}
 		}
 	}
 

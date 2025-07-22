@@ -5,6 +5,7 @@
 	//----------------------------------------------------------------------
 	// required libraries
 	//----------------------------------------------------------------------
+	#include	"../library/image.h"
 	#include	"../library/kuro.h"
 	#include	"../library/string.h"
 	#include	"../library/ui.h"
@@ -32,18 +33,20 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 reload:
 	// reload loop
 	while( TRUE ) {
-		// create table
+		// create table of files
+		kuro.flag = LIB_KURO_FLAG_header;	// show Header
+		kuro.flag |= LIB_KURO_FLAG_size;	// add Size column
 		lib_kuro( (struct LIB_KURO_STRUCTURE *) &kuro );
 	
 		if( init ) {
 			// add table to ui interface
-			id = lib_ui_add_table( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, -1, -1, kuro.header, kuro.row, 2, kuro.count );
+			id = lib_ui_add_table( ui, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, -1, -1, kuro.header, kuro.entries, kuro.cols, kuro.rows );
 
 			// done
 			init = FALSE;
 		} else
 			// update table properties
-			lib_ui_update_table( ui, id, kuro.row, kuro.count );
+			lib_ui_update_table( ui, id, kuro.entries, kuro.rows );
 
 		// sync all interface elements with window
 		lib_ui_flush( ui );	// even window name
@@ -60,11 +63,11 @@ reload:
 			if( key == STD_ASCII_ESC ) return EMPTY;	// yes
 
 			// check if there is any action required with entry of table
-			for( uint64_t i = 0; i < kuro.count; i++ ) {
-				if( kuro.row[ i ].flag & LIB_UI_ELEMENT_FLAG_event ) {
+			for( uint64_t i = 0; i < kuro.rows; i++ ) {
+				if( kuro.entries[ i ].flag & LIB_UI_ELEMENT_FLAG_event ) {
 					// based on mimetype
-					switch( kuro.row[ i ].reserved ) {
-						case UP: {
+					switch( kuro.entries[ i ].reserved ) {
+						case LIB_KURO_MIMETYPE_UP: {
 							// change home directory
 							std_cd( (uint8_t *) "..", 2 );
 
@@ -72,17 +75,17 @@ reload:
 							goto reload;
 						}
 
-						case DIRECTORY: {
+						case LIB_KURO_MIMETYPE_DIRECTORY: {
 							// change home directory
-							std_cd( kuro.row[ i ].cell[ 0 ].name, lib_string_length( kuro.row[ i ].cell[ 0 ].name ) );
+							std_cd( kuro.entries[ i ].cell[ 0 ].name, lib_string_length( kuro.entries[ i ].cell[ 0 ].name ) );
 
 							// done
 							goto reload;
 						}
 
-						case EXECUTABLE: {
+						case LIB_KURO_MIMETYPE_EXECUTABLE: {
 							// open object file with 3D Viewer
-							std_exec( kuro.row[ i ].cell[ 0 ].name, lib_string_length( kuro.row[ i ].cell[ 0 ].name ), EMPTY, TRUE );
+							std_exec( kuro.entries[ i ].cell[ 0 ].name, lib_string_length( kuro.entries[ i ].cell[ 0 ].name ), EMPTY, TRUE );
 
 							// done
 							break;
@@ -91,7 +94,7 @@ reload:
 				}
 
 				// remove flag
-				kuro.row[ i ].flag &= ~LIB_UI_ELEMENT_FLAG_event;
+				kuro.entries[ i ].flag &= ~LIB_UI_ELEMENT_FLAG_event;
 			}
 
 			// release CPU time

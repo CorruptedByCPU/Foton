@@ -9,7 +9,7 @@ void wm_panel( void ) {
 	// count amount of object to show
 	for( uint64_t i = 0; i < wm -> list_limit; i++ )
 		// it's not our object? and visible? (except without name)
-		if( wm -> list[ i ] -> pid != wm -> pid && wm -> list[ i ] -> descriptor -> name_length )
+		if( wm -> list[ i ] -> pid != wm -> pid && ! (wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_release) && wm -> list[ i ] -> descriptor -> name_length )
 			// insert on panel list
 			wm_panel_insert( wm -> list[ i ] );
  

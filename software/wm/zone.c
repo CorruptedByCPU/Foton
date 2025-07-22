@@ -32,7 +32,7 @@ void wm_zone( void ) {
 
 		// analyze zone against each object
 		for( uint64_t j = 0; j < wm -> list_limit; j++ ) {
-			if( ! (list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) { continue; };
+			if( list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_release || ! (list[ j ] -> descriptor -> flags & LIB_WINDOW_FLAG_visible) ) { continue; };
 
 			// zone overlapping?
 			if( zone[ i ].x + zone[ i ].width <= list[ j ] -> x ) continue;		// no

@@ -52,6 +52,36 @@ void lib_image_blur( uint32_t *image, uint8_t level, uint64_t width, uint64_t he
 	std_memory_release( (uintptr_t) tmp, MACRO_PAGE_ALIGN_UP( ( width * height ) << STD_VIDEO_DEPTH_shift ) >> STD_SHIFT_PAGE );
 }
 
+uint32_t *lib_icon_icon( uint8_t *path ) {
+	// file properties
+	FILE *file = EMPTY;
+
+	// file exist?
+	if( (file = fopen( path, EMPTY )) ) {
+		// assign area for file
+		struct LIB_IMAGE_STRUCTURE_TGA *image = (struct LIB_IMAGE_STRUCTURE_TGA *) malloc( MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
+
+		// load file content
+		fread( file, (uint8_t *) image, file -> byte );
+
+		// copy image content to cursor object
+		uint32_t *icon = (uint32_t *) malloc( image -> width * image -> height * STD_VIDEO_DEPTH_byte );
+		lib_image_tga_parse( (uint8_t *) image, icon, file -> byte );
+
+		// release file content
+		free( image );
+
+		// close file
+		fclose( file );
+
+		// done
+		return icon;
+	}
+
+	// cannot locate specified file
+	return EMPTY;
+}
+
 uint32_t *lib_image_scale( uint32_t *source, uint64_t source_width, uint64_t source_height, uint64_t target_width, uint64_t target_height ) {
 	// allocate new image area
 	uint32_t *target = (uint32_t *) calloc( (target_width * target_height) << STD_VIDEO_DEPTH_shift );

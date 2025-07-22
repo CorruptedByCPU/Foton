@@ -37,6 +37,8 @@
 	#define LIB_FONT_WIDTH_pixel			LIB_FONT_FAMILY_ROBOTO_MONO_KERNING
 	#define LIB_FONT_HEIGHT_pixel			LIB_FONT_MATRIX_height_pixel
 
+	#define	LIB_FONT_TAB_length			2
+
 	// all functions return length of string in pixels
 
 	// main function of printing strings

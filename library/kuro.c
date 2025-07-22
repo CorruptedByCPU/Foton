@@ -16,49 +16,49 @@
 void lib_kuro_icon_register( struct LIB_KURO_STRUCTURE *kuro, uint8_t type, uint8_t *path ) {
 	// register new icon
 	kuro -> icon = (uint32_t **) realloc( kuro -> icon, type * sizeof( uint32_t * ) );
-	kuro -> icon[ type ] = lib_image_scale( lib_ui_icon( path ), 48, 48, 16, 16 );
+	kuro -> icon[ type ] = lib_image_scale( lib_icon_icon( path ), 48, 48, 16, 16 );
 }
 
 uint8_t lib_kuro_icon_assign( struct LIB_KURO_STRUCTURE *kuro, struct STD_STRUCTURE_DIR *file ) {
 	// select icon by file type
 	switch( file -> type ) {
-		case STD_FILE_TYPE_link:	return UP;
-		case STD_FILE_TYPE_directory:	return DIRECTORY;
+		case STD_FILE_TYPE_link:	return LIB_KURO_MIMETYPE_UP;
+		case STD_FILE_TYPE_directory:	return LIB_KURO_MIMETYPE_DIRECTORY;
 		default: {
 			// check for plain text
 			if( file -> name_limit > 4 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 4 ], (uint8_t *) ".txt", 4 ) ) {
 				// load text icon (if not present)
-				if( ! kuro -> icon[ PLAIN_TEXT ] ) lib_kuro_icon_register( kuro, PLAIN_TEXT, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-plain.tga" );
+				if( ! kuro -> icon[ LIB_KURO_MIMETYPE_PLAIN_TEXT ] ) lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_PLAIN_TEXT, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-plain.tga" );
 
 				// assign
-				return PLAIN_TEXT;
+				return LIB_KURO_MIMETYPE_PLAIN_TEXT;
 			}
 
 			// check for log file
 			if( file -> name_limit > 4 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 4 ], (uint8_t *) ".log", 4 ) ) {
 				// load text icon (if not present)
-				if( ! kuro -> icon[ LOG ] ) lib_kuro_icon_register( kuro, LOG, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-x-log.tga" );
+				if( ! kuro -> icon[ LIB_KURO_MIMETYPE_LOG ] ) lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_LOG, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-x-log.tga" );
 
 				// assign
-				return LOG;
+				return LIB_KURO_MIMETYPE_LOG;
 			}
 
 			// check for C header file
 			if( file -> name_limit > 2 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 2 ], (uint8_t *) ".h", 2 ) ) {
 				// load C header icon (if not present)
-				if( ! kuro -> icon[ HEADER ] ) lib_kuro_icon_register( kuro, HEADER, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-x-chdr.tga" );
+				if( ! kuro -> icon[ LIB_KURO_MIMETYPE_HEADER ] ) lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_HEADER, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-x-chdr.tga" );
 
 				// assign
-				return HEADER;
+				return LIB_KURO_MIMETYPE_HEADER;
 			}
 
 			// check for image file
 			if( file -> name_limit > 4 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 4 ], (uint8_t *) ".tga", 4 ) ) {
 				// load image icon (if not present)
-				if( ! kuro -> icon[ IMAGE ] ) lib_kuro_icon_register( kuro, IMAGE, (uint8_t *) "/var/share/media/icon/default/mimetypes/image-icon.tga" );
+				if( ! kuro -> icon[ LIB_KURO_MIMETYPE_IMAGE ] ) lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_IMAGE, (uint8_t *) "/var/share/media/icon/default/mimetypes/image-icon.tga" );
 
 				// assign
-				return IMAGE;
+				return LIB_KURO_MIMETYPE_IMAGE;
 			}
 
 			// 
@@ -74,36 +74,36 @@ uint8_t lib_kuro_icon_assign( struct LIB_KURO_STRUCTURE *kuro, struct STD_STRUCT
 					// library?
 					if( elf -> type == LIB_ELF_TYPE_shared_object ) {
 						// load library icon (if not present)
-						if( ! kuro -> icon[ LIBRARY ] ) lib_kuro_icon_register( kuro, LIBRARY, (uint8_t *) "/var/share/media/icon/default/mimetypes/application-x-sharedlib.tga" );
+						if( ! kuro -> icon[ LIB_KURO_MIMETYPE_LIBRARY ] ) lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_LIBRARY, (uint8_t *) "/var/share/media/icon/default/mimetypes/application-x-sharedlib.tga" );
 
 						// release file content
 						free( elf );
 
 						// assign
-						return LIBRARY;
+						return LIB_KURO_MIMETYPE_LIBRARY;
 					} else
 
 					// module?
 					if( file -> name_limit > 3 && lib_string_compare( (uint8_t *) &file -> name[ file -> name_limit - 3 ], (uint8_t *) ".ko", 3 ) ) {
 						// load module icon (if not present)
-						if( ! kuro -> icon[ MODULE ] ) lib_kuro_icon_register( kuro, MODULE, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-x-hex.tga" );
+						if( ! kuro -> icon[ LIB_KURO_MIMETYPE_MODULE ] ) lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_MODULE, (uint8_t *) "/var/share/media/icon/default/mimetypes/text-x-hex.tga" );
 
 						// release file content
 						free( elf );
 
 						// assign
-						return MODULE;
+						return LIB_KURO_MIMETYPE_MODULE;
 					}
 
 					else {
 						// load executable icon (if not present)
-						if( ! kuro -> icon[ EXECUTABLE ] ) lib_kuro_icon_register( kuro, EXECUTABLE, (uint8_t *) "/var/share/media/icon/default/app/application-x-executable.tga" );
+						if( ! kuro -> icon[ LIB_KURO_MIMETYPE_EXECUTABLE ] ) lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_EXECUTABLE, (uint8_t *) "/var/share/media/icon/default/app/application-x-executable.tga" );
 
 						// release file content
 						free( elf );
 
 						// assign
-						return EXECUTABLE;
+						return LIB_KURO_MIMETYPE_EXECUTABLE;
 					}
 				}
 
@@ -114,53 +114,54 @@ uint8_t lib_kuro_icon_assign( struct LIB_KURO_STRUCTURE *kuro, struct STD_STRUCT
 	}
 
 	// default
-	return UNKNOWN;
+	return LIB_KURO_MIMETYPE_UNKNOWN;
 }
 
 void lib_kuro_dir_add( struct LIB_KURO_STRUCTURE *kuro, struct STD_STRUCTURE_DIR *dir ) {
 	// insert new entries
 	uint64_t file = FALSE;
 	while( dir[ ++file ].type ) {
-		// extend table content by row
-		kuro -> row = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) realloc( kuro -> row, kuro -> count * sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW ) );
+		// extend table content by entry
+		kuro -> entries = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY *) realloc( kuro -> entries, (kuro -> rows + 1) * sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY ) );
 
 		// default flag state
-		kuro -> row[ kuro -> count ].flag = EMPTY;	// none
+		kuro -> entries[ kuro -> rows ].flag = EMPTY;	// none
 
-		// assign area for row
-		kuro -> row[ kuro -> count ].cell = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL *) calloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL ) << STD_SHIFT_2 );
+		// assign area for entry
+		kuro -> entries[ kuro -> rows ].cell = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL *) calloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL ) * kuro -> cols );
 
 		//
-		kuro -> row[ kuro -> count ].reserved = lib_kuro_icon_assign( kuro, (struct STD_STRUCTURE_DIR *) &dir[ file ] );
+		kuro -> entries[ kuro -> rows ].reserved = lib_kuro_icon_assign( kuro, (struct STD_STRUCTURE_DIR *) &dir[ file ] );
 
 		// column 0 --------------------------------------------
+		uint64_t col = 0;
 
 		// assign proper icon
-		kuro -> row[ kuro -> count ].cell[ 0 ].icon = kuro -> icon[ kuro -> row[ kuro -> count ].reserved ];
+		kuro -> entries[ kuro -> rows ].cell[ col ].icon = kuro -> icon[ kuro -> entries[ kuro -> rows ].reserved ];
 
 		// set cell: name
-		// only if thats not a special link
-		// if( file != TRUE ) {
-			kuro -> row[ kuro -> count ].cell[ 0 ].name = (uint8_t *) calloc( dir[ file ].name_limit + TRUE );
-			for( uint64_t i = 0; i < dir[ file ].name_limit; i++ ) kuro -> row[ kuro -> count ].cell[ 0 ].name[ i ] = dir[ file ].name[ i ];
-		// }
+		kuro -> entries[ kuro -> rows ].cell[ col ].name = (uint8_t *) calloc( dir[ file ].name_limit + TRUE );
+		for( uint64_t i = 0; i < dir[ file ].name_limit; i++ ) kuro -> entries[ kuro -> rows ].cell[ col ].name[ i ] = dir[ file ].name[ i ];
 
-		// column 1 --------------------------------------------
+		if( kuro -> flag & LIB_KURO_FLAG_size ) {
+			// column 1 --------------------------------------------
+			col++;
 
-		// align content to right
-		kuro -> row[ kuro -> count ].cell[ 1 ].flag = LIB_FONT_FLAG_ALIGN_right;
+			// align content to right
+			kuro -> entries[ kuro -> rows ].cell[ col ].flag = LIB_FONT_FLAG_ALIGN_right;
 
-		// set cell: size
-		// only if thats not a special link or directory
-		if( file != TRUE && dir[ file ].type != STD_FILE_TYPE_directory ) {
-			kuro -> row[ kuro -> count ].cell[ 1 ].name = (uint8_t *) calloc( lib_integer_digit_count( dir[ file ].limit, STD_NUMBER_SYSTEM_decimal ) + TRUE );
-			lib_integer_to_string( dir[ file ].limit, STD_NUMBER_SYSTEM_decimal, kuro -> row[ kuro -> count ].cell[ 1 ].name );
+			// set cell: size
+			// only if thats not a special link or directory
+			if( file != TRUE && dir[ file ].type != STD_FILE_TYPE_directory ) {
+				kuro -> entries[ kuro -> rows ].cell[ col ].name = (uint8_t *) calloc( lib_integer_digit_count( dir[ file ].limit, STD_NUMBER_SYSTEM_decimal ) + TRUE );
+				lib_integer_to_string( dir[ file ].limit, STD_NUMBER_SYSTEM_decimal, kuro -> entries[ kuro -> rows ].cell[ col ].name );
+			}
 		}
 
 		//------------------------------------------------------
 
-		// row created
-		kuro -> count++;
+		// entry created
+		kuro -> rows++;
 	}
 }
 
@@ -248,13 +249,16 @@ void lib_kuro_dir_sort( struct STD_STRUCTURE_DIR *entries, uint64_t n ) {
 }
 
 void lib_kuro( struct LIB_KURO_STRUCTURE *kuro ) {
-	// initialize icon list
-	if( ! kuro -> icon ) kuro -> icon = (uint32_t **) malloc( TRUE );
+	// if not exist
+	if( ! kuro -> icon ) {
+		// initialize icon list
+		kuro -> icon = (uint32_t **) malloc( TRUE );
 
-	// register initial icon (directory change)
-	lib_kuro_icon_register( kuro, UP, (uint8_t *) "/var/share/media/icon/default/empty.tga" );
-	lib_kuro_icon_register( kuro, DIRECTORY, (uint8_t *) "/var/share/media/icon/default/places/folder.tga" );
-	lib_kuro_icon_register( kuro, UNKNOWN, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );
+		// register initial icon (directory change)
+		lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_UP, (uint8_t *) "/var/share/media/icon/default/empty.tga" );
+		lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_DIRECTORY, (uint8_t *) "/var/share/media/icon/default/places/folder.tga" );
+		lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_UNKNOWN, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );
+	}
 
 	// retrieve list of files inside current directory
 	struct STD_STRUCTURE_DIR *dir = (struct STD_STRUCTURE_DIR *) std_dir( (uint8_t *) ".", TRUE );
@@ -266,49 +270,57 @@ void lib_kuro( struct LIB_KURO_STRUCTURE *kuro ) {
 	// arrange files in alphabetical order starting from directories
 	lib_kuro_dir_sort( (struct STD_STRUCTURE_DIR *) &dir[ TRUE ], file_count - TRUE );	// ignore first entry, not usable for us
 
+	// by default
+	kuro -> cols = TRUE;	// only 1 column
+
+	// enable other?
+	if( kuro -> flag & LIB_KURO_FLAG_size ) kuro -> cols++;	// yes
+
 	// there is no header?
-	if( ! kuro -> header ) {
+	if( ! kuro -> header ) {	// && kuro -> flag & LIB_KURO_FLAG_header ) {
 		// create one
-		kuro -> header = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *) calloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER ) << STD_SHIFT_2 );
+		kuro -> header = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *) calloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER ) * kuro -> cols );
 
 		// column 0
-		uint8_t column_name[] = "File name:";
+		uint8_t column_name[] = "Name:";
 		kuro -> header[ FALSE ].cell.name = (uint8_t *) malloc( sizeof( column_name ) );
 		for( uint8_t i = 0; i < sizeof( column_name ); i++ ) kuro -> header[ FALSE ].cell.name[ i ] = column_name[ i ];
 
 		kuro -> header[ FALSE ].cell.flag = LIB_FONT_FLAG_WEIGHT_bold;
 
-		// column 1
-		uint8_t column_size[] = "Bytes:";
-		kuro -> header[ TRUE ].cell.name = (uint8_t *) malloc( sizeof( column_size ) );
-		for( uint8_t i = 0; i < sizeof( column_size ); i++ ) kuro -> header[ TRUE ].cell.name[ i ] = column_size[ i ];
-
-		kuro -> header[ TRUE ].cell.flag = LIB_FONT_FLAG_WEIGHT_bold | LIB_FONT_FLAG_ALIGN_right;
+		if( kuro -> flag & LIB_KURO_FLAG_size ) {
+			// column Last
+			uint8_t column_size[] = "Size:";
+			kuro -> header[ TRUE ].cell.name = (uint8_t *) malloc( sizeof( column_size ) );
+			for( uint8_t i = 0; i < sizeof( column_size ); i++ ) kuro -> header[ TRUE ].cell.name[ i ] = column_size[ i ];
+		
+			kuro -> header[ TRUE ].cell.flag = LIB_FONT_FLAG_WEIGHT_bold | LIB_FONT_FLAG_ALIGN_right;
+		}
 	}
 
 	// there is no table content?
-	if( ! kuro -> row ) {
+	if( ! kuro -> entries ) {
 		// create one
-		kuro -> row = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) malloc( FALSE );
+		kuro -> entries = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY *) malloc( FALSE );
 
 		// insert new entries
 		lib_kuro_dir_add( kuro, dir );
 	} else {
 		// release old table content
-		for( uint64_t y = 0; y < kuro -> count; y++ ) {
-			for( uint64_t x = 0; x < 2; x++ )
+		for( uint64_t y = 0; y < kuro -> rows; y++ ) {
+			for( uint64_t x = 0; x < kuro -> cols; x++ )
 				// name
-				if( kuro -> row[ y ].cell[ x ].name ) free( kuro -> row[ y ].cell[ x ].name );
+				if( kuro -> entries[ y ].cell[ x ].name ) free( kuro -> entries[ y ].cell[ x ].name );
 
 			// and cell itself
-			free( kuro -> row[ y ].cell );
+			free( kuro -> entries[ y ].cell );
 		}
 
 		// no entries by default
-		kuro -> count = EMPTY;
+		kuro -> rows = EMPTY;
 
 		// truncate table content
-		kuro -> row = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) realloc( kuro -> row, FALSE );
+		kuro -> entries = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY *) realloc( kuro -> entries, FALSE );
 
 		// insert new entries
 		lib_kuro_dir_add( kuro, dir );

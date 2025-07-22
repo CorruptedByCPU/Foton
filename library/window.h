@@ -11,10 +11,10 @@
 	#define	LIB_WINDOW_BORDER_COLOR_inactive		LIB_WINDOW_BORDER_COLOR_default_shadow
 	#define	LIB_WINDOW_BORDER_COLOR_inactive_shadow		0xFF181818
 	
-	#define	LIB_WINDOW_FLAG_active		(1 << 0)
-	#define	LIB_WINDOW_FLAG_visible		(1 << 1)
-	#define	LIB_WINDOW_FLAG_fixed_xy	(1 << 2)
-	#define	LIB_WINDOW_FLAG_fixed_z		(1 << 3)
+	#define	LIB_WINDOW_FLAG_active		(1 << 0)	// window will receive mouse/keyboard events
+	#define	LIB_WINDOW_FLAG_visible		(1 << 1)	// window is visible on workbench
+	#define	LIB_WINDOW_FLAG_fixed_xy	(1 << 2)	// window unmovable
+	#define	LIB_WINDOW_FLAG_fixed_z		(1 << 3)	// window cannot be dragged up
 	#define	LIB_WINDOW_FLAG_release		(1 << 4)	// window marked as ready to be removed
 	#define	LIB_WINDOW_FLAG_name		(1 << 5)
 	#define	LIB_WINDOW_FLAG_transparent	(1 << 6)	// window contains transparent pixels (high CPU usage...)

@@ -2,8 +2,9 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-// #include	"../library/color.h"
+#include	"../library/image.h"
 #include	"../library/input.h"
+#include	"../library/kuro.h"
 #include	"../library/ui.h"
 
 void lib_ui_fill_rectangle( uint32_t *pixel, uint64_t scanline, uint8_t r, uint64_t width, uint64_t height, uint32_t color ) {
@@ -75,6 +76,84 @@ struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window ) {
 
 	// return ui properties
 	return ui;
+}
+
+void lib_ui_close( struct LIB_UI_STRUCTURE *ui ) {
+	// release window
+	ui -> window -> flags |= LIB_WINDOW_FLAG_release;
+
+	// release icon of window
+	if( ui -> icon ) free( ui -> icon );
+
+	// destroy all elements
+
+	// BUTTON -------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_button; e++ ) {
+	// 	if( ui -> button[ e ] -> standard.name ) free( ui -> button[ e ] -> standard.name );
+	// 	free( ui -> button[ e ] );
+	}
+	free( ui -> button );
+	// CHECKBOX -----------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_checkbox; e++ ) {
+	// 	if( ui -> checkbox[ e ] -> standard.name ) free( ui -> checkbox[ e ] -> standard.name );
+	// 	free( ui -> checkbox[ e ] );
+	}
+	free( ui -> checkbox );
+	// CONTROL ------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_control; e++ ) {
+		if( ui -> control[ e ] -> standard.name ) free( ui -> control[ e ] -> standard.name );
+		free( ui -> control[ e ] );
+	}
+	free( ui -> control );
+	// INPUT --------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_input; e++ ) {
+		if( ui -> input[ e ] -> standard.name ) free( ui -> input[ e ] -> standard.name );
+		free( ui -> input[ e ] );
+	}
+	free( ui -> input );
+	// LABEL --------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_label; e++ ) {
+		if( ui -> label[ e ] -> standard.name ) free( ui -> label[ e ] -> standard.name );
+		free( ui -> label[ e ] );
+	}
+	free( ui -> label );
+	// LIST ---------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_list; e++ ) { 
+		for( uint64_t l = 0; l < ui -> list[ e ] -> limit_entry; l++ ) { if( ui -> list[ e ] -> entry[ l ].icon ) free( ui -> list[ e ] -> entry[ l ].icon ); if( ui -> list[ e ] -> entry[ l ].name ) free( ui -> list[ e ] -> entry[ l ].name ); if( ui -> list[ e ] -> entry[ l ].event ) free( ui -> list[ e ] -> entry[ l ].event ); if( ui -> list[ e ] -> entry[ l ].shortcut ) free( ui -> list[ e ] -> entry[ l ].shortcut ); }
+		free( ui -> list[ e ] );
+	}
+	free( ui -> list );
+	// RADIO --------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_radio; e++ ) {
+		if( ui -> radio[ e ] -> standard.name ) free( ui -> radio[ e ] -> standard.name );
+		free( ui -> radio[ e ] );
+	}
+	free( ui -> radio );
+	// TABLE --------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_table; e++ ) {
+	// 	// header
+	// 	for( uint64_t h = 0; h < ui -> table[ e ] -> limit_column; h++ ) { if( ui -> table[ e ] -> header[ h ].cell.name ) free( ui -> table[ e ] -> header[ h ].cell.name ); if( ui -> table[ e ] -> header[ h ].cell.icon ) free( ui -> table[ e ] -> header[ h ].cell.icon ); }
+	// 	free( ui -> table[ e ] -> header );
+	// 	// row
+	// 	for( uint64_t r = 0; r < ui -> table[ e ] -> limit_row; r++ ) { for( uint64_t c = 0; c < ui -> table[ e ] -> limit_column; c++ ) { if( ui -> table[ e ] -> row[ r ].cell[ c ].name ) free( ui -> table[ e ] -> row[ r ].cell[ c ].name ); if( ui -> table[ e ] -> row[ r ].cell[ c ].icon ) free( ui -> table[ e ] -> row[ r ].cell[ c ].icon ); } }
+	// 	free( ui -> table[ e ] -> row );
+	// 	//-------------------------------------------------------------
+	// 	free( ui -> table[ e ] );
+	}
+	free( ui -> table );
+	// TEXTAREA -----------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_textarea; e++ ) {
+		if( ui -> textarea[ e ] -> string ) free( ui -> textarea[ e ] -> string ); if( ui -> textarea[ e ] -> plane ) free( ui -> textarea[ e ] -> plane ); 
+		free( ui -> textarea[ e ] );
+	}
+	free( ui -> textarea );
+	//---------------------------------------------------------------------
+
+	// destroy element list
+	free( ui -> element );
+
+	// release UI structure
+	free( ui );
 }
 
 uint64_t lib_ui_add_button( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint16_t height, uint8_t flag_ui ) {
@@ -229,7 +308,7 @@ uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	return ui -> limit_radio++;
 }
 
-uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *header, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t c, uint64_t r ) {
+uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *header, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY *row, uint64_t c, uint64_t r ) {
 	ui -> table = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE **) realloc( ui -> table, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE ) * (ui -> limit_table + TRUE) );
 	ui -> table[ ui -> limit_table ] = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE ) );
 
@@ -991,36 +1070,6 @@ void lib_ui_flush( struct LIB_UI_STRUCTURE *ui ) {
 		lib_ui_show_control( ui, (struct LIB_UI_STRUCTURE_ELEMENT_CONTROL *) ui -> control[ i ] );
 }
 
-uint32_t *lib_ui_icon( uint8_t *path ) {
-	// file properties
-	FILE *file = EMPTY;
-
-	// file exist?
-	if( (file = fopen( path, EMPTY )) ) {
-		// assign area for file
-		struct LIB_IMAGE_STRUCTURE_TGA *image = (struct LIB_IMAGE_STRUCTURE_TGA *) malloc( MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
-
-		// load file content
-		fread( file, (uint8_t *) image, file -> byte );
-
-		// copy image content to cursor object
-		uint32_t *icon = (uint32_t *) malloc( image -> width * image -> height * STD_VIDEO_DEPTH_byte );
-		lib_image_tga_parse( (uint8_t *) image, icon, file -> byte );
-
-		// release file content
-		free( image );
-
-		// close file
-		fclose( file );
-
-		// done
-		return icon;
-	}
-
-	// cannot locate specified file
-	return EMPTY;
-}
-
 static void lib_ui_list_insert( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT *element ) {
 	ui -> element = (struct LIB_UI_STRUCTURE_ELEMENT **) realloc( ui -> element, sizeof( struct LIB_UI_STRUCTURE_ELEMENT ) * (ui -> limit + TRUE) );
 
@@ -1028,34 +1077,127 @@ static void lib_ui_list_insert( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUC
 }
 
 FILE *lib_ui_read_file( struct LIB_UI_STRUCTURE *ui ) {
-	uint32_t color;
+	// set main window as in "disabled state"
 	for( uint64_t y = 0; y < ui -> window -> current_height; y++ ) {
 		for( uint64_t x = 0; x < ui -> window -> current_width; x++ ) {
-			if( ((x + y) / 20 ) % 2 ) color = 0x80202020;
-			else color = 0x80181818;
+			// foreground
+			uint32_t color = LIB_UI_COLOR_WINDOW_DISABLED;
+			
+			// change to strand
+			if( ((x + y) / 20 ) % 2 ) color -= LIB_UI_COLOR_INCREASE;
+
+			// set
 			ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( ui -> window -> pixel[ (y * ui -> window -> current_width) + x ], color );
 		}
 	}
 
+	// show new window state
 	ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
 
+	//---------------------------------------------------------------------
+
+	// create context window
 	struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, 267, 283 );
+	// with new interface
 	struct LIB_UI_STRUCTURE *internal = lib_ui( window );
-	internal -> icon = lib_image_scale( lib_ui_icon( (uint8_t *) "/var/share/media/icon/default/app/system-file-manager.tga" ), 48, 48, 16, 16 );
-	for( uint64_t i = 0; i < 16 * 16; i++ ) window -> icon[ i ] = internal -> icon[ i ];
-	lib_ui_clean( internal );
+	// icon same as for File Manager
+	internal -> icon = lib_image_scale( lib_icon_icon( (uint8_t *) "/var/share/media/icon/default/app/system-file-manager.tga" ), 48, 48, 16, 16 ); for( uint64_t i = 0; i < 16 * 16; i++ ) window -> icon[ i ] = internal -> icon[ i ];
+
+	// context window name
 	lib_window_name( internal -> window, (uint8_t *) "Open File" );
+
+	// draw default elements of window
+	lib_ui_clean( internal );
 	lib_ui_add_control( internal, LIB_UI_ELEMENT_CONTROL_TYPE_close );
-	lib_ui_flush( internal );
-	window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_icon | LIB_WINDOW_FLAG_resizable | LIB_WINDOW_FLAG_flush;
 
+	// some local variables
+	uint8_t init = TRUE; struct LIB_KURO_STRUCTURE table = { EMPTY }; uint64_t table_id; FILE *file = EMPTY;
+
+	// window ready
+	window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_icon | LIB_WINDOW_FLAG_resizable;
+
+reload:
+	// reload loop
 	while( TRUE ) {
-		sleep( TRUE );
+		// create table of files
+		lib_kuro( (struct LIB_KURO_STRUCTURE *) &table );
+	
+		// add element
+		if( init ) {
+			// add table to ui interface
+			table_id = lib_ui_add_table( internal, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, -1, -1, table.header, table.entries, table.cols, table.rows );
 
-		// uint16_t key = lib_ui_event( internal );
+			// done
+			init = FALSE;
+		// or update only
+		} else
+			// update table properties
+			lib_ui_update_table( internal, table_id, table.entries, table.rows );
+
+		// sync all interface elements with window
+		lib_ui_flush( internal );	// even window name
+
+		// window ready for show up
+		internal -> window -> flags |= LIB_WINDOW_FLAG_flush;
+
+		// event loop
+		while( TRUE ) {
+			// check for
+			uint16_t key = lib_ui_event( internal );
+
+			// cancel operation?
+			if( key == STD_ASCII_ESC ) goto exit;	// yes
+
+			// check if there is any action required with entry of table
+			for( uint64_t i = 0; i < table.rows; i++ ) {
+				// event?
+				if( table.entries[ i ].flag & LIB_UI_ELEMENT_FLAG_event ) {
+					// based on mimetype
+					switch( table.entries[ i ].reserved ) {
+						case LIB_KURO_MIMETYPE_UP: {
+							// change home directory
+							std_cd( table.entries[ i ].cell[ 0 ].name, lib_string_length( table.entries[ i ].cell[ 0 ].name ) );
+
+							// done
+							goto reload;
+						}
+
+						case LIB_KURO_MIMETYPE_DIRECTORY: {
+							// change home directory
+							std_cd( table.entries[ i ].cell[ 0 ].name, lib_string_length( table.entries[ i ].cell[ 0 ].name ) );
+
+							// done
+							goto reload;
+						}
+
+						default: {
+							// text file?
+							if( LIB_KURO_MIMETYPE_PLAIN_TEXT | LIB_KURO_MIMETYPE_LOG | LIB_KURO_MIMETYPE_OBJECT | LIB_KURO_MIMETYPE_HEADER ) {
+								// and file exist?
+								if( (file = fopen( table.entries[ i ].cell[ 0 ].name, EMPTY )) ) goto exit;
+							}
+						}
+					}
+
+					// remove flag
+					table.entries[ i ].flag &= ~LIB_UI_ELEMENT_FLAG_event;
+				}
+			}
+
+			// release CPU time
+			sleep( TRUE );
+		}
 	}
 
-	return EMPTY;
+exit:
+	// close context window with all UI elements
+	lib_ui_close( internal );
+
+	// remove from main window - disabled state
+	lib_ui_clean( ui ); lib_ui_flush( ui ); ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
+
+	// and return opened file
+	return file;
 }
 
 void lib_ui_show_button( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_BUTTON *button ) {
@@ -1581,10 +1723,30 @@ void lib_ui_update_input( struct LIB_UI_STRUCTURE *ui, uint64_t id, uint8_t *nam
 	}
 }
 
-void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t r ) {
+void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY *row, uint64_t r ) {
 	ui -> table[ id ] -> limit_row = r;
 	ui -> table[ id ] -> row = row;
 
 	ui -> table[ id ] -> offset_x = EMPTY;
 	ui -> table[ id ] -> offset_y = EMPTY;
+}
+
+void lib_ui_update_textarea( struct LIB_UI_STRUCTURE *ui, uint64_t id, uint8_t *string, uint8_t font ) {
+	ui -> textarea[ id ] -> string	= string;
+	ui -> textarea[ id ] -> length	= lib_string_length( string );
+
+	ui -> textarea[ id ] -> font	= font;
+
+	ui -> textarea[ id ] -> cursor_x	= EMPTY;
+	ui -> textarea[ id ] -> cursor_y	= EMPTY;
+
+	ui -> textarea[ id ] -> offset_x = ui -> textarea[ id ] -> cursor_x_old	= EMPTY;
+	ui -> textarea[ id ] -> offset_y	= EMPTY;
+
+	ui -> textarea[ id ] -> pointer		= EMPTY;
+	ui -> textarea[ id ] -> pointer_line	= EMPTY;
+
+	ui -> keyboard.semaphore_alt_left	= FALSE;
+	ui -> keyboard.semaphore_ctrl_left	= FALSE;
+	ui -> keyboard.semaphore_shift		= FALSE;
 }

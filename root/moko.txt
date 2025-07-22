@@ -5,7 +5,6 @@ to do:
 
   ctrl + backspace - delete previous word,
   ctrl + delete - delete next word,
-  ctrl + o - open file,
   ctrl + s - save file
 
 in the future (at the moment I don't suffer from their absence):
@@ -26,6 +25,7 @@ implemented:
     arrows,
     page up/down
 
+  ctrl + o - read file,
   ctrl + arrow left - move cursor to beginning of previous word,
   ctrl + arrow right - move cursor to end of next word,
   ctrl + arrow up - move cursor at beginning of previous line,
