@@ -32,6 +32,8 @@
 
 	#define	LIB_WINDOW_ANSWER_create	0b10000000 | LIB_WINDOW_REQUEST_create
 
+	#define	LIB_WINDOW_ICON_size		16
+
 	struct	LIB_WINDOW_STRUCTURE {
 		volatile uint16_t	flags;
 		// base address of window content

@@ -228,11 +228,8 @@ uint64_t lib_ui_add_input( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	ui -> input[ ui -> limit_input ] -> standard.flag		= flag_ui;
 	ui -> input[ ui -> limit_input ] -> standard.type		= INPUT;
 
-	if( *name ) {
-		ui -> input[ ui -> limit_input ] -> standard.name	= (uint8_t *) calloc( LIB_UI_ELEMENT_INPUT_length_max );
-
-		memcpy( ui -> input[ ui -> limit_input ] -> standard.name, name, lib_string_length( name ) );
-	}
+	ui -> input[ ui -> limit_input ] -> standard.name	= (uint8_t *) calloc( LIB_UI_ELEMENT_INPUT_length_max );
+	if( name ) memcpy( ui -> input[ ui -> limit_input ] -> standard.name, name, lib_string_length( name ) );
 
 	ui -> input[ ui -> limit_input ] -> flag			= flag_font;
 	ui -> input[ ui -> limit_input ] -> offset			= EMPTY;
@@ -1068,6 +1065,8 @@ void lib_ui_flush( struct LIB_UI_STRUCTURE *ui ) {
 
 	for( uint64_t i = 0; i < ui -> limit_control; i++ )
 		lib_ui_show_control( ui, (struct LIB_UI_STRUCTURE_ELEMENT_CONTROL *) ui -> control[ i ] );
+
+	ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
 }
 
 static void lib_ui_list_insert( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT *element ) {
@@ -1315,18 +1314,20 @@ void lib_ui_show_input( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 
 	if( input -> standard.height > LIB_FONT_HEIGHT_pixel ) pixel += ((input -> standard.height - LIB_FONT_HEIGHT_pixel) >> 1) * ui -> window -> current_width;
 
-	uint32_t color_foreground = LIB_UI_COLOR_INPUT;
-	if( input -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) color_foreground = LIB_UI_COLOR_INPUT_DISABLED;
+	if( input -> standard.name ) {
+		uint32_t color_foreground = LIB_UI_COLOR_INPUT;
+		if( input -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) color_foreground = LIB_UI_COLOR_INPUT_DISABLED;
 
-	uint64_t name_length_max = lib_string_length( input -> standard.name ) - input -> offset;
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max ) > input -> standard.width - LIB_UI_PADDING_DEFAULT ) { if( ! --name_length_max ) break; }
+		uint64_t name_length_max = lib_string_length( input -> standard.name ) - input -> offset;
+		while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max ) > input -> standard.width - LIB_UI_PADDING_DEFAULT ) { if( ! --name_length_max ) break; }
 
-	// default
-	pixel += LIB_UI_PADDING_DEFAULT;
+		// default
+		pixel += LIB_UI_PADDING_DEFAULT;
 
-	// if( input -> flag & LIB_FONT_FLAG_ALIGN_center ) pixel += -LIB_UI_PADDING_DEFAULT + (input -> standard.width >> STD_SHIFT_2);
+		// if( input -> flag & LIB_FONT_FLAG_ALIGN_center ) pixel += -LIB_UI_PADDING_DEFAULT + (input -> standard.width >> STD_SHIFT_2);
 
-	if( name_length_max ) lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max, color_foreground, pixel, ui -> window -> current_width, input -> flag );
+		if( name_length_max ) lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max, color_foreground, pixel, ui -> window -> current_width, input -> flag );
+	}
 
 	if( ! (input -> standard.flag & LIB_UI_ELEMENT_FLAG_active) || input -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) return;
 
