@@ -103,6 +103,9 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 
 		// update interface if required
 		if( sync ) palette_ui();
+
+		// release CPU time
+		sleep( TRUE );
 	}
 
 	// close application
