@@ -851,6 +851,26 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 
 			if( mouse -> button == STD_IPC_MOUSE_BUTTON_left ) {
 				switch( ui -> element[ i ] -> type ) {
+					case LIST: {
+						struct LIB_UI_STRUCTURE_ELEMENT_LIST *list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST *) ui -> element[ i ];
+
+						uint16_t list_height = list -> standard.height; if( list -> standard.height == (uint16_t) STD_MAX_unsigned ) { list_height = LIB_UI_ELEMENT_LIST_ENTRY_height * list -> limit_entry; if( list_height > (ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT) ) list_height = ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT; }
+
+						if( list_height < (ui -> window -> y - list -> standard.y) ) break;
+
+						// remove flags from all entries
+						for( uint64_t e = 0; e < list -> limit_entry; e++ ) list -> entry[ e ].flag = EMPTY;
+					
+						// selected entry
+						uint64_t e = ((ui -> window -> y - list -> standard.y) / LIB_UI_ELEMENT_LIST_ENTRY_height);
+
+						list -> entry[ e ].flag = LIB_UI_ELEMENT_FLAG_active;
+
+						*sync = TRUE;
+
+						break;
+					}
+
 					case TABLE: {
 						struct LIB_UI_STRUCTURE_ELEMENT_TABLE *table = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE *) ui -> element[ i ];
 
@@ -908,9 +928,13 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 					case LIST: {
 						struct LIB_UI_STRUCTURE_ELEMENT_LIST *list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST *) ui -> element[ i ];
 
+						uint16_t list_height = list -> standard.height; if( list -> standard.height == (uint16_t) STD_MAX_unsigned ) { list_height = LIB_UI_ELEMENT_LIST_ENTRY_height * list -> limit_entry; if( list_height > (ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT) ) list_height = ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT; }
+
+						if( list_height < (ui -> window -> y - list -> standard.y) ) break;
+
 						uint64_t r = ((ui -> window -> y - list -> standard.y) / LIB_UI_ELEMENT_LIST_ENTRY_height);
 
-						list -> entry[ r ].flag = LIB_UI_ELEMENT_FLAG_event;
+						if( list -> entry[ r ].flag & LIB_UI_ELEMENT_FLAG_active ) list -> entry[ r ].flag |= LIB_UI_ELEMENT_FLAG_event;
 
 						break;
 					}
@@ -940,6 +964,10 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 			switch( ui -> element[ i ] -> type ) {
 				case LIST: {
 					struct LIB_UI_STRUCTURE_ELEMENT_LIST *list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST *) ui -> element[ i ];
+
+					uint16_t list_height = list -> standard.height; if( list -> standard.height == (uint16_t) STD_MAX_unsigned ) { list_height = LIB_UI_ELEMENT_LIST_ENTRY_height * list -> limit_entry; if( list_height > (ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT) ) list_height = ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT; }
+
+					if( list_height < (ui -> window -> y - list -> standard.y) ) break;
 
 					uint64_t r = ((ui -> window -> y - list -> standard.y) / LIB_UI_ELEMENT_LIST_ENTRY_height);
 
@@ -1119,7 +1147,7 @@ reload:
 	// reload loop
 	while( TRUE ) {
 		// create table of files
-		lib_kuro( (struct LIB_KURO_STRUCTURE *) &table );
+		lib_kuro_file( (struct LIB_KURO_STRUCTURE *) &table );
 	
 		// add element
 		if( init ) {
@@ -1356,7 +1384,7 @@ void lib_ui_show_list( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEM
 	uint32_t *pixel = ui -> window -> pixel + (list -> standard.y * ui -> window -> current_width) + list -> standard.x;
 
 	uint16_t list_width = list -> standard.width; if( list -> standard.width == (uint16_t) STD_MAX_unsigned ) list_width = ui -> window -> current_width - list -> standard.x - LIB_UI_MARGIN_DEFAULT;
-	uint16_t list_height = list -> standard.height; if( list -> standard.height == (uint16_t) STD_MAX_unsigned ) list_height = ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT;
+	uint16_t list_height = list -> standard.height; if( list -> standard.height == (uint16_t) STD_MAX_unsigned ) { list_height = LIB_UI_ELEMENT_LIST_ENTRY_height * list -> limit_entry; if( list_height > (ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT) ) list_height = ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT; }
 
 	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, EMPTY, list_width, list_height, LIB_UI_COLOR_BACKGROUND_LIST );
 
@@ -1365,12 +1393,13 @@ void lib_ui_show_list( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEM
 
 		uint32_t color_foreground = STD_COLOR_WHITE;
 		uint32_t color_background = LIB_UI_COLOR_BACKGROUND_LIST;
-		if( entry -> flag & LIB_UI_ELEMENT_FLAG_active || entry -> flag & LIB_UI_ELEMENT_FLAG_hover ) color_background = LIB_UI_COLOR_BACKGROUND_LIST_HOVER;
+		if( entry -> flag & LIB_UI_ELEMENT_FLAG_active ) color_background += LIB_UI_COLOR_INCREASE;
+		if( entry -> flag & LIB_UI_ELEMENT_FLAG_hover ) color_background += LIB_UI_COLOR_INCREASE_LITTLE;
 
 		uint32_t *offset = pixel + (i * LIB_UI_ELEMENT_LIST_ENTRY_height * ui -> window -> current_width);
 
 		// clean area
-		lib_ui_fill_rectangle( offset - (LIB_UI_PADDING_DEFAULT >> STD_SHIFT_2), ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, list_width + LIB_UI_PADDING_DEFAULT, LIB_UI_ELEMENT_LIST_ENTRY_height, color_background );
+		lib_ui_fill_rectangle( offset - (LIB_UI_PADDING_DEFAULT >> STD_SHIFT_2), ui -> window -> current_width, EMPTY, list_width + LIB_UI_PADDING_DEFAULT, LIB_UI_ELEMENT_LIST_ENTRY_height, color_background );
 
 		if( LIB_UI_ELEMENT_LIST_ENTRY_height > LIB_FONT_HEIGHT_pixel ) offset += ((LIB_UI_ELEMENT_LIST_ENTRY_height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * ui -> window -> current_width;
 

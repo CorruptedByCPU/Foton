@@ -248,17 +248,14 @@ void lib_kuro_dir_sort( struct STD_STRUCTURE_DIR *entries, uint64_t n ) {
 	for( uint64_t i = 0; i < file; i++ ) entries[ i + 1 + directory ] = files[ i ];
 }
 
-void lib_kuro( struct LIB_KURO_STRUCTURE *kuro ) {
-	// if not exist
-	if( ! kuro -> icon ) {
-		// initialize icon list
-		kuro -> icon = (uint32_t **) malloc( TRUE );
+void lib_kuro_file( struct LIB_KURO_STRUCTURE *kuro ) {
+	// if not exist, initialize icon list
+	if( ! kuro -> icon ) kuro -> icon = (uint32_t **) malloc( TRUE );
 
-		// register initial icon (directory change)
-		lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_UP, (uint8_t *) "/var/share/media/icon/default/empty.tga" );
-		lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_DIRECTORY, (uint8_t *) "/var/share/media/icon/default/places/folder.tga" );
-		lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_UNKNOWN, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );
-	}
+	// register initial icon
+	lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_UP, (uint8_t *) "/var/share/media/icon/default/empty.tga" );
+	lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_DIRECTORY, (uint8_t *) "/var/share/media/icon/default/places/folder.tga" );
+	lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_UNKNOWN, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );
 
 	// retrieve list of files inside current directory
 	struct STD_STRUCTURE_DIR *dir = (struct STD_STRUCTURE_DIR *) std_dir( (uint8_t *) ".", TRUE );
@@ -324,5 +321,38 @@ void lib_kuro( struct LIB_KURO_STRUCTURE *kuro ) {
 
 		// insert new entries
 		lib_kuro_dir_add( kuro, dir );
+	}
+}
+
+void lib_kuro_storage( struct LIB_KURO_STRUCTURE *kuro ) {
+	// if not exist, initialize icon list
+	if( ! kuro -> icon ) kuro -> icon = (uint32_t **) malloc( TRUE );
+
+	// register default icon
+	lib_kuro_icon_register( kuro, LIB_KURO_MIMETYPE_RAM, (uint8_t *) "/var/share/media/icon/default/devices/media-memory.tga" );
+
+	// retrieve list of storages
+	uint64_t storage_id = std_storage_id();	// current storage id
+	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) std_storage();
+
+	// count amount of storages
+	kuro -> list_limit = EMPTY;
+	while( storage[ kuro -> list_limit ].type ) kuro -> list_limit++;
+
+	// add entries to storage list
+	kuro -> list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY ) * kuro -> list_limit );
+	for( uint64_t i = 0; i < kuro -> list_limit; i++ ) {
+		// current storage?
+		if( i == storage_id ) kuro -> list[ i ].flag = LIB_UI_ELEMENT_FLAG_active;	// mark it
+
+		// select icon
+		switch( storage[ i ].type ) {
+			case STD_STORAGE_TYPE_memory: { kuro -> list[ i ].icon = kuro -> icon[ LIB_KURO_MIMETYPE_RAM ]; break; }
+			default: { kuro -> list[ i ].icon = kuro -> icon[ LIB_KURO_MIMETYPE_UNKNOWN ]; break; }
+		}
+
+		// set name
+		MACRO_DEBUF();
+		kuro -> list[ i ].name = (uint8_t *) calloc( storage[ i ].name_limit + 1 ); for( uint8_t n = 0; n < storage[ i ].name_limit; n++ ) kuro -> list[ i ].name[ n ] = storage[ i ].name[ n ];
 	}
 }

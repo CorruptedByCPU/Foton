@@ -49,7 +49,7 @@ mkdir -p root/{bin,lib/{include,modules}}
 
 # copy default filesystem structure
 cp -rf root build
-cp library/*.h build/root/lib/include
+# cp library/*.h build/root/lib/include
 
 # build subroutines required by kernel
 EXT=""
@@ -156,8 +156,8 @@ done
 #===============================================================================
 
 # information
-include_size=`du -h --apparent-size --total --summarize library/*.h | tail -n 1 | cut -d ' ' -f 1`
-echo -e "${green}\xE2\x9C\x94${default}|Include: *.h|${include_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
+# include_size=`du -h --apparent-size --total --summarize library/*.h | tail -n 1 | cut -d ' ' -f 1`
+# echo -e "${green}\xE2\x9C\x94${default}|Include: *.h|${include_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 
 # prepare virtual file system with content of all available software, libraries, files
 (cd build && clang ../tools/vfs.c -o vfs)

@@ -20,10 +20,13 @@
 		LIB_KURO_MIMETYPE_PLAIN_TEXT,
 		LIB_KURO_MIMETYPE_LOG,
 		LIB_KURO_MIMETYPE_OBJECT,
-		LIB_KURO_MIMETYPE_HEADER
+		LIB_KURO_MIMETYPE_HEADER,
+		LIB_KURO_MIMETYPE_RAM
 	};
 
 	struct LIB_KURO_STRUCTURE {
+		struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY	*list;
+		uint64_t					list_limit;
 		struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER	*header;
 		struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY	*entries;
 		uint64_t					cols;
@@ -32,5 +35,6 @@
 		uint8_t						flag;
 	};
 
-	void lib_kuro( struct LIB_KURO_STRUCTURE *kuro );
+	void lib_kuro_file( struct LIB_KURO_STRUCTURE *kuro );
+	void lib_kuro_storage( struct LIB_KURO_STRUCTURE *kuro );
 #endif

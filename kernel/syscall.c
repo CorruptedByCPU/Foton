@@ -570,6 +570,11 @@ uintptr_t kernel_syscall_storage( void ) {
 	return (uintptr_t) storage;
 }
 
+uint64_t kernel_syscall_storage_id( void ) {
+	// return ID of currently storage in use
+	return kernel_task_current() -> storage;
+}
+
 uint64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {
 	// name or function outside of software environment?
 	if( (function + sizeof( uintptr_t )) >= KERNEL_TASK_STACK_pointer || ((uintptr_t) name + length) >= KERNEL_TASK_STACK_pointer ) return EMPTY;	// no, ignore
