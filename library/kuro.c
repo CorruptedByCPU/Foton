@@ -335,12 +335,20 @@ void lib_kuro_storage( struct LIB_KURO_STRUCTURE *kuro ) {
 	uint64_t storage_id = std_storage_id();	// current storage id
 	struct STD_STRUCTURE_STORAGE *storage = (struct STD_STRUCTURE_STORAGE *) std_storage();
 
+	// list doen't exist yet?
+	if( ! kuro -> list ) kuro -> list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( FALSE );
+	else
+		// for each entry
+		for( uint64_t i = 0; i < kuro -> list_limit; i++ ) free( kuro -> list[ i ].name );
+
 	// count amount of storages
 	kuro -> list_limit = EMPTY;
 	while( storage[ kuro -> list_limit ].type ) kuro -> list_limit++;
 
+	// shrink/extend list
+	kuro -> list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *) realloc( kuro -> list, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY ) * kuro -> list_limit );
+
 	// add entries to storage list
-	kuro -> list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_LIST_ENTRY ) * kuro -> list_limit );
 	for( uint64_t i = 0; i < kuro -> list_limit; i++ ) {
 		// current storage?
 		if( i == storage_id ) kuro -> list[ i ].flag = LIB_UI_ELEMENT_FLAG_active;	// mark it
@@ -352,7 +360,6 @@ void lib_kuro_storage( struct LIB_KURO_STRUCTURE *kuro ) {
 		}
 
 		// set name
-		MACRO_DEBUF();
 		kuro -> list[ i ].name = (uint8_t *) calloc( storage[ i ].name_limit + 1 ); for( uint8_t n = 0; n < storage[ i ].name_limit; n++ ) kuro -> list[ i ].name[ n ] = storage[ i ].name[ n ];
 	}
 }

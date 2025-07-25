@@ -92,5 +92,5 @@
 	};
 
 	// external routines (assembly language)
-	extern void module_virtio_irq_entry( void );
+	// extern void module_virtio_irq_entry( void );
 #endif

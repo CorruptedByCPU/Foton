@@ -75,11 +75,10 @@ reload:
 						std_cd( (uint8_t *) "/", TRUE );
 					} else {
 						// change storage
+						// to do ...
 					}
 
-					// remove flag
-					kuro.list[ i ].flag &= ~LIB_UI_ELEMENT_FLAG_event;
-
+					// done
 					goto reload;
 				}
 			}
@@ -117,8 +116,6 @@ reload:
 						case LIB_KURO_MIMETYPE_LOG:
 						case LIB_KURO_MIMETYPE_OBJECT:
 						case LIB_KURO_MIMETYPE_HEADER: {
-							log( "ok\n" );
-
 							// combine command with file name
 							uint8_t *path = malloc( TRUE );
 							sprintf( "moko %s", path, kuro.entries[ i ].cell[ 0 ].name );

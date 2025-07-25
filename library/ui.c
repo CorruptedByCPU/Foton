@@ -864,7 +864,7 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 						// selected entry
 						uint64_t e = ((ui -> window -> y - list -> standard.y) / LIB_UI_ELEMENT_LIST_ENTRY_height);
 
-						list -> entry[ e ].flag = LIB_UI_ELEMENT_FLAG_active;
+						list -> entry[ e ].flag = LIB_UI_ELEMENT_FLAG_event | LIB_UI_ELEMENT_FLAG_active;
 
 						*sync = TRUE;
 
