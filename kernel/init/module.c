@@ -6,7 +6,7 @@ uint8_t *module_list[] = {
 	(uint8_t *) "idle.ko",
 	(uint8_t *) "shredder.ko",
 	(uint8_t *) "ps2.ko",
-	(uint8_t *) "virtio.ko",
+	// (uint8_t *) "virtio.ko",
 	EMPTY
 };
 

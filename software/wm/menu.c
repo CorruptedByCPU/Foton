@@ -132,6 +132,25 @@ uint64_t wm_menu( void ) {
 
 		menu_entry++;
 
+		// Nth entry
+		uint8_t task_manager_name[] = "Task Manager";
+		uint8_t task_manager_event[] = "tm";
+		entry[ menu_entry ].icon	= lib_image_scale( menu_icon_load( (uint8_t *) "/var/share/media/icon/default/app/utilities-system-monitor.tga" ), 48, 48, 16, 16 );
+		entry[ menu_entry ].name	= (uint8_t *) calloc( sizeof( task_manager_name ) ); for( uint8_t i = 0; i < sizeof( task_manager_name ); i++ ) entry[ menu_entry ].name[ i ] = task_manager_name[ i ];
+		entry[ menu_entry ].event	= (uint8_t *) calloc( sizeof( task_manager_event ) ); for( uint8_t i = 0; i < sizeof( task_manager_event ); i++ ) entry[ menu_entry ].event[ i ] = task_manager_event[ i ];
+		entry[ menu_entry ].shortcut	= EMPTY;
+
+		entry_pixel = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, (uint8_t *) &task_manager_name, sizeof( task_manager_name ) - 1 );
+		if( entry[ menu_entry ].icon )		entry_pixel += LIB_UI_PADDING_DEFAULT + 16;
+
+		// widest entry of menu
+		if( menu_width < entry_pixel ) menu_width = entry_pixel;
+
+		// expand by default entry height
+		menu_height += LIB_UI_ELEMENT_LIST_ENTRY_height;
+
+		menu_entry++;
+
 	//----------------------------------------------------------------------
 
 	// apply margins and header

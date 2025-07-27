@@ -5,10 +5,6 @@
 #ifndef	LIB_FONT
 	#define	LIB_FONT
 
-	#ifndef	LIB_COLOR
-		#include	"./color.h"
-	#endif
-
         // display management
 	#define LIB_FONT_FLAG_ALIGN_left             	0x00
 	#define LIB_FONT_FLAG_ALIGN_center           	0x01
@@ -43,6 +39,8 @@
 
 	// main function of printing strings
 	uint64_t lib_font( uint8_t font, uint8_t *string, uint64_t length, uint32_t color, uint32_t *pixel, uint64_t scanline_pixel, uint8_t flag );
+
+	uint32_t lib_font_color( uint32_t background, uint32_t foreground );
 
 	uint8_t lib_font_length_char( uint8_t font, uint8_t character );
 

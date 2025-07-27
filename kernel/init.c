@@ -12,6 +12,7 @@
 	// Build-in libraries
 	//----------------------------------------------------------------------
 	#include	"../library/elf.c"
+	#include	"../library/font.c"
 	#include	"../library/string.c"
 	//======================================================================
 
@@ -21,7 +22,6 @@
 	#include	"driver/mtrr.h"
 	#include	"driver/port.h"
 	#include	"driver/rtc.h"
-	#include	"driver/serial.h"
 	#include	"driver/vmware.h"
 	//======================================================================
 
@@ -40,6 +40,7 @@
 	#include	"storage.h"
 	#include	"syscall.h"
 	#include	"task.h"
+	#include	"terminal.h"
 	#include	"tss.h"
 	#include	"vfs.h"
 	// --- always at end
@@ -58,7 +59,6 @@
 	#include	"driver/mtrr.c"
 	#include	"driver/port.c"
 	#include	"driver/rtc.c"
-	#include	"driver/serial.c"
 	#include	"driver/vmware.c"
 	//======================================================================
 
@@ -114,17 +114,10 @@
 
 // start of kernel initialization
 void _entry( void ) {
-	// DEBUG ---------------------------------------------------------------
-
-	#ifndef RELEASE
-		// debug purposes only
-		driver_serial_init();
-	#endif
-
-	// BASE ----------------------------------------------------------------
-
 	// initialize kernel environment pointer and variables/functions/rountines
 	kernel_init_env();
+
+	// BASE ----------------------------------------------------------------
 
 	// binary memory map as source of everything
 	kernel_init_memory();

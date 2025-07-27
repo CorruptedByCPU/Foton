@@ -15,13 +15,17 @@
 #ifndef	KERNEL_GDT
 	#include	"gdt.h"
 #endif
+#ifndef	KERNEL_TERMINAL
+	#include	"terminal.h"
+#endif
 #ifndef	KERNEL_TSS
 	#include	"tss.h"
 #endif
 
 struct KERNEL {
 	volatile struct KERNEL_STRUCTURE_APIC		*apic_base_address;
-	uint64_t									apic_id_last;
+	uint64_t					apic_id_last;
+	void						(*apic_accept)( void );
 
 	volatile uint64_t				cpu_limit;
 
@@ -75,6 +79,7 @@ struct KERNEL {
 	struct KERNEL_STRUCTURE_STORAGE			*storage_base_address;
 	uint64_t					storage_limit;
 	uint8_t						storage_lock;
+	struct KERNEL_STRUCTURE_STORAGE			*(*storage_add)( void );
 
 	uint64_t					*task_ap_address;
 	struct KERNEL_STRUCTURE_TASK			*task_base_address;
@@ -84,7 +89,7 @@ struct KERNEL {
 	uint8_t						task_lock_ap;
 	uint64_t					task_id;
 
-	// struct LIB_TERMINAL_STRUCTURE			terminal;
+	struct KERNEL_STRUCTURE_TERMINAL		terminal;
 
 	uint32_t					time_hz;
 	uint64_t					time_units;

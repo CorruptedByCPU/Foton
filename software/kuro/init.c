@@ -4,8 +4,8 @@
 
 void kuro_init( void ) {
 	// create window
-	struct LIB_WINDOW_STRUCTURE *window = lib_window( 3, 3, KURO_DEFAULT_WIDTH, KURO_DEFAULT_HEIGHT );
-	// struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, KURO_DEFAULT_WIDTH, KURO_DEFAULT_HEIGHT );
+	struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, KURO_DEFAULT_WIDTH, KURO_DEFAULT_HEIGHT );
+	// struct LIB_WINDOW_STRUCTURE *window = lib_window( 3, 3, KURO_DEFAULT_WIDTH, KURO_DEFAULT_HEIGHT );
 
 	// we allow window resize
 	window -> flags |= LIB_WINDOW_FLAG_resizable;

@@ -5,6 +5,9 @@
 #ifndef	LIB_UI
 	#define	LIB_UI
 
+	#ifndef	LIB_COLOR
+		#include	"../library/color.h"
+	#endif
 	#ifndef	LIB_FONT
 		#include	"../library/font.h"
 	#endif

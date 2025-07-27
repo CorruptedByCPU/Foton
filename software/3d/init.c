@@ -3,7 +3,8 @@
 ===============================================================================*/
 
 void init( void ) {
-	window = lib_window( 129 + 273, 3, V3D_WIDTH + (LIB_UI_BORDER_DEFAULT << STD_SHIFT_2), V3D_HEIGHT + LIB_UI_HEADER_HEIGHT + LIB_UI_BORDER_DEFAULT );
+	window = lib_window( -1, -1, V3D_WIDTH + (LIB_UI_BORDER_DEFAULT << STD_SHIFT_2), V3D_HEIGHT + LIB_UI_HEADER_HEIGHT + LIB_UI_BORDER_DEFAULT );
+	// window = lib_window( 129 + 273, 3, V3D_WIDTH + (LIB_UI_BORDER_DEFAULT << STD_SHIFT_2), V3D_HEIGHT + LIB_UI_HEADER_HEIGHT + LIB_UI_BORDER_DEFAULT );
 	ui = lib_ui( window );
 
 	lib_ui_clean( ui );

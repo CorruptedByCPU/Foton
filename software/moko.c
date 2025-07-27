@@ -25,8 +25,8 @@ struct LIB_UI_STRUCTURE *ui;
 uint8_t *document;
 
 uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
-	window = lib_window( 606, 289, WINDOW_WIDTH, WINDOW_HEIGHT );
-	// window = lib_window( -1, -1, WINDOW_WIDTH, WINDOW_HEIGHT );
+	window = lib_window( -1, -1, WINDOW_WIDTH, WINDOW_HEIGHT );
+	// window = lib_window( 606, 289, WINDOW_WIDTH, WINDOW_HEIGHT );
 
 	ui = lib_ui( window );
 

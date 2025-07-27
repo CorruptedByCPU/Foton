@@ -96,7 +96,7 @@ kernel_syscall_list:
 	dq	kernel_syscall_file			; 0x1E
 	dq	0x00	;; dq	kernel_sycall_file_write		; 0x1F
 	dq	0x00	;; dq	kernel_syscall_file_touch		; 0x20
-	dq	0x00	;; dq	kernel_syscall_task			; 0x21
+	dq	kernel_syscall_task			; 0x21
 	dq	0x00	;; dq	kernel_syscall_kill			; 0x22
 	dq	0x00	;; dq	kernel_syscall_network_interface	; 0x23
 	dq	0x00	;; dq	kernel_syscall_network_open		; 0x24

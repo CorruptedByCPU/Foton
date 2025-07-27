@@ -74,11 +74,15 @@ static uint8_t lib_font_char( uint8_t font, uint64_t scanline_pixel, uint32_t *p
 				uint8_t bold = TRUE; if( flag & LIB_FONT_FLAG_WEIGHT_bold ) bold = LIB_FONT_BOLD_level;
 
 				// put pixels
-				while( bold-- ) pixel[ (y * scanline_pixel) + x ] = lib_color_blend( pixel[ (y * scanline_pixel) + x ], (color & 0x00FFFFFF) | matrix[ (y * LIB_FONT_MATRIX_width_pixel) + x ] << 24 );
+				while( bold-- ) pixel[ (y * scanline_pixel) + x ] = lib_font_color( pixel[ (y * scanline_pixel) + x ], (color & 0x00FFFFFF) | matrix[ (y * LIB_FONT_MATRIX_width_pixel) + x ] << 24 );
 			}
 
 	// return to string function width of displayed character in pixels
 	return lib_font_length_char( font, character + STD_ASCII_SPACE );
+}
+
+uint32_t lib_font_color( uint32_t background, uint32_t foreground ) {
+	return ((((((255 - ((foreground & 0xFF000000) >> 24)) * (background & 0x00FF00FF)) + (((foreground & 0xFF000000) >> 24) * (foreground & 0x00FF00FF))) >> 8) & 0x00FF00FF) | ((((255 - ((foreground & 0xFF000000) >> 24)) * ((background & (0xFF000000 | 0x0000FF00)) >> 8)) + (((foreground & 0xFF000000) >> 24) * (0x01000000 | ((foreground & 0x0000FF00) >> 8)))) & (0xFF000000 | 0x0000FF00)));
 }
 
 // calculate string width in pixels
