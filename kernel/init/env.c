@@ -3,8 +3,9 @@
 ===============================================================================*/
 
 void kernel_init_env( void ) {
-	// we need to find a place where to keep kernel environment global variables/functions/rountines
-	// and binary memory map as main source of pages
+	// we need to find a place where to keep kernel environment global variables/pointers
+	// binary memory map as main source of pages
+	// and terminal cache (for double buffering)
 	//
 	// the beast place will be largest continous chunk of memory
 	// lets go
@@ -30,19 +31,21 @@ void kernel_init_env( void ) {
 		// remember size for later use
 		size = limine_memmap_request.response -> entries[ i ] -> length;
 
-		// set kernel environment global variables/functions/rountines inside largest continous physical memory (reflected in Higher Half)
+		// set kernel environment global variables/pointers inside largest continous physical memory (reflected in Higher Half)
 		kernel = (struct KERNEL *) (limine_memmap_request.response -> entries[ i ] -> base | KERNEL_MEMORY_mirror);
 	}
 
 	//----------------------------------------------------------------------
 
 	// align page number up to 4 KiB
-	last_page += 32768 - (last_page % 32767);
+	if( last_page % 32768 ) last_page += 32768 - (last_page % 32767);
 
-	// drain physical memory under kernel environment global variables/functions/rountines and binary memory map
+	// drain physical memory under kernel environment global variables/pointers and binary memory map
 	kernel_memory_clean( (uint64_t *) kernel, last_page >> STD_SHIFT_32768 );	// 32768 pages per 4 KiB
 
 	//----------------------------------------------------------------------
+
+	// fill kernel pointer with required variables/functions/routines
 
 	kernel -> apic_accept			= kernel_apic_accept;
 
@@ -50,6 +53,7 @@ void kernel_init_env( void ) {
 	kernel -> framebuffer_width_pixel	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> width;
 	kernel -> framebuffer_height_pixel	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> height;
 	kernel -> framebuffer_pitch_byte	= limine_framebuffer_request.response -> framebuffers[ 0 ] -> pitch;
+	kernel -> framebuffer_bpp			= limine_framebuffer_request.response -> framebuffers[ 0 ] -> bpp;
 	kernel -> framebuffer_pid		= EMPTY;	// by default: kernel
 
 	kernel -> device_mouse_x		= kernel -> framebuffer_width_pixel >> STD_SHIFT_2;
@@ -74,5 +78,10 @@ void kernel_init_env( void ) {
 
 	kernel -> task_by_id			= kernel_task_by_id;
 
+	// terminal cache is located behind binary memory map
+	kernel -> terminal.pixel		= (uint32_t *) ((uintptr_t) kernel + MACRO_PAGE_ALIGN_UP( sizeof( struct KERNEL ) ) + (last_page >> STD_SHIFT_8));
+
 	kernel -> time_sleep			= kernel_time_sleep;
+
+	//---------------------------------------------------------------------
 }

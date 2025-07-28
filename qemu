@@ -21,14 +21,10 @@ qemu-system-x86_64								\
 	-m ${MEM}								\
 	-cdrom build/foton.iso							\
 	-rtc base=localtime							\
-	\
 	-netdev user,id=eth0							\
 	-device virtio-net-pci-transitional,netdev=eth0,mac=00:22:44:66:88:AA	\
 	-object filter-dump,id=eth0,netdev=eth0,file=network.pcap		\
-	\
 	-device virtio-blk-pci-transitional,drive=vfs				\
 	-drive format=raw,file=build/storage.vfs,if=none,id=vfs			\
-	\
 	-serial mon:stdio							\
-	\
-	 -device qemu-xhci,id=xhci						\
+	-device qemu-xhci,id=xhci						\

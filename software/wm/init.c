@@ -3,7 +3,7 @@
 ===============================================================================*/
 
 void wm_init( void ) {
-	// Window Manager environment global variables/functions/rountines
+	// Window Manager environment global variables/pointers
 	wm = (struct WM_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 
 	// disable window management, for now

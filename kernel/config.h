@@ -12,6 +12,9 @@
 #define	KERNEL_STACK_address	(uintptr_t) -(KERNEL_STACK_LIMIT_page << STD_SHIFT_PAGE)
 #define	KERNEL_STACK_pointer	0xFFFFFFFFFFFFF000
 
+// simple and quick function access
+#define	log	kernel_terminal_printf
+
 #ifndef	KERNEL_GDT
 	#include	"gdt.h"
 #endif
@@ -40,6 +43,7 @@ struct KERNEL {
 	uint16_t					framebuffer_width_pixel;
 	uint16_t					framebuffer_height_pixel;
 	uint32_t					framebuffer_pitch_byte;
+	uint8_t						framebuffer_bpp;
 	uint64_t					framebuffer_pid;
 
 	struct KERNEL_STRUCTURE_GDT_HEADER		gdt_header;

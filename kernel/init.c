@@ -12,7 +12,8 @@
 	// Build-in libraries
 	//----------------------------------------------------------------------
 	#include	"../library/elf.c"
-	#include	"../library/font.c"
+	#include	"../library/font/config.h"
+	#include	"../library/font/data.c"
 	#include	"../library/string.c"
 	//======================================================================
 
@@ -77,6 +78,7 @@
 	#include	"storage.c"
 	#include	"syscall.c"
 	#include	"task.c"
+	#include	"terminal.c"
 	#include	"time.c"
 	#include	"vfs.c"
 	//======================================================================
@@ -109,13 +111,17 @@
 	#include	"init/smp.c"
 	#include	"init/storage.c"
 	#include	"init/task.c"
+	#include	"init/terminal.c"
 	#include	"init/vfs.c"
 	//======================================================================
 
 // start of kernel initialization
 void _entry( void ) {
-	// initialize kernel environment pointer and variables/functions/rountines
+	// initialize kernel environment pointer and variables/pointers
 	kernel_init_env();
+
+	// standard log output
+	kernel_init_terminal();
 
 	// BASE ----------------------------------------------------------------
 
@@ -159,6 +165,8 @@ void _entry( void ) {
 
 	// create Inter Process Communication
 	kernel_init_ipc();
+
+	// while( TRUE );
 
 	// execute initial software
 	kernel_init_exec();

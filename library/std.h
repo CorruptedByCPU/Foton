@@ -111,8 +111,8 @@
 	#define	STD_COLOR_CYAN					0xFF008080
 	#define	STD_COLOR_GRAY_LIGHT				0xFF808080
 	#define	STD_COLOR_GRAY					0xFF404040
-	#define	STD_COLOR_REG_LIGHT				0xFFFF0000
-	#define	STD_COLOR_GREEN_LIGHT				0xFFFFFF00
+	#define	STD_COLOR_RED_LIGHT				0xFFFF0000
+	#define	STD_COLOR_GREEN_LIGHT				0xFF00FF00
 	#define	STD_COLOR_YELLOW				0xFF00FF00
 	#define	STD_COLOR_BLUE_LIGHT				0xFF0000FF
 	#define	STD_COLOR_MAGENTA_LIGHT				0xFFFF00FF
@@ -357,6 +357,10 @@
 	#define	STD_SIZE_QWORD_sign				((uint64_t) 1 << 63)
 	#define	STD_SIZE_QWORD_bit				64
 	#define	STD_SIZE_PTR_byte				STD_SIZE_QWORD_byte
+	#define	STD_SIZE_KiB_byte				1024
+	#define	STD_SIZE_MiB_byte				(STD_SIZE_KiB_byte << STD_SHIFT_1024)
+	#define	STD_SIZE_GiB_byte				(STD_SIZE_MiB_byte << STD_SHIFT_1024)
+	#define	STD_SIZE_TiB_byte				(STD_SIZE_GiB_byte << STD_SHIFT_1024)
 
 	#define	STD_STORAGE_NAME_length				31				
 
