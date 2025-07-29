@@ -78,8 +78,11 @@ void kernel_init_env( void ) {
 
 	kernel -> task_by_id			= kernel_task_by_id;
 
-	// terminal cache is located behind binary memory map
+	// terminal buffer is located behind binary memory map
 	kernel -> terminal.pixel		= (uint32_t *) ((uintptr_t) kernel + MACRO_PAGE_ALIGN_UP( sizeof( struct KERNEL ) ) + (last_page >> STD_SHIFT_8));
+	// every printed character lands in cache
+	kernel -> terminal.string		= (uint8_t *) (uintptr_t) kernel -> terminal.pixel + MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel );
+	kernel -> terminal.length		= EMPTY;
 
 	kernel -> time_sleep			= kernel_time_sleep;
 

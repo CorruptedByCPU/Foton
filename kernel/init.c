@@ -166,8 +166,6 @@ void _entry( void ) {
 	// create Inter Process Communication
 	kernel_init_ipc();
 
-	// while( TRUE );
-
 	// execute initial software
 	kernel_init_exec();
 

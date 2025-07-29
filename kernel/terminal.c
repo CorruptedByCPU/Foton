@@ -20,6 +20,7 @@ void kernel_terminal_char( char character ) {
 		kernel_terminal_clean_character();
 
 		// print
+		kernel_terminal_register( character );
 
 		// properties of font matrix
 		uint8_t *font_matrix = (uint8_t *) lib_font_matrix + LIB_FONT_FAMILY_ROBOTO_MONO_offset;
@@ -33,16 +34,19 @@ void kernel_terminal_char( char character ) {
 					// simplify below function a little
 					uint32_t color_foreground_alpha = font_matrix[ (y * LIB_FONT_MATRIX_width_pixel) + x ] << 24;
 
-					// pixel
-					kernel -> terminal.pointer[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel_terminal_blend( kernel -> terminal.pointer[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ], (kernel -> terminal.color_foreground & 0x00FFFFFF) | color_foreground_alpha );
-
 					// shadow of pixel
 					kernel -> terminal.pointer[ ((y + 1) * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel_terminal_blend( kernel -> terminal.pointer[ ((y + 1) * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ], (STD_COLOR_BLACK & 0x00FFFFFF) | color_foreground_alpha );
+				
+					// pixel
+					kernel -> terminal.pointer[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel_terminal_blend( kernel -> terminal.pointer[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ], (kernel -> terminal.color_foreground & 0x00FFFFFF) | color_foreground_alpha );
 				}
 
 		// set the new cursor position
 		kernel -> terminal.cursor_x++;
 	}
+
+	// new line character?
+	if( character == STD_ASCII_NEW_LINE ) kernel_terminal_register( STD_ASCII_NEW_LINE );	// preserve
 
 	// update cursor properties
 	kernel_terminal_cursor();
@@ -55,7 +59,7 @@ void kernel_terminal_clean( void ) {
 
 static void kernel_terminal_clean_character( void ) {
 	// remove character from current cursor position
-	for( uint8_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ ) for( uint8_t x = 0; x < LIB_FONT_WIDTH_pixel; x++ ) kernel -> terminal.pointer[ (y + (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel -> terminal.color_background;
+	for( uint64_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ ) for( uint64_t x = 0; x < LIB_FONT_WIDTH_pixel; x++ ) kernel -> terminal.pointer[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel -> terminal.color_background;
 }
 
 void kernel_terminal_clean_line( uint64_t line ) {
@@ -116,7 +120,19 @@ void kernel_terminal_printf( const char *string, ... ) {
 
 			// select sequence type
 			switch( *string ) {
-				// unsigned value
+				// binary
+				case 'b': {
+					// show
+					kernel_terminal_value( va_arg( argv, uint64_t ), STD_NUMBER_SYSTEM_binary, pv, STD_ASCII_SPACE );
+
+					// leave sequence type
+					string++;
+
+					// done
+					continue;
+				}
+
+				// unsigned
 				case 'u': {
 					// show
 					kernel_terminal_value( va_arg( argv, uint64_t ), STD_NUMBER_SYSTEM_decimal, pv, STD_ASCII_SPACE );
@@ -128,7 +144,7 @@ void kernel_terminal_printf( const char *string, ... ) {
 					continue;
 				}
 	
-				// uppercase hexadecimal value
+				// uppercase hexadecimal
 				case 'X': {
 					// show
 					kernel_terminal_value( va_arg( argv, uint64_t ), STD_NUMBER_SYSTEM_hexadecimal, pv, STD_ASCII_DIGIT_0 );
@@ -152,10 +168,30 @@ void kernel_terminal_printf( const char *string, ... ) {
 	// sync
 	for( uint64_t y = 0; y < kernel -> framebuffer_height_pixel; y++ )
 	for( uint64_t x = 0; x < kernel -> framebuffer_width_pixel; x++ )
-	kernel -> framebuffer_base_address[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel -> terminal.pixel[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ];
+	kernel -> framebuffer_base_address[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel -> terminal.pixel[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] & ~STD_COLOR_mask;
 
 	// release function
 	MACRO_UNLOCK( kernel -> terminal.lock );
+}
+
+void kernel_terminal_register( char character ) {
+	// // store character
+	// kernel -> terminal.string[ kernel -> terminal.length++ ] = character;
+
+	// // extend cache?
+	// if( ! (kernel -> terminal.length & ~STD_PAGE_mask) ) {	// yea
+	// 	// allocate new area
+	// 	uint8_t *new = (uint8_t *) kernel_memory_alloc( (MACRO_PAGE_ALIGN_UP( kernel -> terminal.length ) >> STD_SHIFT_PAGE) + 1 );
+
+	// 	// preserve old content
+	// 	memcpy( new, kernel -> terminal.string, kernel -> terminal.length );
+
+	// 	// release old area
+	// 	kernel_memory_release( (uintptr_t) kernel -> terminal.string, MACRO_PAGE_ALIGN_UP( kernel -> terminal.length ) >> STD_SHIFT_PAGE );
+
+	// 	// done
+	// 	kernel -> terminal.string = new;
+	// }
 }
 
 static void kernel_terminal_scroll( void ) {

@@ -23,9 +23,6 @@ void kernel_init_acpi( void ) {
 
 		// pointer to list of RSDT entries
 		rsdt_address = (uint32_t *) ((uintptr_t) rsdp_or_xsdp_header -> rsdt_address + sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT ));
-
-		// debug
-		log( "RSDT header at 0x%16X\n", (uint64_t) rsdt_address );
 	} else {
 		// XSDT header properties
 		struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *xsdt = (struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT *) ((uintptr_t) rsdp_or_xsdp_header -> xsdt_address);
@@ -35,9 +32,6 @@ void kernel_init_acpi( void ) {
 
 		// pointer to list of XSDT entries
 		xsdt_address = (uint64_t *) ((uintptr_t) rsdp_or_xsdp_header -> xsdt_address + sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_DEFAULT ));
-
-		// debug
-		log( "XSDT header at 0x%16X\n", (uint64_t) xsdt_address );
 	}
 
 	// do recon on all entries of list
@@ -59,9 +53,6 @@ void kernel_init_acpi( void ) {
 			// store APIC base address
 			kernel -> apic_base_address = (struct KERNEL_STRUCTURE_APIC *) (uintptr_t) (madt -> lapic_address | KERNEL_MEMORY_mirror);
 
-			// debug
-			log( "APIC base address 0x%16X\n", (uint64_t) kernel -> apic_base_address & ~KERNEL_MEMORY_mirror );
-
 			// length of MADT list
 			uint64_t limit = (uint32_t) madt -> length - sizeof( struct KERNEL_STRUCTURE_INIT_ACPI_MADT );
 		
@@ -77,16 +68,10 @@ void kernel_init_acpi( void ) {
 				// I/O APIC entry found?
 				struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *io_apic = (struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *) list;
 				if( io_apic -> type == KERNEL_INIT_ACPI_APIC_TYPE_io_apic ) {
-					// debug
-					log( "#%u I/O APIC located", io_apic -> gsib ); if( kernel -> io_apic_base_address ) log( ", no support.\n" );
-
 					// I/O APIC supports interrupt vectors 0+?
 					if( io_apic -> gsib == EMPTY ) {
 						// store base address of I/O APIC
 						kernel -> io_apic_base_address = (struct KERNEL_STRUCTURE_IO_APIC *) (uintptr_t) (io_apic -> base_address | KERNEL_MEMORY_mirror);
-
-						// debug
-						log( ", base address 0x%16X\n", (uint64_t) kernel -> io_apic_base_address & ~KERNEL_MEMORY_mirror );
 					}
 				}
 

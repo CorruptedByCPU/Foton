@@ -323,6 +323,8 @@
 		uint64_t	tx_byte;
 	};
 
+	#define	STD_NUMBER_SYSTEM_binary			2
+	#define	STD_NUMBER_SYSTEM_octonal			8
 	#define	STD_NUMBER_SYSTEM_decimal			10
 	#define	STD_NUMBER_SYSTEM_hexadecimal			16
 
@@ -361,6 +363,7 @@
 	#define	STD_SIZE_MiB_byte				(STD_SIZE_KiB_byte << STD_SHIFT_1024)
 	#define	STD_SIZE_GiB_byte				(STD_SIZE_MiB_byte << STD_SHIFT_1024)
 	#define	STD_SIZE_TiB_byte				(STD_SIZE_GiB_byte << STD_SHIFT_1024)
+	#define	STD_MASK_DWORD					0x00000000FFFFFFFF
 
 	#define	STD_STORAGE_NAME_length				31				
 

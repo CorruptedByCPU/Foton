@@ -29,6 +29,10 @@
 		// cursor position inside memory
 		uint32_t	*pointer;
 
+		// cache of all printed characters
+		uint8_t		*string;
+		uint64_t	length;
+
 		// visualization
 		uint32_t	color_foreground;
 		uint32_t	color_background;
@@ -36,6 +40,8 @@
 
 	static void kernel_terminal_clean_character( void );
 	static void kernel_terminal_cursor( void );
+	void kernel_terminal_printf( const char *string, ... );
+	void kernel_terminal_register( char character );
 	static void kernel_terminal_scroll( void );
 	void kernel_terminal_value( uint64_t value, uint8_t base, uint8_t prefix, uint8_t character );
 #endif
