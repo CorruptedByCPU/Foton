@@ -12,8 +12,9 @@ void kernel_terminal_char( char character ) {
 		// select special behavior
 		switch( character ) {
 			case STD_ASCII_BACKSPACE: { if( kernel -> terminal.cursor_x ) kernel -> terminal.cursor_x--; else if( kernel -> terminal.cursor_y ) { kernel -> terminal.cursor_x = kernel -> terminal.width_char - 1; kernel -> terminal.cursor_y--; }; break; }
-			case STD_ASCII_NEW_LINE: { kernel -> terminal.cursor_x = EMPTY; kernel -> terminal.cursor_y++; break; }
-			case STD_ASCII_RETURN: { kernel -> terminal.cursor_x = EMPTY; break; }
+			case STD_ASCII_NEW_LINE: { kernel -> terminal.cursor_x = EMPTY; kernel -> terminal.cursor_y++; kernel_terminal_register( character ); break; }
+			case STD_ASCII_RETURN: { kernel -> terminal.cursor_x = EMPTY; kernel_terminal_register( character ); break; }
+			case STD_ASCII_TAB: { kernel -> terminal.cursor_x += kernel -> terminal.cursor_x % KERNEL_TERMINAL_TAB_LENGTH ? KERNEL_TERMINAL_TAB_LENGTH - (kernel -> terminal.cursor_x % KERNEL_TERMINAL_TAB_LENGTH) : KERNEL_TERMINAL_TAB_LENGTH; kernel_terminal_register( character ); break; }
 		}
 	} else {
 		// sweep away old character
@@ -44,9 +45,6 @@ void kernel_terminal_char( char character ) {
 		// set the new cursor position
 		kernel -> terminal.cursor_x++;
 	}
-
-	// new line character?
-	if( character == STD_ASCII_NEW_LINE ) kernel_terminal_register( STD_ASCII_NEW_LINE );	// preserve
 
 	// update cursor properties
 	kernel_terminal_cursor();
@@ -124,6 +122,21 @@ void kernel_terminal_printf( const char *string, ... ) {
 				case 'b': {
 					// show
 					kernel_terminal_value( va_arg( argv, uint64_t ), STD_NUMBER_SYSTEM_binary, pv, STD_ASCII_SPACE );
+
+					// leave sequence type
+					string++;
+
+					// done
+					continue;
+				}
+
+				// string?
+				case 's': {
+					// string properties
+					uint8_t *substring = va_arg( argv, uint8_t * );
+
+					// show
+					for( uint64_t i = 0; i < lib_string_length( substring ); i++ ) kernel_terminal_char( substring[ i ] );
 
 					// leave sequence type
 					string++;

@@ -9,6 +9,8 @@
 	#define LIB_FONT_MATRIX_width_pixel		1481
 	#define LIB_FONT_MATRIX_height_pixel		16
 
+	#define	KERNEL_TERMINAL_TAB_LENGTH	8
+
 	struct KERNEL_STRUCTURE_TERMINAL {
 		// semaphore, exclusive access
 		uint8_t		lock;
