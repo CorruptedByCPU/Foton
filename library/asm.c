@@ -6,13 +6,44 @@
 #define	LIB_ASM_MODRM_register	0x07	// 0x0111
 #define	LIB_ASM_MODRM_MOD_register	0x04
 
-struct LIB_ASM_STRUCTURE_INSTRUCTION {
-	char	*mnemonic;
-	uint8_t	modrm;
-	void	*group;
+// REX.W = 1	use 64-bit operands (rax, etc.)
+// REX.R = 1	extend reg in ModR/M to access r8–r15
+// REX.X = 1	extend index in SIB to r8–r15
+// REX.B = 1	extend rm or base to r8–r15
+
+// REX
+struct LIB_ASM_STRUCTURE_REX {
+	uint8_t w;
+	uint8_t r;
+	uint8_t x;
+	uint8_t b;
+};
+
+// The Register Operand Type
+struct LIB_ASM_STRUCTURE_MODRM {
+	uint8_t	mod;
+	uint8_t	reg;
+	uint8_t	rm;
 };
 
 #include	"./asm/data.c"
+
+uint8_t *lib_asm_register( uint8_t bits, uint8_t rex_exist, uint8_t extension, uint8_t reg ) {
+	// if there is no 64 bit extension, and we use 8 bit registers
+	if( ! rex_exist && bits == 0 ) return r_no_rex[ reg ];	// use special array
+	
+	// otherwise
+
+	// select correct register
+	if( extension ) reg += 8;
+
+	// and use default array
+	return r[ bits ][ reg ];
+}
+
+void lib_asm_memory( void ) {
+
+}
 
 // output to stdout, and return amount of parsed Bytes 
 uint64_t lib_asm( void *rip ) {
@@ -23,28 +54,20 @@ uint64_t lib_asm( void *rip ) {
 	uint8_t opcode = EMPTY;
 
 	// decoded instruction properties
-	struct LIB_ASM_STRUCTURE_INSTRUCTION i = { EMPTY };
+	struct A i = { EMPTY };
 
 	// current register size
-	uint8_t size_register = 64;	// 64 bit by default, library doesn't support 32 bit
+	uint8_t bits = 2;	// 32 bit by default
 
 	// change descriptor to
 	uint8_t descriptor = EMPTY;	// default
 
 	// REX
-	struct LIB_ASM_STRUCTURE_REX {
-		uint8_t w;
-		uint8_t r;
-		uint8_t x;
-		uint8_t b;
-	} rex = { EMPTY };
+	uint8_t rex_exist = FALSE;
+	struct LIB_ASM_STRUCTURE_REX rex = { EMPTY };
 
 	// The Register Operand Type
-	struct LIB_ASM_STRUCTURE_MODRM {
-		uint8_t	mod;
-		uint8_t	reg;
-		uint8_t	rm;
-	} modrm = { EMPTY };
+	struct LIB_ASM_STRUCTURE_MODRM modrm = { EMPTY };
 
 	// SIB
 	struct LIB_ASM_STRUCTURE_SIB {
@@ -67,8 +90,8 @@ uint64_t lib_asm( void *rip ) {
 		if( opcode == 0x65 ) { descriptor = 'g'; continue; }
 
 		// change size?
-		if( opcode == 0x66 ) { size_register = 16; rex.w = TRUE; continue; }	// bit
-		if( opcode == 0x67 ) { size_register = 64; continue; }	// bit
+		if( opcode == 0x66 ) { bits = 1; rex.w = TRUE; continue; }	// bit
+		if( opcode == 0x67 ) { bits = 3; continue; }	// bit
 
 		// 0x9B (x87fpu)
 
@@ -82,6 +105,9 @@ uint64_t lib_asm( void *rip ) {
 
 		// REX
 		if( (opcode & ~STD_MASK_byte_half) == LIB_ASM_REX_base ) {
+			// change behavior of something :)
+			rex_exist = TRUE;
+
 			// 64 bit operand size
 			rex.w = (opcode >> 3) & TRUE;
 
@@ -116,11 +142,11 @@ uint64_t lib_asm( void *rip ) {
 	}
 
 	// unknown instruction?
-	if( ! i.mnemonic ) { log( "unknown" ); return (uintptr_t) parse - (uintptr_t) rip; }
-	else log( "%s\t", i.mnemonic );
+	if( ! i.name ) { log( "unknown" ); return (uintptr_t) parse - (uintptr_t) rip; }
+	else log( "%s\t", i.name );
 
 	// ModR/M exist for this mnemonic?
-	if( i.modrm ) {	// yes
+	if( i.options & FM ) {	// yes
 		// obtain opcode
 		opcode = *(parse++);
 
@@ -135,7 +161,7 @@ uint64_t lib_asm( void *rip ) {
 
 		// memory manipulation?
 		if( modrm.mod != LIB_ASM_MODRM_MOD_register ) {
-			// SIB exist for thie mnemonic?
+			// SIB exist for this mnemonic?
 			if( modrm.rm == 0x04 ) {
 				// obtain opcode
 				opcode = *(parse++);
@@ -150,8 +176,26 @@ uint64_t lib_asm( void *rip ) {
 				sib.base = opcode & 3;
 			}
 		}
+	}
+
+	if( rex.w ) bits = 3;	// 64 bit mode of register
+	// should it be before rex.w?
+	if( i.options & B ) bits = 0;	// 8 bit mode of register
+
+	// register-direct mode?
+	if( modrm.mod == 0x03 )	{	// 0b11
+		log( "%s,\t%s", lib_asm_register( bits, rex_exist, rex.b, modrm.rm ), lib_asm_register( bits, rex_exist, rex.r, modrm.reg ) );
+	} else {
 
 
+		// first operand is a memory access?
+		if( i.options & M ) {
+			lib_asm_memory();
+			log( ",\t%s", lib_asm_register( bits, rex_exist, rex.x, modrm.reg ) );
+		} else {
+			log( "%s,\t", lib_asm_register( bits, rex_exist, rex.b, modrm.reg ) );
+			lib_asm_memory();
+		}
 	}
 
 	// amount of parsed Bytes

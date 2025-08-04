@@ -23,6 +23,17 @@ kernel_task:
 	; turn off Direction Flag
 	cld
 
+	; debug disassembler
+	; xchg	bx,bx
+	; int	3
+
+    ; add     r10b, byte [rax]
+    ; add     r11b, byte [r8 + 4]
+	; add     r12b, byte [r9 + rcx]
+    ; add     r12b, byte [r9 + rcx + 8]
+	; add     r12b, byte [r9 + rcx*2 + 8]
+	; add     r13b, byte [r10 + 16]
+
 	; preserve original registers
 	push	rax
 	push	rbx
