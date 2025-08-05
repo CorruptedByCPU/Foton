@@ -12,8 +12,8 @@ void palette_init( void ) {
 	//---------------------------------------------------------------------
 
 	// create Palette window
-	window = lib_window( -1, -1, WINDOW_WIDTH, WINDOW_HEIGHT );	// at default location
-	// window = lib_window( 129 + 606, 3, WINDOW_WIDTH, WINDOW_HEIGHT );	// DEBUG
+	// window = lib_window( -1, -1, WINDOW_WIDTH, WINDOW_HEIGHT );	// at default location
+	window = lib_window( 129 + 606, 3, WINDOW_WIDTH, WINDOW_HEIGHT );	// DEBUG
 
 	// name window
 	lib_window_name( window, (uint8_t *) "Palette" );

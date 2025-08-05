@@ -27,12 +27,31 @@ kernel_task:
 	; xchg	bx,bx
 	; int	3
 
+	; add		al,			cl
+	; add		bl,			r9b
+	; add		r8b,		cl
+
+	; add eax, ecx 
+
     ; add     r10b, byte [rax]
     ; add     r11b, byte [r8 + 4]
 	; add     r12b, byte [r9 + rcx]
-    ; add     r12b, byte [r9 + rcx + 8]
-	; add     r12b, byte [r9 + rcx*2 + 8]
-	; add     r13b, byte [r10 + 16]
+    ; add     r12b, byte [r9 + rcx + 16]
+	; add     r12b, byte [r9 + rcx*2 + 32]
+	; add     r12b, byte [r9 + rcx*4 + 64]
+	; add     r12b, byte [r9 + rcx*8 + 128]
+	; add     r13b, byte [r10 + 512]
+	; add     r13b, byte [r10 + rdi * 2 + 512]
+
+    ; add     byte [rax],					al
+    ; add     byte [r8 + 4],				bl
+	; add     byte [r9 + rcx],			cl
+    ; add     byte [r9 + rcx + 16],		dl
+	; add     byte [r9 + rcx*2 + 32],		r15b
+	; add     byte [r9 + rcx*4 + 64],		r14b
+	; add     byte [r9 + rcx*8 + 128],	r13b
+	; add     byte [r10 + 512],			r12b
+	; add     byte [r10 + rdi * 2 + 512],	r11b
 
 	; preserve original registers
 	push	rax

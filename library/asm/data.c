@@ -13,6 +13,8 @@ uint8_t *r_no_rex[] = {
 	(uint8_t *) "al", (uint8_t *) "cl", (uint8_t *) "dl", (uint8_t *) "bl", (uint8_t *) "ah", (uint8_t *) "ch", (uint8_t *) "dh", (uint8_t *) "bh"
 };
 
+uint8_t *s[] = { (uint8_t *) "", (uint8_t *) "2", (uint8_t *) "4", (uint8_t *) "8" };
+
 // type
 #define	R 0x00000001	// 0b00000000000000000000000000000001	// register
 #define	M 0x00000002	// 0b00000000000000000000000000000010	// memory
@@ -23,17 +25,12 @@ uint8_t *r_no_rex[] = {
 #define	D 0x00000018	// 0b00000000000000000000000000100000	// dword
 #define	Q 0x00000020	// 0b00000000000000000000000001000000	// qword
 // flag
+#define	FO 0x10000000	// 0b00010000000000000000000000000000	// register inside opcode
 #define	FS 0x20000000	// 0b00100000000000000000000000000000	// signed
 #define	FA 0x40000000	// 0b01000000000000000000000000000000	// accumulator
 #define FM 0x80000000	// 0b10000000000000000000000000000000	// modr/m exist
 
-struct A {
-	uint8_t		*name;
-	uint32_t	options;
-	void		*group;
-};
-
-struct A instruction[] = {
+struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	// 0x00
 	{ (uint8_t *) "add", (R|M|B) | (R|B)   << 7 | FM },
 	{ (uint8_t *) "add", (R|M)   | (R)     << 7 | FM },
@@ -124,23 +121,23 @@ struct A instruction[] = {
 	{ EMPTY, EMPTY, EMPTY },
 	{ EMPTY, EMPTY, EMPTY },
 	// 0x50
-	{ (uint8_t *) "push", (R) },
-	{ (uint8_t *) "push", (R) },
-	{ (uint8_t *) "push", (R) },
-	{ (uint8_t *) "push", (R) },
-	{ (uint8_t *) "push", (R) },
-	{ (uint8_t *) "push", (R) },
-	{ (uint8_t *) "push", (R) },
-	{ (uint8_t *) "push", (R) },
+	{ (uint8_t *) "push", (R|Q) | FO },
+	{ (uint8_t *) "push", (R|Q) | FO },
+	{ (uint8_t *) "push", (R|Q) | FO },
+	{ (uint8_t *) "push", (R|Q) | FO },
+	{ (uint8_t *) "push", (R|Q) | FO },
+	{ (uint8_t *) "push", (R|Q) | FO },
+	{ (uint8_t *) "push", (R|Q) | FO },
+	{ (uint8_t *) "push", (R|Q) | FO },
 	// 0x58
-	{ (uint8_t *) "pop", (R) },
-	{ (uint8_t *) "pop", (R) },
-	{ (uint8_t *) "pop", (R) },
-	{ (uint8_t *) "pop", (R) },
-	{ (uint8_t *) "pop", (R) },
-	{ (uint8_t *) "pop", (R) },
-	{ (uint8_t *) "pop", (R) },
-	{ (uint8_t *) "pop", (R) },
+	{ (uint8_t *) "pop", (R|Q) | FO },
+	{ (uint8_t *) "pop", (R|Q) | FO },
+	{ (uint8_t *) "pop", (R|Q) | FO },
+	{ (uint8_t *) "pop", (R|Q) | FO },
+	{ (uint8_t *) "pop", (R|Q) | FO },
+	{ (uint8_t *) "pop", (R|Q) | FO },
+	{ (uint8_t *) "pop", (R|Q) | FO },
+	{ (uint8_t *) "pop", (R|Q) | FO },
 	// // 0x60
 	// { EMPTY, EMPTY, EMPTY },
 	// { EMPTY, EMPTY, EMPTY },
