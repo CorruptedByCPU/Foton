@@ -22,8 +22,8 @@ uint8_t *s[] = { (uint8_t *) "", (uint8_t *) "2", (uint8_t *) "4", (uint8_t *) "
 // size
 #define	B 0x00000008	// 0b00000000000000000000000000001000	// byte
 #define	W 0x00000010	// 0b00000000000000000000000000010000	// word
-#define	D 0x00000018	// 0b00000000000000000000000000100000	// dword
-#define	Q 0x00000020	// 0b00000000000000000000000001000000	// qword
+#define	D 0x00000020	// 0b00000000000000000000000000100000	// dword
+#define	Q 0x00000040	// 0b00000000000000000000000001000000	// qword
 // flag
 #define	FO 0x10000000	// 0b00010000000000000000000000000000	// register inside opcode
 #define	FS 0x20000000	// 0b00100000000000000000000000000000	// signed
@@ -32,23 +32,23 @@ uint8_t *s[] = { (uint8_t *) "", (uint8_t *) "2", (uint8_t *) "4", (uint8_t *) "
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	// 0x00
-	{ (uint8_t *) "add", (R|M|B) | (R|B)   << 7 | FM },
-	{ (uint8_t *) "add", (R|M)   | (R)     << 7 | FM },
-	{ (uint8_t *) "add", (R|B)   | (R|M|B) << 7 | FM },
-	{ (uint8_t *) "add", (R)     | (R|M)   << 7 | FM },
-	{ (uint8_t *) "add", (R|B)   | (I|B)   << 7 | FM | FA },
-	{ (uint8_t *) "add", (R|W)   | (I|B)   << 7 | FM | FA },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
+	{ (uint8_t *) "add", (R|M|B) | ((R|B)   << 7) | FM },	// 0x00
+	{ (uint8_t *) "add", (R|M|D)   | ((R|D)     << 7) | FM },	// 0x01
+	{ (uint8_t *) "add", (R|B)   | ((R|M|B) << 7) | FM },	// 0x02
+	{ (uint8_t *) "add", (R|D)     | ((R|M|D)   << 7) | FM },	// 0x03
+	{ (uint8_t *) "add", (R|B)   | ((I|B)   << 7) },	// 0x04
+	{ (uint8_t *) "add", (R|D)   | ((I|D)   << 7) },	// 0x05
+	{ EMPTY, EMPTY, EMPTY },	// 0x06
+	{ EMPTY, EMPTY, EMPTY },	// 0x07
 	// 0x08
-	{ (uint8_t *) "or",  (R|M|B) | (R|B)   << 7 | FM },
-	{ (uint8_t *) "or",  (R|M)   | (R)     << 7 | FM },
-	{ (uint8_t *) "or",  (R|B)   | (R|M|B) << 7 | FM },
-	{ (uint8_t *) "or",  (R)     | (R|M)   << 7 | FM },
-	{ (uint8_t *) "or",  (R|B)   | (I|B)   << 7 | FM | FA },
-	{ (uint8_t *) "or",  (R|W)   | (I|B)   << 7 | FM | FA },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
+	{ (uint8_t *) "or",  (R|M|B) | (R|B)   << 7 | FM },	// 0x08
+	{ (uint8_t *) "or",  (R|M)   | (R)     << 7 | FM },	// 0x09
+	{ (uint8_t *) "or",  (R|B)   | (R|M|B) << 7 | FM },	// 0x0A
+	{ (uint8_t *) "or",  (R)     | (R|M)   << 7 | FM },	// 0x0B
+	{ (uint8_t *) "or",  (R|B)   | (I|B)   << 7 | FM | FA },	// 0x0C
+	{ (uint8_t *) "or",  (R|W)   | (I|B)   << 7 | FM | FA },	// 0x0D
+	{ EMPTY, EMPTY, EMPTY },	// 0x0E
+	{ EMPTY, EMPTY, EMPTY },	// 0x0F
 	// 0x10
 	{ (uint8_t *) "adc", (R|M|B) | (R|B)   << 7 | FM },
 	{ (uint8_t *) "adc", (R|M)   | (R)     << 7 | FM },
@@ -121,23 +121,23 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ EMPTY, EMPTY, EMPTY },
 	{ EMPTY, EMPTY, EMPTY },
 	// 0x50
-	{ (uint8_t *) "push", (R|Q) | FO },
-	{ (uint8_t *) "push", (R|Q) | FO },
-	{ (uint8_t *) "push", (R|Q) | FO },
-	{ (uint8_t *) "push", (R|Q) | FO },
-	{ (uint8_t *) "push", (R|Q) | FO },
-	{ (uint8_t *) "push", (R|Q) | FO },
-	{ (uint8_t *) "push", (R|Q) | FO },
-	{ (uint8_t *) "push", (R|Q) | FO },
+	{ (uint8_t *) "push", (R) | FO },
+	{ (uint8_t *) "push", (R) | FO },
+	{ (uint8_t *) "push", (R) | FO },
+	{ (uint8_t *) "push", (R) | FO },
+	{ (uint8_t *) "push", (R) | FO },
+	{ (uint8_t *) "push", (R) | FO },
+	{ (uint8_t *) "push", (R) | FO },
+	{ (uint8_t *) "push", (R) | FO },
 	// 0x58
-	{ (uint8_t *) "pop", (R|Q) | FO },
-	{ (uint8_t *) "pop", (R|Q) | FO },
-	{ (uint8_t *) "pop", (R|Q) | FO },
-	{ (uint8_t *) "pop", (R|Q) | FO },
-	{ (uint8_t *) "pop", (R|Q) | FO },
-	{ (uint8_t *) "pop", (R|Q) | FO },
-	{ (uint8_t *) "pop", (R|Q) | FO },
-	{ (uint8_t *) "pop", (R|Q) | FO },
+	{ (uint8_t *) "pop", (R) | FO },
+	{ (uint8_t *) "pop", (R) | FO },
+	{ (uint8_t *) "pop", (R) | FO },
+	{ (uint8_t *) "pop", (R) | FO },
+	{ (uint8_t *) "pop", (R) | FO },
+	{ (uint8_t *) "pop", (R) | FO },
+	{ (uint8_t *) "pop", (R) | FO },
+	{ (uint8_t *) "pop", (R) | FO },
 	// // 0x60
 	// { EMPTY, EMPTY, EMPTY },
 	// { EMPTY, EMPTY, EMPTY },

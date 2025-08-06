@@ -130,6 +130,30 @@ void kernel_terminal_printf( const char *string, ... ) {
 					continue;
 				}
 
+				// unsigned
+				case 'd': {
+					// signed value
+					uint64_t value = va_arg( argv, uint64_t );
+
+					// sign?
+					if( value & STD_SIZE_QWORD_sign ) {
+						// show minus before value
+						kernel_terminal_char( STD_ASCII_MINUS );
+
+						// convert to absolute
+						value = ~value + 1;
+					}
+
+					// show
+					kernel_terminal_value( value, STD_NUMBER_SYSTEM_decimal, pv, STD_ASCII_SPACE );
+
+					// leave sequence type
+					string++;
+
+					// done
+					continue;
+				}
+
 				// string?
 				case 's': {
 					// string properties

@@ -32,7 +32,7 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	// if( kernel -> framebuffer_width_pixel < 1280 || kernel -> framebuffer_height_pixel < 720 ) { log( "\n\tAt least 1280x720 resolution is required." ); while( TRUE ); }
 
 	log( " CPU State              EFLAGS Literals      Stack                                Disassembly\n" );
-	uint64_t x = kernel -> terminal.cursor_x;	// + 1;
+	uint64_t x = kernel -> terminal.cursor_x + 1;
 	uint64_t y = kernel -> terminal.cursor_y;
 	kernel -> terminal.color_background = 0x00002200;
 	for( uint8_t i = 0; i < 3; i++ ) { kernel -> terminal.cursor_x = x; kernel_terminal_cursor(); log( "                                           \n" ); }
@@ -85,9 +85,8 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	uint8_t *rip = (uint8_t *) exception -> rip;
 	for( uint64_t i = 0; i < kernel -> terminal.height_char - (y + 1); i++ ) {
 		kernel -> terminal.cursor_x = x; kernel_terminal_cursor();
-		log( "0x%16X ", (uint64_t) &rip );
+		log( "0x%16X ", (uint64_t) rip );
 
-		MACRO_DEBUF();
 		rip += lib_asm( rip );
 		// log( "---" );
 
