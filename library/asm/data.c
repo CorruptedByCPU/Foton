@@ -33,20 +33,20 @@ uint8_t *s[] = { (uint8_t *) "", (uint8_t *) "2", (uint8_t *) "4", (uint8_t *) "
 struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	// 0x00
 	{ (uint8_t *) "add", (R|M|B) | ((R|B)   << 7) | FM },	// 0x00
-	{ (uint8_t *) "add", (R|M|D)   | ((R|D)     << 7) | FM },	// 0x01
+	{ (uint8_t *) "add", (R|M|D) | ((R|D)   << 7) | FM },	// 0x01
 	{ (uint8_t *) "add", (R|B)   | ((R|M|B) << 7) | FM },	// 0x02
-	{ (uint8_t *) "add", (R|D)     | ((R|M|D)   << 7) | FM },	// 0x03
+	{ (uint8_t *) "add", (R|D)   | ((R|M|D) << 7) | FM },	// 0x03
 	{ (uint8_t *) "add", (R|B)   | ((I|B)   << 7) },	// 0x04
-	{ (uint8_t *) "add", (R|D)   | ((I|D)   << 7) },	// 0x05
+	{ (uint8_t *) "add", (R|W)   | ((I|W)   << 7) },	// 0x05
 	{ EMPTY, EMPTY, EMPTY },	// 0x06
 	{ EMPTY, EMPTY, EMPTY },	// 0x07
 	// 0x08
 	{ (uint8_t *) "or",  (R|M|B) | (R|B)   << 7 | FM },	// 0x08
-	{ (uint8_t *) "or",  (R|M)   | (R)     << 7 | FM },	// 0x09
+	{ (uint8_t *) "or",  (R|M|D) | (R|D)   << 7 | FM },	// 0x09
 	{ (uint8_t *) "or",  (R|B)   | (R|M|B) << 7 | FM },	// 0x0A
-	{ (uint8_t *) "or",  (R)     | (R|M)   << 7 | FM },	// 0x0B
-	{ (uint8_t *) "or",  (R|B)   | (I|B)   << 7 | FM | FA },	// 0x0C
-	{ (uint8_t *) "or",  (R|W)   | (I|B)   << 7 | FM | FA },	// 0x0D
+	{ (uint8_t *) "or",  (R|D)   | (R|M|D) << 7 | FM },	// 0x0B
+	{ (uint8_t *) "or",  (R|B)   | ((I|B)  << 7) },	// 0x0C
+	{ (uint8_t *) "or",  (R|W)   | ((I|W)  << 7) },	// 0x0D
 	{ EMPTY, EMPTY, EMPTY },	// 0x0E
 	{ EMPTY, EMPTY, EMPTY },	// 0x0F
 	// 0x10

@@ -24,47 +24,47 @@ kernel_task:
 	cld
 
 ; debug disassembler
-; xchg	bx,bx
-; int	3
+xchg	bx,bx
+int	3
 
-; add al, 1
-; add al, 0x7F
+; or al, 1
+; or al, 0x7F
 
-; add eax, ebx
-; add rax, [rcx]
-; add r8, r9
-; add rbx, [r12+0x20]
-; add rax, rbx          ; 64-bit: rax += rbx
-; add rbx, [rax]        ; rbx += qword [rax]
-; add rcx, [rdx+8]      ; rcx += qword [rdx+8]
-; add r8, r9            ; r8 += r9 (requires REX prefix)
-; add r10, [r11]        ; r10 += qword [r11]
-; add r13, [rsp+16]     ; r13 += qword [rsp+16]
-; add rsi, [rdi+rcx*4]  ; rsi += qword [rdi + rcx*4]
-; add		al,			cl
-; add		bl,			r9b
-; add		r8b,		cl
-; add eax, ecx
-; add	rax, rcx
-; add     r10b,	[rax]
-; add     r11b,	[r8 + 4]
-; add     r12b,	[r9 + rcx]
-; add     r12b,	[r9 + rcx + 16]
-; add     r12b,	[r9d + ecx + 16]
-; add     r12b,	[r9 + rcx*2 + 32]
-; add     r12b,	[r9 + rcx*4 + 64]
-; add     r12b,	[r9 + rcx*8 + 128]
-; add     r13b,	[r10 + 512]
-; add     r13b,	[r10 + rdi * 2 + 512]
-; add     [rax],					al
-; add     [r8 + 4],				bl
-; add     [r9 + rcx],				cl
-; add     [r9 + rcx + 16],		dl
-; add     [r9 + rcx*2 + 32],		r15b
-; add     [r9 + rcx*4 + 64],		r14b
-; add     [r9 + rcx*8 + 128],		r13b
-; add     [r10 + 512],			r12b
-; add     [r10 + rdi * 2 + 512],	r11b
+; or eax, ebx
+; or rax, [rcx]
+; or r8, r9
+; or rbx, [r12+0x20]
+; or rax, rbx          ; 64-bit: rax += rbx
+; or rbx, [rax]        ; rbx += qword [rax]
+; or rcx, [rdx+8]      ; rcx += qword [rdx+8]
+; or r8, r9            ; r8 += r9 (requires REX prefix)
+; or r10, [r11]        ; r10 += qword [r11]
+; or r13, [rsp+16]     ; r13 += qword [rsp+16]
+; or rsi, [rdi+rcx*4]  ; rsi += qword [rdi + rcx*4]
+; or		al,			cl
+; or		bl,			r9b
+; or		r8b,		cl
+; or eax, ecx
+; or	rax, rcx
+; or     r10b,	[rax]
+; or     r11b,	[r8 + 4]
+; or     r12b,	[r9 + rcx]
+; or     r12b,	[r9 + rcx + 16]
+or     r12b,	[r9d + ecx + 16]
+or     r12b,	[r9 + rcx*2 + 32]
+or     r12b,	[r9 + rcx*4 + 64]
+or     r12b,	[r9 + rcx*8 + 128]
+or     r13b,	[r10 + 512]
+or     r13b,	[r10 + rdi * 2 + 512]
+or     [rax],					al
+or     [r8 + 4],				bl
+or     [r9 + rcx],				cl
+or     [r9 + rcx + 16],		dl
+or     [r9 + rcx*2 + 32],		r15b
+or     [r9 + rcx*4 + 64],		r14b
+or     [r9 + rcx*8 + 128],		r13b
+or     [r10 + 512],			r12b
+or     [r10 + rdi * 2 + 512],	r11b
 
 	; preserve original registers
 	push	rax
