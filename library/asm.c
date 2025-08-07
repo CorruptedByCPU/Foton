@@ -47,7 +47,7 @@ struct LIB_ASM_STRUCTURE {
 	struct LIB_ASM_STRUCTURE_REX			rex;
 	uint8_t	modrm_semaphore;
 	struct LIB_ASM_STRUCTURE_MODRM			modrm;
-	uint32_t displacement;
+	int32_t displacement;
 	uint8_t	sib_semaphore;
 	struct LIB_ASM_STRUCTURE_SIB			sib;
 	struct LIB_ASM_STRUCTURE_INSTRUCTION	instruction;
@@ -61,7 +61,6 @@ uint8_t *lib_asm_register( struct LIB_ASM_STRUCTURE *asm, uint8_t operand, uint8
 	// current bits
 	uint8_t bits = asm -> bits;
 	
-
 	// select register size by default if not memory type
 	if( type & R ) {
 		if( asm -> instruction.options >> (7 * operand) & B ) bits = 0;	// 8 bit
@@ -69,14 +68,18 @@ uint8_t *lib_asm_register( struct LIB_ASM_STRUCTURE *asm, uint8_t operand, uint8
 		if( asm -> instruction.options >> (7 * operand) & D ) bits = 2;	// 32 bit
 		if( asm -> instruction.options >> (7 * operand) & Q ) bits = 3;	// 64 bit
 	}
-	// by prefix
-	if( asm -> prefix == 0x66 ) bits = 1;	// 16 bit
-	if( asm -> prefix == 0x67 ) bits = 2;	// 32 bit
+
+	// address size override?
+	if( type & M ) {	// yes
+		if( asm -> prefix == 0x66 ) bits = 1;	// 16 bit
+		if( asm -> prefix == 0x67 ) bits = 2;	// 32 bit
+	}
+
 	// or by REX (witch have highest priority)
 	if( asm -> rex.w ) bits = 3;	// forced 64 bit
 
 	// if there is no 64 bit extension, and we use 8 bit registers
-	if( (operand & M) && ! asm -> rex_semaphore && ! bits ) return r_no_rex[ reg ];	// use special array
+	if( (type & M) && ! asm -> rex_semaphore && ! bits ) return r_no_rex[ reg ];	// use special array
 	
 	// otherwise
 
@@ -87,29 +90,20 @@ uint8_t *lib_asm_register( struct LIB_ASM_STRUCTURE *asm, uint8_t operand, uint8
 void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm, uint8_t operand ) {
 	log( "[" );
 
-	if( asm -> modrm.mod == 0x01 ) {
-		asm -> displacement = *(asm -> rip++);
-	}
-
-	if( asm -> modrm.mod == 0x02 ) {
-		asm -> displacement = *((uint32_t *) asm -> rip);
-		asm -> rip += 4;
-	}
-
 	if( asm -> sib_semaphore ) {
-		log( "%s", lib_asm_register( asm, operand, M, asm -> sib.base | (asm -> rex.b << 3) ) );
-
+		if( asm -> sib.base != 0x05 ) log( "%s", lib_asm_register( asm, operand, M, asm -> sib.base | (asm -> rex.b << 3) ) );
 		if( asm -> sib.index != 0x04 ) {
 			log( " + " );
-			if( asm -> sib.scale ) log( "(" );
+			// if( asm -> sib.scale ) log( "(" );
 			asm -> bits = 3;
 			log( "%s", lib_asm_register( asm, operand, M, asm -> sib.index ) );
-			if( asm -> sib.scale ) log( " * %s)", s[ asm -> sib.scale ] );
+			if( asm -> sib.scale ) log( "*%s", s[ asm -> sib.scale ] );
+			// if( asm -> sib.scale ) log( ")" );
 		}
 	} else log( "%s", lib_asm_register( asm, operand, M, asm -> modrm.rm | (asm -> rex.b << 3) ) );
 
 	if( asm -> displacement ) {
-		if( asm -> displacement < 256 ) log( " + %u", asm -> displacement );
+		if( asm -> modrm.mod == 0x00 && asm -> sib.base == 0x05 ) log( "0x%8X", (int64_t) asm -> displacement );
 		else log( " + %u", asm -> displacement );
 	}
 
@@ -253,13 +247,36 @@ uint64_t lib_asm( void *rip ) {
 		}
 	}
 
- 	log( "%s\t", asm.instruction.name );
+	// displacement available?
+	if( asm.modrm.mod == 0x00 &&  asm.sib.base == 0x05 ) { asm.displacement = *((uint32_t *) asm.rip); asm.rip += 4; }
+	if( asm.modrm.mod == 0x01 ) { asm.displacement = *(asm.rip++); }
+	if( asm.modrm.mod == 0x02 ) { asm.displacement = *((uint32_t *) asm.rip); asm.rip += 4; }
+
+ 	log( "%2X|%s\t", asm.opcode_0, asm.instruction.name );
 
 	// register-direct mode?
 	if( asm.modrm.mod == 0x03 )	{	// 0b11
-		log( "%s,\t%s", lib_asm_register( (struct LIB_ASM_STRUCTURE *) &asm, 0, R, asm.modrm.rm | (asm.rex.b << 3) ), lib_asm_register( (struct LIB_ASM_STRUCTURE *) &asm, 1, R, asm.modrm.reg | (asm.rex.r << 3) ) );
+		uint8_t *operand_0 = lib_asm_register( (struct LIB_ASM_STRUCTURE *) &asm, 0, R, asm.modrm.reg | (asm.rex.r << 3) );
+		uint8_t *operand_1 = lib_asm_register( (struct LIB_ASM_STRUCTURE *) &asm, 1, R, asm.modrm.rm | (asm.rex.b << 3) );
+		uint8_t *operand_n = EMPTY;
+
+		// operand 2 size strictly definied?
+		if( asm.instruction.options & FO ) {	// yes
+			// select definied operand size
+			uint8_t bits;
+			if( asm.instruction.options & (B << 7) ) bits = 0;	// 8 bit
+			if( asm.instruction.options & (W << 7) ) bits = 1;	// 16 bit
+			if( asm.instruction.options & (D << 7) ) bits = 2;	// 32 bit
+			if( asm.instruction.options & (Q << 7) ) bits = 3;	// 64 bit
+
+			// select register name
+			operand_n = r[ bits ][ asm.modrm.rm | (asm.rex.b << 3) ];
+		}
+
+		if( asm.instruction.options & FO ) log( "%s\t%s", operand_0, operand_n );
+		else log( "%s,\t%s", operand_1, operand_0 );
 	} else {
-		if( asm.instruction.options & FO ) {
+		if( asm.instruction.options & FR ) {
 			log( "%s", lib_asm_register( (struct LIB_ASM_STRUCTURE *) &asm, 0, R, asm.opcode_0 & STD_MASK_byte_half | (asm.rex.b << 3) ));
 		} else {
 			if( asm.modrm_semaphore && ! asm.modrm.mod && ! asm.modrm.rm ) {

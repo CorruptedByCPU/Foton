@@ -25,128 +25,116 @@ uint8_t *s[] = { (uint8_t *) "", (uint8_t *) "2", (uint8_t *) "4", (uint8_t *) "
 #define	D 0x00000020	// 0b00000000000000000000000000100000	// dword
 #define	Q 0x00000040	// 0b00000000000000000000000001000000	// qword
 // flag
-#define	FO 0x10000000	// 0b00010000000000000000000000000000	// register inside opcode
+#define	FO 0x08000000	// 0b00001000000000000000000000000000	// operand 2 size forced
+#define	FR 0x10000000	// 0b00010000000000000000000000000000	// register inside opcode
 #define	FS 0x20000000	// 0b00100000000000000000000000000000	// signed
 #define	FA 0x40000000	// 0b01000000000000000000000000000000	// accumulator
 #define FM 0x80000000	// 0b10000000000000000000000000000000	// modr/m exist
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
-	// 0x00
-	{ (uint8_t *) "add", (R|M|B) | ((R|B)   << 7) | FM },	// 0x00
-	{ (uint8_t *) "add", (R|M|D) | ((R|D)   << 7) | FM },	// 0x01
-	{ (uint8_t *) "add", (R|B)   | ((R|M|B) << 7) | FM },	// 0x02
-	{ (uint8_t *) "add", (R|D)   | ((R|M|D) << 7) | FM },	// 0x03
-	{ (uint8_t *) "add", (R|B)   | ((I|B)   << 7) },	// 0x04
-	{ (uint8_t *) "add", (R|W)   | ((I|W)   << 7) },	// 0x05
-	{ EMPTY, EMPTY, EMPTY },	// 0x06
-	{ EMPTY, EMPTY, EMPTY },	// 0x07
-	// 0x08
+	{ (uint8_t *) "add", (R|M|B) | (R|B)   << 7 | FM },	// 0x00
+	{ (uint8_t *) "add", (R|M|D) | (R|D)   << 7 | FM },	// 0x01
+	{ (uint8_t *) "add", (R|B)   | (R|M|B) << 7 | FM },	// 0x02
+	{ (uint8_t *) "add", (R|D)   | (R|M|D) << 7 | FM },	// 0x03
+	{ (uint8_t *) "add", (R|B)   | (I|B)   << 7 },		// 0x04
+	{ (uint8_t *) "add", (R|W)   | (I|W)   << 7 },		// 0x05
+	{ EMPTY, EMPTY, EMPTY },				// 0x06
+	{ EMPTY, EMPTY, EMPTY },				// 0x07
 	{ (uint8_t *) "or",  (R|M|B) | (R|B)   << 7 | FM },	// 0x08
 	{ (uint8_t *) "or",  (R|M|D) | (R|D)   << 7 | FM },	// 0x09
 	{ (uint8_t *) "or",  (R|B)   | (R|M|B) << 7 | FM },	// 0x0A
 	{ (uint8_t *) "or",  (R|D)   | (R|M|D) << 7 | FM },	// 0x0B
-	{ (uint8_t *) "or",  (R|B)   | ((I|B)  << 7) },	// 0x0C
-	{ (uint8_t *) "or",  (R|W)   | ((I|W)  << 7) },	// 0x0D
-	{ EMPTY, EMPTY, EMPTY },	// 0x0E
-	{ EMPTY, EMPTY, EMPTY },	// 0x0F
-	// 0x10
-	{ (uint8_t *) "adc", (R|M|B) | (R|B)   << 7 | FM },
-	{ (uint8_t *) "adc", (R|M)   | (R)     << 7 | FM },
-	{ (uint8_t *) "adc", (R|B)   | (R|M|B) << 7 | FM },
-	{ (uint8_t *) "adc", (R)     | (R|M)   << 7 | FM },
-	{ (uint8_t *) "adc", (R|B)   | (I|B)   << 7 | FM | FA },
-	{ (uint8_t *) "adc", (R|W)   | (I|B)   << 7 | FM | FA },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	// 0x18
-	{ (uint8_t *) "sbb", (R|M|B) | (R|B)   << 7 | FM },
-	{ (uint8_t *) "sbb", (R|M)   | (R)     << 7 | FM },
-	{ (uint8_t *) "sbb", (R|B)   | (R|M|B) << 7 | FM },
-	{ (uint8_t *) "sbb", (R)     | (R|M)   << 7 | FM },
-	{ (uint8_t *) "sbb", (R|B)   | (I|B)   << 7 | FM | FA },
-	{ (uint8_t *) "sbb", (R|W)   | (I|B)   << 7 | FM | FA },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	// 0x20
-	{ (uint8_t *) "and", (R|M|B) | (R|B)   << 7 | FM },
-	{ (uint8_t *) "and", (R|M)   | (R)     << 7 | FM },
-	{ (uint8_t *) "and", (R|B)   | (R|M|B) << 7 | FM },
-	{ (uint8_t *) "and", (R)     | (R|M)   << 7 | FM },
-	{ (uint8_t *) "and", (R|B)   | (I|B)   << 7 | FM | FA },
-	{ (uint8_t *) "and", (R|W)   | (I|B)   << 7 | FM | FA },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	// 0x28
-	{ (uint8_t *) "sub", (R|M|B) | (R|B)   << 7 | FM },
-	{ (uint8_t *) "sub", (R|M)   | (R)     << 7 | FM },
-	{ (uint8_t *) "sub", (R|B)   | (R|M|B) << 7 | FM },
-	{ (uint8_t *) "sub", (R)     | (R|M)   << 7 | FM },
-	{ (uint8_t *) "sub", (R|B)   | (I|B)   << 7 | FM | FA },
-	{ (uint8_t *) "sub", (R|W)   | (I|B)   << 7 | FM | FA },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	// 0x30
-	{ (uint8_t *) "xor", (R|M|B) | (R|B)   << 7 | FM },
-	{ (uint8_t *) "xor", (R|M)   | (R)     << 7 | FM },
-	{ (uint8_t *) "xor", (R|B)   | (R|M|B) << 7 | FM },
-	{ (uint8_t *) "xor", (R)     | (R|M)   << 7 | FM },
-	{ (uint8_t *) "xor", (R|B)   | (I|B)   << 7 | FM | FA },
-	{ (uint8_t *) "xor", (R|W)   | (I|B)   << 7 | FM | FA },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	// 0x38
-	{ (uint8_t *) "cmp", (R|M|B) | (R|B)   << 7 | FM },
-	{ (uint8_t *) "cmp", (R|M)   | (R)     << 7 | FM },
-	{ (uint8_t *) "cmp", (R|B)   | (R|M|B) << 7 | FM },
-	{ (uint8_t *) "cmp", (R)     | (R|M)   << 7 | FM },
-	{ (uint8_t *) "cmp", (R|B)   | (I|B)   << 7 | FM | FA },
-	{ (uint8_t *) "cmp", (R|W)   | (I|B)   << 7 | FM | FA },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	// 0x40
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	{ EMPTY, EMPTY, EMPTY },
-	// 0x50
-	{ (uint8_t *) "push", (R) | FO },
-	{ (uint8_t *) "push", (R) | FO },
-	{ (uint8_t *) "push", (R) | FO },
-	{ (uint8_t *) "push", (R) | FO },
-	{ (uint8_t *) "push", (R) | FO },
-	{ (uint8_t *) "push", (R) | FO },
-	{ (uint8_t *) "push", (R) | FO },
-	{ (uint8_t *) "push", (R) | FO },
-	// 0x58
-	{ (uint8_t *) "pop", (R) | FO },
-	{ (uint8_t *) "pop", (R) | FO },
-	{ (uint8_t *) "pop", (R) | FO },
-	{ (uint8_t *) "pop", (R) | FO },
-	{ (uint8_t *) "pop", (R) | FO },
-	{ (uint8_t *) "pop", (R) | FO },
-	{ (uint8_t *) "pop", (R) | FO },
-	{ (uint8_t *) "pop", (R) | FO },
-	// // 0x60
-	// { EMPTY, EMPTY, EMPTY },
-	// { EMPTY, EMPTY, EMPTY },
-	// { EMPTY, EMPTY, EMPTY },
-	// { (uint8_t *) "movsxd", (R|Q) | (R|M|D) << 7 | FM },	// ? check it further if Q and D can be obsolete
-	// { EMPTY, EMPTY, EMPTY },
-	// { EMPTY, EMPTY, EMPTY },
-	// { EMPTY, EMPTY, EMPTY },
-	// { EMPTY, EMPTY, EMPTY }
-	// // 0x68
-
+	{ (uint8_t *) "or",  (R|B)   | (I|B)   << 7 },		// 0x0C
+	{ (uint8_t *) "or",  (R|W)   | (I|W)   << 7 },		// 0x0D
+	{ EMPTY, EMPTY, EMPTY },				// 0x0E
+	{ EMPTY, EMPTY, EMPTY },				// 0x0F
+	{ (uint8_t *) "adc", (R|M|B) | (R|B)   << 7 | FM },	// 0x10
+	{ (uint8_t *) "adc", (R|M|D) | (R|D)   << 7 | FM },	// 0x11
+	{ (uint8_t *) "adc", (R|B)   | (R|M|B) << 7 | FM },	// 0x12
+	{ (uint8_t *) "adc", (R|D)   | (R|M|D) << 7 | FM },	// 0x13
+	{ (uint8_t *) "adc", (R|B)   | (I|B)   << 7 },		// 0x14
+	{ (uint8_t *) "adc", (R|W)   | (I|W)   << 7 },		// 0x15
+	{ EMPTY, EMPTY, EMPTY },				// 0x16
+	{ EMPTY, EMPTY, EMPTY },				// 0x17
+	{ (uint8_t *) "sbb", (R|M|B) | (R|B)   << 7 | FM },	// 0x18
+	{ (uint8_t *) "sbb", (R|M|D) | (R|D)   << 7 | FM },	// 0x19
+	{ (uint8_t *) "sbb", (R|B)   | (R|M|B) << 7 | FM },	// 0x1A
+	{ (uint8_t *) "sbb", (R|D)   | (R|M|D) << 7 | FM },	// 0x1B
+	{ (uint8_t *) "sbb", (R|B)   | (I|B)   << 7 },		// 0x1C
+	{ (uint8_t *) "sbb", (R|W)   | (I|W)   << 7 },		// 0x1D
+	{ EMPTY, EMPTY, EMPTY },				// 0x1E
+	{ EMPTY, EMPTY, EMPTY },				// 0x1F
+	{ (uint8_t *) "and", (R|M|B) | (R|B)   << 7 | FM },	// 0x20
+	{ (uint8_t *) "and", (R|M|D) | (R|D)   << 7 | FM },	// 0x21
+	{ (uint8_t *) "and", (R|B)   | (R|M|B) << 7 | FM },	// 0x22
+	{ (uint8_t *) "and", (R|D)   | (R|M|D) << 7 | FM },	// 0x23
+	{ (uint8_t *) "and", (R|B)   | (I|B)   << 7 },		// 0x24
+	{ (uint8_t *) "and", (R|W)   | (I|W)   << 7 },		// 0x25
+	{ EMPTY, EMPTY, EMPTY },				// 0x26
+	{ EMPTY, EMPTY, EMPTY },				// 0x27
+	{ (uint8_t *) "sub", (R|M|B) | (R|B)   << 7 | FM },	// 0x28
+	{ (uint8_t *) "sub", (R|M|D) | (R|D)   << 7 | FM },	// 0x29
+	{ (uint8_t *) "sub", (R|B)   | (R|M|B) << 7 | FM },	// 0x2A
+	{ (uint8_t *) "sub", (R|D)   | (R|M|D) << 7 | FM },	// 0x2B
+	{ (uint8_t *) "sub", (R|B)   | (I|B)   << 7 },		// 0x2C
+	{ (uint8_t *) "sub", (R|W)   | (I|W)   << 7 },		// 0x2D
+	{ EMPTY, EMPTY, EMPTY },				// 0x2E
+	{ EMPTY, EMPTY, EMPTY },				// 0x2F
+	{ (uint8_t *) "xor", (R|M|B) | (R|B)   << 7 | FM },	// 0x30
+	{ (uint8_t *) "xor", (R|M|D) | (R|D)   << 7 | FM },	// 0x31
+	{ (uint8_t *) "xor", (R|B)   | (R|M|B) << 7 | FM },	// 0x32
+	{ (uint8_t *) "xor", (R|D)   | (R|M|D) << 7 | FM },	// 0x33
+	{ (uint8_t *) "xor", (R|B)   | (I|B)   << 7 },		// 0x34
+	{ (uint8_t *) "xor", (R|W)   | (I|W)   << 7 },		// 0x35
+	{ EMPTY, EMPTY, EMPTY },				// 0x36
+	{ EMPTY, EMPTY, EMPTY },				// 0x37
+	{ (uint8_t *) "cmp", (R|M|B) | (R|B)   << 7 | FM },	// 0x38
+	{ (uint8_t *) "cmp", (R|M|D) | (R|D)   << 7 | FM },	// 0x39
+	{ (uint8_t *) "cmp", (R|B)   | (R|M|B) << 7 | FM },	// 0x3A
+	{ (uint8_t *) "cmp", (R|D)   | (R|M|D) << 7 | FM },	// 0x3B
+	{ (uint8_t *) "cmp", (R|B)   | (I|B)   << 7 },		// 0x3C
+	{ (uint8_t *) "cmp", (R|W)   | (I|W)   << 7 },		// 0x3D
+	{ EMPTY, EMPTY, EMPTY },				// 0x3E
+	{ EMPTY, EMPTY, EMPTY },				// 0x3F
+	{ EMPTY, EMPTY, EMPTY },				// 0x40
+	{ EMPTY, EMPTY, EMPTY },				// 0x41
+	{ EMPTY, EMPTY, EMPTY },				// 0x42
+	{ EMPTY, EMPTY, EMPTY },				// 0x43
+	{ EMPTY, EMPTY, EMPTY },				// 0x44
+	{ EMPTY, EMPTY, EMPTY },				// 0x45
+	{ EMPTY, EMPTY, EMPTY },				// 0x46
+	{ EMPTY, EMPTY, EMPTY },				// 0x47
+	{ EMPTY, EMPTY, EMPTY },				// 0x48
+	{ EMPTY, EMPTY, EMPTY },				// 0x49
+	{ EMPTY, EMPTY, EMPTY },				// 0x4A
+	{ EMPTY, EMPTY, EMPTY },				// 0x4B
+	{ EMPTY, EMPTY, EMPTY },				// 0x4C
+	{ EMPTY, EMPTY, EMPTY },				// 0x4D
+	{ EMPTY, EMPTY, EMPTY },				// 0x4E
+	{ EMPTY, EMPTY, EMPTY },				// 0x4F
+	{ (uint8_t *) "push",   (R) | FR },			// 0x50
+	{ (uint8_t *) "push",   (R) | FR },			// 0x51
+	{ (uint8_t *) "push",   (R) | FR },			// 0x52
+	{ (uint8_t *) "push",   (R) | FR },			// 0x53
+	{ (uint8_t *) "push",   (R) | FR },			// 0x54
+	{ (uint8_t *) "push",   (R) | FR },			// 0x55
+	{ (uint8_t *) "push",   (R) | FR },			// 0x56
+	{ (uint8_t *) "push",   (R) | FR },			// 0x57
+	{ (uint8_t *) "pop",    (R) | FR },			// 0x58
+	{ (uint8_t *) "pop",    (R) | FR },			// 0x59
+	{ (uint8_t *) "pop",    (R) | FR },			// 0x5A
+	{ (uint8_t *) "pop",    (R) | FR },			// 0x5B
+	{ (uint8_t *) "pop",    (R) | FR },			// 0x5C
+	{ (uint8_t *) "pop",    (R) | FR },			// 0x5D
+	{ (uint8_t *) "pop",    (R) | FR },			// 0x5E
+	{ (uint8_t *) "pop",    (R) | FR },			// 0x5F
+	{ EMPTY, EMPTY, EMPTY },				// 0X60
+	{ EMPTY, EMPTY, EMPTY },				// 0X61
+	{ EMPTY, EMPTY, EMPTY },				// 0X62
+	{ (uint8_t *) "movsxd", (R|Q) | (R|M|D) << 7 | FM | FO },	// 0x63
+	{ EMPTY, EMPTY, EMPTY },				// 0x64
+	{ EMPTY, EMPTY, EMPTY },				// 0x65
+	{ EMPTY, EMPTY, EMPTY },				// 0x66
+	{ EMPTY, EMPTY, EMPTY },				// 0x67
+	{ (uint8_t *) "push",   (I|D) | FS }			// 0x68
 };

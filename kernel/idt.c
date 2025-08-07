@@ -34,12 +34,6 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	log( " CPU State              EFLAGS Literals      Stack                                Disassembly\n" );
 	uint64_t x = kernel -> terminal.cursor_x + 1;
 	uint64_t y = kernel -> terminal.cursor_y;
-	kernel -> terminal.color_background = 0x00002200;
-	for( uint8_t i = 0; i < 3; i++ ) { kernel -> terminal.cursor_x = x; kernel_terminal_cursor(); log( "                                           \n" ); }
-	kernel -> terminal.color_background = 0x00004000; log( "\n General Registers\n" ); kernel -> terminal.color_background = 0x00002200;
-	for( uint8_t i = 0; i < 15; i++ ) { kernel -> terminal.cursor_x = x; kernel_terminal_cursor(); log( "                                           \n" ); }
-	kernel -> terminal.color_background = 0x00004000; log( "\n Specific\n" ); kernel -> terminal.color_background = 0x00002200;
-	for( uint8_t i = 0; i < 1; i++ ) { kernel -> terminal.cursor_x = x; kernel_terminal_cursor(); log( "                                           \n" ); }
 	kernel -> terminal.cursor_x = x;
 	kernel -> terminal.cursor_y = y;
 	kernel_terminal_cursor();
