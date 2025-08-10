@@ -17,52 +17,52 @@ global	kernel_task
 ; align routine to full address (I am Speed - Lightning McQueen)
 align	0x08,	db	0x00
 kernel_task:
+
 ; ; debug disassembler
 ; xchg	bx,bx
-; .test:
 ; int	3
 
-; movsxd rbx, eax
-; movsxd rax, [r9]
-; movsxd r10, [kernel_task.test]
-
-; add al, 1
-; add al, 0x7F
-; add eax, ebx
-; add rax, [rcx]
-; add r8, r9
-; add rbx, [r12+0x20]
-; add rax, rbx 
-; add rbx, [rax]
-; add rcx, [rdx + 8]
-; add r8, r9 
-; add r10, [r11]
-; add r13, [rsp + 16] 
-; add rsi, [rdi + rcx*4]  
+; .test:
+; imul eax, ebx, 1
+; imul eax, ebx, 0x12345678
+; imul rax, rbx, 1
+; imul rax, rbx, 0x12345678
+; imul eax, [ebx], 1
+; imul eax, [rbx], 1
+; imul rax, [ebx], 1
+; imul rax, [rbx], 1
+; imul eax, [ebx], 0x12345678
+; imul eax, [rbx], 0x12345678
+; imul rax, [ebx], 0x12345678
+; imul rax, [rbx], 0x12345678
+; nop
+; push 0x12
+; push 0x1234
+; push 0x12345678
+; nop
+; movsxd rax, ebx
+; movsxd rax, [ebx]
+; movsxd rax, [rbx]
+; movsxd rax, [kernel_task.test]
+; nop
 ; add al, cl
-; add bl, r9b
-; add r8b, cl
+; add ax,	cx
 ; add eax, ecx
 ; add rax, rcx
-; add r10b, [rax]
-; add r11b, [r8 + 4]
-; add r12b, [r9 + rcx]
-; add r12b, [r9 + rcx + 16]
-; add r12b, [r9d + ecx + 16]
-; add r12b, [r9 + rcx*2 + 32]
-; add r12b, [r9 + rcx*4 + 64]
-; add r12b, [r9 + rcx*8 + 128]
-; add r13b, [r10 + 512]
-; add r13b, [r10 + rdi*2 + 512]
-; add [rax], al
-; add [r8 + 4], bl
-; add [r9 + rcx], cl
-; add [r9 + rcx + 16], dl
-; add [r9 + rcx*2 + 32], r15b
-; add [r9 + rcx*4 + 64], r14b
-; add [r9 + rcx*8 + 128], r13b
-; add [r10 + 512], r12b
-; add [r10 + rdi*2 + 512], r11b
+; add al, byte [ecx]
+; add al, byte [ecx + 16]
+; add al, byte [ecx + r15d]
+; add al, byte [ecx + r15d + 16]
+; add al, byte [ecx + r15d*2 + 16]
+; add al, byte [r13]
+; add al, byte [r13 + 16]
+; add al, byte [r13 + rdx]
+; add al, byte [r13 + rdx + 16]
+; add al, byte [r13 + rdx*2 + 16]
+; add [eax], ecx
+; add [eax], rcx
+; add [rax], ecx
+; add [rax], rcx
 
 
 	; turn off Interrupt Flag
