@@ -8,7 +8,7 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm ) {
 	#endif
 
 	// start memory access
-	log( "\033[0m[" );
+	log( "\033[38;5;202m[" );
 
 	// there was something before displacement
 	uint8_t semaphore = FALSE;
@@ -46,7 +46,7 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm ) {
 			else log( "\033[38;2;121;192;255m0x%8X", (uint32_t) asm -> displacement );
 
 			// end memory access
-			log( "\033[0m]" );
+			log( "\033[38;5;202m]" );
 
 			// done
 			return;
@@ -101,5 +101,5 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm ) {
 	}
 
 	// end memory access
-	log( "\033[0m]" );
+	log( "\033[38;5;202m]" );
 }
