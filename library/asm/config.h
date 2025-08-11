@@ -19,6 +19,7 @@
 #define	D 0x00000020	// 0b00000000000000000000000000100000	// dword
 #define	Q 0x00000040	// 0b00000000000000000000000001000000	// qword
 // flag
+#define	FE 0x01000000	// 0b00000001000000000000000000000000	// relative address
 #define	FD 0x02000000	// 0b00000010000000000000000000000000	// specifies direction of ModR/M > source/destination, if set - RM is destination and REG source
 #define	F1 0x04000000	// 0b00000100000000000000000000000000	// strictly definied size of operand 1
 #define	F2 0x08000000	// 0b00001000000000000000000000000000	// strictly definied size of operand 2

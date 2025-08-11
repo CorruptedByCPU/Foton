@@ -302,9 +302,6 @@ kernel_idt_exception_entry:
 	mov	rax,	cr2
 	push	rax
 
-	; turn off Direction Flag
-	cld
-
 	; execute exception handler
 	mov	rdi,	rsp
 	call	kernel_idt_exception

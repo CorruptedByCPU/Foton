@@ -82,11 +82,36 @@ uint64_t lib_asm( void *rip ) {
 
 		log( "\033[38;2;121;192;255m\0" );
 
-		// retrieve immediate according to its size
-		if( asm -> instruction.options & B ) log( "0x%2X", *(asm -> rip++) );
-		if( asm -> instruction.options & D ) { log( "0x%8X", *((uint32_t *) asm -> rip) ); asm -> rip += 4; }
+		// immediate value
+		int32_t value;
 
-		// log( "\033[0m" );
+		// 1 Byte value
+		if( asm -> instruction.options & B ) {
+			// retrive 1 Byte
+			value = (int8_t) *(asm -> rip++);
+
+			// value signed? (relative)
+			if( asm -> instruction.options & FE ) {
+				// show absolute address by relative value
+				if( value & STD_SIZE_BYTE_sign ) log( "0x%16X", (uintptr_t) asm -> rip + value );
+				else log( "0x%16X", asm -> rip + value );
+			// no, immediate
+			} else log( "%u", *(asm -> rip++) );
+		}
+
+		// 4 Byte value
+		if( asm -> instruction.options & D ) {
+			// retrieve 4 Byte
+			value = (int8_t) *(asm -> rip++);
+
+			// value signed? (relative)
+			if( asm -> instruction.options & FE ) {
+				// show absolute address by relative value
+				if( value & STD_SIZE_BYTE_sign ) log( "0x%16X", (uintptr_t) asm -> rip + value );
+				else log( "0x%16X", asm -> rip + value );
+			// no, immediate
+			} else log( "%u", *(asm -> rip++) );
+		}
 
 		// end
 		goto end;

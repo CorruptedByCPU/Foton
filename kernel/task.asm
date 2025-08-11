@@ -18,7 +18,7 @@ global	kernel_task
 align	0x08,	db	0x00
 kernel_task:
 
-; ; debug disassembler
+; debug disassembler
 ; xchg	bx,bx
 ; int	3
 
@@ -37,6 +37,24 @@ kernel_task:
 ; outsb
 ; outsw
 ; outsd
+
+; jo	kernel_task
+; jno	kernel_task
+; jb	kernel_task
+; jnb	kernel_task
+; je	kernel_task
+; jne	kernel_task
+; jbe	kernel_task
+; jnbe	kernel_task
+; js	kernel_task
+; jns	kernel_task
+; jp	kernel_task.test
+; jnp	kernel_task.test
+; jl	kernel_task.test
+; jnl	kernel_task.test
+; jle	kernel_task.test
+; jnle	kernel_task.test
+
 
 ; .test:
 ; imul eax, ebx, 1
@@ -98,7 +116,7 @@ kernel_task:
 ; cmp	eax,	0x12345678
 ; cmp	rax,	0x7FFFFFFF
 
-nop
+; nop
 ; nop
 ; nop
 ; nop

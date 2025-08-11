@@ -128,22 +128,22 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ (uint8_t *) "insw", EMPTY, EMPTY },				// 0x6D
 	{ (uint8_t *) "outsb", EMPTY, EMPTY },				// 0x6E
 	{ (uint8_t *) "outsw", EMPTY, EMPTY },				// 0x6F
-	{ EMPTY, EMPTY, EMPTY },				// 0x70
-	{ EMPTY, EMPTY, EMPTY },				// 0x71
-	{ EMPTY, EMPTY, EMPTY },				// 0x72
-	{ EMPTY, EMPTY, EMPTY },				// 0x73
-	{ EMPTY, EMPTY, EMPTY },				// 0x74
-	{ EMPTY, EMPTY, EMPTY },				// 0x75
-	{ EMPTY, EMPTY, EMPTY },				// 0x76
-	{ EMPTY, EMPTY, EMPTY },				// 0x77
-	{ EMPTY, EMPTY, EMPTY },				// 0x78
-	{ EMPTY, EMPTY, EMPTY },				// 0x79
-	{ EMPTY, EMPTY, EMPTY },				// 0x7A
-	{ EMPTY, EMPTY, EMPTY },				// 0x7B
-	{ EMPTY, EMPTY, EMPTY },				// 0x7C
-	{ EMPTY, EMPTY, EMPTY },				// 0x7D
-	{ EMPTY, EMPTY, EMPTY },				// 0x7E
-	{ EMPTY, EMPTY, EMPTY },				// 0x7F
+	{ (uint8_t *) "jo", (I|B) | FE, EMPTY },				// 0x70
+	{ (uint8_t *) "jno", (I|B) | FE, EMPTY },				// 0x71
+	{ (uint8_t *) "jb", (I|B) | FE, EMPTY },				// 0x72
+	{ (uint8_t *) "jnb", (I|B) | FE, EMPTY },				// 0x73
+	{ (uint8_t *) "je", (I|B) | FE, EMPTY },				// 0x74
+	{ (uint8_t *) "jne", (I|B) | FE, EMPTY },				// 0x75
+	{ (uint8_t *) "jbe", (I|B) | FE, EMPTY },				// 0x76
+	{ (uint8_t *) "jnbe", (I|B) | FE, EMPTY },				// 0x77
+	{ (uint8_t *) "js", (I|B) | FE, EMPTY },				// 0x78
+	{ (uint8_t *) "jns", (I|B) | FE, EMPTY },				// 0x79
+	{ (uint8_t *) "jp", (I|B) | FE, EMPTY },				// 0x7A
+	{ (uint8_t *) "jnp", (I|B) | FE, EMPTY },				// 0x7B
+	{ (uint8_t *) "jl", (I|B) | FE, EMPTY },				// 0x7C
+	{ (uint8_t *) "jnl", (I|B) | FE, EMPTY },				// 0x7D
+	{ (uint8_t *) "jle", (I|B) | FE, EMPTY },				// 0x7E
+	{ (uint8_t *) "jnle", (I|B) | FE, EMPTY },				// 0x7F
 	{ EMPTY, EMPTY, EMPTY },				// 0x80
 	{ EMPTY, EMPTY, EMPTY },				// 0x81
 	{ EMPTY, EMPTY, EMPTY },				// 0x82
