@@ -32,6 +32,13 @@
 // REX.X = 1	extend index in SIB to r8–r15
 // REX.B = 1	extend rm or base to r8–r15
 
+enum {
+	BYTE,
+	WORD,
+	DWORD,
+	QWORD
+};
+
 // REX
 struct LIB_ASM_STRUCTURE_REX {
 	uint8_t w;
@@ -70,6 +77,7 @@ struct LIB_ASM_STRUCTURE {
 	uint8_t	modrm_semaphore;
 	struct LIB_ASM_STRUCTURE_MODRM			modrm;
 	int32_t displacement;
+	uint8_t	displacement_size;
 	uint8_t	sib_semaphore;
 	struct LIB_ASM_STRUCTURE_SIB			sib;
 	struct LIB_ASM_STRUCTURE_INSTRUCTION	instruction;

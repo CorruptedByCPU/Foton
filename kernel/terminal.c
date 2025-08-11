@@ -2,6 +2,27 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+uint32_t kernel_terminal_color_palette[ 16 ] = {
+	STD_COLOR_BLACK,
+	STD_COLOR_RED,
+	STD_COLOR_GREEN,
+	STD_COLOR_BROWN,
+	STD_COLOR_BLUE,
+	STD_COLOR_MAGENTA,
+	STD_COLOR_CYAN,
+	STD_COLOR_GRAY_LIGHT,
+	STD_COLOR_GRAY,
+	STD_COLOR_RED_LIGHT,
+	STD_COLOR_GREEN_LIGHT,
+	STD_COLOR_YELLOW,
+	STD_COLOR_BLUE_LIGHT,
+	STD_COLOR_MAGENTA_LIGHT,
+	STD_COLOR_CYAN_LIGHT,
+	STD_COLOR_WHITE
+};
+
+uint8_t kernel_terminal_color_interval[ 6 ] = { 0x00, 0x5F, 0x87, 0xAF, 0xD7, 0xFF };
+
 static uint32_t kernel_terminal_blend( uint32_t background, uint32_t foreground ) {
 	return ((((((255 - ((foreground & 0xFF000000) >> 24)) * (background & 0x00FF00FF)) + (((foreground & 0xFF000000) >> 24) * (foreground & 0x00FF00FF))) >> 8) & 0x00FF00FF) | ((((255 - ((foreground & 0xFF000000) >> 24)) * ((background & (0xFF000000 | 0x0000FF00)) >> 8)) + (((foreground & 0xFF000000) >> 24) * (0x01000000 | ((foreground & 0x0000FF00) >> 8)))) & (0xFF000000 | 0x0000FF00)));
 }
@@ -68,6 +89,27 @@ void kernel_terminal_clean_line( uint64_t line ) {
 	for( uint64_t y = 0; y < LIB_FONT_HEIGHT_pixel; y++ ) for( uint64_t x = 0; x < kernel -> framebuffer_width_pixel; x++ ) pixel[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel -> terminal.color_background;
 }
 
+uint32_t kernel_terminal_color( uint8_t index ) {
+	// initialize colors
+	uint8_t red, green, blue;
+
+	// select palette
+	if( index < 16 )
+		// predefinied color
+		return kernel_terminal_color_palette[ index ];
+	else if( index < 232 ) {
+		// calculate colors
+		red	= kernel_terminal_color_interval[ (index - 16) / 36 ];
+		green	= kernel_terminal_color_interval[ ((index - 16) % 36) / 6 ];
+		blue	= kernel_terminal_color_interval[ ((index - 16) % 36) % 6 ];
+	} else
+		// one of gray scale
+		red = green = blue = ((index - 232) * 10) + 8;
+
+	// convert to hexadecimal value
+	return STD_COLOR_mask | red << 16 | green << 8 | blue;
+}
+
 static void kernel_terminal_cursor( void ) {
 	// cursor outside of terminal?
 	if( kernel -> terminal.cursor_x > kernel -> terminal.width_char - 1 ) {
@@ -101,6 +143,9 @@ void kernel_terminal_printf( const char *string, ... ) {
 
 	// for every character from string
 	while( *string ) {
+		// check for sequence
+		string += lib_terminal_sequence( string );
+
 		// special character?
 		if( *(string++) == STD_ASCII_PERCENT ) {
 			// prefix value
@@ -238,6 +283,116 @@ static void kernel_terminal_scroll( void ) {
 
 	// clean last line
 	kernel_terminal_clean_line( kernel -> terminal.height_char - 1 );
+}
+
+uint8_t lib_terminal_sequence( const char *string ) {
+	// start of sequence?
+	if( *(string++) != STD_ASCII_ESC ) return EMPTY;	// no
+
+	// select sequence type
+	switch( *string ) {
+		// CSI
+		case '[': {
+			// move pointer into sequence
+			string++;
+
+			// we support at least 8 arguments
+			uint8_t arg_length[ 8 ] = { EMPTY };
+			uint8_t arg_value[ 8 ] = { EMPTY };
+
+			// retrieve all arguments from sequence
+			for( uint8_t i = 0; i < 8; i++ ) {
+				// argument
+				arg_length[ i ]	= lib_string_length_scope_digit( (uint8_t *) string );
+				arg_value[ i ] = lib_string_to_integer( (uint8_t *) string, 10 );
+
+				// end of argument list?
+				if( ! arg_length[ i ] ) break;	// yes
+
+				// move pointer over argument
+				string += arg_length[ i ];
+
+				// next argument exist?
+				if( *string != STD_ASCII_SEMICOLON ) break;	// no
+
+				// move pointer to next argument
+				string++;
+			}
+
+			// choose sequence type
+			switch( *string ) {
+				// Set Graphics Mode
+				case 'm': {
+					// select behavior
+					switch( arg_value[ 0 ] ) {
+						// reset background/foreground color to default
+						case 0: {
+							// set default foreground/background color of terminal
+							kernel -> terminal.color_background = kernel_terminal_color( KERNEL_TERMINAL_COLOR_BACKGROUND );
+							kernel -> terminal.color_foreground = kernel_terminal_color( KERNEL_TERMINAL_COLOR_FOREGROUND );
+
+
+							// return sequence length
+							return 2 + arg_length[ 0 ] + 1;
+						}
+
+						// set text foreground color
+						case 38: {
+							// type of color sequence
+							switch( arg_value[ 1 ] ) {
+								// RGB
+								case 2: {
+									// set selected foreground color
+									kernel -> terminal.color_foreground = STD_COLOR_mask | arg_value[ 2 ] << 16 | arg_value[ 3 ] << 8 | arg_value[ 4 ];
+
+									// return sequence length
+									return 2 + 2 + 1 + arg_length[ 2 ] + arg_length[ 3 ] + arg_length[ 4 ] + 4 + 1;
+								}
+
+								// predefinied palette
+								case 5: {
+									// set selected foreground color
+									kernel -> terminal.color_foreground = kernel_terminal_color( arg_value[ 2 ] );
+
+									// return sequence length
+									return 2 + arg_length[ 0 ] + arg_length[ 1 ] + arg_length[ 2 ] + 2 + 1;
+								}
+							}
+						}
+
+						// set text background color
+						case 48: {
+							// type of color sequence
+							switch( arg_value[ 1 ] ) {
+								// RGB
+								case 2: {
+									// set selected background color
+									kernel -> terminal.color_background = STD_COLOR_mask | arg_value[ 2 ] << 16 | arg_value[ 3 ] << 8 | arg_value[ 4 ];
+
+									// return sequence length
+									return 2 + arg_length[ 0 ] + arg_length[ 1 ] + arg_length[ 2 ] + arg_length[ 3 ] + arg_length[ 4 ] + 4 + 1;
+								}
+
+								// predefinied palette
+								case 5: {
+									// set selected background color
+									kernel -> terminal.color_background = kernel_terminal_color( arg_value[ 2 ] );
+
+									// return sequence length
+									return 2 + arg_length[ 0 ] + arg_length[ 1 ] + arg_length[ 2 ] + 2 + 1;
+								}
+							}
+						}
+					}
+				}
+			}
+				// sequence unsupported
+			break;
+		}
+	}
+
+	// return parsed sequence length
+	return EMPTY;	// undefinied sequence
 }
 
 void kernel_terminal_value( uint64_t value, uint8_t base, uint8_t prefix, uint8_t character ) {

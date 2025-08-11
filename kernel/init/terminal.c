@@ -18,8 +18,8 @@ void kernel_init_terminal( void ) {
 	kernel -> terminal.pointer			= kernel -> terminal.pixel;
 
 	// visualization
-	kernel -> terminal.color_background	= 0x00004000;
-	kernel -> terminal.color_foreground	= 0x0000FF00;
+	kernel -> terminal.color_background	= kernel_terminal_color( KERNEL_TERMINAL_COLOR_BACKGROUND );
+	kernel -> terminal.color_foreground	= kernel_terminal_color( KERNEL_TERMINAL_COLOR_FOREGROUND );
 
 	// check for cases we do not support
 	if( kernel -> framebuffer_pitch_byte % STD_SIZE_DWORD_byte || kernel -> framebuffer_bpp != STD_VIDEO_DEPTH_bit ) {

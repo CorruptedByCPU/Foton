@@ -102,6 +102,7 @@
 
 	#define	STD_COLOR_mask					0xFF000000
 	#define	STD_COLOR_BLACK					0xFF000000
+	#define	STD_COLOR_BLACK_ALMOST			0xFF101010
 	#define	STD_COLOR_DARK					0xFF272727
 	#define	STD_COLOR_RED					0xFF800000
 	#define	STD_COLOR_GREEN					0xFF008000
@@ -351,11 +352,13 @@
 
 	#define	STD_SIZE_BYTE_byte				1
 	#define	STD_SIZE_BYTE_bit				8
+	#define	STD_SIZE_BYTE_sign				((uint64_t) 1 << 7)
 	#define	STD_SIZE_WORD_byte				2
 	#define	STD_SIZE_WORD_bit				16
 	#define	STD_SIZE_DWORD_byte				4
 	#define	STD_SIZE_DWORD_bit				32
 	#define	STD_SIZE_QWORD_byte				8
+	#define	STD_SIZE_DWORD_sign				((uint32_t) 1 << 31)
 	#define	STD_SIZE_QWORD_sign				((uint64_t) 1 << 63)
 	#define	STD_SIZE_QWORD_bit				64
 	#define	STD_SIZE_PTR_byte				STD_SIZE_QWORD_byte

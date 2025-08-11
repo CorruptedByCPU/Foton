@@ -36,8 +36,19 @@ uint64_t lib_asm( void *rip ) {
 	}
 
 	// show instruction
-	log( "[0x%2X] %s\t", asm -> opcode_0, asm -> instruction.name );
+	#ifdef DEBUF
+		log( "[0x%2X] %s\t", asm -> opcode_0, asm -> instruction.name );
+	#else
+		// exception for INSD mnemonic
+		if( asm -> opcode_0 == 0x6D && asm -> reg_bits == DWORD ) log( "\033[38;2;255;123;114minsd\033[0m\t" );
+		
+		// exception for OUTSD mnemonic
+		else if( asm -> opcode_0 == 0x6F && asm -> reg_bits == DWORD ) log( "\033[38;2;255;123;114moutsd\033[0m\t" );
 
+		// default
+		else log( "\033[38;2;255;123;114m%s\033[0m\t", asm -> instruction.name );
+	#endif
+	
 	// only instruction name?
 	if( ! asm -> instruction.options ) goto end;	// yes
 
@@ -50,6 +61,11 @@ uint64_t lib_asm( void *rip ) {
 		#ifdef DEBUF
 			log( "{1}" );
 		#endif
+
+		// only 64 bit registers
+		asm -> reg_bits = QWORD;
+
+		log( "\033[38;2;255;166;87m\0" );
 
 		// show
 		log( "%s", lib_asm_register( asm, 0, asm -> opcode_0 & STD_MASK_byte_half | (asm -> rex.b << 3) ) );
@@ -64,9 +80,13 @@ uint64_t lib_asm( void *rip ) {
 			log( "{2}" );
 		#endif
 
+		log( "\033[38;2;121;192;255m\0" );
+
 		// retrieve immediate according to its size
 		if( asm -> instruction.options & B ) log( "0x%2X", *(asm -> rip++) );
 		if( asm -> instruction.options & D ) { log( "0x%8X", *((uint32_t *) asm -> rip) ); asm -> rip += 4; }
+
+		// log( "\033[0m" );
 
 		// end
 		goto end;
@@ -93,7 +113,7 @@ uint64_t lib_asm( void *rip ) {
 			}
 
 			// show destination first
-			log( "%s,\t%s", lib_asm_register( asm, 0, register_reg ), lib_asm_register( asm, 1, register_rm ) );
+			log( "\033[38;2;255;166;87m%s\033[0m,\t\033[38;2;255;166;87m%s", lib_asm_register( asm, 0, register_reg ), lib_asm_register( asm, 1, register_rm ) );
 		// memory addressing mode
 		} else {
 			#ifdef DEBUF
@@ -105,11 +125,11 @@ uint64_t lib_asm( void *rip ) {
 			if( asm -> instruction.options & M ) {
 				// show
 				lib_asm_memory( asm );
-				log( ",\t%s", lib_asm_register( asm, 1, register_reg ) );
+				log( "\033[0m,\t\033[38;2;255;166;87m%s", lib_asm_register( asm, 1, register_reg ) );
 			// and source
 			} else {
 				// show
-				log( "%s,\t",  lib_asm_register( asm, 0, register_reg ) );
+				log( "\033[38;2;255;166;87m%s\033[0m,\t",  lib_asm_register( asm, 0, register_reg ) );
 				lib_asm_memory( asm );
 			}
 		}
@@ -121,8 +141,8 @@ uint64_t lib_asm( void *rip ) {
 			#endif
 
 			// show
-			log( "%s,\t", lib_asm_register( asm, 0, register_reg ) );
-			lib_asm_immediate( asm );
+			log( "\033[38;2;255;166;87m%s\033[0m,\t", lib_asm_register( asm, 0, register_reg ) );
+			log( "\033[38;2;121;192;255m\0" ); lib_asm_immediate( asm );
 		}
 	}
 
@@ -133,8 +153,9 @@ uint64_t lib_asm( void *rip ) {
 		#endif
 
 		// retrieve immediate according to its size
-		if( asm -> instruction.options & (B << LIB_ASM_OPTION_FLAG_3rd_operand_shift) ) log( ",\t0x%2X", *(asm -> rip++) );
-		if( asm -> instruction.options & (D << LIB_ASM_OPTION_FLAG_3rd_operand_shift) ) { log( ",\t0x%8X", *((uint32_t *) asm -> rip) ); asm -> rip += 4; }
+		if( asm -> instruction.options & (B << LIB_ASM_OPTION_FLAG_3rd_operand_shift) ) log( "\033[0m,\t\033[38;2;121;192;255m0x%2X", *(asm -> rip++) );
+		if( asm -> instruction.options & (W << LIB_ASM_OPTION_FLAG_2nd_operand_shift) ) { log( "\033[0m,\t\033[38;2;121;192;255m0x%4X", *((uint16_t *) asm -> rip) ); asm -> rip += 2; }
+		if( asm -> instruction.options & (D << LIB_ASM_OPTION_FLAG_3rd_operand_shift) ) { log( "\033[0m,\t\033[38;2;121;192;255m0x%8X", *((uint32_t *) asm -> rip) ); asm -> rip += 4; }
 	}
 
 end:

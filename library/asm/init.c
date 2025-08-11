@@ -16,8 +16,8 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 	asm -> displacement = EMPTY;
 
 	// we are working inside 64 bit CPU mode
-	asm -> reg_bits = 2;	// but default for registers are 32 bit
-	asm -> mem_bits = 3;
+	asm -> reg_bits = DWORD;	// but default for registers are 32 bit
+	asm -> mem_bits = QWORD;
 
 	// obtain all available control opcodes
 	// until end of instruction
@@ -34,17 +34,17 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 		if( asm -> opcode_0 == 0x65 ) { asm -> descriptor = 'g'; continue; }
 
 		// change size?
-		if( asm -> opcode_0 == 0x66 ) { asm -> prefix = asm -> opcode_0; continue; }	// bit
-		if( asm -> opcode_0 == 0x67 ) { asm -> prefix = asm -> opcode_0; continue; }	// bit
+		if( asm -> opcode_0 == 0x66 ) { asm -> reg_bits = WORD; continue; }
+		if( asm -> opcode_0 == 0x67 ) { asm -> mem_bits = DWORD; continue; }
 
 		// 0x9B (x87fpu)
 
 		// exclusive memory access?
-		if( asm -> opcode_0 == 0xF0 ) { log( "lock\t" ); continue; }
+		if( asm -> opcode_0 == 0xF0 ) { log( "\033[38;2;255;123;114mlock\t" ); continue; }
 
-		// // REP
+		// REP
 		// // if( first == 0xF2 ) { log( "repnz\t" ); continue; }	// or REPNE?
-		// // if( first == 0xF3 ) { log( "repe\t" ); continue; }	// or REPZ? | SSE
+		if( asm -> opcode_0 == 0xF3 ) { log( "\033[38;2;255;123;114mrep\t" ); continue; }	// or REPZ? | SSE
 		// if( first == 0xF2 || first == 0xF3 ) { log( "%2X ", (uint8_t) first ); continue; }
 
 		// REX
@@ -125,9 +125,9 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 	}
 
 	// displacement at end of instruction?
-	if( asm -> modrm.mod == 0x00 && asm -> sib.base == 0x05 ) { asm -> displacement = *((uint32_t *) asm -> rip); asm -> rip += 4; }
-	if( asm -> modrm.mod == 0x01 ) { asm -> displacement = *(asm -> rip++); }
-	if( asm -> modrm.mod == 0x02 ) { asm -> displacement = *((uint32_t *) asm -> rip); asm -> rip += 4; }
+	if( asm -> modrm.mod == 0x00 && asm -> sib.base == 0x05 ) { asm -> displacement = *((uint32_t *) asm -> rip); asm -> rip += 4; asm -> displacement_size = STD_SIZE_DWORD_byte; }
+	if( asm -> modrm.mod == 0x01 ) { asm -> displacement = *(asm -> rip++); asm -> displacement_size = STD_SIZE_BYTE_byte; }
+	if( asm -> modrm.mod == 0x02 ) { asm -> displacement = *((uint32_t *) asm -> rip); asm -> rip += 4; asm -> displacement_size = STD_SIZE_DWORD_byte; }
 
 	// everything prepared
 	return TRUE;

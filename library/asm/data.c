@@ -3,10 +3,10 @@
 ===============================================================================*/
 
 uint8_t *r[ 4 ][ 16 ] = {
-    { (uint8_t *) "al", (uint8_t *) "cl", (uint8_t *) "dl", (uint8_t *) "bl", (uint8_t *) "spl", (uint8_t *) "bpl", (uint8_t *) "sil", (uint8_t *) "dil", (uint8_t *) "r8b", (uint8_t *) "r9b", (uint8_t *) "r10b", (uint8_t *) "r11b", (uint8_t *) "r12b", (uint8_t *) "r13b", (uint8_t *) "r14b", (uint8_t *) "r15b" },
-    { (uint8_t *) "ax", (uint8_t *) "cx", (uint8_t *) "dx", (uint8_t *) "bx", (uint8_t *) "sp", (uint8_t *) "bp", (uint8_t *) "si", (uint8_t *) "di", (uint8_t *) "r8w", (uint8_t *) "r9w", (uint8_t *) "r10w", (uint8_t *) "r11w", (uint8_t *) "r12w", (uint8_t *) "r13w", (uint8_t *) "r14w", (uint8_t *) "r15w" },
-    { (uint8_t *) "eax", (uint8_t *) "ecx", (uint8_t *) "edx", (uint8_t *) "ebx", (uint8_t *) "esp", (uint8_t *) "ebp", (uint8_t *) "esi", (uint8_t *) "edi", (uint8_t *) "r8d", (uint8_t *) "r9d", (uint8_t *) "r10d", (uint8_t *) "r11d", (uint8_t *) "r12d", (uint8_t *) "r13d", (uint8_t *) "r14d", (uint8_t *) "r15d" },
-    { (uint8_t *) "rax", (uint8_t *) "rcx", (uint8_t *) "rdx", (uint8_t *) "rbx", (uint8_t *) "rsp", (uint8_t *) "rbp", (uint8_t *) "rsi", (uint8_t *) "rdi", (uint8_t *) "r8",  (uint8_t *) "r9",  (uint8_t *) "r10", (uint8_t *) "r11", (uint8_t *) "r12", (uint8_t *) "r13", (uint8_t *) "r14", (uint8_t *) "r15" }
+	{ (uint8_t *) "al", (uint8_t *) "cl", (uint8_t *) "dl", (uint8_t *) "bl", (uint8_t *) "spl", (uint8_t *) "bpl", (uint8_t *) "sil", (uint8_t *) "dil", (uint8_t *) "r8b", (uint8_t *) "r9b", (uint8_t *) "r10b", (uint8_t *) "r11b", (uint8_t *) "r12b", (uint8_t *) "r13b", (uint8_t *) "r14b", (uint8_t *) "r15b" },
+	{ (uint8_t *) "ax", (uint8_t *) "cx", (uint8_t *) "dx", (uint8_t *) "bx", (uint8_t *) "sp", (uint8_t *) "bp", (uint8_t *) "si", (uint8_t *) "di", (uint8_t *) "r8w", (uint8_t *) "r9w", (uint8_t *) "r10w", (uint8_t *) "r11w", (uint8_t *) "r12w", (uint8_t *) "r13w", (uint8_t *) "r14w", (uint8_t *) "r15w" },
+	{ (uint8_t *) "eax", (uint8_t *) "ecx", (uint8_t *) "edx", (uint8_t *) "ebx", (uint8_t *) "esp", (uint8_t *) "ebp", (uint8_t *) "esi", (uint8_t *) "edi", (uint8_t *) "r8d", (uint8_t *) "r9d", (uint8_t *) "r10d", (uint8_t *) "r11d", (uint8_t *) "r12d", (uint8_t *) "r13d", (uint8_t *) "r14d", (uint8_t *) "r15d" },
+	{ (uint8_t *) "rax", (uint8_t *) "rcx", (uint8_t *) "rdx", (uint8_t *) "rbx", (uint8_t *) "rsp", (uint8_t *) "rbp", (uint8_t *) "rsi", (uint8_t *) "rdi", (uint8_t *) "r8", (uint8_t *) "r9", (uint8_t *) "r10", (uint8_t *) "r11", (uint8_t *) "r12", (uint8_t *) "r13", (uint8_t *) "r14", (uint8_t *) "r15" }
 };
 
 uint8_t *r_no_rex[] = {
@@ -16,68 +16,68 @@ uint8_t *r_no_rex[] = {
 uint8_t *s[] = { (uint8_t *) "", (uint8_t *) "2", (uint8_t *) "4", (uint8_t *) "8" };
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
-	{ (uint8_t *) "add", (R|M|B) | (R|B)   << 7 | FM | F1 | FD },	// 0x00
-	{ (uint8_t *) "add", (R|M|D) | (R|D)   << 7 | FM | FD },	// 0x01
-	{ (uint8_t *) "add", (R|B)   | (R|M|B) << 7 | FM | F1 },	// 0x02
-	{ (uint8_t *) "add", (R|D)   | (R|M|D) << 7 | FM },	// 0x03
-	{ (uint8_t *) "add", (R|B)   | (I|B)   << 7 | F1 },		// 0x04
-	{ (uint8_t *) "add", (R|W)   | (I|W)   << 7 },		// 0x05
+	{ (uint8_t *) "add", (R|M|B) | (R|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 | FD },	// 0x00
+	{ (uint8_t *) "add", (R|M|D) | (R|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FD },	// 0x01
+	{ (uint8_t *) "add", (R|B) | (R|M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 },	// 0x02
+	{ (uint8_t *) "add", (R|D) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM },	// 0x03
+	{ (uint8_t *) "add", (R|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | F1 },		// 0x04
+	{ (uint8_t *) "add", (R|W) | (I|W) << LIB_ASM_OPTION_FLAG_2nd_operand_shift },		// 0x05
 	{ EMPTY, EMPTY, EMPTY },				// 0x06
 	{ EMPTY, EMPTY, EMPTY },				// 0x07
-	{ (uint8_t *) "or",  (R|M|B) | (R|B)   << 7 | FM | F1 },	// 0x08
-	{ (uint8_t *) "or",  (R|M|D) | (R|D)   << 7 | FM },	// 0x09
-	{ (uint8_t *) "or",  (R|B)   | (R|M|B) << 7 | FM | F1 },	// 0x0A
-	{ (uint8_t *) "or",  (R|D)   | (R|M|D) << 7 | FM },	// 0x0B
-	{ (uint8_t *) "or",  (R|B)   | (I|B)   << 7 | F1 },		// 0x0C
-	{ (uint8_t *) "or",  (R|W)   | (I|W)   << 7 },		// 0x0D
+	{ (uint8_t *) "or", (R|M|B) | (R|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 | FD },	// 0x08
+	{ (uint8_t *) "or", (R|M|D) | (R|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FD },	// 0x09
+	{ (uint8_t *) "or", (R|B) | (R|M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 },	// 0x0A
+	{ (uint8_t *) "or", (R|D) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM },	// 0x0B
+	{ (uint8_t *) "or", (R|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | F1 },		// 0x0C
+	{ (uint8_t *) "or", (R|W) | (I|W) << LIB_ASM_OPTION_FLAG_2nd_operand_shift },		// 0x0D
 	{ EMPTY, EMPTY, EMPTY },				// 0x0E
 	{ EMPTY, EMPTY, EMPTY },				// 0x0F
-	{ (uint8_t *) "adc", (R|M|B) | (R|B)   << 7 | FM | F1 },	// 0x10
-	{ (uint8_t *) "adc", (R|M|D) | (R|D)   << 7 | FM },	// 0x11
-	{ (uint8_t *) "adc", (R|B)   | (R|M|B) << 7 | FM | F1 },	// 0x12
-	{ (uint8_t *) "adc", (R|D)   | (R|M|D) << 7 | FM },	// 0x13
-	{ (uint8_t *) "adc", (R|B)   | (I|B)   << 7 | F1 },		// 0x14
-	{ (uint8_t *) "adc", (R|W)   | (I|W)   << 7 },		// 0x15
+	{ (uint8_t *) "adc", (R|M|B) | (R|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 | FD },	// 0x10
+	{ (uint8_t *) "adc", (R|M|D) | (R|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FD },	// 0x11
+	{ (uint8_t *) "adc", (R|B) | (R|M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 },	// 0x12
+	{ (uint8_t *) "adc", (R|D) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM },	// 0x13
+	{ (uint8_t *) "adc", (R|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | F1 },		// 0x14
+	{ (uint8_t *) "adc", (R|W) | (I|W) << LIB_ASM_OPTION_FLAG_2nd_operand_shift },		// 0x15
 	{ EMPTY, EMPTY, EMPTY },				// 0x16
 	{ EMPTY, EMPTY, EMPTY },				// 0x17
-	{ (uint8_t *) "sbb", (R|M|B) | (R|B)   << 7 | FM | F1 },	// 0x18
-	{ (uint8_t *) "sbb", (R|M|D) | (R|D)   << 7 | FM },	// 0x19
-	{ (uint8_t *) "sbb", (R|B)   | (R|M|B) << 7 | FM | F1 },	// 0x1A
-	{ (uint8_t *) "sbb", (R|D)   | (R|M|D) << 7 | FM },	// 0x1B
-	{ (uint8_t *) "sbb", (R|B)   | (I|B)   << 7 | F1 },		// 0x1C
-	{ (uint8_t *) "sbb", (R|W)   | (I|W)   << 7 },		// 0x1D
+	{ (uint8_t *) "sbb", (R|M|B) | (R|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 | FD },	// 0x18
+	{ (uint8_t *) "sbb", (R|M|D) | (R|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FD },	// 0x19
+	{ (uint8_t *) "sbb", (R|B) | (R|M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 },	// 0x1A
+	{ (uint8_t *) "sbb", (R|D) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM },	// 0x1B
+	{ (uint8_t *) "sbb", (R|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | F1 },		// 0x1C
+	{ (uint8_t *) "sbb", (R|W) | (I|W) << LIB_ASM_OPTION_FLAG_2nd_operand_shift },		// 0x1D
 	{ EMPTY, EMPTY, EMPTY },				// 0x1E
 	{ EMPTY, EMPTY, EMPTY },				// 0x1F
-	{ (uint8_t *) "and", (R|M|B) | (R|B)   << 7 | FM | F1 },	// 0x20
-	{ (uint8_t *) "and", (R|M|D) | (R|D)   << 7 | FM },	// 0x21
-	{ (uint8_t *) "and", (R|B)   | (R|M|B) << 7 | FM | F1 },	// 0x22
-	{ (uint8_t *) "and", (R|D)   | (R|M|D) << 7 | FM },	// 0x23
-	{ (uint8_t *) "and", (R|B)   | (I|B)   << 7 | F1 },		// 0x24
-	{ (uint8_t *) "and", (R|W)   | (I|W)   << 7 },		// 0x25
+	{ (uint8_t *) "and", (R|M|B) | (R|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 | FD },	// 0x20
+	{ (uint8_t *) "and", (R|M|D) | (R|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FD },	// 0x21
+	{ (uint8_t *) "and", (R|B) | (R|M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 },	// 0x22
+	{ (uint8_t *) "and", (R|D) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM },	// 0x23
+	{ (uint8_t *) "and", (R|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | F1 },		// 0x24
+	{ (uint8_t *) "and", (R|W) | (I|W) << LIB_ASM_OPTION_FLAG_2nd_operand_shift },		// 0x25
 	{ EMPTY, EMPTY, EMPTY },				// 0x26
 	{ EMPTY, EMPTY, EMPTY },				// 0x27
-	{ (uint8_t *) "sub", (R|M|B) | (R|B)   << 7 | FM | F1 },	// 0x28
-	{ (uint8_t *) "sub", (R|M|D) | (R|D)   << 7 | FM },	// 0x29
-	{ (uint8_t *) "sub", (R|B)   | (R|M|B) << 7 | FM | F1 },	// 0x2A
-	{ (uint8_t *) "sub", (R|D)   | (R|M|D) << 7 | FM },	// 0x2B
-	{ (uint8_t *) "sub", (R|B)   | (I|B)   << 7 | F1 },		// 0x2C
-	{ (uint8_t *) "sub", (R|W)   | (I|W)   << 7 },		// 0x2D
+	{ (uint8_t *) "sub", (R|M|B) | (R|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 | FD },	// 0x28
+	{ (uint8_t *) "sub", (R|M|D) | (R|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FD },	// 0x29
+	{ (uint8_t *) "sub", (R|B) | (R|M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 },	// 0x2A
+	{ (uint8_t *) "sub", (R|D) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM },	// 0x2B
+	{ (uint8_t *) "sub", (R|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | F1 },		// 0x2C
+	{ (uint8_t *) "sub", (R|W) | (I|W) << LIB_ASM_OPTION_FLAG_2nd_operand_shift },		// 0x2D
 	{ EMPTY, EMPTY, EMPTY },				// 0x2E
 	{ EMPTY, EMPTY, EMPTY },				// 0x2F
-	{ (uint8_t *) "xor", (R|M|B) | (R|B)   << 7 | FM | F1 },	// 0x30
-	{ (uint8_t *) "xor", (R|M|D) | (R|D)   << 7 | FM },	// 0x31
-	{ (uint8_t *) "xor", (R|B)   | (R|M|B) << 7 | FM | F1 },	// 0x32
-	{ (uint8_t *) "xor", (R|D)   | (R|M|D) << 7 | FM },	// 0x33
-	{ (uint8_t *) "xor", (R|B)   | (I|B)   << 7 | F1 },		// 0x34
-	{ (uint8_t *) "xor", (R|W)   | (I|W)   << 7 },		// 0x35
+	{ (uint8_t *) "xor", (R|M|B) | (R|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 | FD },	// 0x30
+	{ (uint8_t *) "xor", (R|M|D) | (R|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FD },	// 0x31
+	{ (uint8_t *) "xor", (R|B) | (R|M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 },	// 0x32
+	{ (uint8_t *) "xor", (R|D) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM },	// 0x33
+	{ (uint8_t *) "xor", (R|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | F1 },		// 0x34
+	{ (uint8_t *) "xor", (R|W) | (I|W) << LIB_ASM_OPTION_FLAG_2nd_operand_shift },		// 0x35
 	{ EMPTY, EMPTY, EMPTY },				// 0x36
 	{ EMPTY, EMPTY, EMPTY },				// 0x37
-	{ (uint8_t *) "cmp", (R|M|B) | (R|B)   << 7 | FM | F1 },	// 0x38
-	{ (uint8_t *) "cmp", (R|M|D) | (R|D)   << 7 | FM },	// 0x39
-	{ (uint8_t *) "cmp", (R|B)   | (R|M|B) << 7 | FM | F1 },	// 0x3A
-	{ (uint8_t *) "cmp", (R|D)   | (R|M|D) << 7 | FM },	// 0x3B
-	{ (uint8_t *) "cmp", (R|B)   | (I|B)   << 7 | F1 },		// 0x3C
-	{ (uint8_t *) "cmp", (R|W)   | (I|W)   << 7 },		// 0x3D
+	{ (uint8_t *) "cmp", (R|M|B) | (R|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 | FD },	// 0x38
+	{ (uint8_t *) "cmp", (R|M|D) | (R|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FD },	// 0x39
+	{ (uint8_t *) "cmp", (R|B) | (R|M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 },	// 0x3A
+	{ (uint8_t *) "cmp", (R|D) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM },	// 0x3B
+	{ (uint8_t *) "cmp", (R|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | F1 },		// 0x3C
+	{ (uint8_t *) "cmp", (R|W) | (I|W) << LIB_ASM_OPTION_FLAG_2nd_operand_shift },		// 0x3D
 	{ EMPTY, EMPTY, EMPTY },				// 0x3E
 	{ EMPTY, EMPTY, EMPTY },				// 0x3F
 	{ EMPTY, EMPTY, EMPTY },				// 0x40
@@ -96,38 +96,38 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ EMPTY, EMPTY, EMPTY },				// 0x4D
 	{ EMPTY, EMPTY, EMPTY },				// 0x4E
 	{ EMPTY, EMPTY, EMPTY },				// 0x4F
-	{ (uint8_t *) "push",   (R) | FR },			// 0x50
-	{ (uint8_t *) "push",   (R) | FR },			// 0x51
-	{ (uint8_t *) "push",   (R) | FR },			// 0x52
-	{ (uint8_t *) "push",   (R) | FR },			// 0x53
-	{ (uint8_t *) "push",   (R) | FR },			// 0x54
-	{ (uint8_t *) "push",   (R) | FR },			// 0x55
-	{ (uint8_t *) "push",   (R) | FR },			// 0x56
-	{ (uint8_t *) "push",   (R) | FR },			// 0x57
-	{ (uint8_t *) "pop",    (R) | FR },			// 0x58
-	{ (uint8_t *) "pop",    (R) | FR },			// 0x59
-	{ (uint8_t *) "pop",    (R) | FR },			// 0x5A
-	{ (uint8_t *) "pop",    (R) | FR },			// 0x5B
-	{ (uint8_t *) "pop",    (R) | FR },			// 0x5C
-	{ (uint8_t *) "pop",    (R) | FR },			// 0x5D
-	{ (uint8_t *) "pop",    (R) | FR },			// 0x5E
-	{ (uint8_t *) "pop",    (R) | FR },			// 0x5F
+	{ (uint8_t *) "push", (R) | FR },			// 0x50
+	{ (uint8_t *) "push", (R) | FR },			// 0x51
+	{ (uint8_t *) "push", (R) | FR },			// 0x52
+	{ (uint8_t *) "push", (R) | FR },			// 0x53
+	{ (uint8_t *) "push", (R) | FR },			// 0x54
+	{ (uint8_t *) "push", (R) | FR },			// 0x55
+	{ (uint8_t *) "push", (R) | FR },			// 0x56
+	{ (uint8_t *) "push", (R) | FR },			// 0x57
+	{ (uint8_t *) "pop", (R) | FR },			// 0x58
+	{ (uint8_t *) "pop", (R) | FR },			// 0x59
+	{ (uint8_t *) "pop", (R) | FR },			// 0x5A
+	{ (uint8_t *) "pop", (R) | FR },			// 0x5B
+	{ (uint8_t *) "pop", (R) | FR },			// 0x5C
+	{ (uint8_t *) "pop", (R) | FR },			// 0x5D
+	{ (uint8_t *) "pop", (R) | FR },			// 0x5E
+	{ (uint8_t *) "pop", (R) | FR },			// 0x5F
 	{ EMPTY, EMPTY, EMPTY },				// 0X60
 	{ EMPTY, EMPTY, EMPTY },				// 0X61
 	{ EMPTY, EMPTY, EMPTY },				// 0X62
-	{ (uint8_t *) "movsxd", (R|Q) | (R|M|D) << 7 | FM | F2 },	// 0x63
+	{ (uint8_t *) "movsxd", (R|Q) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F2 },	// 0x63
 	{ EMPTY, EMPTY, EMPTY },				// 0x64
 	{ EMPTY, EMPTY, EMPTY },				// 0x65
 	{ EMPTY, EMPTY, EMPTY },				// 0x66
 	{ EMPTY, EMPTY, EMPTY },				// 0x67
-	{ (uint8_t *) "push",   (I|D) | F1 },					// 0x68
-	{ (uint8_t *) "imul", (R|D) | (R|M|D) << 7 | (I|D) << 14 | FM, EMPTY },	// 0x69
-	{ (uint8_t *) "push",   (I|B) | F1 },			// 0x6A
-	{ (uint8_t *) "imul", (R|D) | (R|M|D) << 7 | (I|B) << 14 | FM, EMPTY },	// 0x6B
-	{ EMPTY, EMPTY, EMPTY },				// 0x6C
-	{ EMPTY, EMPTY, EMPTY },				// 0x6D
-	{ EMPTY, EMPTY, EMPTY },				// 0x6E
-	{ EMPTY, EMPTY, EMPTY },				// 0x6F
+	{ (uint8_t *) "push", (I|D) | F1 },					// 0x68
+	{ (uint8_t *) "imul", (R|D) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | (I|D) << LIB_ASM_OPTION_FLAG_3rd_operand_shift | FM, EMPTY },	// 0x69
+	{ (uint8_t *) "push", (I|B) | F1 },			// 0x6A
+	{ (uint8_t *) "imul", (R|D) | (R|M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | (I|B) << LIB_ASM_OPTION_FLAG_3rd_operand_shift | FM, EMPTY },	// 0x6B
+	{ (uint8_t *) "insb", EMPTY, EMPTY },				// 0x6C
+	{ (uint8_t *) "insw", EMPTY, EMPTY },				// 0x6D
+	{ (uint8_t *) "outsb", EMPTY, EMPTY },				// 0x6E
+	{ (uint8_t *) "outsw", EMPTY, EMPTY },				// 0x6F
 	{ EMPTY, EMPTY, EMPTY },				// 0x70
 	{ EMPTY, EMPTY, EMPTY },				// 0x71
 	{ EMPTY, EMPTY, EMPTY },				// 0x72

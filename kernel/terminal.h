@@ -11,6 +11,9 @@
 
 	#define	KERNEL_TERMINAL_TAB_LENGTH	8
 
+	#define	KERNEL_TERMINAL_COLOR_BACKGROUND	233
+	#define	KERNEL_TERMINAL_COLOR_FOREGROUND	255
+
 	struct KERNEL_STRUCTURE_TERMINAL {
 		// semaphore, exclusive access
 		uint8_t		lock;
@@ -41,9 +44,11 @@
 	};
 
 	static void kernel_terminal_clean_character( void );
+	uint32_t kernel_terminal_color( uint8_t index );
 	static void kernel_terminal_cursor( void );
 	void kernel_terminal_printf( const char *string, ... );
 	void kernel_terminal_register( char character );
 	static void kernel_terminal_scroll( void );
+	uint8_t lib_terminal_sequence( const char *string );
 	void kernel_terminal_value( uint64_t value, uint8_t base, uint8_t prefix, uint8_t character );
 #endif
