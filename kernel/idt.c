@@ -109,8 +109,9 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	for( uint64_t i = 0; i < kernel -> terminal.height_char - (y + 1); i++ ) {
 		kernel -> terminal.cursor_x = x; kernel_terminal_cursor();
 		log( "\033[38;5;243m%16X \033[0m", (uint64_t) rip );
-
 		rip += lib_asm( rip );
+
+		if( *rip == 0x90 ) break;
 
 		kernel -> terminal.cursor_y++;
 	}

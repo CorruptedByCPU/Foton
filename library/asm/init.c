@@ -15,6 +15,10 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 	// no Displacement/Immediate available by default
 	asm -> displacement = EMPTY;
 
+	// on which column are we right now
+	// 1st operand, 2nd operand, 3rd operand...
+	asm -> col = 0;	// count from 0
+
 	// we are working inside 64 bit CPU mode
 	asm -> reg_bits = DWORD;	// but default for registers are 32 bit
 	asm -> mem_bits = QWORD;
@@ -37,15 +41,30 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 		if( asm -> opcode_0 == 0x66 ) { asm -> reg_bits = WORD; continue; }
 		if( asm -> opcode_0 == 0x67 ) { asm -> mem_bits = DWORD; continue; }
 
-		// 0x9B (x87fpu)
-
 		// exclusive memory access?
 		if( asm -> opcode_0 == 0xF0 ) { log( "\033[38;2;255;123;114mlock\t" ); continue; }
 
 		// REP
 		// // if( first == 0xF2 ) { log( "repnz\t" ); continue; }	// or REPNE?
-		if( asm -> opcode_0 == 0xF3 ) { log( "\033[38;2;255;123;114mrep\t" ); continue; }	// or REPZ? | SSE
-		// if( first == 0xF2 || first == 0xF3 ) { log( "%2X ", (uint8_t) first ); continue; }
+		if( asm -> opcode_0 == 0xF3 ) {
+			// pause instruction?
+			if( *(asm -> rip) == 0x90 ) {
+				// get instruction properties
+				asm -> instruction = pause[ 0 ];
+
+				// leave next opcode
+				asm -> rip++;
+
+				// end of initialization
+				return TRUE;
+			}
+
+			// no, simple rep instruction
+			log( "\033[38;2;255;123;114mrep\t" );
+
+			// next opcode
+			continue;
+		}
 
 		// REX
 		if( (asm -> opcode_0 & ~STD_MASK_byte_half) == LIB_ASM_FLAG_REX_base_address ) {
@@ -83,7 +102,7 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 	}
 
 	// unknown instruction?
-	if( ! asm -> instruction.name ) return FALSE;	// yes, end of interpretation
+	if( ! asm -> instruction.name && ! asm -> instruction.group ) return FALSE;	// yes, end of interpretation
 
 	// ModR/M exist for this mnemonic?
 	if( asm -> instruction.options & FM ) {	// yes

@@ -21,6 +21,83 @@
 
 // #define DEBUF
 
+uint8_t lib_asm_modrm( struct LIB_ASM_STRUCTURE *asm ) {
+	// ModR/M exist?
+	if( asm -> modrm_semaphore ) {
+		// calculate source/destination opcodes
+		uint8_t register_rm = asm -> modrm.rm | (asm -> rex.b << 3);
+		uint8_t register_reg = asm -> modrm.reg | (asm -> rex.r << 3);
+
+		// direct register addressing mode
+		if( asm -> modrm.mod == LIB_ASM_FLAG_MODRM_register ) {
+			// invert source/destination?
+			if( asm -> instruction.options & FD ) {
+				// thats by instruction design
+				register_rm = asm -> modrm.reg | (asm -> rex.r << 3);
+				register_reg = asm -> modrm.rm | (asm -> rex.b << 3);
+			}
+
+			// show destination first
+			log( "\033[38;2;255;166;87m%s\033[0m,\t\033[38;2;255;166;87m%s", lib_asm_register( asm, 0, register_reg ), lib_asm_register( asm, 1, register_rm ) );
+		// memory addressing mode
+		} else {
+			// show destination
+			if( asm -> instruction.options & M ) {
+				// show
+				lib_asm_memory( asm );
+				log( "\033[0m,\t\033[38;2;255;166;87m%s", lib_asm_register( asm, 1, register_reg ) );
+			// and source
+			} else {
+				// show
+				log( "\033[38;2;255;166;87m%s\033[0m,\t",  lib_asm_register( asm, 0, register_reg ) );
+				lib_asm_memory( asm );
+			}
+		}
+
+		// first and second column filled
+		asm -> col += 2;
+	// instruction without ModR/M
+	} else return FALSE;
+
+	// ModR/M parsed
+	return TRUE;
+}
+
+void lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
+	// instruction name
+	uint8_t *name = asm -> instruction.name;
+
+	// if doesn't exist
+	if( ! name ) {
+		// group properties
+		struct LIB_ASM_STRUCTURE_INSTRUCTION *group = (struct LIB_ASM_STRUCTURE_INSTRUCTION *) asm -> instruction.group;
+
+		// retrieve name from group
+		name = group[ asm -> modrm.reg ].name;
+	}
+
+	// show instruction
+	#ifdef DEBUF
+		// exception for INSD mnemonic
+		if( asm -> opcode_0 == 0x6D && asm -> reg_bits == DWORD ) log( "\033[0m[%2X] \033[38;2;255;123;114minsd\t", asm -> opcode_0 );
+		
+		// exception for OUTSD mnemonic
+		else if( asm -> opcode_0 == 0x6F && asm -> reg_bits == DWORD ) log( "\033[0m[%2X] \033[38;2;255;123;114moutsd\t", asm -> opcode_0 );
+
+		// default
+		else log( "\033[0m[%2X] \033[38;2;255;123;114m%s\t", asm -> opcode_0, name );
+	#else
+		// exception for INSD mnemonic
+		if( asm -> opcode_0 == 0x6D && asm -> reg_bits == DWORD ) log( "\033[38;2;255;123;114minsd\t" );
+		
+		// exception for OUTSD mnemonic
+		else if( asm -> opcode_0 == 0x6F && asm -> reg_bits == DWORD ) log( "\033[38;2;255;123;114moutsd\t" );
+
+		// default
+		else log( "\033[38;2;255;123;114m%s\t", name );
+	#endif
+}
+
 // output to stdout, and return amount of parsed Bytes 
 uint64_t lib_asm( void *rip ) {
 	// one-time global environment initialization
@@ -35,153 +112,65 @@ uint64_t lib_asm( void *rip ) {
 		goto end;
 	}
 
-	// show instruction
-	#ifdef DEBUF
-		log( "[0x%2X] %s\t", asm -> opcode_0, asm -> instruction.name );
-	#else
-		// exception for INSD mnemonic
-		if( asm -> opcode_0 == 0x6D && asm -> reg_bits == DWORD ) log( "\033[38;2;255;123;114minsd\033[0m\t" );
-		
-		// exception for OUTSD mnemonic
-		else if( asm -> opcode_0 == 0x6F && asm -> reg_bits == DWORD ) log( "\033[38;2;255;123;114moutsd\033[0m\t" );
-
-		// default
-		else log( "\033[38;2;255;123;114m%s\033[0m\t", asm -> instruction.name );
-	#endif
+	// instruction name
+	lib_asm_name( asm );
 	
 	// only instruction name?
 	if( ! asm -> instruction.options ) goto end;	// yes
 
-	#ifdef DEBUF
-		if( asm -> rex_semaphore ) log( "{w%u,r%u,x%u,b%u}", asm -> rex.w, asm -> rex.r, asm -> rex.x, asm -> rex.b );
-	#endif
-
-	// - PUSH/POP [0x50-0x5F]
-	if( asm -> instruction.options & FR ) {
-		#ifdef DEBUF
-			log( "{1}" );
-		#endif
-
-		// only 64 bit registers
-		asm -> reg_bits = QWORD;
-
-		log( "\033[38;2;255;166;87m\0" );
-
-		// show
-		log( "%s", lib_asm_register( asm, 0, asm -> opcode_0 & STD_MASK_byte_half | (asm -> rex.b << 3) ) );
-
-		// end
-		goto end;
-	}
-
-	// - PUSH [0x68, 0x6A]
-	if( asm -> instruction.options & I ) {
-		#ifdef DEBUF
-			log( "{2}" );
-		#endif
-
-		log( "\033[38;2;121;192;255m\0" );
-
-		// immediate value
-		int32_t value;
-
-		// 1 Byte value
-		if( asm -> instruction.options & B ) {
-			// retrive 1 Byte
-			value = (int8_t) *(asm -> rip++);
-
-			// value signed? (relative)
-			if( asm -> instruction.options & FE ) {
-				// show absolute address by relative value
-				if( value & STD_SIZE_BYTE_sign ) log( "0x%16X", (uintptr_t) asm -> rip + value );
-				else log( "0x%16X", asm -> rip + value );
-			// no, immediate
-			} else log( "%u", *(asm -> rip++) );
-		}
-
-		// 4 Byte value
-		if( asm -> instruction.options & D ) {
-			// retrieve 4 Byte
-			value = (int8_t) *(asm -> rip++);
-
-			// value signed? (relative)
-			if( asm -> instruction.options & FE ) {
-				// show absolute address by relative value
-				if( value & STD_SIZE_BYTE_sign ) log( "0x%16X", (uintptr_t) asm -> rip + value );
-				else log( "0x%16X", asm -> rip + value );
-			// no, immediate
-			} else log( "%u", *(asm -> rip++) );
-		}
-
-		// end
-		goto end;
-	}
-
-	// calculate source/destination opcodes
-	uint8_t register_rm = asm -> modrm.rm | (asm -> rex.b << 3);
-	uint8_t register_reg = asm -> modrm.reg | (asm -> rex.r << 3);
-
-	// ModR/M exist?
-	if( asm -> modrm_semaphore ) {
-		// direct register addressing mode
-		if( asm -> modrm.mod == LIB_ASM_FLAG_MODRM_register ) {
-			#ifdef DEBUF
-				log( "{3.1}" );
-				log( "{mod%u,reg%u,rm%u}", asm -> modrm.mod, asm -> modrm.reg, asm -> modrm.rm );
-			#endif
-
-			// invert source/destination?
-			if( asm -> instruction.options & FD ) {
-				// thats by instruction design
-				register_rm = asm -> modrm.reg | (asm -> rex.r << 3);
-				register_reg = asm -> modrm.rm | (asm -> rex.b << 3);
-			}
-
-			// show destination first
-			log( "\033[38;2;255;166;87m%s\033[0m,\t\033[38;2;255;166;87m%s", lib_asm_register( asm, 0, register_reg ), lib_asm_register( asm, 1, register_rm ) );
-		// memory addressing mode
-		} else {
-			#ifdef DEBUF
-				log( "{3.2}" );
-				log( "{mod%u,reg%u,rm%u}", asm -> modrm.mod, asm -> modrm.reg, asm -> modrm.rm );
-			#endif
-
-			// show destination
-			if( asm -> instruction.options & M ) {
+	// for instructions outside of any group
+	if( ! asm -> instruction.group ) {
+		// by default, check instruction with ModR/M existence
+		if( ! lib_asm_modrm( asm ) ) {
+			// only first operand is a register?
+			if( asm -> instruction.options & R ) {
 				// show
-				lib_asm_memory( asm );
-				log( "\033[0m,\t\033[38;2;255;166;87m%s", lib_asm_register( asm, 1, register_reg ) );
-			// and source
+				log( "\033[38;2;255;166;87m%s", lib_asm_register( asm, 0, asm -> modrm.reg | (asm -> rex.r << 3) ) );
+			
+				// first operand column filled
+				asm -> col++;
+			// no, there is no register in any operand
 			} else {
-				// show
-				log( "\033[38;2;255;166;87m%s\033[0m,\t",  lib_asm_register( asm, 0, register_reg ) );
-				lib_asm_memory( asm );
+				// might be hidden inside opcode (0x50-0x5F)
+				if( asm -> instruction.options & FR ) {
+					// only 64 bit registers allowed
+					asm -> reg_bits = QWORD;
+
+					log( "\033[38;2;255;166;87m\0" );
+
+					// show
+					log( "%s", lib_asm_register( asm, 0, asm -> opcode_0 & STD_MASK_byte_half | (asm -> rex.b << 3) ) );
+
+					// end
+					goto end;
+				}
 			}
 		}
+	// parse group existence
 	} else {
-		// second operand is an immediate?
-		if( asm -> instruction.options & (I << LIB_ASM_OPTION_FLAG_2nd_operand_shift) ) {
-			#ifdef DEBUF
-				log( "{4.1}" );
-			#endif
+		// start memory access
+		log( "\033[38;5;202m[" );
 
-			// show
-			log( "\033[38;2;255;166;87m%s\033[0m,\t", lib_asm_register( asm, 0, register_reg ) );
-			log( "\033[38;2;121;192;255m\0" ); lib_asm_immediate( asm );
-		}
+		// show register
+		log( "\033[38;2;255;166;87m%s", r[ asm -> mem_bits ][ asm -> modrm.rm ] );
+
+		// displacement exist?
+		if( asm -> displacement ) log( "\033[0m + \033[38;2;121;192;255m0x" );
+
+		// yes
+		if( asm -> displacement > 0xFFFF ) log( "%8X", asm -> displacement );
+		else if( asm -> displacement > 0xFF ) log( "%4X", asm -> displacement );
+		else if( asm -> displacement ) log( "%2X", asm -> displacement );
+
+		// end memory access
+		log( "\033[38;5;202m]" );
+
+		// first operand column filled
+		asm -> col++;
 	}
 
-	// if there is a third operand (by instruction design), its usually an immediate
-	if( asm -> instruction.options & (I << LIB_ASM_OPTION_FLAG_3rd_operand_shift) ) {
-		#ifdef DEBUF
-			log( "{5}" );
-		#endif
-
-		// retrieve immediate according to its size
-		if( asm -> instruction.options & (B << LIB_ASM_OPTION_FLAG_3rd_operand_shift) ) log( "\033[0m,\t\033[38;2;121;192;255m0x%2X", *(asm -> rip++) );
-		if( asm -> instruction.options & (W << LIB_ASM_OPTION_FLAG_2nd_operand_shift) ) { log( "\033[0m,\t\033[38;2;121;192;255m0x%4X", *((uint16_t *) asm -> rip) ); asm -> rip += 2; }
-		if( asm -> instruction.options & (D << LIB_ASM_OPTION_FLAG_3rd_operand_shift) ) { log( "\033[0m,\t\033[38;2;121;192;255m0x%8X", *((uint32_t *) asm -> rip) ); asm -> rip += 4; }
-	}
+	// check for any left operand, which can be immediate
+	lib_asm_immediate( asm );
 
 end:
 	// amount of parsed Bytes

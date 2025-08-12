@@ -79,6 +79,7 @@ struct LIB_ASM_STRUCTURE {
 	struct LIB_ASM_STRUCTURE_MODRM			modrm;
 	int32_t displacement;
 	uint8_t	displacement_size;
+	uint8_t col;
 	uint8_t	sib_semaphore;
 	struct LIB_ASM_STRUCTURE_SIB			sib;
 	struct LIB_ASM_STRUCTURE_INSTRUCTION	instruction;

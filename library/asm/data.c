@@ -15,7 +15,22 @@ uint8_t *r_no_rex[] = {
 
 uint8_t *s[] = { (uint8_t *) "", (uint8_t *) "2", (uint8_t *) "4", (uint8_t *) "8" };
 
-struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
+struct LIB_ASM_STRUCTURE_INSTRUCTION pause[ 1 ] = {
+	{ (uint8_t *) "pause", EMPTY, EMPTY }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_1[] = {
+	{ (uint8_t *) "add" },
+	{ (uint8_t *) "or"  },
+	{ (uint8_t *) "adc" },
+	{ (uint8_t *) "sbb" },
+	{ (uint8_t *) "and" },
+	{ (uint8_t *) "sub" },
+	{ (uint8_t *) "xor" },
+	{ (uint8_t *) "cmp" }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION i[ 256 ] = {
 	{ (uint8_t *) "add", (R|M|B) | (R|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 | FD },	// 0x00
 	{ (uint8_t *) "add", (R|M|D) | (R|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FD },	// 0x01
 	{ (uint8_t *) "add", (R|B) | (R|M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1 },	// 0x02
@@ -96,22 +111,22 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ EMPTY, EMPTY, EMPTY },				// 0x4D
 	{ EMPTY, EMPTY, EMPTY },				// 0x4E
 	{ EMPTY, EMPTY, EMPTY },				// 0x4F
-	{ (uint8_t *) "push", (R) | FR },			// 0x50
-	{ (uint8_t *) "push", (R) | FR },			// 0x51
-	{ (uint8_t *) "push", (R) | FR },			// 0x52
-	{ (uint8_t *) "push", (R) | FR },			// 0x53
-	{ (uint8_t *) "push", (R) | FR },			// 0x54
-	{ (uint8_t *) "push", (R) | FR },			// 0x55
-	{ (uint8_t *) "push", (R) | FR },			// 0x56
-	{ (uint8_t *) "push", (R) | FR },			// 0x57
-	{ (uint8_t *) "pop", (R) | FR },			// 0x58
-	{ (uint8_t *) "pop", (R) | FR },			// 0x59
-	{ (uint8_t *) "pop", (R) | FR },			// 0x5A
-	{ (uint8_t *) "pop", (R) | FR },			// 0x5B
-	{ (uint8_t *) "pop", (R) | FR },			// 0x5C
-	{ (uint8_t *) "pop", (R) | FR },			// 0x5D
-	{ (uint8_t *) "pop", (R) | FR },			// 0x5E
-	{ (uint8_t *) "pop", (R) | FR },			// 0x5F
+	{ (uint8_t *) "push", FR },			// 0x50
+	{ (uint8_t *) "push", FR },			// 0x51
+	{ (uint8_t *) "push", FR },			// 0x52
+	{ (uint8_t *) "push", FR },			// 0x53
+	{ (uint8_t *) "push", FR },			// 0x54
+	{ (uint8_t *) "push", FR },			// 0x55
+	{ (uint8_t *) "push", FR },			// 0x56
+	{ (uint8_t *) "push", FR },			// 0x57
+	{ (uint8_t *) "pop", FR },			// 0x58
+	{ (uint8_t *) "pop", FR },			// 0x59
+	{ (uint8_t *) "pop", FR },			// 0x5A
+	{ (uint8_t *) "pop", FR },			// 0x5B
+	{ (uint8_t *) "pop", FR },			// 0x5C
+	{ (uint8_t *) "pop", FR },			// 0x5D
+	{ (uint8_t *) "pop", FR },			// 0x5E
+	{ (uint8_t *) "pop", FR },			// 0x5F
 	{ EMPTY, EMPTY, EMPTY },				// 0X60
 	{ EMPTY, EMPTY, EMPTY },				// 0X61
 	{ EMPTY, EMPTY, EMPTY },				// 0X62
@@ -144,10 +159,10 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ (uint8_t *) "jnl", (I|B) | FE, EMPTY },				// 0x7D
 	{ (uint8_t *) "jle", (I|B) | FE, EMPTY },				// 0x7E
 	{ (uint8_t *) "jnle", (I|B) | FE, EMPTY },				// 0x7F
-	{ EMPTY, EMPTY, EMPTY },				// 0x80
-	{ EMPTY, EMPTY, EMPTY },				// 0x81
+	{ EMPTY, (R|M|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1, group_1 },				// 0x80
+	{ EMPTY, (R|M|D) | (I|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1, group_1 },				// 0x81
 	{ EMPTY, EMPTY, EMPTY },				// 0x82
-	{ EMPTY, EMPTY, EMPTY },				// 0x83
+	{ EMPTY, (R|M|D) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1, group_1 },				// 0x83
 	{ EMPTY, EMPTY, EMPTY },				// 0x84
 	{ EMPTY, EMPTY, EMPTY },				// 0x85
 	{ EMPTY, EMPTY, EMPTY },				// 0x86
@@ -171,7 +186,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ EMPTY, EMPTY, EMPTY },				// 0x98
 	{ EMPTY, EMPTY, EMPTY },				// 0x99
 	{ EMPTY, EMPTY, EMPTY },				// 0x9A
-	{ EMPTY, EMPTY, EMPTY },				// 0x9B
+	{ (uint8_t *) "fwait", EMPTY, EMPTY },				// 0x9B
 	{ EMPTY, EMPTY, EMPTY },				// 0x9C
 	{ EMPTY, EMPTY, EMPTY },				// 0x9D
 	{ EMPTY, EMPTY, EMPTY },				// 0x9E
