@@ -28,10 +28,10 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	// time to hunt some BUGs
 
 	// say, hello!
-	log( "\n \033[38;5;118m|Bug Debuffer| \033[38;5;245mby https://blackdev.org/    \033[0mMenu: (\033[38;5;11ms\033[0m)tep (\033[38;5;11mc\033[0m)ontinue\n\n" );
+	log( "\n \033[38;5;118m|Bug Debuffer| \033[38;5;245mby https://\033[38;5;250mblackdev.org\033[38;5;245m/    \033[0mMenu: (\033[38;5;11ms\033[0m)tep (\033[38;5;11mc\033[0m)ontinue\n\n" );
 	// if( kernel -> framebuffer_width_pixel < 1280 || kernel -> framebuffer_height_pixel < 720 ) { log( "\n\tAt least 1280x720 resolution is required." ); while( TRUE ); }
 
-	log( "\033[0m CPU State              EFLAGS (literals)   Stack                             Disassembly\n" );
+	log( "\033[0m CPU State             EFLAGS (literals)    Stack                             Disassembly\n" );
 	uint64_t x = kernel -> terminal.cursor_x + 1;
 	uint64_t y = kernel -> terminal.cursor_y;
 	kernel -> terminal.cursor_x = x;

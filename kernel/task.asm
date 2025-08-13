@@ -19,21 +19,98 @@ align	0x08,	db	0x00
 kernel_task:
 
 ; debug disassembler
-; xchg	bx,bx
+; xchg bx, bx
 ; int	3
+
+; add al, r8b
+; add	[eax + ebx*2 + 0x10], r8b
+; add	[rax + rbx*2 + 0x10], r8b
+; add ax, r8w
+; add eax, r8d
+; add rax, r8
+; add word [eax + ebx*2 + 0x10], r8w
+; add word [rax + rbx*2 + 0x10], r8w
+; add dword [eax + ebx*2 + 0x10], r8d
+; add dword [rax + rbx*2 + 0x10], r8d
+; add qword [eax + ebx*2 + 0x10], r8
+; add qword [rax + rbx*2 + 0x10], r8
+; add r8b, [eax + ebx*2 + 0x10]
+; add r8b, [rax + rbx*2 + 0x10]
+; add r8w, word [eax + ebx*2 + 0x10]
+; add r8w, word [rax + rbx*2 + 0x10]
+; add r8d, dword [eax + ebx*2 + 0x10]
+; add r8d, dword [rax + rbx*2 + 0x10]
+; add r8, qword [eax + ebx*2 + 0x10]
+; add r8, qword [rax + rbx*2 + 0x10]
+; add al, 0x7F
+; add	ax,	0x1234
+; add eax, 0x123456
+; add rax, 0x12345678
+
+; push rax
+; push rbx
+; push rcx
+; push rdx
+; push rsi
+; push rdi
+; push rsp
+; push rbp
+; push r8
+; push r9
+; push r10
+; push r11
+; push r12
+; push r13
+; push r14
+; push r15
+
+; pop rax
+; pop rbx
+; pop rcx
+; pop rdx
+; pop rsi
+; pop rdi
+; pop rsp
+; pop rbp
+; pop r8
+; pop r9
+; pop r10
+; pop r11
+; pop r12
+; pop r13
+; pop r14
+; pop r15
+
+; movsxd rax, r8d
+; movsxd rax, [r8d + r9d*2 + 0x10]
+; movsxd rax, [kernel_task]
+
+; push 0x123456
+; push 0x12345678
+; push 0x12
+
+; imul eax, ebx, 1
+; imul eax, ebx, 0x1234
+; imul rax, rbx, 1
+; imul rax, rbx, 0x1234
+; imul eax, [ebx + 0x10], 0x12
+; imul eax, [ebx + 0x10], 0x1234
+; imul eax, [rbx + 0x10], 0x12
+; imul eax, [rbx + 0x10], 0x1234
+; imul rax, [ebx + 0x10], 0x12
+; imul rax, [ebx + 0x10], 0x1234
+; imul rax, [rbx + 0x10], 0x12
+; imul rax, [rbx + 0x10], 0x1234
 
 ; rep insb
 ; rep insw
 ; rep insd
-
 ; rep outsb
 ; rep outsw
 ; rep outsd
-
 ; insb
 ; insw
 ; insd
-
 ; outsb
 ; outsw
 ; outsd
@@ -48,79 +125,21 @@ kernel_task:
 ; jnbe	kernel_task
 ; js	kernel_task
 ; jns	kernel_task
-; jp	kernel_task.test
-; jnp	kernel_task.test
-; jl	kernel_task.test
-; jnl	kernel_task.test
-; jle	kernel_task.test
-; jnle	kernel_task.test
+; jp	kernel_task
+; jnp	kernel_task
+; jl	kernel_task
+; jnl	kernel_task
+; jle	kernel_task
+; jnle	kernel_task
 
-
-; .test:
-; imul eax, ebx, 1
-; imul eax, ebx, 0x12345678
-; imul rax, rbx, 1
-; imul rax, rbx, 0x12345678
-; imul eax, [ebx], 1
-; imul eax, [rbx], 1
-; imul rax, [ebx], 1
-; imul rax, [rbx], 1
-; imul eax, [ebx], 0x12345678
-; imul eax, [rbx], 0x12345678
-; imul rax, [ebx], 0x12345678
-; imul rax, [rbx], 0x12345678
-; push 0x12
-; push 0x1234
-; push 0x12345678
-; movsxd rax, ebx
-; movsxd rax, [ebx]
-; movsxd rax, [rbx]
-; movsxd rax, [kernel_task.test]
-; cmp	al,	cl
-; cmp	ax,	cx
-; cmp	eax,	ecx
-; cmp	rax,	rcx
-; cmp	al,	[ecx]
-; cmp	al,	[ecx + 16]
-; cmp	al,	[ecx + r15d]
-; cmp	al,	[ecx + r15d + 16]
-; cmp	al,	[ecx + r15d*2 + 16]
-; cmp	al,	[r13]
-; cmp	al,	[r13 + 16]
-; cmp	al,	[r13 + rdx]
-; cmp	al,	[r13 + rdx + 16]
-; cmp	al,	[r13 + rdx*2 + 16]
-; cmp	[ecx]	, al
-; cmp	[ecx + 16]	, al
-; cmp	[ecx + r15d]	, al
-; cmp	[ecx + r15d + 16]	, al
-; cmp	[ecx + r15d*2 + 16]	, al
-; cmp	[r13]	, al
-; cmp	[r13 + 16]	, al
-; cmp	[r13 + rdx]	, al
-; cmp	[r13 + rdx + 16]	, al
-; cmp	[r13 + rdx*2 + 16]	, al
-; cmp	rax,	rbx
-; cmp	eax,	ebx
-; cmp	ax,	bx
-; cmp	rax,	[rbx]
-; cmp	eax,	[rbx + 4]
-; cmp	eax,	[rbx + 4]
-; cmp	rax,	[rbx + 16]
-; cmp	rax,	[rbx + rcx*8 + 32]
-; cmp	al,	[rbx + 32]
-; cmp	al,	[ebx - 16]
-; cmp	al,	1
-; cmp	al,	-5
-; cmp	ax,	0x1234
-; cmp	eax,	0x12345678
-; cmp	rax,	0x7FFFFFFF
-
-; nop
-; nop
-; nop
-; nop
-
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
 
 	; turn off Interrupt Flag
 	cli

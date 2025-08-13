@@ -3,22 +3,21 @@
 ===============================================================================*/
 
 void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm ) {
-	#ifdef DEBUF
-		log( "{s%u,i%u,b%u}", asm -> sib.scale, asm -> sib.index, asm -> sib.base );
-	#endif
+	// add comma?
+	if( asm -> comma_semaphore ) log( LIB_ASM_COLOR_DEFAULT","LIB_ASM_SEPARATOR );
 
 	// start memory access
-	log( "\033[38;5;202m[" );
+	log( LIB_ASM_COLOR_MEMORY"[" );
 
 	// there was something before displacement
 	uint8_t semaphore = FALSE;
 
 	// extended memory access?
-	if( asm -> sib_semaphore ) {
+	if( asm -> sib.semaphore ) {
 		// base register
 		if( asm -> modrm.mod || asm -> sib.base != 0x05 ) {
 			// show
-			log( "\033[38;2;255;166;87m%s", r[ asm -> mem_bits ][ asm -> sib.base | (asm -> rex.b << 3) ] );
+			log( LIB_ASM_COLOR_REGISTER"%s", r[ asm -> memory_bits ][ asm -> sib.base | (asm -> rex.b << 3) ] );
 
 			// ready
 			semaphore = TRUE;
@@ -27,13 +26,13 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm ) {
 		// index register
 		if( asm -> sib.index != 0x04 ) {
 			// base printed?
-			if( semaphore ) log( "\033[0m + " );
+			if( semaphore ) log( LIB_ASM_COLOR_DEFAULT" + " );
 
 			// index register
-			log( "\033[38;2;255;166;87m%s", r[ asm -> mem_bits ][ asm -> sib.index | (asm -> rex.x << 3) ] );
+			log( LIB_ASM_COLOR_REGISTER"%s", r[ asm -> memory_bits ][ asm -> sib.index | (asm -> rex.x << 3) ] );
 
 			// with scale?
-			if( asm -> sib.scale ) log( "\033[38;5;208m*%s", s[ asm -> sib.scale ] );
+			if( asm -> sib.scale ) log( LIB_ASM_COLOR_SCALE"*%s", s[ asm -> sib.scale ] );
 
 			// ready
 			semaphore = TRUE;
@@ -42,24 +41,20 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm ) {
 		// 32 bit displacement
 		if( ! semaphore ) {
 			// show
-			if( asm -> displacement & STD_SIZE_DWORD_sign ) log( "\033[38;2;121;192;255m0x%8X", (uint64_t) asm -> displacement );
-			else log( "\033[38;2;121;192;255m0x%8X", (uint32_t) asm -> displacement );
-
-			// end memory access
-			log( "\033[38;5;202m]" );
+			log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", (uint64_t) asm -> displacement );
 
 			// done
-			return;
+			goto	end;
 		}
 	// no, simple one
 	} else {
 		// special case for 64 bit
 		if( ! asm -> modrm.mod && asm -> modrm.rm == 0x05 )
 			// relative address
-			log( "\033[38;5;208mrip" );
+			log( LIB_ASM_COLOR_REGISTER"rip" );
 		else {
 			// default one
-			log( "\033[38;2;255;166;87m%s", r[ asm -> mem_bits ][ asm -> modrm.rm | (asm -> rex.b << 3) ] );
+			log( LIB_ASM_COLOR_REGISTER"%s", r[ asm -> memory_bits ][ asm -> modrm.rm | (asm -> rex.b << 3) ] );
 		}
 
 		// there are defaults
@@ -67,39 +62,9 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm ) {
 	}
 
 	// displacement
-	if( asm -> displacement ) {
-		// value signed?
-		uint8_t sign = FALSE;	// no
+	if( asm -> displacement ) lib_asm_displacement( asm, semaphore );
 
-		// did we show any registers?
-		if( semaphore ) {
-			// for 4 Byte value
-			if( asm -> displacement_size == STD_SIZE_DWORD_byte ) {
-				// address
-				if( asm -> displacement & STD_SIZE_DWORD_sign ) log( "\033[0m - \033[38;2;121;192;255m0x%8X", (uint32_t) -asm -> displacement );
-				else log( "\033[0m + \033[38;2;121;192;255m0x%8X", (uint32_t) asm -> displacement );
-			// 1 Byte
-			} else {
-				// address
-				if( asm -> displacement & STD_SIZE_BYTE_sign ) log( "\033[0m - \033[38;2;121;192;255m0x%2X", (uint8_t) -asm -> displacement );
-				else log( "\033[0m + \033[38;2;121;192;255m0x%2X", (uint8_t) asm -> displacement );
-			}
-		// no
-		} else {
-			// for 4 Byte value
-			if( asm -> displacement_size == STD_SIZE_DWORD_byte ) {
-				// backward or forward?
-				if( asm -> displacement & STD_SIZE_DWORD_sign ) log( "\033[38;2;121;192;255m-0x%8X", (uint32_t) -asm -> displacement );
-				else log( "\033[38;2;121;192;255m0x%8X", (uint32_t) asm -> displacement );
-			// 1 Byte
-			} else {
-				// backward or forward?
-				if( asm -> displacement & STD_SIZE_BYTE_sign ) log( "\033[38;2;121;192;255m-0x%2X", (uint8_t) -asm -> displacement );
-				else log( "\033[38;2;121;192;255m0x%2X", (uint8_t) asm -> displacement );
-			}
-		}
-	}
-
+end:
 	// end memory access
-	log( "\033[38;5;202m]" );
+	log( LIB_ASM_COLOR_MEMORY"]" );
 }
