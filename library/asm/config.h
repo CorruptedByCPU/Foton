@@ -6,6 +6,7 @@
 #define	LIB_ASM_COLOR	// colorize
 
 #ifdef LIB_ASM_COLOR
+	#define	LIB_ASM_COLOR_DATA		"\033[38;5;154m"
 	#define LIB_ASM_COLOR_DEFAULT		"\033[0m"
 	#define	LIB_ASM_COLOR_IMMEDIATE		"\033[38;2;121;192;255m"
 	#define LIB_ASM_COLOR_INSTRUCTION	"\033[38;2;255;123;114m"
@@ -13,6 +14,7 @@
 	#define	LIB_ASM_COLOR_REGISTER		"\033[38;2;255;166;87m"
 	#define	LIB_ASM_COLOR_SCALE			"\033[38;5;208m"
 #else
+	#define	LIB_ASM_COLOR_DATA
 	#define LIB_ASM_COLOR_DEFAULT
 	#define	LIB_ASM_COLOR_IMMEDIATE
 	#define LIB_ASM_COLOR_INSTRUCTION
@@ -44,7 +46,7 @@
 #define	FR 0x01000000	// 0b00000001000000000000000000000000	// relative address
 #define	FI 0x02000000	// 0b00000010000000000000000000000000	// inverted source/destination of ModR/M
 #define	FO 0x04000000	// 0b00000100000000000000000000000000	// operand size override
-#define	F2 0x08000000	// 0b00001000000000000000000000000000	// strictly definied size of operand 2
+#define	FT 0x08000000	// 0b00001000000000000000000000000000	// offset exist
 #define	FH 0x10000000	// 0b00010000000000000000000000000000	// register hidden inside opcode
 #define	FS 0x20000000	// 0b00100000000000000000000000000000	// signed
 #define	FA 0x40000000	// 0b01000000000000000000000000000000	// accumulator
@@ -89,7 +91,9 @@ struct LIB_ASM_STRUCTURE {
 	uint8_t	*rip;	// next opcode to interpret
 	uint8_t opcode;	// current opcode interview
 	uint8_t	register_bits;	// register size
+	uint8_t register_semaphore;	// size changed
 	uint8_t memory_bits;	// memory access size
+	uint8_t memory_semaphore;	// size changed
 	struct LIB_ASM_STRUCTURE_INSTRUCTION	instruction;	// current instruction properties based on opcode
 	struct LIB_ASM_STRUCTURE_REX			rex;			// 64 bit registers access (not always available)
 	struct LIB_ASM_STRUCTURE_MODRM			modrm;			// extended properties of instruction (not always awailable)
@@ -99,15 +103,14 @@ struct LIB_ASM_STRUCTURE {
 								// should we put separator before operator
 };
 
-// initializes environment variables
-uint8_t lib_asm_init_prefix( struct LIB_ASM_STRUCTURE *asm );
+// prints immediate/offset/relative value
+void lib_asm_immediate( struct LIB_ASM_STRUCTURE *asm );
 
 // prints instruction name
 void lib_asm_name( struct LIB_ASM_STRUCTURE *asm );
 
-// prints register
-void lib_asm_register( struct LIB_ASM_STRUCTURE *asm, uint8_t operand, uint8_t reg );
-
-void lib_asm_immediate( struct LIB_ASM_STRUCTURE *asm );
+// prints memory access
 void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm );
 
+// prints register
+void lib_asm_register( struct LIB_ASM_STRUCTURE *asm, uint8_t operand, uint8_t reg );

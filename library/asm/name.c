@@ -3,6 +3,10 @@
 ===============================================================================*/
 
 void lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
+	#ifdef LIB_ASM_OPCODE
+		log( LIB_ASM_COLOR_DEFAULT"[%2X] ", asm -> opcode );
+	#endif
+
 	// instruction name
 	uint8_t *name = asm -> instruction.name;
 
@@ -10,10 +14,6 @@ void lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
 	if( ! name )
 		// retrieve name from group
 		name = ((struct LIB_ASM_STRUCTURE_INSTRUCTION *) asm -> instruction.group)[ asm -> modrm.reg ].name;
-
-	#ifdef LIB_ASM_OPCODE
-		log( LIB_ASM_COLOR_DEFAULT"[%2X] ", asm -> opcode );
-	#endif
 
 	// show instruction name
 

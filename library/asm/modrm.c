@@ -18,23 +18,51 @@ uint8_t lib_asm_modrm( struct LIB_ASM_STRUCTURE *asm ) {
 				register_rm = asm -> modrm.reg | (asm -> rex.r << 3);
 			}
 
-			// show destination first
+			// destination
 			lib_asm_register( asm, 0, register_reg );
+
+			// separator required from now on
 			asm -> comma_semaphore = TRUE;
-			lib_asm_register( asm, 1, register_rm );
+
+			// source
+			lib_asm_register( asm, 0, register_rm );
 		// memory addressing mode
 		} else {
 			// show destination
 			if( asm -> instruction.options & M ) {
-				// show
+				// destination
 				lib_asm_memory( asm );
+
+				// separator required from now on
 				asm -> comma_semaphore = TRUE;
-				lib_asm_register( asm, 1, register_reg );
+
+				// source
+				lib_asm_register( asm, 0, register_reg );
 			// and source
 			} else {
-				// show
-				lib_asm_register( asm, 0, register_reg );
-				asm -> comma_semaphore = TRUE;
+				// exception
+				// there is no source register for opcode 0x8F (pop)
+				if( asm -> opcode != 0x8F ) {
+					// destination
+					lib_asm_register( asm, 0, register_reg );
+
+					// separator required from now on
+					asm -> comma_semaphore = TRUE;
+				} else {
+					// is this code below, really required?
+					// I never saw 16 bit POP in 64 bit CPU mode
+
+					// current bits
+					uint8_t bits = asm -> register_bits;
+
+					// opcode cannot be 32 bit in 64 bit mode CPU
+					if( bits == DWORD ) bits = QWORD;
+
+					// prefix
+					log( LIB_ASM_COLOR_MEMORY"%s ", size[ bits ] );
+				}
+
+				// source
 				lib_asm_memory( asm );
 			}
 		}

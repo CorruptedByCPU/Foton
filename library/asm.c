@@ -32,38 +32,110 @@ uint64_t lib_asm( void *rip ) {
 	// are we ready for interpretation?
 	if( ! ready ) {	// nope
 		// message
-		log( "invalid opcode (0x%2X) or data", asm -> opcode );
+		log( LIB_ASM_COLOR_INSTRUCTION"db "LIB_ASM_COLOR_DATA"0x%2X", asm -> opcode );
 
 		// we are done
 		goto end;
 	}
 
-	// instruction name
+	// with special case of name?
+	if( asm -> instruction.name && asm -> instruction.group ) {
+		// properties of names
+		struct LIB_ASM_STRUCTURE_INSTRUCTION *group = asm -> instruction.group;
+
+		// forced use of 64 bit?
+		if( asm -> rex.w ) asm -> register_bits = QWORD;
+
+		// select name
+		log( LIB_ASM_COLOR_INSTRUCTION"%s", group[ asm -> register_bits - TRUE ] );
+
+		// done
+		goto end;
+	}
+
+	// default instruction name
 	lib_asm_name( asm );
 	
 	// only instruction name?
-	// if( ! asm -> instruction.options ) goto end;	// yes
+	if( ! asm -> instruction.options ) goto end;	// yes
 
-	// for instructions belongs to group
+	// for instructions which belongs to group
 	if( asm -> instruction.group ) {
+		// direct register access?
+		if( asm -> modrm.mod == 0x03 ) {
+			// default bits
+			uint8_t bits = asm -> register_bits;
+
+			// proposed size for operand? (only, if not 16 bit already)
+			if( bits != 1 ) {
+				if( asm -> instruction.options & B ) bits = BYTE;
+				if( asm -> instruction.options & D ) bits = DWORD;
+			}
+
+			// register size override by REX?
+			if( asm -> rex.w ) bits = QWORD;	// forced 64 bit
+
+			// show
+			log( LIB_ASM_COLOR_REGISTER"%s", r[ bits ][ asm -> modrm.rm ] );
+		} else
+			// show
+			lib_asm_memory( asm );
+
+		// separator required from now on
+		asm -> comma_semaphore = TRUE;
 	} else {
 		// try to parse ModR/M, if exist
 		if( ! lib_asm_modrm( asm ) ) {	// doesn't
+			// offset exist?
+			if( asm -> instruction.options & FT ) {
+				// first operand is a register?
+				if( asm -> instruction.options & R ) {
+					// show
+					lib_asm_register( asm, 0, asm -> modrm.reg | (asm -> rex.r << 3) );
+
+					// show memory access
+					log( ","LIB_ASM_SEPARATOR""LIB_ASM_COLOR_MEMORY"["LIB_ASM_COLOR_IMMEDIATE"0x%8X"LIB_ASM_COLOR_MEMORY"]", (uint32_t) *((uint32_t *) asm -> rip) );
+				} else {
+					// show memory access
+					log( LIB_ASM_COLOR_MEMORY"["LIB_ASM_COLOR_IMMEDIATE"0x%8X"LIB_ASM_COLOR_MEMORY"],"LIB_ASM_SEPARATOR, (uint32_t) *((uint32_t *) asm -> rip) );
+
+					// and register
+					lib_asm_register( asm, 0, asm -> modrm.reg | (asm -> rex.r << 3) );
+				}
+
+				// leave value for memory access
+				asm -> rip += 4;
 			// first operand is a register?
-			if( asm -> instruction.options & R ) {
+			} else if( asm -> instruction.options & R ) {
 				// show
 				lib_asm_register( asm, 0, asm -> modrm.reg | (asm -> rex.r << 3) );
 
 				// separator required from now on
 				asm -> comma_semaphore = TRUE;
 			} else {
-				// might be a hidden inside opcode (0x50-0x5F)
+				// register might be a hidden inside opcode
 				if( asm -> instruction.options & FH ) {
-					// only 64 bit registers allowed
-					asm -> register_bits = QWORD;
+					// push/pop?
+					if( asm -> opcode >= 0x50 && asm -> opcode <= 0x5F )
+						// only 64 bit registers are allowed
+						asm -> register_bits = QWORD;
+
+					// register
+					uint8_t reg = asm -> opcode & STD_MASK_byte_half;
+
+					// instruction POP, alignment
+					if( reg > 0x07 ) reg -= 0x08;
 
 					// show
-					lib_asm_register( asm, 0, asm -> opcode & STD_MASK_byte_half | (asm -> rex.b << 3) );
+					lib_asm_register( asm, 0, reg | (asm -> rex.b << 3) );
+
+					// separator required from now on
+					asm -> comma_semaphore = TRUE;
+
+					// xchg?
+					if( asm -> opcode >= 0x90 && asm -> opcode <= 0x97 )
+						// show suplementary register
+						lib_asm_register( asm, 0, 0 );
 
 					// end
 					goto end;
@@ -74,58 +146,6 @@ uint64_t lib_asm( void *rip ) {
 
 	// check for any left operand, which can be immediate
 	lib_asm_immediate( asm );
-
-//		// by default, check instruction with ModR/M existence
-// 		if( ! lib_asm_modrm( asm ) ) {
-// 			// only first operand is a register?
-// 			if( asm -> instruction.options & R ) {
-// 				// show
-// 				log( "\033[38;2;255;166;87m%s", lib_asm_register( asm, 0, asm -> modrm.reg | (asm -> rex.r << 3) ) );
-			
-// 				// first operand column filled
-// 				asm -> col++;
-// 			// no, there is no register in any operand
-// 			} else {
-// 				// might be hidden inside opcode (0x50-0x5F)
-// 				if( asm -> instruction.options & FR ) {
-// 					// only 64 bit registers allowed
-// 					asm -> register_bits = QWORD;
-
-// 					log( "\033[38;2;255;166;87m\0" );
-
-// 					// show
-// 					log( "%s", lib_asm_register( asm, 0, asm -> opcode & STD_MASK_byte_half | (asm -> rex.b << 3) ) );
-
-// 					// end
-// 					goto end;
-// 				}
-// 			}
-// 		}
-// 	// parse group existence
-// 	} else {
-// 		// start memory access
-// 		log( "\033[38;5;202m[" );
-
-// 		// show register
-// 		log( "\033[38;2;255;166;87m%s", r[ asm -> mem_bits ][ asm -> modrm.rm ] );
-
-// 		// displacement exist?
-// 		if( asm -> displacement ) log( "\033[0m + \033[38;2;121;192;255m0x" );
-
-// 		// yes
-// 		if( asm -> displacement > 0xFFFF ) log( "%8X", asm -> displacement );
-// 		else if( asm -> displacement > 0xFF ) log( "%4X", asm -> displacement );
-// 		else if( asm -> displacement ) log( "%2X", asm -> displacement );
-
-// 		// end memory access
-// 		log( "\033[38;5;202m]" );
-
-// 		// first operand column filled
-// 		asm -> col++;
-// 	}
-
-// 	// check for any left operand, which can be immediate
-// 	lib_asm_immediate( asm );
 
 end:
 	// amount of parsed Bytes

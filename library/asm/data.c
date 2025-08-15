@@ -15,6 +15,12 @@ uint8_t *r_no_rex[] = {
 
 uint8_t *s[] = { (uint8_t *) "", (uint8_t *) "2", (uint8_t *) "4", (uint8_t *) "8" };
 
+uint8_t *size[] = { (uint8_t *) "byte", (uint8_t *) "word", (uint8_t *) "dword", (uint8_t *) "qword" };
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION nop[ 1 ] = {
+	{ EMPTY }
+};
+
 struct LIB_ASM_STRUCTURE_INSTRUCTION pause[ 1 ] = {
 	{ (uint8_t *) "pause" }
 };
@@ -28,6 +34,18 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION group_1[] = {
 	{ (uint8_t *) "sub" },
 	{ (uint8_t *) "xor" },
 	{ (uint8_t *) "cmp" }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_x[] = {
+	{ (uint8_t *) "cbw" },
+	{ (uint8_t *) "cwde" },
+	{ (uint8_t *) "cdqe" }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_y[] = {
+	{ (uint8_t *) "cwd" },
+	{ (uint8_t *) "cdq" },
+	{ (uint8_t *) "cqo" }
 };
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
@@ -143,148 +161,148 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ (uint8_t *) "insw" },				// 0x6D
 	{ (uint8_t *) "outsb" },				// 0x6E
 	{ (uint8_t *) "outsw" },				// 0x6F
-	// { (uint8_t *) "jo", (I|B) | FE, EMPTY },				// 0x70
-	// { (uint8_t *) "jno", (I|B) | FE, EMPTY },				// 0x71
-	// { (uint8_t *) "jb", (I|B) | FE, EMPTY },				// 0x72
-	// { (uint8_t *) "jnb", (I|B) | FE, EMPTY },				// 0x73
-	// { (uint8_t *) "je", (I|B) | FE, EMPTY },				// 0x74
-	// { (uint8_t *) "jne", (I|B) | FE, EMPTY },				// 0x75
-	// { (uint8_t *) "jbe", (I|B) | FE, EMPTY },				// 0x76
-	// { (uint8_t *) "jnbe", (I|B) | FE, EMPTY },				// 0x77
-	// { (uint8_t *) "js", (I|B) | FE, EMPTY },				// 0x78
-	// { (uint8_t *) "jns", (I|B) | FE, EMPTY },				// 0x79
-	// { (uint8_t *) "jp", (I|B) | FE, EMPTY },				// 0x7A
-	// { (uint8_t *) "jnp", (I|B) | FE, EMPTY },				// 0x7B
-	// { (uint8_t *) "jl", (I|B) | FE, EMPTY },				// 0x7C
-	// { (uint8_t *) "jnl", (I|B) | FE, EMPTY },				// 0x7D
-	// { (uint8_t *) "jle", (I|B) | FE, EMPTY },				// 0x7E
-	// { (uint8_t *) "jnle", (I|B) | FE, EMPTY },				// 0x7F
-	// { EMPTY, (R|M|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1, group_1 },				// 0x80
-	// { EMPTY, (R|M|D) | (I|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1, group_1 },				// 0x81
-	// { EMPTY },				// 0x82
-	// { EMPTY, (R|M|D) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | F1, group_1 },				// 0x83
-	// { EMPTY },				// 0x84
-	// { EMPTY },				// 0x85
-	// { EMPTY },				// 0x86
-	// { EMPTY },				// 0x87
-	// { EMPTY },				// 0x88
-	// { EMPTY },				// 0x89
-	// { EMPTY },				// 0x8A
-	// { EMPTY },				// 0x8B
-	// { EMPTY },				// 0x8C
-	// { EMPTY },				// 0x8D
-	// { EMPTY },				// 0x8E
-	// { EMPTY },				// 0x8F
-	// { (uint8_t *) "nop" },				// 0x90
-	// { EMPTY },				// 0x91
-	// { EMPTY },				// 0x92
-	// { EMPTY },				// 0x93
-	// { EMPTY },				// 0x94
-	// { EMPTY },				// 0x95
-	// { EMPTY },				// 0x96
-	// { EMPTY },				// 0x97
-	// { EMPTY },				// 0x98
-	// { EMPTY },				// 0x99
-	// { EMPTY },				// 0x9A
-	// { (uint8_t *) "fwait" },				// 0x9B
-	// { EMPTY },				// 0x9C
-	// { EMPTY },				// 0x9D
-	// { EMPTY },				// 0x9E
-	// { EMPTY },				// 0x9F
-	// { EMPTY },				// 0xA0
-	// { EMPTY },				// 0xA1
-	// { EMPTY },				// 0xA2
-	// { EMPTY },				// 0xA3
-	// { EMPTY },				// 0xA4
-	// { EMPTY },				// 0xA5
-	// { EMPTY },				// 0xA6
-	// { EMPTY },				// 0xA7
-	// { EMPTY },				// 0xA8
-	// { EMPTY },				// 0xA9
-	// { EMPTY },				// 0xAA
-	// { EMPTY },				// 0xAB
-	// { EMPTY },				// 0xAC
-	// { EMPTY },				// 0xAD
-	// { EMPTY },				// 0xAE
-	// { EMPTY },				// 0xAF
-	// { EMPTY },				// 0xB0
-	// { EMPTY },				// 0xB1
-	// { EMPTY },				// 0xB2
-	// { EMPTY },				// 0xB3
-	// { EMPTY },				// 0xB4
-	// { EMPTY },				// 0xB5
-	// { EMPTY },				// 0xB6
-	// { EMPTY },				// 0xB7
-	// { EMPTY },				// 0xB8
-	// { EMPTY },				// 0xB9
-	// { EMPTY },				// 0xBA
-	// { EMPTY },				// 0xBB
-	// { EMPTY },				// 0xBC
-	// { EMPTY },				// 0xBD
-	// { EMPTY },				// 0xBE
-	// { EMPTY },				// 0xBF
-	// { EMPTY },				// 0xC0
-	// { EMPTY },				// 0xC1
-	// { EMPTY },				// 0xC2
-	// { EMPTY },				// 0xC3
-	// { EMPTY },				// 0xC4
-	// { EMPTY },				// 0xC5
-	// { EMPTY },				// 0xC6
-	// { EMPTY },				// 0xC7
-	// { EMPTY },				// 0xC8
-	// { EMPTY },				// 0xC9
-	// { EMPTY },				// 0xCA
-	// { EMPTY },				// 0xCB
-	// { EMPTY },				// 0xCC
-	// { EMPTY },				// 0xCD
-	// { EMPTY },				// 0xCE
-	// { EMPTY },				// 0xCF
-	// { EMPTY },				// 0xD0
-	// { EMPTY },				// 0xD1
-	// { EMPTY },				// 0xD2
-	// { EMPTY },				// 0xD3
-	// { EMPTY },				// 0xD4
-	// { EMPTY },				// 0xD5
-	// { EMPTY },				// 0xD6
-	// { EMPTY },				// 0xD7
-	// { EMPTY },				// 0xD8
-	// { EMPTY },				// 0xD9
-	// { EMPTY },				// 0xDA
-	// { EMPTY },				// 0xDB
-	// { EMPTY },				// 0xDC
-	// { EMPTY },				// 0xDD
-	// { EMPTY },				// 0xDE
-	// { EMPTY },				// 0xDF
-	// { EMPTY },				// 0xE0
-	// { EMPTY },				// 0xE1
-	// { EMPTY },				// 0xE2
-	// { EMPTY },				// 0xE3
-	// { EMPTY },				// 0xE4
-	// { EMPTY },				// 0xE5
-	// { EMPTY },				// 0xE6
-	// { EMPTY },				// 0xE7
-	// { EMPTY },				// 0xE8
-	// { EMPTY },				// 0xE9
-	// { EMPTY },				// 0xEA
-	// { EMPTY },				// 0xEB
-	// { EMPTY },				// 0xEC
-	// { EMPTY },				// 0xED
-	// { EMPTY },				// 0xEE
-	// { EMPTY },				// 0xEF
-	// { EMPTY },				// 0xF0
-	// { EMPTY },				// 0xF1
-	// { EMPTY },				// 0xF2
-	// { EMPTY },				// 0xF3
-	// { (uint8_t *) "hlt" },				// 0xF4
-	// { (uint8_t *) "cmc" },				// 0xF5
-	// { EMPTY },				// 0xF6
-	// { EMPTY },				// 0xF7
-	// { (uint8_t *) "clc" },				// 0xF8
-	// { (uint8_t *) "stc" },				// 0xF9
-	// { (uint8_t *) "cli" },				// 0xFA
-	// { (uint8_t *) "sti" },				// 0xFB
-	// { (uint8_t *) "cld" },				// 0xFC
-	// { (uint8_t *) "std" },				// 0xFD
-	// { EMPTY },				// 0xFE
+	{ (uint8_t *) "jo", (I|B) | FR | FO, EMPTY },				// 0x70
+	{ (uint8_t *) "jno", (I|B) | FR | FO, EMPTY },				// 0x71
+	{ (uint8_t *) "jb", (I|B) | FR | FO, EMPTY },				// 0x72
+	{ (uint8_t *) "jnb", (I|B) | FR | FO, EMPTY },				// 0x73
+	{ (uint8_t *) "je", (I|B) | FR | FO, EMPTY },				// 0x74
+	{ (uint8_t *) "jne", (I|B) | FR | FO, EMPTY },				// 0x75
+	{ (uint8_t *) "jbe", (I|B) | FR | FO, EMPTY },				// 0x76
+	{ (uint8_t *) "jnbe", (I|B) | FR | FO, EMPTY },				// 0x77
+	{ (uint8_t *) "js", (I|B) | FR | FO, EMPTY },				// 0x78
+	{ (uint8_t *) "jns", (I|B) | FR | FO, EMPTY },				// 0x79
+	{ (uint8_t *) "jp", (I|B) | FR | FO, EMPTY },				// 0x7A
+	{ (uint8_t *) "jnp", (I|B) | FR | FO, EMPTY },				// 0x7B
+	{ (uint8_t *) "jl", (I|B) | FR | FO, EMPTY },				// 0x7C
+	{ (uint8_t *) "jnl", (I|B) | FR | FO, EMPTY },				// 0x7D
+	{ (uint8_t *) "jle", (I|B) | FR | FO, EMPTY },				// 0x7E
+	{ (uint8_t *) "jnle", (I|B) | FR | FO, EMPTY },				// 0x7F
+	{ EMPTY, (M|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_1 },				// 0x80
+	{ EMPTY, (M|D) | (I|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_1 },				// 0x81
+	{ EMPTY },				// 0x82
+	{ EMPTY, (M|D) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_1 },				// 0x83
+	{ (uint8_t *) "test", (M|B) | ((B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FO | FI },				// 0x84
+	{ (uint8_t *) "test", (M|D) | (D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO | FI },					// 0x85
+	{ (uint8_t *) "xchg", (M|B) | ((B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FO | FI },				// 0x86
+	{ (uint8_t *) "xchg", (M|D) | (D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO | FI },				// 0x87
+	{ (uint8_t *) "mov", (M|B) | ((B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FO | FI },				// 0x88
+	{ (uint8_t *) "mov", (M|D) | FM | FI },				// 0x89
+	{ (uint8_t *) "mov", (B) | ((M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FO | FI },				// 0x8A
+	{ (uint8_t *) "mov", ((M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FI },				// 0x8B
+	{ EMPTY },				// 0x8C
+	{ (uint8_t *) "lea", FM },				// 0x8D
+	{ EMPTY },				// 0x8E
+	{ (uint8_t *) "pop", FM },				// 0x8F
+	{ (uint8_t *) "xchg", FH },				// 0x90
+	{ (uint8_t *) "xchg", FH },				// 0x91
+	{ (uint8_t *) "xchg", FH },				// 0x92
+	{ (uint8_t *) "xchg", FH },				// 0x93
+	{ (uint8_t *) "xchg", FH },				// 0x94
+	{ (uint8_t *) "xchg", FH },				// 0x95
+	{ (uint8_t *) "xchg", FH },				// 0x96
+	{ (uint8_t *) "xchg", FH },				// 0x97
+	{ (uint8_t *) "cbw", EMPTY, group_x },				// 0x98
+	{ (uint8_t *) "cwd", EMPTY, group_y },				// 0x99
+	{ EMPTY },				// 0x9A
+	{ (uint8_t *) "fwait" },				// 0x9B
+	{ (uint8_t *) "pushfq" },				// 0x9C
+	{ (uint8_t *) "popfq" },				// 0x9D
+	{ (uint8_t *) "sahf" },				// 0x9E
+	{ (uint8_t *) "lahf" },				// 0x9F
+	{ (uint8_t *) "mov", B | FM | FO },				// 0xA0
+	{ (uint8_t *) "mov", R | FT },				// 0xA1
+	{ (uint8_t *) "mov", B | (M) | FM | FO },				// 0xA2
+	{ (uint8_t *) "mov", ((R) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FT },				// 0xA3
+	{ EMPTY },				// 0xA4
+	{ EMPTY },				// 0xA5
+	{ EMPTY },				// 0xA6
+	{ EMPTY },				// 0xA7
+	{ EMPTY },				// 0xA8
+	{ EMPTY },				// 0xA9
+	{ EMPTY },				// 0xAA
+	{ EMPTY },				// 0xAB
+	{ EMPTY },				// 0xAC
+	{ EMPTY },				// 0xAD
+	{ EMPTY },				// 0xAE
+	{ EMPTY },				// 0xAF
+	{ EMPTY },				// 0xB0
+	{ EMPTY },				// 0xB1
+	{ EMPTY },				// 0xB2
+	{ EMPTY },				// 0xB3
+	{ EMPTY },				// 0xB4
+	{ EMPTY },				// 0xB5
+	{ EMPTY },				// 0xB6
+	{ EMPTY },				// 0xB7
+	{ EMPTY },				// 0xB8
+	{ EMPTY },				// 0xB9
+	{ EMPTY },				// 0xBA
+	{ EMPTY },				// 0xBB
+	{ EMPTY },				// 0xBC
+	{ EMPTY },				// 0xBD
+	{ EMPTY },				// 0xBE
+	{ EMPTY },				// 0xBF
+	{ EMPTY },				// 0xC0
+	{ EMPTY },				// 0xC1
+	{ EMPTY },				// 0xC2
+	{ EMPTY },				// 0xC3
+	{ EMPTY },				// 0xC4
+	{ EMPTY },				// 0xC5
+	{ EMPTY },				// 0xC6
+	{ EMPTY },				// 0xC7
+	{ EMPTY },				// 0xC8
+	{ EMPTY },				// 0xC9
+	{ EMPTY },				// 0xCA
+	{ EMPTY },				// 0xCB
+	{ EMPTY },				// 0xCC
+	{ EMPTY },				// 0xCD
+	{ EMPTY },				// 0xCE
+	{ EMPTY },				// 0xCF
+	{ EMPTY },				// 0xD0
+	{ EMPTY },				// 0xD1
+	{ EMPTY },				// 0xD2
+	{ EMPTY },				// 0xD3
+	{ EMPTY },				// 0xD4
+	{ EMPTY },				// 0xD5
+	{ EMPTY },				// 0xD6
+	{ EMPTY },				// 0xD7
+	{ EMPTY },				// 0xD8
+	{ EMPTY },				// 0xD9
+	{ EMPTY },				// 0xDA
+	{ EMPTY },				// 0xDB
+	{ EMPTY },				// 0xDC
+	{ EMPTY },				// 0xDD
+	{ EMPTY },				// 0xDE
+	{ EMPTY },				// 0xDF
+	{ EMPTY },				// 0xE0
+	{ EMPTY },				// 0xE1
+	{ EMPTY },				// 0xE2
+	{ EMPTY },				// 0xE3
+	{ EMPTY },				// 0xE4
+	{ EMPTY },				// 0xE5
+	{ EMPTY },				// 0xE6
+	{ EMPTY },				// 0xE7
+	{ EMPTY },				// 0xE8
+	{ EMPTY },				// 0xE9
+	{ EMPTY },				// 0xEA
+	{ EMPTY },				// 0xEB
+	{ EMPTY },				// 0xEC
+	{ EMPTY },				// 0xED
+	{ EMPTY },				// 0xEE
+	{ EMPTY },				// 0xEF
+	{ EMPTY },				// 0xF0
+	{ EMPTY },				// 0xF1
+	{ EMPTY },				// 0xF2
+	{ EMPTY },				// 0xF3
+	{ (uint8_t *) "hlt" },				// 0xF4
+	{ (uint8_t *) "cmc" },				// 0xF5
+	{ EMPTY },				// 0xF6
+	{ EMPTY },				// 0xF7
+	{ (uint8_t *) "clc" },				// 0xF8
+	{ (uint8_t *) "stc" },				// 0xF9
+	{ (uint8_t *) "cli" },				// 0xFA
+	{ (uint8_t *) "sti" },				// 0xFB
+	{ (uint8_t *) "cld" },				// 0xFC
+	{ (uint8_t *) "std" },				// 0xFD
+	{ EMPTY },				// 0xFE
 	{ EMPTY }				// 0xFF
 };
