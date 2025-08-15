@@ -38,22 +38,7 @@ uint64_t lib_asm( void *rip ) {
 		goto end;
 	}
 
-	// with special case of name?
-	if( asm -> instruction.name && asm -> instruction.group ) {
-		// properties of names
-		struct LIB_ASM_STRUCTURE_INSTRUCTION *group = asm -> instruction.group;
-
-		// forced use of 64 bit?
-		if( asm -> rex.w ) asm -> register_bits = QWORD;
-
-		// select name
-		log( LIB_ASM_COLOR_INSTRUCTION"%s", group[ asm -> register_bits - TRUE ] );
-
-		// done
-		goto end;
-	}
-
-	// default instruction name
+	// instruction name
 	lib_asm_name( asm );
 	
 	// only instruction name?

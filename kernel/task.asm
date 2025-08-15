@@ -23,24 +23,24 @@ kernel_task:
 ; int	3
 ; add al, r8b
 ; add [eax + ebx*2 + 0x10], r8b
-; add [rax + rbx*2 + 0x10], r8b
+; add [rax + rbx*2 - 0x10], r8b
 ; add ax, r8w
 ; add eax, r8d
 ; add rax, r8
 ; add word [eax + ebx*2 + 0x10], r8w
-; add word [rax + rbx*2 + 0x10], r8w
+; add word [rax + rbx*2 - 0x10], r8w
 ; add dword [eax + ebx*2 + 0x10], r8d
-; add dword [rax + rbx*2 + 0x10], r8d
+; add dword [rax + rbx*2 - 0x10], r8d
 ; add qword [eax + ebx*2 + 0x10], r8
-; add qword [rax + rbx*2 + 0x10], r8
+; add qword [rax + rbx*2 - 0x10], r8
 ; add r8b, [eax + ebx*2 + 0x10]
-; add r8b, [rax + rbx*2 + 0x10]
+; add r8b, [rax + rbx*2 - 0x10]
 ; add r8w, word [eax + ebx*2 + 0x10]
-; add r8w, word [rax + rbx*2 + 0x10]
+; add r8w, word [rax + rbx*2 - 0x10]
 ; add r8d, dword [eax + ebx*2 + 0x10]
-; add r8d, dword [rax + rbx*2 + 0x10]
+; add r8d, dword [rax + rbx*2 - 0x10]
 ; add r8, qword [eax + ebx*2 + 0x10]
-; add r8, qword [rax + rbx*2 + 0x10]
+; add r8, qword [rax + rbx*2 - 0x10]
 ; add al, 0x7F
 ; add ax, 0x1234
 ; add eax, 0x123456
@@ -204,7 +204,7 @@ kernel_task:
 ; sahf
 ; lahf
 
-; displacement test
+; ; displacement test
 ; mov eax, [0x12345678]
 ; mov eax, [ebp + 8]
 ; mov eax, [ebp - 4]
@@ -223,6 +223,15 @@ kernel_task:
 ; db 0x48, 0xA1, 0x78, 0x56, 0x34, 0x12 ; mov rax, [0x12345678]
 ; db 0xA2, 0x05, 0x0B, 0x00, 0x00, 0x00 ; mov al, [rip + 0x0B]
 ; db 0x48, 0xA3, 0x78, 0x56, 0x34, 0x12 ; mov rax, [0x12345678]
+
+; movsb
+; movsw
+; movsd
+; movsq
+; cmpsb
+; cmpsw
+; cmpsd
+; cmpsq
 
 ; nop
 ; nop

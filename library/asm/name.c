@@ -7,6 +7,21 @@ void lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
 		log( LIB_ASM_COLOR_DEFAULT"[%2X] ", asm -> opcode );
 	#endif
 
+	// special case of name?
+	if( asm -> instruction.name && asm -> instruction.group ) {
+		// properties of names
+		struct LIB_ASM_STRUCTURE_INSTRUCTION *group = asm -> instruction.group;
+
+		// forced use of 64 bit?
+		if( asm -> rex.w ) asm -> register_bits = QWORD;
+
+		// select name
+		log( LIB_ASM_COLOR_INSTRUCTION"%s", group[ asm -> register_bits ] );
+
+		// done
+		return;
+	}
+
 	// instruction name
 	uint8_t *name = asm -> instruction.name;
 

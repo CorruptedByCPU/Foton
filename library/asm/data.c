@@ -36,16 +36,32 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION group_1[] = {
 	{ (uint8_t *) "cmp" }
 };
 
-struct LIB_ASM_STRUCTURE_INSTRUCTION group_x[] = {
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_a[] = {
+	{ EMPTY },
 	{ (uint8_t *) "cbw" },
 	{ (uint8_t *) "cwde" },
 	{ (uint8_t *) "cdqe" }
 };
 
-struct LIB_ASM_STRUCTURE_INSTRUCTION group_y[] = {
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_b[] = {
+	{ EMPTY },
 	{ (uint8_t *) "cwd" },
 	{ (uint8_t *) "cdq" },
 	{ (uint8_t *) "cqo" }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_c[] = {
+	{ (uint8_t *) "movsb" },
+	{ (uint8_t *) "movsw" },
+	{ (uint8_t *) "movsd" },
+	{ (uint8_t *) "movsq" }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_d[] = {
+	{ (uint8_t *) "cmpsb" },
+	{ (uint8_t *) "cmpsw" },
+	{ (uint8_t *) "cmpsd" },
+	{ (uint8_t *) "cmpsq" }
 };
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
@@ -201,8 +217,8 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ (uint8_t *) "xchg", FH },				// 0x95
 	{ (uint8_t *) "xchg", FH },				// 0x96
 	{ (uint8_t *) "xchg", FH },				// 0x97
-	{ (uint8_t *) "cbw", EMPTY, group_x },				// 0x98
-	{ (uint8_t *) "cwd", EMPTY, group_y },				// 0x99
+	{ (uint8_t *) "cbw", EMPTY, group_a },				// 0x98
+	{ (uint8_t *) "cwd", EMPTY, group_b },				// 0x99
 	{ EMPTY },				// 0x9A
 	{ (uint8_t *) "fwait" },				// 0x9B
 	{ (uint8_t *) "pushfq" },				// 0x9C
@@ -213,10 +229,10 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ (uint8_t *) "mov", R | FT },				// 0xA1
 	{ (uint8_t *) "mov", B | (M) | FM | FO },				// 0xA2
 	{ (uint8_t *) "mov", ((R) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FT },				// 0xA3
-	{ EMPTY },				// 0xA4
-	{ EMPTY },				// 0xA5
-	{ EMPTY },				// 0xA6
-	{ EMPTY },				// 0xA7
+	{ (uint8_t *) "movsb" },				// 0xA4
+	{ (uint8_t *) "movsb", EMPTY, group_c },				// 0xA5
+	{ (uint8_t *) "cmpsb" },				// 0xA6
+	{ (uint8_t *) "cmpsb", EMPTY, group_d },				// 0xA7
 	{ EMPTY },				// 0xA8
 	{ EMPTY },				// 0xA9
 	{ EMPTY },				// 0xAA
