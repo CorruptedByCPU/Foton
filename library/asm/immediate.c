@@ -9,14 +9,20 @@ void lib_asm_immediate( struct LIB_ASM_STRUCTURE *asm ) {
 		if( ! (asm -> instruction.options & (I << (i * LIB_ASM_OPTION_FLAG_offset))) ) continue;	// no
 
 		// default size of immediate is same as destination register
-		volatile uint8_t bits = asm -> register_bits;
+		uint8_t bits = asm -> register_bits;
+
+		// register size override by REX?
+		if( asm -> rex.w ) bits = QWORD;	// forced 64 bit
 
 		// strictly definied size?
 		if( asm -> instruction.options & FO ) {
 			if( asm -> instruction.options & (B << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = BYTE;
-			// if( asm -> instruction.options & (W << (operand * LIB_ASM_OPTION_FLAG_offset)) ) bits = WORD;
-			// if( asm -> instruction.options & (D << (operand * LIB_ASM_OPTION_FLAG_offset)) ) bits = DWORD;
-			// if( asm -> instruction.options & (Q << (operand * LIB_ASM_OPTION_FLAG_offset)) ) bits = QWORD;
+			if( asm -> instruction.options & (W << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = WORD;
+			// if( asm -> instruction.options & (D << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = DWORD;
+			// if( asm -> instruction.options & (Q << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = QWORD;
+		// exception for opcode: 0xC1
+		} else if( asm -> opcode == 0xC1 ) {
+			if( asm -> instruction.options & (B << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = BYTE;
 		}
 
 		// add comma?
@@ -71,5 +77,8 @@ void lib_asm_immediate( struct LIB_ASM_STRUCTURE *asm ) {
 				log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", immediate );
 			}
 		}
+
+		// separator required from now on
+		asm -> comma_semaphore = TRUE;
 	}
 }

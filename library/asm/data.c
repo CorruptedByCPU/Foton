@@ -36,6 +36,21 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION group_1[] = {
 	{ (uint8_t *) "cmp" }
 };
 
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_2[] = {
+	{ (uint8_t *) "rol" },
+	{ (uint8_t *) "ror" },
+	{ (uint8_t *) "rcl" },
+	{ (uint8_t *) "rcr" },
+	{ (uint8_t *) "shl" },
+	{ (uint8_t *) "shr" },
+	{ (uint8_t *) "" },
+	{ (uint8_t *) "sar" }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_3[] = {
+	{ (uint8_t *) "mov" }
+};
+
 struct LIB_ASM_STRUCTURE_INSTRUCTION group_a[] = {
 	{ EMPTY },
 	{ (uint8_t *) "cbw" },
@@ -62,6 +77,27 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION group_d[] = {
 	{ (uint8_t *) "cmpsw" },
 	{ (uint8_t *) "cmpsd" },
 	{ (uint8_t *) "cmpsq" }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_e[] = {
+	{ (uint8_t *) "stosb" },
+	{ (uint8_t *) "stosw" },
+	{ (uint8_t *) "stosd" },
+	{ (uint8_t *) "stosq" }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_f[] = {
+	{ (uint8_t *) "lodsb" },
+	{ (uint8_t *) "lodsw" },
+	{ (uint8_t *) "lodsd" },
+	{ (uint8_t *) "lodsq" }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_g[] = {
+	{ (uint8_t *) "scasb" },
+	{ (uint8_t *) "scasw" },
+	{ (uint8_t *) "scasd" },
+	{ (uint8_t *) "scasq" }
 };
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
@@ -233,50 +269,50 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ (uint8_t *) "movsb", EMPTY, group_c },				// 0xA5
 	{ (uint8_t *) "cmpsb" },				// 0xA6
 	{ (uint8_t *) "cmpsb", EMPTY, group_d },				// 0xA7
-	{ EMPTY },				// 0xA8
-	{ EMPTY },				// 0xA9
-	{ EMPTY },				// 0xAA
-	{ EMPTY },				// 0xAB
-	{ EMPTY },				// 0xAC
-	{ EMPTY },				// 0xAD
-	{ EMPTY },				// 0xAE
-	{ EMPTY },				// 0xAF
-	{ EMPTY },				// 0xB0
-	{ EMPTY },				// 0xB1
-	{ EMPTY },				// 0xB2
-	{ EMPTY },				// 0xB3
-	{ EMPTY },				// 0xB4
-	{ EMPTY },				// 0xB5
-	{ EMPTY },				// 0xB6
-	{ EMPTY },				// 0xB7
-	{ EMPTY },				// 0xB8
-	{ EMPTY },				// 0xB9
-	{ EMPTY },				// 0xBA
-	{ EMPTY },				// 0xBB
-	{ EMPTY },				// 0xBC
-	{ EMPTY },				// 0xBD
-	{ EMPTY },				// 0xBE
-	{ EMPTY },				// 0xBF
-	{ EMPTY },				// 0xC0
-	{ EMPTY },				// 0xC1
-	{ EMPTY },				// 0xC2
-	{ EMPTY },				// 0xC3
+	{ (uint8_t *) "test", (R|B) | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FO },		// 0xA8
+	{ (uint8_t *) "test", (R) | (I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift },		// 0xA9
+	{ (uint8_t *) "stosb" },				// 0xAA
+	{ (uint8_t *) "stosb", EMPTY, group_e },				// 0xAB
+	{ (uint8_t *) "lodsb" },				// 0xAC
+	{ (uint8_t *) "lodsb", EMPTY, group_f },				// 0xAD
+	{ (uint8_t *) "scasb" },				// 0xAE
+	{ (uint8_t *) "scasb", EMPTY, group_g },				// 0xAF
+	{ (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB0
+	{ (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB1
+	{ (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB2
+	{ (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB3
+	{ (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB4
+	{ (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB5
+	{ (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB6
+	{ (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB7
+	{ (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},			// 0xB8
+	{ (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xB9
+	{ (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBA
+	{ (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBB
+	{ (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBC
+	{ (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBD
+	{ (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBE
+	{ (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBF
+	{ EMPTY, (M|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_2 },				// 0xC0
+	{ EMPTY, (M|D) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM, group_2 },				// 0xC1
+	{ (uint8_t *) "retn", (I|W) | FO },				// 0xC2
+	{ (uint8_t *) "retn" },				// 0xC3
 	{ EMPTY },				// 0xC4
 	{ EMPTY },				// 0xC5
-	{ EMPTY },				// 0xC6
-	{ EMPTY },				// 0xC7
-	{ EMPTY },				// 0xC8
-	{ EMPTY },				// 0xC9
-	{ EMPTY },				// 0xCA
-	{ EMPTY },				// 0xCB
-	{ EMPTY },				// 0xCC
-	{ EMPTY },				// 0xCD
-	{ EMPTY },				// 0xCE
-	{ EMPTY },				// 0xCF
-	{ EMPTY },				// 0xD0
-	{ EMPTY },				// 0xD1
-	{ EMPTY },				// 0xD2
-	{ EMPTY },				// 0xD3
+	{ EMPTY, (M|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_3 },				// 0xC6
+	{ EMPTY, (M|D) | (I|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM, group_3 },				// 0xC7
+	{ (uint8_t *) "enter", (I|W) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FO },				// 0xC8
+	{ (uint8_t *) "leave" },		// 0xC9
+	{ (uint8_t *) "retf", (I|W) | FO },	// 0xCA
+	{ (uint8_t *) "retf" },				// 0xCB
+	{ (uint8_t *) "int" },				// 0xCC
+	{ (uint8_t *) "int", (I|B) | FO },				// 0xCD
+	{ (uint8_t *) "into" },				// 0xCE
+	{ (uint8_t *) "iretq" },				// 0xCF
+	{ EMPTY, (M|B) | FM | FO, group_2 },				// 0xD0
+	{ EMPTY, (M|D) | FM, group_2 },				// 0xD1
+	{ EMPTY, (M|B) | FM | FO, group_2 },				// 0xD2
+	{ EMPTY, (M|D) | FM, group_2 },				// 0xD3
 	{ EMPTY },				// 0xD4
 	{ EMPTY },				// 0xD5
 	{ EMPTY },				// 0xD6

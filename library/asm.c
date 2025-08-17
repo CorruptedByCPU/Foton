@@ -39,7 +39,7 @@ uint64_t lib_asm( void *rip ) {
 	}
 
 	// instruction name
-	lib_asm_name( asm );
+	if( ! lib_asm_name( asm ) ) goto end;
 	
 	// only instruction name?
 	if( ! asm -> instruction.options ) goto end;	// yes
@@ -61,10 +61,14 @@ uint64_t lib_asm( void *rip ) {
 			if( asm -> rex.w ) bits = QWORD;	// forced 64 bit
 
 			// show
-			log( LIB_ASM_COLOR_REGISTER"%s", r[ bits ][ asm -> modrm.rm ] );
+			log( LIB_ASM_COLOR_REGISTER"%s", r[ bits ][ asm -> modrm.rm | asm -> rex.b << 3 ] );	// 0xC0 opcode required, asm -> rex.b << 3, delete comment
 		} else
 			// show
 			lib_asm_memory( asm );
+
+		// exception for opcode: 0xD0, 0xD1, 0xD2, 0xD3
+		if( asm -> opcode == 0xD0 || asm -> opcode == 0xD1 ) { log( LIB_ASM_COLOR_DEFAULT","LIB_ASM_SEPARATOR""LIB_ASM_COLOR_IMMEDIATE"0x01" ); goto end; }
+		if( asm -> opcode == 0xD2 || asm -> opcode == 0xD3 ) { log( LIB_ASM_COLOR_DEFAULT","LIB_ASM_SEPARATOR""LIB_ASM_COLOR_REGISTER"cl" ); goto end; }
 
 		// separator required from now on
 		asm -> comma_semaphore = TRUE;
@@ -101,7 +105,7 @@ uint64_t lib_asm( void *rip ) {
 				// register might be a hidden inside opcode
 				if( asm -> instruction.options & FH ) {
 					// push/pop?
-					if( asm -> opcode >= 0x50 && asm -> opcode <= 0x5F )
+					if( (asm -> opcode & ~STD_MASK_byte_half) == 0x50 )
 						// only 64 bit registers are allowed
 						asm -> register_bits = QWORD;
 
@@ -122,8 +126,8 @@ uint64_t lib_asm( void *rip ) {
 						// show suplementary register
 						lib_asm_register( asm, 0, 0 );
 
-					// end
-					goto end;
+					// end?
+					if( (asm -> opcode & ~STD_MASK_byte_half) != 0xB0 ) goto end;
 				}
 			}
 		}

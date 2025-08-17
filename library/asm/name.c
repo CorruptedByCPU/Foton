@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
+uint8_t lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
 	#ifdef LIB_ASM_OPCODE
 		log( LIB_ASM_COLOR_DEFAULT"[%2X] ", asm -> opcode );
 	#endif
@@ -19,7 +19,7 @@ void lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
 		log( LIB_ASM_COLOR_INSTRUCTION"%s", group[ asm -> register_bits ] );
 
 		// done
-		return;
+		return TRUE;
 	}
 
 	// instruction name
@@ -29,6 +29,12 @@ void lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
 	if( ! name )
 		// retrieve name from group
 		name = ((struct LIB_ASM_STRUCTURE_INSTRUCTION *) asm -> instruction.group)[ asm -> modrm.reg ].name;
+
+	// name still doesn't exist?
+	if( ! name ) { log( "#UD" ); return FALSE; }
+
+	// deBuffer?
+	if( asm -> opcode == 0xCC ) { log( LIB_ASM_COLOR_INSTRUCTION"int"LIB_ASM_SEPARATOR""LIB_ASM_COLOR_DATA"deBuffer" ); return TRUE; }
 
 	// show instruction name
 
@@ -40,4 +46,7 @@ void lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
 
 	// default
 	else log( LIB_ASM_COLOR_INSTRUCTION"%s"LIB_ASM_SEPARATOR, name );
+
+	// done
+	return TRUE;
 }

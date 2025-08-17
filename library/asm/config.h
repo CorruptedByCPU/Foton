@@ -107,7 +107,7 @@ struct LIB_ASM_STRUCTURE {
 void lib_asm_immediate( struct LIB_ASM_STRUCTURE *asm );
 
 // prints instruction name
-void lib_asm_name( struct LIB_ASM_STRUCTURE *asm );
+uint8_t lib_asm_name( struct LIB_ASM_STRUCTURE *asm );
 
 // prints memory access
 void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm );
