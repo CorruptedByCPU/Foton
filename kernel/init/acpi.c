@@ -69,9 +69,10 @@ void kernel_init_acpi( void ) {
 				struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *io_apic = (struct KERNEL_STRUCTURE_INIT_ACPI_IO_APIC *) list;
 				if( io_apic -> type == KERNEL_INIT_ACPI_APIC_TYPE_io_apic ) {
 					// I/O APIC supports interrupt vectors 0+?
-					if( io_apic -> gsib == EMPTY )
+					if( io_apic -> gsib == EMPTY ) {
 						// store base address of I/O APIC
 						kernel -> io_apic_base_address = (struct KERNEL_STRUCTURE_IO_APIC *) (uintptr_t) (io_apic -> base_address | KERNEL_MEMORY_mirror);
+					}
 				}
 
 				// check next entry on list

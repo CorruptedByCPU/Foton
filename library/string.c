@@ -74,7 +74,7 @@ uint64_t lib_string_length_line( uint8_t *string ) {
 	return length;
 }
 
-uint64_t lib_string_length_line_previous( uint8_t *string, uint64_t length ) {
+uint64_t lib_string_length_line_backward( uint8_t *string, uint64_t length ) {
 	// length of string
 	uint64_t n = 0;
 
@@ -184,6 +184,20 @@ uint64_t lib_string_word( uint8_t *string, uint64_t length ) {
 	// the whole string is "word"
 	return length;
 }
+
+// uint64_t lib_string_word_backward( volatile uint8_t *string, uint64_t length ) {
+// 	// how far (behind) is beginning of word
+// 	uint64_t i = -1;
+
+// 	// ignore "white" characters
+// 	while( length-- ) { if( string[ i ] > STD_ASCII_SPACE && string[ i ] < STD_ASCII_DELETE ) break; i--; }
+
+// 	// search from current position
+// 	while( length-- ) { if( string[ i ] <= STD_ASCII_SPACE || string[ i ] >= STD_ASCII_DELETE ) break; i--; }
+
+// 	// word beginning at
+// 	return ~i;
+// }
 
 uint64_t lib_string_word_of_letters_and_digits( uint8_t *string, uint64_t length ) {
 	// search from the beginning

@@ -32,9 +32,9 @@ struct LIB_WINDOW_STRUCTURE *lib_window_event( struct LIB_WINDOW_STRUCTURE *curr
 
 	// set new descriptor properties
 	//----------------------------------------------------------------------
-	// new -> current_x	= current -> new_x;
-	// new -> current_y	= current -> new_y;
-	// new -> current_width	= current -> new_width;
+	// new -> current_x		= current -> new_x;
+	// new -> current_y		= current -> new_y;
+	// new -> current_width		= current -> new_width;
 	// new -> current_height	= current -> new_height;
 	//----------------------------------------------------------------------
 	// copy required descriptor properties from old one
@@ -48,6 +48,8 @@ struct LIB_WINDOW_STRUCTURE *lib_window_event( struct LIB_WINDOW_STRUCTURE *curr
 	new -> old_height	= current -> old_height;
 	//----------------------------------------------------------------------
 	new -> flags		= current -> flags & ~LIB_WINDOW_FLAG_visible;
+	//----------------------------------------------------------------------
+	for( uint64_t i = 0; i < 16 * 16; i++ ) new -> icon[ i ] = current -> icon[ i ];
 	//----------------------------------------------------------------------
 
 	// release old descriptor

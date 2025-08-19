@@ -12,8 +12,14 @@
 #define	KERNEL_STACK_address	(uintptr_t) -(KERNEL_STACK_LIMIT_page << STD_SHIFT_PAGE)
 #define	KERNEL_STACK_pointer	0xFFFFFFFFFFFFF000
 
+// simple and quick function access
+#define	log	kernel_terminal_printf
+
 #ifndef	KERNEL_GDT
 	#include	"gdt.h"
+#endif
+#ifndef	KERNEL_TERMINAL
+	#include	"terminal.h"
 #endif
 #ifndef	KERNEL_TSS
 	#include	"tss.h"
@@ -21,7 +27,8 @@
 
 struct KERNEL {
 	volatile struct KERNEL_STRUCTURE_APIC		*apic_base_address;
-	uint64_t									apic_id_last;
+	uint64_t					apic_id_last;
+	void						(*apic_accept)( void );
 
 	volatile uint64_t				cpu_limit;
 
@@ -36,6 +43,7 @@ struct KERNEL {
 	uint16_t					framebuffer_width_pixel;
 	uint16_t					framebuffer_height_pixel;
 	uint32_t					framebuffer_pitch_byte;
+	uint8_t						framebuffer_bpp;
 	uint64_t					framebuffer_pid;
 
 	struct KERNEL_STRUCTURE_GDT_HEADER		gdt_header;
@@ -72,11 +80,10 @@ struct KERNEL {
 	void						(*page_deconstruct)( uint64_t *pml4, uint8_t type );
 	uint8_t						(*page_map)( uint64_t *pml4, uintptr_t source, uintptr_t target, uint64_t n, uint16_t flags );
 
-	void						(*serial)( uint8_t *string, ... );
-
 	struct KERNEL_STRUCTURE_STORAGE			*storage_base_address;
 	uint64_t					storage_limit;
 	uint8_t						storage_lock;
+	struct KERNEL_STRUCTURE_STORAGE			*(*storage_add)( void );
 
 	uint64_t					*task_ap_address;
 	struct KERNEL_STRUCTURE_TASK			*task_base_address;
@@ -86,7 +93,7 @@ struct KERNEL {
 	uint8_t						task_lock_ap;
 	uint64_t					task_id;
 
-	// struct LIB_TERMINAL_STRUCTURE			terminal;
+	struct KERNEL_STRUCTURE_TERMINAL		terminal;
 
 	uint32_t					time_hz;
 	uint64_t					time_units;

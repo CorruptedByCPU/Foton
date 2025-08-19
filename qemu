@@ -7,7 +7,7 @@ clear
 
 # default CPU count: 1
 CORE="${1}"
-if [ -z "${CORE}" ]; then CORE="4"; fi
+if [ -z "${CORE}" ]; then CORE="1"; fi
 
 # default Memory size: 64 MiB
 MEM="${2}"
@@ -21,18 +21,10 @@ qemu-system-x86_64								\
 	-m ${MEM}								\
 	-cdrom build/foton.iso							\
 	-rtc base=localtime							\
-	-audio driver=alsa,model=sb16,id=7					\
 	-netdev user,id=eth0							\
 	-device virtio-net-pci-transitional,netdev=eth0,mac=00:22:44:66:88:AA	\
 	-object filter-dump,id=eth0,netdev=eth0,file=network.pcap		\
-	-device virtio-blk-pci-transitional,drive=vfs,id=vfs			\
+	-device virtio-blk-pci-transitional,drive=vfs				\
 	-drive format=raw,file=build/storage.vfs,if=none,id=vfs			\
 	-serial mon:stdio							\
-#	-usb									\
-#        -device usb-kbd,bus=usb-bus.0,port=1					\
-#        -device usb-mouse,bus=usb-bus.0,port=2					\
-
-#	-readconfig tools/qemu-ehci-uhci.cfg			\
-#	-device usb-kbd,bus=ehci.0				\
-#	-device usb-mouse,bus=ehci.0				\
-#	-device qemu-xhci					\
+	-device qemu-xhci,id=xhci						\

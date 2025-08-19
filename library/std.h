@@ -102,6 +102,7 @@
 
 	#define	STD_COLOR_mask					0xFF000000
 	#define	STD_COLOR_BLACK					0xFF000000
+	#define	STD_COLOR_BLACK_ALMOST			0xFF101010
 	#define	STD_COLOR_DARK					0xFF272727
 	#define	STD_COLOR_RED					0xFF800000
 	#define	STD_COLOR_GREEN					0xFF008000
@@ -111,8 +112,8 @@
 	#define	STD_COLOR_CYAN					0xFF008080
 	#define	STD_COLOR_GRAY_LIGHT				0xFF808080
 	#define	STD_COLOR_GRAY					0xFF404040
-	#define	STD_COLOR_REG_LIGHT				0xFFFF0000
-	#define	STD_COLOR_GREEN_LIGHT				0xFFFFFF00
+	#define	STD_COLOR_RED_LIGHT				0xFFFF0000
+	#define	STD_COLOR_GREEN_LIGHT				0xFF00FF00
 	#define	STD_COLOR_YELLOW				0xFF00FF00
 	#define	STD_COLOR_BLUE_LIGHT				0xFF0000FF
 	#define	STD_COLOR_MAGENTA_LIGHT				0xFFFF00FF
@@ -323,6 +324,8 @@
 		uint64_t	tx_byte;
 	};
 
+	#define	STD_NUMBER_SYSTEM_binary			2
+	#define	STD_NUMBER_SYSTEM_octonal			8
 	#define	STD_NUMBER_SYSTEM_decimal			10
 	#define	STD_NUMBER_SYSTEM_hexadecimal			16
 
@@ -349,14 +352,21 @@
 
 	#define	STD_SIZE_BYTE_byte				1
 	#define	STD_SIZE_BYTE_bit				8
+	#define	STD_SIZE_BYTE_sign				((uint64_t) 1 << 7)
 	#define	STD_SIZE_WORD_byte				2
 	#define	STD_SIZE_WORD_bit				16
 	#define	STD_SIZE_DWORD_byte				4
 	#define	STD_SIZE_DWORD_bit				32
 	#define	STD_SIZE_QWORD_byte				8
+	#define	STD_SIZE_DWORD_sign				((uint32_t) 1 << 31)
 	#define	STD_SIZE_QWORD_sign				((uint64_t) 1 << 63)
 	#define	STD_SIZE_QWORD_bit				64
 	#define	STD_SIZE_PTR_byte				STD_SIZE_QWORD_byte
+	#define	STD_SIZE_KiB_byte				1024
+	#define	STD_SIZE_MiB_byte				(STD_SIZE_KiB_byte << STD_SHIFT_1024)
+	#define	STD_SIZE_GiB_byte				(STD_SIZE_MiB_byte << STD_SHIFT_1024)
+	#define	STD_SIZE_TiB_byte				(STD_SIZE_GiB_byte << STD_SHIFT_1024)
+	#define	STD_MASK_DWORD					0x00000000FFFFFFFF
 
 	#define	STD_STORAGE_NAME_length				31				
 

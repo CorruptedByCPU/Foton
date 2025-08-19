@@ -9,7 +9,7 @@ void wm_panel( void ) {
 	// count amount of object to show
 	for( uint64_t i = 0; i < wm -> list_limit; i++ )
 		// it's not our object? and visible? (except without name)
-		if( wm -> list[ i ] -> pid != wm -> pid && wm -> list[ i ] -> descriptor -> name_length )
+		if( wm -> list[ i ] -> pid != wm -> pid && ! (wm -> list[ i ] -> descriptor -> flags & LIB_WINDOW_FLAG_release) && wm -> list[ i ] -> descriptor -> name_length )
 			// insert on panel list
 			wm_panel_insert( wm -> list[ i ] );
  
@@ -17,7 +17,7 @@ void wm_panel( void ) {
 	uint32_t *pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
 	// clean'up panel with default color
-	for( uint16_t y = 0; y < wm -> panel -> height; y++ ) for( uint16_t x = WM_PANEL_HEIGHT_pixel; x < wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel; x++ ) pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
+	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ ) for( uint16_t x = WM_PANEL_HEIGHT_pixel; x < wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel; x++ ) pixel[ (y * wm -> panel -> width) + x ] = LIB_UI_COLOR_BACKGROUND_DEFAULT;
 
 	// nothing to draw?
 	if( ! wm -> list_limit_panel ) {
@@ -56,7 +56,7 @@ void wm_panel( void ) {
 		if( wm -> list_panel[ i ] == wm -> active ) background = WM_PANEL_COLOR_active;
 		
 		// mark entry
-		for( uint16_t y = WM_PANEL_HEIGHT_pixel - 2; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width - TRUE; x++ ) pixel[ (y * wm -> panel -> width) + x ] = background;
+		for( uint16_t y = WM_PANEL_HEIGHT_pixel - TRUE; y < WM_PANEL_HEIGHT_pixel; y++ ) for( uint16_t x = 0; x < wm -> panel_entry_width - TRUE; x++ ) pixel[ (y * wm -> panel -> width) + x ] = background;
 
 		uint32_t *pixel_entry = (uint32_t *) pixel + (((WM_PANEL_HEIGHT_pixel - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * wm -> panel -> width) + LIB_UI_PADDING_ICON;
 
@@ -104,9 +104,9 @@ uint8_t wm_panel_clock( void ) {
 	// fill clock area with default background color
 	uint32_t *panel_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 	uint32_t *clock_pixel = (uint32_t *) ((uintptr_t) wm -> panel -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE )) + (wm -> panel -> width - WM_PANEL_CLOCK_WIDTH_pixel);
-	for( uint16_t y = 0; y < wm -> panel -> height; y++ )
+	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ )
 		for( uint16_t x = 0; x < WM_PANEL_CLOCK_WIDTH_pixel; x++ )
-			clock_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
+			clock_pixel[ (y * wm -> panel -> width) + x ] = LIB_UI_COLOR_BACKGROUND_DEFAULT;
 
 	// hour
 	if( hours < 10 ) { clock_string[ 0 ] = STD_ASCII_SPACE; lib_integer_to_string( hours, 10, (uint8_t *) &clock_string[ 1 ] ); }

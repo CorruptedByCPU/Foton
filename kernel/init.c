@@ -12,6 +12,8 @@
 	// Build-in libraries
 	//----------------------------------------------------------------------
 	#include	"../library/elf.c"
+	#include	"../library/font/config.h"
+	#include	"../library/font/data.c"
 	#include	"../library/string.c"
 	//======================================================================
 
@@ -21,7 +23,6 @@
 	#include	"driver/mtrr.h"
 	#include	"driver/port.h"
 	#include	"driver/rtc.h"
-	#include	"driver/serial.h"
 	#include	"driver/vmware.h"
 	//======================================================================
 
@@ -40,6 +41,7 @@
 	#include	"storage.h"
 	#include	"syscall.h"
 	#include	"task.h"
+	#include	"terminal.h"
 	#include	"tss.h"
 	#include	"vfs.h"
 	// --- always at end
@@ -58,7 +60,6 @@
 	#include	"driver/mtrr.c"
 	#include	"driver/port.c"
 	#include	"driver/rtc.c"
-	#include	"driver/serial.c"
 	#include	"driver/vmware.c"
 	//======================================================================
 
@@ -77,6 +78,7 @@
 	#include	"storage.c"
 	#include	"syscall.c"
 	#include	"task.c"
+	#include	"terminal.c"
 	#include	"time.c"
 	#include	"vfs.c"
 	//======================================================================
@@ -109,22 +111,19 @@
 	#include	"init/smp.c"
 	#include	"init/storage.c"
 	#include	"init/task.c"
+	#include	"init/terminal.c"
 	#include	"init/vfs.c"
 	//======================================================================
 
 // start of kernel initialization
 void _entry( void ) {
-	// DEBUG ---------------------------------------------------------------
+	// initialize kernel environment pointer and variables/pointers
+	kernel_init_env();
 
-	#ifndef RELEASE
-		// debug purposes only
-		driver_serial_init();
-	#endif
+	// standard log output
+	kernel_init_terminal();
 
 	// BASE ----------------------------------------------------------------
-
-	// initialize kernel environment pointer and variables/functions/rountines
-	kernel_init_env();
 
 	// binary memory map as source of everything
 	kernel_init_memory();

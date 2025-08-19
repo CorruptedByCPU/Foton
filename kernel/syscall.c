@@ -385,7 +385,7 @@ void kernel_syscall_log( uint8_t *string, uint64_t length ) {
 	if( (uintptr_t) string > KERNEL_STACK_pointer || ((uintptr_t) string + length) > KERNEL_STACK_pointer ) return;	// do not allow it
 
 	// show content of string
-	for( uint64_t i = 0; i < length; i++ ) driver_serial_char( string[ i ] );
+	// for( uint64_t i = 0; i < length; i++ ) driver_serial_char( string[ i ] );
 }
 
 uintptr_t kernel_syscall_memory_alloc( uint64_t n ) {
@@ -568,6 +568,50 @@ uintptr_t kernel_syscall_storage( void ) {
 
 	// share structure with process
 	return (uintptr_t) storage;
+}
+
+uint64_t kernel_syscall_storage_id( void ) {
+	// return ID of currently storage in use
+	return kernel_task_current() -> storage;
+}
+
+uintptr_t kernel_syscall_task( void ) {
+	// amount of entries to pass
+	uint64_t count = 1;
+
+	// count entries
+	for( uint64_t i = 1; i < KERNEL_TASK_limit; i++ ) if( kernel -> task_base_address[ i ].flags ) count++;
+
+	// alloc enough memory for all entries
+	struct STD_STRUCTURE_SYSCALL_TASK *task = (struct STD_STRUCTURE_SYSCALL_TASK *) kernel_syscall_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct STD_STRUCTURE_SYSCALL_TASK ) * count ) >> STD_SHIFT_PAGE );
+
+	// copy essential information about every task
+	uint64_t entry = 0;
+	for( uint64_t i = 1; i < KERNEL_TASK_limit; i++ ) {
+		// process PID
+		task[ entry ].pid = kernel -> task_base_address[ i ].pid;
+
+		// amount of used memory (in Pages)
+		task[ entry ].page = kernel -> task_base_address[ i ].page;
+
+		// amount of user memory for stack (in Pages)
+		// task[ entry ].stack = kernel -> task_base_address[ i ].stack;
+	
+		// current status of task
+		task[ entry ].flags = kernel -> task_base_address[ i ].flags;
+
+		// measured time
+		// task[ entry ].time = kernel -> task_base_address[ i ].time;
+
+		// name of task with length
+		for( uint64_t j = 0; j < kernel -> task_base_address[ i ].name_limit; j++ ) task[ entry ].name[ task[ entry ].name_length++ ] = kernel -> task_base_address[ i ].name[ j ]; task[ entry ].name[ task[ entry ].name_length ] = STD_ASCII_TERMINATOR;
+
+		// required amount of entries passed?
+		if( entry++ == count ) break;	// yes
+	}
+
+	// share structure with process
+	return (uintptr_t) task;
 }
 
 uint64_t kernel_syscall_thread( uintptr_t function, uint8_t *name, uint64_t length ) {

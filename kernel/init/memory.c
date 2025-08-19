@@ -3,11 +3,22 @@
 ===============================================================================*/
 
 void kernel_init_memory( void ) {
-	// binary memory map will be placed right after kernel environment global variables/functions/rountines
+	// binary memory map will be placed right after kernel environment global variables/pointers
 	kernel -> memory_base_address = (uint32_t *) (MACRO_PAGE_ALIGN_UP( (uintptr_t) kernel + sizeof( struct KERNEL ) ));
 
 	// describe all memory areas marked as USBALE inside binary memory map
+	// log( "Memory Map:\n" );
 	for( uint64_t i = 0; i < limine_memmap_request.response -> entry_count; i++ ) {
+		// // debug
+		// log( "  0x%16X...0x%16X ", limine_memmap_request.response -> entries[ i ] -> base, limine_memmap_request.response -> entries[ i ] -> base + limine_memmap_request.response -> entries[ i ] -> length - 1 );
+		// switch( limine_memmap_request.response -> entries[ i ] -> type ) {
+		// 	case LIMINE_MEMMAP_ACPI_RECLAIMABLE: { log( "ACPI (reclaimable)\n" ); break; }
+		// 	case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE: { log( "Bootloader (reclaimable)\n" ); break; }
+		// 	case LIMINE_MEMMAP_KERNEL_AND_MODULES: { log( "Kernel and Modules\n" ); break; }
+		// 	case LIMINE_MEMMAP_USABLE: { log( "Usable\n" ); break; }
+		// 	default: { log( "Reserved\n" ); }
+		// }
+
 		// ignore irrelevant entries
 		if( limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_USABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_KERNEL_AND_MODULES && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE && limine_memmap_request.response -> entries[ i ] -> type != LIMINE_MEMMAP_ACPI_RECLAIMABLE ) continue;
 
@@ -71,8 +82,8 @@ void kernel_init_memory( void ) {
 	// extend by modulo
 	if( kernel -> page_limit % STD_SIZE_BYTE_bit ) kernel -> page_limit += (uint8_t) STD_SIZE_BYTE_bit - (kernel -> page_limit % STD_SIZE_BYTE_bit);
 
-	// mark pages used by kernel environment global variables/functions/rountines and binary memory map itself as unavailable
-	for( uint64_t i = ((uint64_t) kernel & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE; i < (((uintptr_t) kernel -> memory_base_address + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE )) & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE; i++ ) {
+	// mark pages used by kernel environment global variables/pointers, binary memory map itself and terminal cache as unavailable
+	for( uint64_t i = ((uint64_t) kernel & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE; i < (((uintptr_t) kernel -> memory_base_address + MACRO_PAGE_ALIGN_UP( (kernel -> page_limit >> STD_SHIFT_8) + TRUE ) + MACRO_PAGE_ALIGN_UP( kernel -> framebuffer_pitch_byte * kernel -> framebuffer_height_pixel ) + MACRO_PAGE_ALIGN_UP( kernel -> terminal.length )) & ~KERNEL_MEMORY_mirror) >> STD_SHIFT_PAGE ; i++ ) {
 		// set as unavailable
 		kernel -> memory_base_address[ i >> STD_SHIFT_32 ] &= ~(1 << (i & STD_BIT_CONTROL_DWORD_bit));
 

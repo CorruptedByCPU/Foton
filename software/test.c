@@ -32,7 +32,7 @@
 struct LIB_UI_STRUCTURE *ui;
 
 uint64_t y = 0;
-struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *table_content;
+struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY *table_content;
 
 uint32_t **kuro_icons = EMPTY;
 
@@ -221,10 +221,10 @@ void create_ui( void ) {
 		for( uint8_t i = 0; i < sizeof( size ) - 1; i++ ) table_header[ 1 ].cell.name[ i ] = size[ i ];
 		table_header[ 1 ].cell.icon	= EMPTY;
 	// rows
-	table_content = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) malloc( FALSE );
+	table_content = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY *) malloc( FALSE );
 	uint64_t f = 1;
 	while( dir[ ++f ].type ) {
-		table_content = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *) realloc( table_content, (y + 1) * sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW ) );
+		table_content = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY *) realloc( table_content, (y + 1) * sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY ) );
 		//---
 		table_content[ y ].cell = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL *) malloc( 2 * sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE_CELL ) );
 		table_content[ y ].flag = EMPTY;
@@ -255,7 +255,7 @@ void create_ui( void ) {
 
 	// column 0
 	y1 += LIB_UI_ELEMENT_RADIO_height + LIB_UI_PADDING_DEFAULT;
-	lib_ui_add_textarea( ui, x0, y1, -1, -1, EMPTY, (uint8_t *) &textarea );
+	lib_ui_add_textarea( ui, x0, y1, -1, -1, LIB_UI_ELEMENT_FLAG_disabled, (uint8_t *) &textarea, LIB_FONT_FAMILY_ROBOTO );
 
 	lib_window_name( ui -> window, (uint8_t *) "GUI Debug Window" );
 
@@ -279,12 +279,13 @@ uint64_t _main( uint64_t argc, uint8_t *argv[] ) {
 	kuro_icon_register( KURO_MIMETYPE_directory, (uint8_t *) "/var/share/media/icon/default/places/folder.tga" );
 	kuro_icon_register( KURO_MIMETYPE_unknown, (uint8_t *) "/var/share/media/icon/default/mimetypes/unknown.tga" );
 
+	// struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, TEST_WIDTH_pixel, TEST_HEIGHT_pixel );
 	struct LIB_WINDOW_STRUCTURE *window = lib_window( 3, 289, TEST_WIDTH_pixel, TEST_HEIGHT_pixel );
 	window -> flags = LIB_WINDOW_FLAG_resizable;
 
 	ui = lib_ui( window );
 
-	ui -> icon = lib_image_scale( lib_ui_icon( (uint8_t *) "/var/share/media/icon/default/app/duckstation.tga" ), 48, 48, 16, 16 );
+	ui -> icon = lib_image_scale( lib_icon_icon( (uint8_t *) "/var/share/media/icon/default/app/duckstation.tga" ), 48, 48, 16, 16 );
 
 	// add icon to window properties
 	for( uint64_t i = 0; i < 16 * 16; i++ ) window -> icon[ i ] = ui -> icon[ i ];

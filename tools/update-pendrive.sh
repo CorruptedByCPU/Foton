@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tar xf tools/pendrive-64MiB.raw.xz -C build
+tar xf tools/pendrive-64MiB.raw.xz
 LO=`losetup -f --show -P build/pendrive-64MiB.raw`
 mount "${LO}p1" /mnt
 cp build/{kernel,root.vfs} /mnt

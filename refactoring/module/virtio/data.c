@@ -5,4 +5,5 @@
 struct KERNEL *kernel = EMPTY;
 
 struct MODULE_VIRTIO_STRUCTURE *module_virtio;
+
 uint64_t module_virtio_limit = EMPTY;

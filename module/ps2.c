@@ -243,7 +243,7 @@ void module_ps2_keyboard( void ) {
 	module_ps2_scancode = EMPTY;
 
 	// tell APIC of current logical processor that hardware interrupt was handled, propely
-	kernel -> apic_base_address -> eoi = EMPTY;
+	kernel -> apic_accept();
 }
 
 uint8_t module_ps2_rate_set( uint8_t value ) {

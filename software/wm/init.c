@@ -3,7 +3,7 @@
 ===============================================================================*/
 
 void wm_init( void ) {
-	// Window Manager environment global variables/functions/rountines
+	// Window Manager environment global variables/pointers
 	wm = (struct WM_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 
 	// disable window management, for now
@@ -53,7 +53,7 @@ void wm_init( void ) {
 	uint32_t *workbench_pixel = (uint32_t *) ((uintptr_t) wm -> workbench -> descriptor + sizeof( struct LIB_WINDOW_STRUCTURE ));
 
 	// fill workbench with default gradient
-	uint8_t r1 = 0x28, g1 = 0x28, b1 = 0x28;
+	uint8_t r1 = 0x2C, g1 = 0x39, b1 = 0x1D;
 	uint8_t r2 = 0x08, g2 = 0x08, b2 = 0x08;
 	for( uint16_t y = 0; y < wm -> workbench -> height; y++ ) {
 		double ratio = (double) y / (wm -> workbench -> height - 1);
@@ -77,7 +77,8 @@ void wm_init( void ) {
 	// fill panel with default color
 
 	// background
-	for( uint16_t y = 0; y < wm -> panel -> height; y++ ) for( uint16_t x = 0; x < wm -> panel -> width; x++ ) panel_pixel[ (y * wm -> panel -> width) + x ] = WM_PANEL_COLOR_default;
+	for( uint16_t x = 0; x < wm -> panel -> width; x++ ) panel_pixel[ x ] = LIB_UI_COLOR_BORDER_DEFAULT + LIB_UI_COLOR_INCREASE_LITTLE;
+	for( uint16_t y = TRUE; y < wm -> panel -> height; y++ ) for( uint16_t x = 0; x < wm -> panel -> width; x++ ) panel_pixel[ (y * wm -> panel -> width) + x ] = LIB_UI_COLOR_BACKGROUND_DEFAULT;
 
 	// show menu button on panel
 	uint8_t test[ 3 ] = "|||";
@@ -145,4 +146,6 @@ void wm_init( void ) {
 	std_exec( (uint8_t *) "3d /var/share/media/obj/demo.obj", 32, EMPTY, TRUE );
 	std_exec( (uint8_t *) "test", 4, EMPTY, TRUE );
 	std_exec( (uint8_t *) "palette", 7, EMPTY, TRUE );
+	std_exec( (uint8_t *) "moko /moko.txt", 14, EMPTY, TRUE );
+	// std_exec( (uint8_t *) "tm", 2, EMPTY, TRUE );
 }

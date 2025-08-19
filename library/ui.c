@@ -2,7 +2,9 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+#include	"../library/image.h"
 #include	"../library/input.h"
+#include	"../library/kuro.h"
 #include	"../library/ui.h"
 
 void lib_ui_fill_rectangle( uint32_t *pixel, uint64_t scanline, uint8_t r, uint64_t width, uint64_t height, uint32_t color ) {
@@ -55,6 +57,9 @@ struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window ) {
 	// prepare area for element list
 	ui -> element = (struct LIB_UI_STRUCTURE_ELEMENT **) malloc( ui -> limit );
 
+	// element selected by default
+	ui -> element_active = EMPTY;
+
 	// prepare area for all ui elements
 	ui -> button = (struct LIB_UI_STRUCTURE_ELEMENT_BUTTON **) malloc( ui -> limit_button );
 	ui -> checkbox = (struct LIB_UI_STRUCTURE_ELEMENT_CHECKBOX **) malloc( ui -> limit_checkbox );
@@ -71,6 +76,84 @@ struct LIB_UI_STRUCTURE *lib_ui( struct LIB_WINDOW_STRUCTURE *window ) {
 
 	// return ui properties
 	return ui;
+}
+
+void lib_ui_close( struct LIB_UI_STRUCTURE *ui ) {
+	// release window
+	ui -> window -> flags |= LIB_WINDOW_FLAG_release;
+
+	// release icon of window
+	if( ui -> icon ) free( ui -> icon );
+
+	// destroy all elements
+
+	// BUTTON -------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_button; e++ ) {
+	// 	if( ui -> button[ e ] -> standard.name ) free( ui -> button[ e ] -> standard.name );
+	// 	free( ui -> button[ e ] );
+	}
+	free( ui -> button );
+	// CHECKBOX -----------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_checkbox; e++ ) {
+	// 	if( ui -> checkbox[ e ] -> standard.name ) free( ui -> checkbox[ e ] -> standard.name );
+	// 	free( ui -> checkbox[ e ] );
+	}
+	free( ui -> checkbox );
+	// CONTROL ------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_control; e++ ) {
+		if( ui -> control[ e ] -> standard.name ) free( ui -> control[ e ] -> standard.name );
+		free( ui -> control[ e ] );
+	}
+	free( ui -> control );
+	// INPUT --------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_input; e++ ) {
+		if( ui -> input[ e ] -> standard.name ) free( ui -> input[ e ] -> standard.name );
+		free( ui -> input[ e ] );
+	}
+	free( ui -> input );
+	// LABEL --------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_label; e++ ) {
+		if( ui -> label[ e ] -> standard.name ) free( ui -> label[ e ] -> standard.name );
+		free( ui -> label[ e ] );
+	}
+	free( ui -> label );
+	// LIST ---------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_list; e++ ) { 
+		for( uint64_t l = 0; l < ui -> list[ e ] -> limit_entry; l++ ) { if( ui -> list[ e ] -> entry[ l ].icon ) free( ui -> list[ e ] -> entry[ l ].icon ); if( ui -> list[ e ] -> entry[ l ].name ) free( ui -> list[ e ] -> entry[ l ].name ); if( ui -> list[ e ] -> entry[ l ].event ) free( ui -> list[ e ] -> entry[ l ].event ); if( ui -> list[ e ] -> entry[ l ].shortcut ) free( ui -> list[ e ] -> entry[ l ].shortcut ); }
+		free( ui -> list[ e ] );
+	}
+	free( ui -> list );
+	// RADIO --------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_radio; e++ ) {
+		if( ui -> radio[ e ] -> standard.name ) free( ui -> radio[ e ] -> standard.name );
+		free( ui -> radio[ e ] );
+	}
+	free( ui -> radio );
+	// TABLE --------------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_table; e++ ) {
+	// 	// header
+	// 	for( uint64_t h = 0; h < ui -> table[ e ] -> limit_column; h++ ) { if( ui -> table[ e ] -> header[ h ].cell.name ) free( ui -> table[ e ] -> header[ h ].cell.name ); if( ui -> table[ e ] -> header[ h ].cell.icon ) free( ui -> table[ e ] -> header[ h ].cell.icon ); }
+	// 	free( ui -> table[ e ] -> header );
+	// 	// row
+	// 	for( uint64_t r = 0; r < ui -> table[ e ] -> limit_row; r++ ) { for( uint64_t c = 0; c < ui -> table[ e ] -> limit_column; c++ ) { if( ui -> table[ e ] -> row[ r ].cell[ c ].name ) free( ui -> table[ e ] -> row[ r ].cell[ c ].name ); if( ui -> table[ e ] -> row[ r ].cell[ c ].icon ) free( ui -> table[ e ] -> row[ r ].cell[ c ].icon ); } }
+	// 	free( ui -> table[ e ] -> row );
+	// 	//-------------------------------------------------------------
+	// 	free( ui -> table[ e ] );
+	}
+	free( ui -> table );
+	// TEXTAREA -----------------------------------------------------------
+	for( uint64_t e = 0; e < ui -> limit_textarea; e++ ) {
+		if( ui -> textarea[ e ] -> string ) free( ui -> textarea[ e ] -> string ); if( ui -> textarea[ e ] -> plane ) free( ui -> textarea[ e ] -> plane ); 
+		free( ui -> textarea[ e ] );
+	}
+	free( ui -> textarea );
+	//---------------------------------------------------------------------
+
+	// destroy element list
+	free( ui -> element );
+
+	// release UI structure
+	free( ui );
 }
 
 uint64_t lib_ui_add_button( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint8_t *name, uint16_t height, uint8_t flag_ui ) {
@@ -145,11 +228,8 @@ uint64_t lib_ui_add_input( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	ui -> input[ ui -> limit_input ] -> standard.flag		= flag_ui;
 	ui -> input[ ui -> limit_input ] -> standard.type		= INPUT;
 
-	if( *name ) {
-		ui -> input[ ui -> limit_input ] -> standard.name	= (uint8_t *) calloc( LIB_UI_ELEMENT_INPUT_length_max );
-
-		memcpy( ui -> input[ ui -> limit_input ] -> standard.name, name, lib_string_length( name ) );
-	}
+	ui -> input[ ui -> limit_input ] -> standard.name	= (uint8_t *) calloc( LIB_UI_ELEMENT_INPUT_length_max );
+	if( name ) memcpy( ui -> input[ ui -> limit_input ] -> standard.name, name, lib_string_length( name ) );
 
 	ui -> input[ ui -> limit_input ] -> flag			= flag_font;
 	ui -> input[ ui -> limit_input ] -> offset			= EMPTY;
@@ -168,6 +248,7 @@ uint64_t lib_ui_add_label( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	ui -> label[ ui -> limit_label ] -> standard.y			= y;
 	ui -> label[ ui -> limit_label ] -> standard.width		= width;
 	ui -> label[ ui -> limit_label ] -> standard.height		= LIB_UI_ELEMENT_LABEL_height;
+	ui -> label[ ui -> limit_label ] -> standard.type		= LABEL;
 	ui -> label[ ui -> limit_label ] -> standard.flag		= flag_ui;
 
 	if( *name ) {
@@ -224,7 +305,7 @@ uint64_t lib_ui_add_radio( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	return ui -> limit_radio++;
 }
 
-uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *header, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t c, uint64_t r ) {
+uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint16_t height, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_HEADER *header, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY *row, uint64_t c, uint64_t r ) {
 	ui -> table = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE **) realloc( ui -> table, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE ) * (ui -> limit_table + TRUE) );
 	ui -> table[ ui -> limit_table ] = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TABLE ) );
 
@@ -245,7 +326,7 @@ uint64_t lib_ui_add_table( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, 
 	return ui -> limit_table++;
 }
 
-uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint64_t height, uint8_t flag_ui, uint8_t *string ) {
+uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t y, uint16_t width, uint64_t height, uint8_t flag_ui, uint8_t *string, uint8_t font ) {
 	ui -> textarea = (struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA **) realloc( ui -> textarea, sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA ) * (ui -> limit_textarea + TRUE) );
 	ui -> textarea[ ui -> limit_textarea ] = (struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA *) malloc( sizeof( struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA ) );
 
@@ -257,6 +338,28 @@ uint64_t lib_ui_add_textarea( struct LIB_UI_STRUCTURE *ui, uint16_t x, uint16_t 
 	ui -> textarea[ ui -> limit_textarea ] -> standard.flag		= flag_ui;
 
 	ui -> textarea[ ui -> limit_textarea ] -> string		= string;
+	ui -> textarea[ ui -> limit_textarea ] -> length		= lib_string_length( string );
+
+	// ui -> textarea[ ui -> limit_textarea ] -> count			= FALSE;
+	// ui -> textarea[ ui -> limit_textarea ] -> line			= (struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA_LINE *) malloc( ui -> textarea[ ui -> limit_textarea ] -> count );
+
+	// for( uint64_t i = 0; i < lib_string_length( string ); ) {
+	// 	ui -> textarea[ ui -> limit_textarea ] -> line = (struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA_LINE *) realloc( ui -> textarea[ ui -> limit_textarea ] -> line, ui -> textarea[ ui -> limit_textarea ] -> count + 1 );
+
+	// 	ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].length = lib_string_length_line( string );
+	// 	ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].string = (uint8_t *) calloc( ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].length + 1 );
+
+	// 	for( uint64_t k = 0; k < ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].length; k++ ) ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].string[ k ] = ui -> textarea[ ui -> limit_textarea ] -> string[ k ];
+
+	// 	i += ui -> textarea[ ui -> limit_textarea ] -> line[ ui -> textarea[ ui -> limit_textarea ] -> count ].length + 1;
+
+	// 	ui -> textarea[ ui -> limit_textarea ] -> count++;
+	// }
+
+	ui -> textarea[ ui -> limit_textarea ] -> font			= font;
+
+	ui -> textarea[ ui -> limit_textarea ] -> cursor_x		= EMPTY;
+	ui -> textarea[ ui -> limit_textarea ] -> cursor_y		= EMPTY;
 
 	lib_ui_list_insert( ui, (struct LIB_UI_STRUCTURE_ELEMENT *) ui -> textarea[ ui -> limit_textarea ] );
 
@@ -286,6 +389,8 @@ uint16_t lib_ui_event( struct LIB_UI_STRUCTURE *ui ) {
 	struct LIB_WINDOW_STRUCTURE *new = EMPTY;
 	if( (new = lib_window_event( ui -> window )) ) {
 		ui -> window = new;
+
+		lib_ui_clean( ui );
 
 		lib_ui_flush( ui );
 
@@ -362,6 +467,7 @@ static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *syn
 		*sync = TRUE;
 	}
 
+	// input
 	if( ui -> element[ ui -> element_active ] -> type == INPUT && ! (ui -> element[ ui -> element_active ] -> flag & LIB_UI_ELEMENT_FLAG_disabled) ) {
 		struct LIB_UI_STRUCTURE_ELEMENT_INPUT *input = (struct LIB_UI_STRUCTURE_ELEMENT_INPUT *) ui -> element[ ui -> element_active ];
 
@@ -369,11 +475,329 @@ static uint16_t lib_ui_event_keyboard( struct LIB_UI_STRUCTURE *ui, uint8_t *syn
 
 		while( input -> offset > input -> index ) input -> offset--;
 		uint64_t length = input -> index - input -> offset;
-		while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, length-- ) > (input -> standard.width - LIB_UI_PADDING_DEFAULT) ) input -> offset++;
+		while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, input -> standard.name + input -> offset, length-- ) > (input -> standard.width - LIB_UI_PADDING_DEFAULT) ) input -> offset++;
 
 		lib_ui_show_input( ui, input );
 
 		*sync = TRUE;
+	}
+
+	// textarea
+	if( ui -> element[ ui -> element_active ] -> type == TEXTAREA ) {
+		struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA *textarea = (struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA *) ui -> element[ ui -> element_active ];
+
+		// keys expanding textarea
+		if( keyboard -> key == STD_ASCII_RETURN || ! (keyboard -> key < STD_ASCII_SPACE || keyboard -> key > STD_ASCII_TILDE) )
+			textarea -> string = (uint8_t *) realloc( textarea -> string, textarea -> length + TRUE );
+
+		switch( keyboard -> key ) {
+			case STD_KEY_ARROW_DOWN: {
+				uint64_t x = lib_string_length_line( (uint8_t *) &textarea -> string[ textarea -> pointer_line ] );
+
+				// there is New Line character after current line?
+				if( textarea -> pointer_line + x < textarea -> length ) {	// yes
+					// move pointer at beginning of next line
+					textarea -> pointer_line += x + 1;
+
+					// length of next line
+					uint64_t y = lib_string_length_line( (uint8_t *) &textarea -> string[ textarea -> pointer_line ] );
+
+					// move pointer at beginning of next
+					textarea -> pointer = EMPTY;
+
+					// default cursor position
+					textarea -> cursor_x = EMPTY;
+					textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
+
+					uint64_t line_length_in_font = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line ], y );
+
+					// if old cursor position 
+					if( ! ui -> keyboard.semaphore_ctrl_left && textarea -> cursor_x_old <= line_length_in_font ) {
+						// find a character which is near to old cursor x position
+						while( textarea -> pointer < y ) {
+							uint64_t x_offset = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer_line + textarea -> pointer ] );
+
+							if( textarea -> cursor_x + x_offset > textarea -> cursor_x_old ) break;
+
+							textarea -> pointer++;
+							textarea -> cursor_x += x_offset;
+						}
+					// or 
+					} else {
+						textarea -> pointer = y;
+						textarea -> cursor_x = line_length_in_font;
+
+						if( ui -> keyboard.semaphore_ctrl_left ) textarea -> cursor_x_old = textarea -> cursor_x;
+					}
+				} else {
+					textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line ], x );
+
+					textarea -> pointer = x;
+				}
+
+				break;
+			}
+
+			case STD_KEY_ARROW_LEFT: {
+				// current line
+				if( textarea -> pointer ) {
+					textarea -> pointer--;
+
+					textarea -> cursor_x_old = textarea -> cursor_x -= lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer_line + textarea -> pointer ] );
+				// or previous
+				} else if( textarea -> pointer_line ) {
+					// move pointer behind New Line character
+					textarea -> pointer_line--;
+
+					uint64_t x = lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer_line ], textarea -> pointer_line );
+					textarea -> cursor_x_old = textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line - x ], x );
+					textarea -> cursor_y -= LIB_FONT_HEIGHT_pixel;
+
+					textarea -> pointer_line -= x;
+					textarea -> pointer = x;
+				}
+
+				if( ui -> keyboard.semaphore_ctrl_left ) {
+					// trim
+					while( textarea -> string[ textarea -> pointer_line + textarea -> pointer - 1 ] <= STD_ASCII_SPACE && textarea -> string[ textarea -> pointer_line + textarea -> pointer - 1 ] >= STD_ASCII_DELETE ) textarea -> pointer--;
+
+					// look for beginning of word
+					while( textarea -> string[ textarea -> pointer_line + textarea -> pointer - 1 ] > STD_ASCII_SPACE && textarea -> string[ textarea -> pointer_line + textarea -> pointer - 1 ] < STD_ASCII_DELETE ) textarea -> pointer--;
+
+					textarea -> cursor_x_old = textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line ], textarea -> pointer );
+				}
+
+				break;
+			}
+
+			case STD_KEY_ARROW_RIGHT: {
+				if( textarea -> pointer_line + textarea -> pointer < textarea -> length ) {
+					// next line
+					if( textarea -> string[ textarea -> pointer_line + textarea -> pointer ] == STD_ASCII_NEW_LINE ) {
+						textarea -> cursor_x_old = textarea -> cursor_x = EMPTY;
+						textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
+
+						textarea -> pointer_line += textarea -> pointer + 1;
+						textarea -> pointer = EMPTY;
+
+						// exception
+						textarea -> offset_x = EMPTY;
+					// or current
+					} else {
+						textarea -> cursor_x_old = textarea -> cursor_x += lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer_line + textarea -> pointer ] );
+					
+						textarea -> pointer++;
+					}
+
+					if( ui -> keyboard.semaphore_ctrl_left ) {
+						// trim
+						while( textarea -> string[ textarea -> pointer_line + textarea -> pointer ] <= STD_ASCII_SPACE && textarea -> string[ textarea -> pointer_line + textarea -> pointer ] >= STD_ASCII_DELETE ) textarea -> pointer++;
+
+						// look for end of word
+						while( textarea -> string[ textarea -> pointer_line + textarea -> pointer ] > STD_ASCII_SPACE && textarea -> string[ textarea -> pointer_line + textarea -> pointer ] < STD_ASCII_DELETE ) textarea -> pointer++;
+
+						textarea -> cursor_x_old = textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line ], textarea -> pointer );
+					}
+				}
+
+				break;
+			}
+
+			case STD_KEY_ARROW_UP: {
+				if( textarea -> pointer_line ) {
+					// move pointer at end of previous line
+					textarea -> pointer_line--;
+
+					// length of previous line
+					uint64_t x = lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer_line ], textarea -> pointer_line );
+
+					// move pointer at beginning of previous line
+					textarea -> pointer_line -= x;
+					textarea -> pointer = EMPTY;
+
+					// default cursor position
+					textarea -> cursor_x = EMPTY;
+					textarea -> cursor_y -= LIB_FONT_HEIGHT_pixel;
+					
+					uint64_t line_length_in_font = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line ], x );
+
+					// if old cursor position 
+					if( ! ui -> keyboard.semaphore_ctrl_left && textarea -> cursor_x_old <= line_length_in_font ) {
+						// find a character which is near to old cursor x position
+						while( textarea -> pointer < x ) {
+							uint64_t x_offset = lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer_line + textarea -> pointer ] );
+
+							if( textarea -> cursor_x + x_offset > textarea -> cursor_x_old ) break;
+
+							textarea -> pointer++;
+							textarea -> cursor_x += x_offset;
+						}
+					// or 
+					} else {
+						textarea -> pointer = x;
+						textarea -> cursor_x = line_length_in_font;
+
+						if( ui -> keyboard.semaphore_ctrl_left ) {
+							textarea -> pointer = EMPTY;
+							textarea -> cursor_x_old = textarea -> cursor_x = EMPTY;
+						}
+					}
+				} else {
+					textarea -> pointer = EMPTY;
+
+					textarea -> cursor_x = EMPTY;
+				}
+
+				break;
+			}
+
+			case STD_KEY_BACKSPACE: {
+				if( textarea -> pointer_line || textarea -> pointer ) {
+					// current line
+					if( textarea -> pointer ) {
+						textarea -> pointer--;
+
+						textarea -> cursor_x_old = textarea -> cursor_x -= lib_font_length_char( textarea -> font, textarea -> string[ textarea -> pointer_line + textarea -> pointer ] );
+					// or previous
+					} else if( textarea -> pointer_line ) {
+						// move pointer behind New Line character
+						textarea -> pointer_line--;
+
+						uint64_t x = lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer_line ], textarea -> pointer_line );
+						textarea -> cursor_x_old = textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line - x ], x );
+						textarea -> cursor_y -= LIB_FONT_HEIGHT_pixel;
+
+						// new beginning of line
+						textarea -> pointer_line -= x;
+						textarea -> pointer = x;
+					}
+
+					// remove character from document
+					for( uint64_t i = textarea -> pointer_line + textarea -> pointer; i < textarea -> length; i++ ) textarea -> string[ i ] = textarea -> string[ i + 1 ]; textarea -> string[ --textarea -> length ] = STD_ASCII_TERMINATOR;
+				}
+
+				break;
+			}
+
+			case STD_KEY_DELETE: {
+				if( textarea -> pointer_line + textarea -> pointer < textarea -> length ) {
+					// remove character from document
+					for( uint64_t i = textarea -> pointer_line + textarea -> pointer; i < textarea -> length; i++ ) textarea -> string[ i ] = textarea -> string[ i + 1 ];
+
+					textarea -> string[ --textarea -> length ] = STD_ASCII_TERMINATOR;
+				}
+
+				break;
+			}
+
+			case STD_KEY_END: {
+				uint64_t x = lib_string_length_line( (uint8_t *) &textarea -> string[ textarea -> pointer_line ] );
+				textarea -> cursor_x_old = textarea -> cursor_x = lib_font_length_string( textarea -> font, (uint8_t *) &textarea -> string[ textarea -> pointer_line ], x );
+
+				textarea -> pointer = x;
+
+				break;
+			}
+
+			case STD_KEY_ENTER: {
+				if( textarea -> pointer_line + textarea -> pointer < textarea -> length ) for( uint64_t i = textarea -> length; i > textarea -> pointer_line + textarea -> pointer; i-- ) textarea -> string[ i ] = textarea -> string[ i - 1 ];
+
+				textarea -> string[ textarea -> pointer_line + textarea -> pointer++ ] = STD_ASCII_NEW_LINE;
+
+				textarea -> cursor_x_old = textarea -> cursor_x = EMPTY;
+				textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
+
+				textarea -> pointer_line += textarea -> pointer;
+				textarea -> pointer = EMPTY;
+
+				textarea -> length++;
+
+				break;
+			}
+
+			case STD_KEY_HOME: {
+				textarea -> cursor_x_old = textarea -> cursor_x = EMPTY;
+
+				textarea -> pointer = EMPTY;
+
+				break;
+			}
+
+			case STD_KEY_PAGE_UP: {
+				// calculate amount of lines to move up
+				uint64_t height_in_lines = ((textarea -> height_current - (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2)) / LIB_FONT_HEIGHT_pixel) - 1;
+				
+				// until beginning of document
+				while( textarea -> pointer_line ) {
+					// we are already in first line?
+					if( ! textarea -> cursor_y ) break;	// yes
+
+					// count each line
+					if( textarea -> string[ --textarea -> pointer_line ] == STD_ASCII_NEW_LINE ) {
+						// with moving cursor up
+						textarea -> cursor_y -= LIB_FONT_HEIGHT_pixel;
+
+						// amount of line moved?
+						if( ! --height_in_lines ) break;	// yea
+					}
+				}
+				
+				// set cursor at beginning of line
+				textarea -> pointer_line -= lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer_line ], textarea -> pointer_line );
+				textarea -> pointer = EMPTY;
+
+				// with cursor
+				textarea -> cursor_x_old = textarea -> cursor_x = EMPTY;
+
+				break;
+			}
+
+			case STD_KEY_PAGE_DOWN: {
+				// calculate amount of lines to move down
+				uint64_t height_in_lines = ((textarea -> height_current - (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2)) / LIB_FONT_HEIGHT_pixel) - 1;
+
+				// until end of document
+				while( ++textarea -> pointer_line <= textarea -> length ) {
+					// count each line
+					if( textarea -> string[ textarea -> pointer_line - 1 ] == STD_ASCII_NEW_LINE ) {
+						// with moving cursor down
+						textarea -> cursor_y += LIB_FONT_HEIGHT_pixel;
+
+						// amount of line moved?
+						if( ! --height_in_lines ) break;	// yea
+					}
+				}
+
+				// set cursor at beginning of line
+				textarea -> pointer_line -= lib_string_length_line_backward( (uint8_t *) &textarea -> string[ textarea -> pointer_line ], textarea -> pointer_line );
+				textarea -> pointer = EMPTY;
+
+				// with cursor
+				textarea -> cursor_x_old = textarea -> cursor_x = EMPTY;
+
+				// done
+				break;
+			}
+
+			default: {
+				if( ! ui -> keyboard.semaphore_alt_left && ! ui -> keyboard.semaphore_ctrl_left && keyboard -> key >= STD_ASCII_SPACE && keyboard -> key <= STD_ASCII_TILDE ) {
+					if( textarea -> pointer_line + textarea -> pointer < textarea -> length ) for( uint64_t i = textarea -> length; i > textarea -> pointer_line + textarea -> pointer; i-- ) textarea -> string[ i ] = textarea -> string[ i - 1 ];
+	
+					textarea -> string[ textarea -> pointer_line + textarea -> pointer++ ] = keyboard -> key;
+
+					textarea -> cursor_x_old = textarea -> cursor_x += lib_font_length_char( textarea -> font, keyboard -> key );
+
+					textarea -> length++;
+				}
+			}
+		}
+
+		// ignore key release
+		if( ! (keyboard -> key & STD_KEY_RELEASE) ) {
+			lib_ui_show_textarea( ui, textarea );
+
+			*sync = TRUE;
+		}
 	}
 
 	return keyboard -> key;
@@ -427,6 +851,26 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 
 			if( mouse -> button == STD_IPC_MOUSE_BUTTON_left ) {
 				switch( ui -> element[ i ] -> type ) {
+					case LIST: {
+						struct LIB_UI_STRUCTURE_ELEMENT_LIST *list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST *) ui -> element[ i ];
+
+						uint16_t list_height = list -> standard.height; if( list -> standard.height == (uint16_t) STD_MAX_unsigned ) { list_height = LIB_UI_ELEMENT_LIST_ENTRY_height * list -> limit_entry; if( list_height > (ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT) ) list_height = ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT; }
+
+						if( list_height < (ui -> window -> y - list -> standard.y) ) break;
+
+						// remove flags from all entries
+						for( uint64_t e = 0; e < list -> limit_entry; e++ ) list -> entry[ e ].flag = EMPTY;
+					
+						// selected entry
+						uint64_t e = ((ui -> window -> y - list -> standard.y) / LIB_UI_ELEMENT_LIST_ENTRY_height);
+
+						list -> entry[ e ].flag = LIB_UI_ELEMENT_FLAG_event | LIB_UI_ELEMENT_FLAG_active;
+
+						*sync = TRUE;
+
+						break;
+					}
+
 					case TABLE: {
 						struct LIB_UI_STRUCTURE_ELEMENT_TABLE *table = (struct LIB_UI_STRUCTURE_ELEMENT_TABLE *) ui -> element[ i ];
 
@@ -484,9 +928,13 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 					case LIST: {
 						struct LIB_UI_STRUCTURE_ELEMENT_LIST *list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST *) ui -> element[ i ];
 
+						uint16_t list_height = list -> standard.height; if( list -> standard.height == (uint16_t) STD_MAX_unsigned ) { list_height = LIB_UI_ELEMENT_LIST_ENTRY_height * list -> limit_entry; if( list_height > (ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT) ) list_height = ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT; }
+
+						if( list_height < (ui -> window -> y - list -> standard.y) ) break;
+
 						uint64_t r = ((ui -> window -> y - list -> standard.y) / LIB_UI_ELEMENT_LIST_ENTRY_height);
 
-						list -> entry[ r ].flag = LIB_UI_ELEMENT_FLAG_event;
+						if( list -> entry[ r ].flag & LIB_UI_ELEMENT_FLAG_active ) list -> entry[ r ].flag |= LIB_UI_ELEMENT_FLAG_event;
 
 						break;
 					}
@@ -516,6 +964,10 @@ static void lib_ui_event_mouse( struct LIB_UI_STRUCTURE *ui, uint8_t *sync ) {
 			switch( ui -> element[ i ] -> type ) {
 				case LIST: {
 					struct LIB_UI_STRUCTURE_ELEMENT_LIST *list = (struct LIB_UI_STRUCTURE_ELEMENT_LIST *) ui -> element[ i ];
+
+					uint16_t list_height = list -> standard.height; if( list -> standard.height == (uint16_t) STD_MAX_unsigned ) { list_height = LIB_UI_ELEMENT_LIST_ENTRY_height * list -> limit_entry; if( list_height > (ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT) ) list_height = ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT; }
+
+					if( list_height < (ui -> window -> y - list -> standard.y) ) break;
 
 					uint64_t r = ((ui -> window -> y - list -> standard.y) / LIB_UI_ELEMENT_LIST_ENTRY_height);
 
@@ -641,42 +1093,138 @@ void lib_ui_flush( struct LIB_UI_STRUCTURE *ui ) {
 
 	for( uint64_t i = 0; i < ui -> limit_control; i++ )
 		lib_ui_show_control( ui, (struct LIB_UI_STRUCTURE_ELEMENT_CONTROL *) ui -> control[ i ] );
-}
 
-uint32_t *lib_ui_icon( uint8_t *path ) {
-	// file properties
-	FILE *file = EMPTY;
-
-	// file exist?
-	if( (file = fopen( path, EMPTY )) ) {
-		// assign area for file
-		struct LIB_IMAGE_STRUCTURE_TGA *image = (struct LIB_IMAGE_STRUCTURE_TGA *) malloc( MACRO_PAGE_ALIGN_UP( file -> byte ) >> STD_SHIFT_PAGE );
-
-		// load file content
-		fread( file, (uint8_t *) image, file -> byte );
-
-		// copy image content to cursor object
-		uint32_t *icon = (uint32_t *) malloc( image -> width * image -> height * STD_VIDEO_DEPTH_byte );
-		lib_image_tga_parse( (uint8_t *) image, icon, file -> byte );
-
-		// release file content
-		free( image );
-
-		// close file
-		fclose( file );
-
-		// done
-		return icon;
-	}
-
-	// cannot locate specified file
-	return EMPTY;
+	ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
 }
 
 static void lib_ui_list_insert( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT *element ) {
 	ui -> element = (struct LIB_UI_STRUCTURE_ELEMENT **) realloc( ui -> element, sizeof( struct LIB_UI_STRUCTURE_ELEMENT ) * (ui -> limit + TRUE) );
 
 	ui -> element[ ui -> limit++ ] = element;
+}
+
+FILE *lib_ui_read_file( struct LIB_UI_STRUCTURE *ui ) {
+	// set main window as in "disabled state"
+	for( uint64_t y = 0; y < ui -> window -> current_height; y++ ) {
+		for( uint64_t x = 0; x < ui -> window -> current_width; x++ ) {
+			// foreground
+			uint32_t color = LIB_UI_COLOR_WINDOW_DISABLED;
+			
+			// change to strand
+			if( ((x + y) / 20 ) % 2 ) color -= LIB_UI_COLOR_INCREASE;
+
+			// set
+			ui -> window -> pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( ui -> window -> pixel[ (y * ui -> window -> current_width) + x ], color );
+		}
+	}
+
+	// show new window state
+	ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
+
+	//---------------------------------------------------------------------
+
+	// create context window
+	struct LIB_WINDOW_STRUCTURE *window = lib_window( -1, -1, 267, 283 );
+	// with new interface
+	struct LIB_UI_STRUCTURE *internal = lib_ui( window );
+	// icon same as for File Manager
+	internal -> icon = lib_image_scale( lib_icon_icon( (uint8_t *) "/var/share/media/icon/default/app/system-file-manager.tga" ), 48, 48, 16, 16 ); for( uint64_t i = 0; i < 16 * 16; i++ ) window -> icon[ i ] = internal -> icon[ i ];
+
+	// context window name
+	lib_window_name( internal -> window, (uint8_t *) "Open File" );
+
+	// draw default elements of window
+	lib_ui_clean( internal );
+	lib_ui_add_control( internal, LIB_UI_ELEMENT_CONTROL_TYPE_close );
+
+	// some local variables
+	uint8_t init = TRUE; struct LIB_KURO_STRUCTURE table = { EMPTY }; uint64_t table_id; FILE *file = EMPTY;
+
+	// window ready
+	window -> flags |= LIB_WINDOW_FLAG_visible | LIB_WINDOW_FLAG_icon | LIB_WINDOW_FLAG_resizable;
+
+reload:
+	// reload loop
+	while( TRUE ) {
+		// create table of files
+		lib_kuro_file( (struct LIB_KURO_STRUCTURE *) &table );
+	
+		// add element
+		if( init ) {
+			// add table to ui interface
+			table_id = lib_ui_add_table( internal, LIB_UI_MARGIN_DEFAULT, LIB_UI_HEADER_HEIGHT, -1, -1, table.header, table.entries, table.cols, table.rows );
+
+			// done
+			init = FALSE;
+		// or update only
+		} else
+			// update table properties
+			lib_ui_update_table( internal, table_id, table.entries, table.rows );
+
+		// sync all interface elements with window
+		lib_ui_flush( internal );	// even window name
+
+		// window ready for show up
+		internal -> window -> flags |= LIB_WINDOW_FLAG_flush;
+
+		// event loop
+		while( TRUE ) {
+			// check for
+			uint16_t key = lib_ui_event( internal );
+
+			// cancel operation?
+			if( key == STD_ASCII_ESC ) goto exit;	// yes
+
+			// check if there is any action required with entry of table
+			for( uint64_t i = 0; i < table.rows; i++ ) {
+				// event?
+				if( table.entries[ i ].flag & LIB_UI_ELEMENT_FLAG_event ) {
+					// based on mimetype
+					switch( table.entries[ i ].reserved ) {
+						case LIB_KURO_MIMETYPE_UP: {
+							// change home directory
+							std_cd( table.entries[ i ].cell[ 0 ].name, lib_string_length( table.entries[ i ].cell[ 0 ].name ) );
+
+							// done
+							goto reload;
+						}
+
+						case LIB_KURO_MIMETYPE_DIRECTORY: {
+							// change home directory
+							std_cd( table.entries[ i ].cell[ 0 ].name, lib_string_length( table.entries[ i ].cell[ 0 ].name ) );
+
+							// done
+							goto reload;
+						}
+
+						default: {
+							// text file?
+							if( LIB_KURO_MIMETYPE_PLAIN_TEXT | LIB_KURO_MIMETYPE_LOG | LIB_KURO_MIMETYPE_OBJECT | LIB_KURO_MIMETYPE_HEADER ) {
+								// and file exist?
+								if( (file = fopen( table.entries[ i ].cell[ 0 ].name, EMPTY )) ) goto exit;
+							}
+						}
+					}
+
+					// remove flag
+					table.entries[ i ].flag &= ~LIB_UI_ELEMENT_FLAG_event;
+				}
+			}
+
+			// release CPU time
+			sleep( TRUE );
+		}
+	}
+
+exit:
+	// close context window with all UI elements
+	lib_ui_close( internal );
+
+	// remove from main window - disabled state
+	lib_ui_clean( ui ); lib_ui_flush( ui ); ui -> window -> flags |= LIB_WINDOW_FLAG_flush;
+
+	// and return opened file
+	return file;
 }
 
 void lib_ui_show_button( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_BUTTON *button ) {
@@ -794,18 +1342,20 @@ void lib_ui_show_input( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 
 	if( input -> standard.height > LIB_FONT_HEIGHT_pixel ) pixel += ((input -> standard.height - LIB_FONT_HEIGHT_pixel) >> 1) * ui -> window -> current_width;
 
-	uint32_t color_foreground = LIB_UI_COLOR_INPUT;
-	if( input -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) color_foreground = LIB_UI_COLOR_INPUT_DISABLED;
+	if( input -> standard.name ) {
+		uint32_t color_foreground = LIB_UI_COLOR_INPUT;
+		if( input -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) color_foreground = LIB_UI_COLOR_INPUT_DISABLED;
 
-	uint64_t name_length_max = lib_string_length( input -> standard.name ) - input -> offset;
-	while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max ) > input -> standard.width - LIB_UI_PADDING_DEFAULT ) { if( ! --name_length_max ) break; }
+		uint64_t name_length_max = lib_string_length( input -> standard.name ) - input -> offset;
+		while( lib_font_length_string( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max ) > input -> standard.width - LIB_UI_PADDING_DEFAULT ) { if( ! --name_length_max ) break; }
 
-	// default
-	pixel += LIB_UI_PADDING_DEFAULT;
+		// default
+		pixel += LIB_UI_PADDING_DEFAULT;
 
-	// if( input -> flag & LIB_FONT_FLAG_ALIGN_center ) pixel += -LIB_UI_PADDING_DEFAULT + (input -> standard.width >> STD_SHIFT_2);
+		// if( input -> flag & LIB_FONT_FLAG_ALIGN_center ) pixel += -LIB_UI_PADDING_DEFAULT + (input -> standard.width >> STD_SHIFT_2);
 
-	if( name_length_max ) lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max, color_foreground, pixel, ui -> window -> current_width, input -> flag );
+		if( name_length_max ) lib_font( LIB_FONT_FAMILY_ROBOTO_MONO, input -> standard.name + input -> offset, name_length_max, color_foreground, pixel, ui -> window -> current_width, input -> flag );
+	}
 
 	if( ! (input -> standard.flag & LIB_UI_ELEMENT_FLAG_active) || input -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) return;
 
@@ -817,6 +1367,9 @@ void lib_ui_show_input( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 void lib_ui_show_label( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_LABEL *label ) {
 	// set pointer location of element inside window
 	uint32_t *pixel = ui -> window -> pixel + (label -> standard.y * ui -> window -> current_width) + label -> standard.x;
+
+	// clean under label
+	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, EMPTY, label -> standard.width, label -> standard.height, LIB_UI_COLOR_BACKGROUND_DEFAULT );
 
 	if( label -> standard.height > LIB_FONT_HEIGHT_pixel ) pixel += ((label -> standard.height - LIB_FONT_HEIGHT_pixel) >> 1) * ui -> window -> current_width;
 
@@ -831,7 +1384,7 @@ void lib_ui_show_list( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEM
 	uint32_t *pixel = ui -> window -> pixel + (list -> standard.y * ui -> window -> current_width) + list -> standard.x;
 
 	uint16_t list_width = list -> standard.width; if( list -> standard.width == (uint16_t) STD_MAX_unsigned ) list_width = ui -> window -> current_width - list -> standard.x - LIB_UI_MARGIN_DEFAULT;
-	uint16_t list_height = list -> standard.height; if( list -> standard.height == (uint16_t) STD_MAX_unsigned ) list_height = ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT;
+	uint16_t list_height = list -> standard.height; if( list -> standard.height == (uint16_t) STD_MAX_unsigned ) { list_height = LIB_UI_ELEMENT_LIST_ENTRY_height * list -> limit_entry; if( list_height > (ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT) ) list_height = ui -> window -> current_height - list -> standard.y - LIB_UI_MARGIN_DEFAULT; }
 
 	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, EMPTY, list_width, list_height, LIB_UI_COLOR_BACKGROUND_LIST );
 
@@ -840,12 +1393,13 @@ void lib_ui_show_list( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEM
 
 		uint32_t color_foreground = STD_COLOR_WHITE;
 		uint32_t color_background = LIB_UI_COLOR_BACKGROUND_LIST;
-		if( entry -> flag & LIB_UI_ELEMENT_FLAG_active || entry -> flag & LIB_UI_ELEMENT_FLAG_hover ) color_background = LIB_UI_COLOR_BACKGROUND_LIST_HOVER;
+		if( entry -> flag & LIB_UI_ELEMENT_FLAG_active ) color_background += LIB_UI_COLOR_INCREASE;
+		if( entry -> flag & LIB_UI_ELEMENT_FLAG_hover ) color_background += LIB_UI_COLOR_INCREASE_LITTLE;
 
 		uint32_t *offset = pixel + (i * LIB_UI_ELEMENT_LIST_ENTRY_height * ui -> window -> current_width);
 
 		// clean area
-		lib_ui_fill_rectangle( offset - (LIB_UI_PADDING_DEFAULT >> STD_SHIFT_2), ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, list_width + LIB_UI_PADDING_DEFAULT, LIB_UI_ELEMENT_LIST_ENTRY_height, color_background );
+		lib_ui_fill_rectangle( offset - (LIB_UI_PADDING_DEFAULT >> STD_SHIFT_2), ui -> window -> current_width, EMPTY, list_width + LIB_UI_PADDING_DEFAULT, LIB_UI_ELEMENT_LIST_ENTRY_height, color_background );
 
 		if( LIB_UI_ELEMENT_LIST_ENTRY_height > LIB_FONT_HEIGHT_pixel ) offset += ((LIB_UI_ELEMENT_LIST_ENTRY_height - LIB_FONT_HEIGHT_pixel) >> STD_SHIFT_2) * ui -> window -> current_width;
 
@@ -869,14 +1423,20 @@ void lib_ui_show_list( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEM
 }
 
 void lib_ui_show_name( struct LIB_UI_STRUCTURE *ui ) {
+	uint64_t offset = EMPTY;
+
 	// set pointer location of element inside window
 	uint32_t *pixel = ui -> window -> pixel + (((LIB_UI_HEADER_HEIGHT - LIB_FONT_HEIGHT_pixel) >> TRUE) * ui -> window -> current_width) + LIB_UI_MARGIN_DEFAULT;
+
+	// limit name length to header width
+	uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, ui -> window -> name_length, ui -> window -> current_width - LIB_UI_MARGIN_DEFAULT - LIB_UI_PADDING_DEFAULT - (ui -> limit_control * LIB_UI_HEADER_HEIGHT) - offset );
+
+	if( ! limit ) return;
 
 	// clean area
 	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, 0, ui -> window -> current_width - LIB_UI_MARGIN_DEFAULT - LIB_UI_PADDING_DEFAULT - (ui -> limit_control * LIB_UI_HEADER_HEIGHT), LIB_FONT_HEIGHT_pixel, LIB_UI_COLOR_BACKGROUND_DEFAULT );
 
 	// icon exist?
-	uint64_t offset = EMPTY;
 	if( ui -> icon ) {
 		offset = 16 + LIB_UI_PADDING_DEFAULT;
 
@@ -885,14 +1445,11 @@ void lib_ui_show_name( struct LIB_UI_STRUCTURE *ui ) {
 				pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( pixel[ (y * ui -> window -> current_width) + x ], ui -> icon[ (y * 16) + x ] );
 	}
 
-	// limit name length to header width
-	uint64_t limit = lib_ui_string( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, ui -> window -> name_length, ui -> window -> current_width - LIB_UI_MARGIN_DEFAULT - LIB_UI_PADDING_DEFAULT - (ui -> limit_control * LIB_UI_HEADER_HEIGHT) - offset );
-
 	uint32_t color = LIB_UI_COLOR_INACTIVE;
 	if( ui -> window -> flags & LIB_WINDOW_FLAG_active ) color = LIB_UI_COLOR_DEFAULT;
 
 	// show description
-	lib_font( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, limit, color, pixel + offset, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_left );
+	lib_font( LIB_FONT_FAMILY_ROBOTO, ui -> window -> name, limit, color, pixel + ui -> window -> current_width + offset, ui -> window -> current_width, LIB_FONT_FLAG_ALIGN_left );
 
 	ui -> window -> header_height	= LIB_UI_HEADER_HEIGHT;
 	ui -> window -> header_width	= ui -> window -> current_width - (LIB_UI_HEADER_HEIGHT * (ui -> limit_control + TRUE));
@@ -1002,88 +1559,180 @@ void lib_ui_show_table( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELE
 }
 
 void lib_ui_show_textarea( struct LIB_UI_STRUCTURE *ui, struct LIB_UI_STRUCTURE_ELEMENT_TEXTAREA *textarea ) {
-	// in progress
+	// calculate current dimension of element
+	textarea -> width_current	= textarea -> standard.width; if( textarea -> standard.width == (uint16_t) STD_MAX_unsigned ) textarea -> width_current = ui -> window -> current_width - textarea -> standard.x - LIB_UI_MARGIN_DEFAULT;
+	textarea -> height_current	= textarea -> standard.height; if( textarea -> standard.height == (uint16_t) STD_MAX_unsigned ) textarea -> height_current = ui -> window -> current_height - textarea -> standard.y - LIB_UI_MARGIN_DEFAULT;
+
+	// by default, element is enabled
+	uint32_t color_background = STD_COLOR_WHITE;
+	uint32_t color_foreground = LIB_UI_COLOR_BACKGROUND_TEXTAREA;
+
+	// or set it as disbaled?
+	if( textarea -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled ) {
+		color_background = STD_COLOR_GRAY_LIGHT;
+		color_foreground = LIB_UI_COLOR_BACKGROUND_TEXTAREA + LIB_UI_COLOR_INCREASE_LITTLE;
+	}
 
 	// set pointer location of element inside window
-	uint32_t *pixel = ui -> window -> pixel + (textarea -> standard.y * ui -> window -> current_width) + textarea -> standard.x;
+	uint32_t *element = ui -> window -> pixel + (textarea -> standard.y * ui -> window -> current_width) + textarea -> standard.x;
 
-	uint16_t textarea_width = textarea -> standard.width; if( textarea -> standard.width == (uint16_t) STD_MAX_unsigned ) textarea_width = ui -> window -> current_width - textarea -> standard.x - LIB_UI_MARGIN_DEFAULT;
-	uint16_t textarea_height = textarea -> standard.height; if( textarea -> standard.height == (uint16_t) STD_MAX_unsigned ) textarea_height = ui -> window -> current_height - textarea -> standard.y - LIB_UI_MARGIN_DEFAULT;
+	// set default background color
+	lib_ui_fill_rectangle( element, ui -> window -> current_width, EMPTY, textarea -> width_current, textarea -> height_current, color_foreground );
 
-	lib_ui_fill_rectangle( pixel, ui -> window -> current_width, LIB_UI_RADIUS_DEFAULT, textarea_width, textarea_height, LIB_UI_COLOR_BACKGROUND_TEXTAREA );
+	// show border around element (it's not part of element itself)
+	for( uint64_t y = 0; y < textarea -> height_current + 1; y++ ) for( uint64_t x = 0; x < textarea -> width_current + 1; x++ ) { if( ! x || ! y ) element[ ((y - 1) * ui -> window -> current_width) + x - 1 ] = color_foreground - LIB_UI_COLOR_INCREASE_LITTLE; if( x == textarea -> width_current || y == textarea -> height_current ) element[ (y * ui -> window -> current_width) + x ] = color_foreground + LIB_UI_COLOR_INCREASE_LITTLE; }
 
-	for( uint64_t y = 0; y < textarea_height; y++ )
-		for( uint64_t x = 0; x < textarea_width; x++ ) {
-			if( !x || !y ) pixel[ (y * ui -> window -> current_width) + x ] = LIB_UI_COLOR_BACKGROUND_TEXTAREA - LIB_UI_COLOR_INCREASE_LITTLE;
-			if( x == textarea_width - 1 || y == textarea_height - 1 ) pixel[ (y * ui -> window -> current_width) + x ] = LIB_UI_COLOR_BACKGROUND_TEXTAREA + LIB_UI_COLOR_INCREASE_LITTLE;
-		}
+	//---------------------------------------------------------------------
 
-	uint64_t content_width = EMPTY;
+	// by default, plane will have same width as element
+	uint64_t plane_width = EMPTY;
 
-	uint8_t *line = textarea -> string; while( *line ) {
-		uint64_t line_in_characters = lib_string_length_line( line );
-		uint64_t line_in_pixels = lib_font_length_string( LIB_FONT_FAMILY_ROBOTO, line, line_in_characters );
-		if( content_width < line_in_pixels ) content_width = line_in_pixels + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2);
+	// counted number of lines
+	uint64_t lines = TRUE;
 
-		line += line_in_characters + TRUE;
-	}
-	
-	uint64_t string_lines = lib_string_count( textarea -> string, lib_string_length( textarea -> string ), '\n' ) + 1;
-	uint64_t content_height = (LIB_FONT_HEIGHT_pixel * string_lines) + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2); if( content_height < textarea_height ) content_height = textarea_height;
+	// local variable
+	uint8_t *string = textarea -> string;
 
-	if( textarea -> pixel ) free( textarea -> pixel );
-	textarea -> pixel = (uint32_t *) malloc( (content_width * content_height) << STD_VIDEO_DEPTH_shift );
+	// find longest line inside string
+	for( uint64_t i = 0; i < textarea -> length; i++ ) {
+		// count current line characters
+		uint64_t c = lib_string_length_line( (uint8_t *) &string[ i ] );
 
-	lib_ui_fill_rectangle( textarea -> pixel, content_width, EMPTY, content_width, content_height, LIB_UI_COLOR_BACKGROUND_TEXTAREA );
+		// convert to pixels (in point of used font)
+		uint64_t p = lib_font_length_string( textarea -> font, (uint8_t *) &string[ i ], c );
 
-	uint32_t *pixel_paragraph = (uint32_t *) textarea -> pixel + (LIB_UI_PADDING_TEXTAREA * content_width) + LIB_UI_PADDING_TEXTAREA;
+		// expand plane horizontaly?
+		if( plane_width < p ) plane_width = p;	// yes
 
-	uint8_t *paragraph = textarea -> string; while( *paragraph != STD_ASCII_TERMINATOR ) {
-		uint64_t line_in_characters = lib_string_length_line( paragraph );
-		if( line_in_characters ) lib_font( LIB_FONT_FAMILY_ROBOTO, paragraph, line_in_characters, STD_COLOR_WHITE, pixel_paragraph, content_width, LIB_FONT_FLAG_ALIGN_left );
+		// New Line character exist?
+		if( i + c < textarea -> length && textarea -> string[ i + c ] == STD_ASCII_NEW_LINE )	// yes
+			// count line
+			lines++;
 
-		pixel_paragraph += (LIB_FONT_HEIGHT_pixel * content_width );
-
-		paragraph += line_in_characters;
-		if( *paragraph == STD_ASCII_NEW_LINE ) paragraph++;
+		// next line
+		i += c;
 	}
 
-	uint64_t x_limit = textarea_width;
-	uint64_t y_limit = textarea_height;
-	if( content_width < textarea_width ) x_limit = content_width;
-	if( content_height < textarea_height ) y_limit = content_height;
+	// expand plane width by padding and element
+	plane_width += LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2;
 
-	uint32_t *pixel_at_offset = (uint32_t *) textarea -> pixel + (textarea -> offset_y * content_width) + textarea -> offset_x;
-	for( uint64_t y = TRUE; y < y_limit - TRUE; y++ )
-		for( uint64_t x = TRUE; x < x_limit - TRUE; x++ )
-			pixel[ (y * ui -> window -> current_width) + x ] = pixel_at_offset[ (y * content_width) + x ];
+	// height of plane calculated from amount of lines
+	uint64_t plane_height = (lines * LIB_FONT_HEIGHT_pixel) + (LIB_UI_PADDING_TEXTAREA << STD_SHIFT_2);
+
+	// correct plane width/height up to element dimension
+	if( plane_width < textarea -> width_current ) plane_width = textarea -> width_current;
+	if( plane_height < textarea -> height_current ) plane_height = textarea -> height_current;
+
+	//---------------------------------------------------------------------
+
+	// acquire plane area
+	if( textarea -> plane ) free( textarea -> plane );
+	textarea -> plane = (uint32_t *) malloc( (plane_width * plane_height) << STD_VIDEO_DEPTH_shift );
+
+	// local value
+	uint32_t *plane = textarea -> plane;
+
+	// set default background color
+	lib_ui_fill_rectangle( plane, plane_width, EMPTY, plane_width, plane_height, color_foreground );
+
+	// apply padding
+	plane += (LIB_UI_PADDING_TEXTAREA * plane_width) + LIB_UI_PADDING_TEXTAREA;
+
+	// print string inside plane
+	for( uint64_t i = 0; i <= textarea -> length; i++ ) {
+		// current line length
+		uint64_t c = lib_string_length_line( (uint8_t *) &string[ i ] );
+
+		// change background color for current line
+		if( textarea -> pointer_line == i ) lib_ui_fill_rectangle( plane - LIB_UI_PADDING_TEXTAREA, plane_width, EMPTY, plane_width, LIB_FONT_HEIGHT_pixel, color_foreground + LIB_UI_COLOR_INCREASE_LITTLE );
+
+		// if empty, ignore
+		if( c ) lib_font( textarea -> font, (uint8_t *) &string[ i ], c, color_background, plane, plane_width, EMPTY );
+
+		// next line inside plane
+		plane += LIB_FONT_HEIGHT_pixel * plane_width;
+
+		// next line
+		i += c;
+	}
+
+	//---------------------------------------------------------------------
+	// offset
+	//---------------------------------------------------------------------
+
+		// todo:
+		// zapamietaj pozycje starą offset x/y gdy trzymasz slider i przywróć gdy nacisniesz jakikolwiek klawisz
+
+	uint64_t x = textarea -> cursor_x + LIB_UI_PADDING_TEXTAREA;
+	uint64_t y = textarea -> cursor_y + LIB_UI_PADDING_TEXTAREA;
+
+	// offset of X axis
+	if( x > textarea -> offset_x && (x - textarea -> offset_x >= textarea -> width_current - LIB_UI_PADDING_TEXTAREA) ) textarea -> offset_x = (x - textarea -> width_current) + LIB_UI_PADDING_TEXTAREA + TRUE;
+	if( x - LIB_UI_PADDING_TEXTAREA < textarea -> offset_x ) textarea -> offset_x = x - LIB_UI_PADDING_TEXTAREA;
+
+	// offset of Y axis
+	if( y > textarea -> offset_y && ((y + LIB_FONT_HEIGHT_pixel) - textarea -> offset_y >= textarea -> height_current - LIB_UI_PADDING_TEXTAREA) ) textarea -> offset_y = ((y + LIB_FONT_HEIGHT_pixel) - textarea -> height_current) + LIB_UI_PADDING_TEXTAREA;
+	if( y < textarea -> offset_y ) textarea -> offset_y = y - LIB_UI_PADDING_TEXTAREA;
+
+	//---------------------------------------------------------------------
+	// cursor
+	//---------------------------------------------------------------------
+
+	// element enabled?
+	if( ! (textarea -> standard.flag & LIB_UI_ELEMENT_FLAG_disabled) )
+		// show cursor at position
+		for( uint64_t i = y; i < y + LIB_FONT_HEIGHT_pixel; i++ ) textarea -> plane[ (i * plane_width) + x ] = ~textarea -> plane[ (i * plane_width) + x ] | STD_COLOR_mask;
+
+	//---------------------------------------------------------------------
+	// sync
+	//---------------------------------------------------------------------
+
+	// copy only part of plane to element based on element dimension
+	uint64_t limit_x = textarea -> width_current;
+	uint64_t limit_y = textarea -> height_current;
+
+	// and offsets
+	uint32_t *plane_offset = (uint32_t *) textarea -> plane + (textarea -> offset_y * plane_width) + textarea -> offset_x;
+
+	// copy
+	for( uint64_t y = 0; y < limit_y && textarea -> offset_y + y < plane_height; y++ ) for( uint64_t x = 0; x < limit_x && textarea -> offset_x + x < plane_width; x++ ) element[ (y * ui -> window -> current_width) + x ] = plane_offset[ (y * plane_width) + x ];
+
+	//---------------------------------------------------------------------
+	// sliders
+	//---------------------------------------------------------------------
 
 	// slider bottom
-	if( content_width > textarea_width ) {
-		double percent = (textarea_width / (double) content_width);
-		textarea -> slider_width = textarea_width * percent;
+	if( plane_width > textarea -> width_current ) {
+		double percent_offset = textarea -> offset_x / (double) plane_width;
+		textarea -> slider_x = textarea -> width_current * percent_offset;
+		
+		double percent = textarea -> width_current / (double) plane_width;
+		textarea -> slider_width = textarea -> width_current * percent;
 
-		if( textarea -> slider_x + textarea -> slider_width > textarea_width ) textarea -> slider_x -= (textarea -> slider_x + textarea -> slider_width) - textarea_width;
+		if( textarea -> slider_x + textarea -> slider_width > textarea -> width_current) textarea -> slider_x -= (textarea -> slider_x + textarea -> slider_width) - textarea -> width_current;
 
-		for( uint64_t y = textarea_height - LIB_UI_SLIDER_SIZE; y < textarea_height; y++ ) {
-			for( uint64_t x = textarea -> slider_x; x < textarea -> slider_x + textarea -> slider_width; x++ ) {
-				uint32_t target = pixel_at_offset[ (y * content_width) + x ];
-				pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( target, LIB_UI_COLOR_BACKGROUND_BUTTON );
+		for( uint64_t y = textarea -> height_current - LIB_UI_SLIDER_SIZE; y < textarea -> height_current; y++ ) {
+			for( uint64_t x = textarea -> slider_x; x < (textarea -> slider_x + textarea -> slider_width); x++ ) {
+				uint32_t target = element[ (y * ui -> window -> current_width) + x ];
+				element[ (y * ui -> window -> current_width) + x ] = lib_color_blend( target, LUB_UI_COLOR_BACKGROUND_SLIDER );
 			}
 		}
 	}
 
 	// slider right
-	if( content_height > textarea_height ) {
-		double percent = (textarea_height / (double) content_height);
-		textarea -> slider_height = textarea_height * percent;
+	if( plane_height > textarea -> height_current ) {
+		double percent_offset = textarea -> offset_y / (double) plane_height;
+		textarea -> slider_y = textarea -> height_current * percent_offset;
+		
+		double percent = textarea -> height_current / (double) plane_height;
+		textarea -> slider_height = textarea -> height_current * percent;
 
-		if( textarea -> slider_y + textarea -> slider_height > textarea_height ) textarea -> slider_y -= (textarea -> slider_y + textarea -> slider_height) - textarea_height;
+		if( textarea -> slider_y + textarea -> slider_height > textarea -> height_current ) textarea -> slider_y -= (textarea -> slider_y + textarea -> slider_height) - textarea -> height_current;
 
 		for( uint64_t y = textarea -> slider_y; y < textarea -> slider_y + textarea -> slider_height; y++ ) {
-			for( uint64_t x = textarea_width - LIB_UI_SLIDER_SIZE; x < textarea_width; x++ ) {
-				uint32_t target = pixel_at_offset[ (y * content_width) + x ];
-				pixel[ (y * ui -> window -> current_width) + x ] = lib_color_blend( target, LUB_UI_COLOR_BACKGROUND_SLIDER );
+			for( uint64_t x = textarea -> width_current - LIB_UI_SLIDER_SIZE; x < textarea -> width_current; x++ ) {
+				uint32_t target = element[ (y * ui -> window -> current_width) + x ];
+				element[ (y * ui -> window -> current_width) + x ] = lib_color_blend( target, LUB_UI_COLOR_BACKGROUND_SLIDER );
 			}
 		}
 	}
@@ -1107,10 +1756,30 @@ void lib_ui_update_input( struct LIB_UI_STRUCTURE *ui, uint64_t id, uint8_t *nam
 	}
 }
 
-void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ROW *row, uint64_t r ) {
+void lib_ui_update_table( struct LIB_UI_STRUCTURE *ui, uint64_t id, struct LIB_UI_STRUCTURE_ELEMENT_TABLE_ENTRY *row, uint64_t r ) {
 	ui -> table[ id ] -> limit_row = r;
 	ui -> table[ id ] -> row = row;
 
 	ui -> table[ id ] -> offset_x = EMPTY;
 	ui -> table[ id ] -> offset_y = EMPTY;
+}
+
+void lib_ui_update_textarea( struct LIB_UI_STRUCTURE *ui, uint64_t id, uint8_t *string, uint8_t font ) {
+	ui -> textarea[ id ] -> string	= string;
+	ui -> textarea[ id ] -> length	= lib_string_length( string );
+
+	ui -> textarea[ id ] -> font	= font;
+
+	ui -> textarea[ id ] -> cursor_x	= EMPTY;
+	ui -> textarea[ id ] -> cursor_y	= EMPTY;
+
+	ui -> textarea[ id ] -> offset_x = ui -> textarea[ id ] -> cursor_x_old	= EMPTY;
+	ui -> textarea[ id ] -> offset_y	= EMPTY;
+
+	ui -> textarea[ id ] -> pointer		= EMPTY;
+	ui -> textarea[ id ] -> pointer_line	= EMPTY;
+
+	ui -> keyboard.semaphore_alt_left	= FALSE;
+	ui -> keyboard.semaphore_ctrl_left	= FALSE;
+	ui -> keyboard.semaphore_shift		= FALSE;
 }

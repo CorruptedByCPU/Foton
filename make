@@ -36,7 +36,9 @@ if [ "${ENV}" = false ]; then echo -e "\n[please install missing software]"; exi
 type -a qemu-system-x86_64 &> /dev/null || echo -e "Optional \033[38;5;11mqemu\033[0m not installed. ISO file will be generated regardless of that."
 
 # external resources initialization
-if [ ! -d limine ]; then git clone https://github.com/limine-bootloader/limine -b v9.x-binary;fi
+# if [ ! -d limine ]; then
+git clone --depth 1 https://github.com/limine-bootloader/limine -b v9.5.0-binary > /dev/null 2>&1
+# fi
 
 # remove all obsolete files, which could interference
 rm -rf build && mkdir -p build/iso
@@ -113,7 +115,7 @@ done
 lib=""	# include list of libraries
 
 # keep parsing libraries by. dependencies and alphabetically
-for library in color elf integer string input font std window math image float ui type rgl; do
+for library in asm color elf integer string input font std window math image float kuro ui type rgl; do
 	# build
 	${C} -c -fpic library/${library}.c -o build/${library}.o ${CFLAGS_SOFTWARE} || exit 1
 
@@ -152,6 +154,10 @@ for software in `(cd software && ls *.c)`; do
 done
 
 #===============================================================================
+
+# information
+# include_size=`du -h --apparent-size --total --summarize library/*.h | tail -n 1 | cut -d ' ' -f 1`
+# echo -e "${green}\xE2\x9C\x94${default}|Include: *.h|${include_size}" | awk -F "|" '{printf "%s  %-32s %s\n", $1, $2, $3 }'
 
 # prepare virtual file system with content of all available software, libraries, files
 (cd build && clang ../tools/vfs.c -o vfs)
