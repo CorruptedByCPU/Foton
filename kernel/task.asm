@@ -20,7 +20,10 @@ kernel_task:
 
 ; debug disassembler
 ; xchg bx, bx
-; int	3
+; int3
+; .test:
+; xchg bx, bx
+; int3
 ; add al, r8b
 ; add [eax + ebx*2 + 0x10], r8b
 ; add [rax + rbx*2 - 0x10], r8b
@@ -233,14 +236,137 @@ kernel_task:
 ; cmpsd
 ; cmpsq
 
-; nop
-; nop
-; nop
-; nop
-; nop
-; nop
-; nop
-; nop
+; test al, 0x10
+; test ax, 0x10
+; test eax, 0x10
+; test rax, 0x10
+
+; rep stosb
+; rep stosw
+; rep stosd
+; rep stosq
+; rep lodsb
+; rep lodsw
+; rep lodsd
+; rep lodsq
+; rep scasb
+; rep scasw
+; rep scasd
+; rep scasq
+
+; mov al, 0x10
+; mov bl, 0x10
+; mov cl, 0x10
+; mov dl, 0x10
+; mov ah, 0x10
+; mov bh, 0x10
+; mov ch, 0x10
+; mov dh, 0x10
+
+; mov ax, 0x1234
+; mov eax, 0x12345678
+; mov rax, 0x1234567890ABCDEF
+
+; db 0xC6, 0x00, 0xFF
+; db 0xC7, 0xC0, 0x78, 0x56, 0x34, 0x12
+; db 0x48, 0xC7, 0xC0, 0x78, 0x56, 0x34, 0x12
+; db 0xC7, 0x03, 0xEF, 0xBE, 0xAD, 0xDE
+
+; enter 0x10, 0x08
+; enter 0x1020, 0x08
+; leave
+
+; ; loopnz kernel_task.test
+; ; loopz kernel_task.test
+; ; loop kernel_task.test
+; ; jecxz kernel_task.test
+; ; jrcxz kernel_task.test
+; int 0x12
+; retf 0x12
+; retf 0x1234
+; retf
+
+; rol al, 0x02
+; rol r8b, 0x02
+; rol ax, 0x02
+; rol r8w, 0x02
+; rol eax, 0x02
+; rol r8d, 0x02
+; rol rax, 0x02
+; rol r8, 0x02
+; rol byte [eax], 0x02
+; rol byte [rax], 0x02
+; rol byte [0x12345678], 0x02
+; rol word [eax], 0x02
+; rol word [rax], 0x02
+; rol word [0x12345678], 0x02
+; rol dword [eax], 0x02
+; rol dword [rax], 0x02
+; rol dword [0x12345678], 0x02
+; rol qword [eax], 0x02
+; rol qword [rax], 0x02
+; rol qword [0x12345678], 0x02
+
+; rol al, 1
+; rol r8b, 1
+; rol ax, 1
+; rol r8w, 1
+; rol eax, 1
+; rol r8d, 1
+; rol rax, 1
+; rol r8, 1
+; rol byte [eax], 1
+; rol byte [rax], 1
+; rol byte [0x12345678], 1
+; rol word [eax], 1
+; rol word [rax], 1
+; rol word [0x12345678], 1
+; rol dword [eax], 1
+; rol dword [rax], 1
+; rol dword [0x12345678], 1
+; rol qword [eax], 1
+; rol qword [rax], 1
+; rol qword [0x12345678], 1
+
+; rol al, cl
+; rol r8b, cl
+; rol ax, cl
+; rol r8w, cl
+; rol eax, cl
+; rol r8d, cl
+; rol rax, cl
+; rol r8, cl
+; rol byte [eax], cl
+; rol byte [rax], cl
+; rol byte [0x12345678], cl
+; rol word [eax], cl
+; rol word [rax], cl
+; rol word [0x12345678], cl
+; rol dword [eax], cl
+; rol dword [rax], cl
+; rol dword [0x12345678], cl
+; rol qword [eax], cl
+; rol qword [rax], cl
+; rol qword [0x12345678], cl
+
+; in al, 0x10
+; in ax, 0x10
+; in eax, 0x10
+; out 0x10, al
+; out 0x10, ax
+; out 0x10, eax
+
+; in al, dx
+; in ax, dx
+; in eax, dx
+
+; out dx, al
+; out dx, ax
+; out dx, eax
+
+; call kernel_task
+; jmp kernel_task.test
+; jmp kernel_task_switch
 
 	; turn off Interrupt Flag
 	cli

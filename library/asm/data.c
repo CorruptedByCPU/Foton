@@ -100,6 +100,13 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION group_g[] = {
 	{ (uint8_t *) "scasq" }
 };
 
+struct LIB_ASM_STRUCTURE_INSTRUCTION group_h[] = {
+	{ EMPTY },
+	{ EMPTY },
+	{ (uint8_t *) "jecxz" },
+	{ (uint8_t *) "jrcxz" }
+};
+
 struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ (uint8_t *) "add", (M|B) | ((B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FO | FI },	// 0x00
 	{ (uint8_t *) "add", (M) | FM | FI },	// 0x01
@@ -300,7 +307,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ EMPTY },				// 0xC4
 	{ EMPTY },				// 0xC5
 	{ EMPTY, (M|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_3 },				// 0xC6
-	{ EMPTY, (M|D) | (I|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM, group_3 },				// 0xC7
+	{ EMPTY, (M|D) | (I|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_3 },				// 0xC7
 	{ (uint8_t *) "enter", (I|W) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FO },				// 0xC8
 	{ (uint8_t *) "leave" },		// 0xC9
 	{ (uint8_t *) "retf", (I|W) | FO },	// 0xCA
@@ -325,22 +332,22 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ EMPTY },				// 0xDD
 	{ EMPTY },				// 0xDE
 	{ EMPTY },				// 0xDF
-	{ EMPTY },				// 0xE0
-	{ EMPTY },				// 0xE1
-	{ EMPTY },				// 0xE2
-	{ EMPTY },				// 0xE3
-	{ EMPTY },				// 0xE4
-	{ EMPTY },				// 0xE5
-	{ EMPTY },				// 0xE6
-	{ EMPTY },				// 0xE7
-	{ EMPTY },				// 0xE8
-	{ EMPTY },				// 0xE9
+	{ (uint8_t *) "loopnz", (I|B) | FR | FO },				// 0xE0
+	{ (uint8_t *) "loopz", (I|B) | FR | FO },				// 0xE1
+	{ (uint8_t *) "loop", (I|B) | FR | FO },				// 0xE2
+	{ (uint8_t *) "jcxz", (I|B) | FR | FO, group_h },				// 0xE3
+	{ (uint8_t *) "in", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xE4
+	{ (uint8_t *) "in", ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH },				// 0xE5
+	{ (uint8_t *) "out", FH },			// 0xE6
+	{ (uint8_t *) "out", FH },				// 0xE7
+	{ (uint8_t *) "call", (I) | FR },				// 0xE8
+	{ (uint8_t *) "jmp", (I) | FR },				// 0xE9
 	{ EMPTY },				// 0xEA
-	{ EMPTY },				// 0xEB
-	{ EMPTY },				// 0xEC
-	{ EMPTY },				// 0xED
-	{ EMPTY },				// 0xEE
-	{ EMPTY },				// 0xEF
+	{ (uint8_t *) "jmp", (I|B) | FO | FR },				// 0xEB
+	{ (uint8_t *) "in", FH },				// 0xEC
+	{ (uint8_t *) "in", FH },				// 0xED
+	{ (uint8_t *) "out", FH },				// 0xEE
+	{ (uint8_t *) "out", FH },				// 0xEF
 	{ EMPTY },				// 0xF0
 	{ EMPTY },				// 0xF1
 	{ EMPTY },				// 0xF2
@@ -358,3 +365,6 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION i[] = {
 	{ EMPTY },				// 0xFE
 	{ EMPTY }				// 0xFF
 };
+
+// struct LIB_ASM_STRUCTURE_INSTRUCTION i_0F[] = {
+// };

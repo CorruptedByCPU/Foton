@@ -18,10 +18,10 @@ void lib_asm_immediate( struct LIB_ASM_STRUCTURE *asm ) {
 		if( asm -> instruction.options & FO ) {
 			if( asm -> instruction.options & (B << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = BYTE;
 			if( asm -> instruction.options & (W << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = WORD;
-			// if( asm -> instruction.options & (D << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = DWORD;
+			if( asm -> instruction.options & (D << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = DWORD;
 			// if( asm -> instruction.options & (Q << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = QWORD;
-		// exception for opcode: 0xC1
-		} else if( asm -> opcode == 0xC1 ) {
+		// exception for opcode: 0xC1 0xE5
+		} else if( asm -> opcode == 0xC1 || asm -> opcode == 0xE5 ) {
 			if( asm -> instruction.options & (B << (i * LIB_ASM_OPTION_FLAG_offset)) ) bits = BYTE;
 		}
 
@@ -34,22 +34,22 @@ void lib_asm_immediate( struct LIB_ASM_STRUCTURE *asm ) {
 			if( bits == BYTE ) {
 				// retrieve value
 				int8_t relative = *(asm -> rip++);
-				log( "0x%16X", (uintptr_t) asm -> rip + relative );
+				log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uintptr_t) asm -> rip + relative );
 			}
 			if( bits == WORD ) {
 				// retrieve value
 				int16_t relative = (uint16_t) *((uint16_t *) asm -> rip); asm -> rip += 2;
-				log( "0x%16X", (uintptr_t) asm -> rip + relative );
+				log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uintptr_t) asm -> rip + relative );
 			}
 			if( bits == DWORD ) {
 				// retrieve value
 				int32_t relative = (uint32_t) *((uint32_t *) asm -> rip); asm -> rip += 4;
-				log( "0x%16X", (uintptr_t) asm -> rip + relative );
+				log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uintptr_t) asm -> rip + relative );
 			}
 			if( bits == QWORD ) {
 				// retrieve value
 				int64_t relative = (uint64_t) *((uint64_t *) asm -> rip); asm -> rip += 8;
-				log( "0x%16X", (uintptr_t) asm -> rip + relative );
+				log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uintptr_t) asm -> rip + relative );
 			}
 		} else {
 			// retrieve immediate value
@@ -68,8 +68,9 @@ void lib_asm_immediate( struct LIB_ASM_STRUCTURE *asm ) {
 			}
 			if( bits == DWORD ) {
 				// retrieve value
-				immediate = (uint32_t) *((uint32_t *) asm -> rip); asm -> rip += 4;
-				log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", immediate );
+				immediate = (int32_t) *((uint32_t *) asm -> rip); asm -> rip += 4;
+				if( asm -> rex.w ) log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (int64_t) immediate );
+				else log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", immediate );
 			}
 			if( bits == QWORD ) {
 				// retrieve value
