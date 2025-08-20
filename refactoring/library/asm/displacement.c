@@ -6,10 +6,10 @@ void lib_asm_displacement( struct LIB_ASM_STRUCTURE *asm, uint8_t relative ) {
 		// value signed?
 		uint8_t sign = FALSE;	// no
 
-		// absolute signed address from 32 bit displacement?
+		// absolute displacement?
 		if( ! relative )
 			// yes
-			log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (int64_t) asm -> displacement );
+			log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", (uint32_t) asm -> displacement );
 		// no
 		else {
 			// for 4 Byte value

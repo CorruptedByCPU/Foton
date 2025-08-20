@@ -21,33 +21,40 @@ kernel_task:
 ; debug disassembler
 ; xchg bx, bx
 ; int3
-; .test:
-; xchg bx, bx
-; int3
 ; add al, r8b
-; add [eax + ebx*2 + 0x10], r8b
-; add [rax + rbx*2 - 0x10], r8b
+; add byte [eax + ebx*2 + 0x12], r8b
+; add byte [rax + rbx*2 - 0x12], r8b
+; add byte [eax + ebx*2 + 0x12345678], r8b
+; add byte [rax + rbx*2 - 0x12345678], r8b
+; add	byte [kernel_task], r8b
 ; add ax, r8w
 ; add eax, r8d
 ; add rax, r8
-; add word [eax + ebx*2 + 0x10], r8w
-; add word [rax + rbx*2 - 0x10], r8w
-; add dword [eax + ebx*2 + 0x10], r8d
-; add dword [rax + rbx*2 - 0x10], r8d
-; add qword [eax + ebx*2 + 0x10], r8
-; add qword [rax + rbx*2 - 0x10], r8
-; add r8b, [eax + ebx*2 + 0x10]
-; add r8b, [rax + rbx*2 - 0x10]
-; add r8w, word [eax + ebx*2 + 0x10]
-; add r8w, word [rax + rbx*2 - 0x10]
-; add r8d, dword [eax + ebx*2 + 0x10]
-; add r8d, dword [rax + rbx*2 - 0x10]
-; add r8, qword [eax + ebx*2 + 0x10]
-; add r8, qword [rax + rbx*2 - 0x10]
-; add al, 0x7F
+; add word [eax + ebx*2 + 0x12], r8w
+; add word [rax + rbx*2 - 0x12], r8w
+; add dword [eax + ebx*2 + 0x12], r8d
+; add dword [rax + rbx*2 - 0x12], r8d
+; add qword [eax + ebx*2 + 0x12345678], r8
+; add qword [rax + rbx*2 - 0x12345678], r8
+; add	word [kernel_task], r8w
+; add	dword [kernel_task], r8d
+; add	qword [kernel_task], r8
+; add r8b, byte [eax + ebx*2 + 0x12]
+; add r8b, byte [rax + rbx*2 - 0x12]
+; add r8w, word [eax + ebx*2 + 0x12]
+; add r8w, word [rax + rbx*2 - 0x12]
+; add r8d, dword [eax + ebx*2 + 0x12]
+; add r8d, dword [rax + rbx*2 - 0x12]
+; add r8, qword [eax + ebx*2 + 0x12345678]
+; add r8, qword [rax + rbx*2 - 0x12345678]
+; add	r8w, word [kernel_task]
+; add	r8d, dword [kernel_task]
+; add	r8, qword [kernel_task]
+; add al, 0x12
 ; add ax, 0x1234
-; add eax, 0x123456
+; add eax, 0x12345678
 ; add rax, 0x12345678
+
 ; push rax
 ; push rbx
 ; push rcx
@@ -80,37 +87,36 @@ kernel_task:
 ; pop r13
 ; pop r14
 ; pop r15
-; movsxd rax, r8d	; WHY THE HELL ONLY YOU! FROM ALL OPCODES
-; movsxd rax, [r8d + r9d*2 + 0x10]
-; movsxd rax, [r8 + r9*2 - 0x10]
-; movsxd rax, [kernel_task]
+
+; movsxd rax, r8d
+; movsxd rax, dword [r8d + r9d*2 + 0x12]
+; movsxd rax, dword [r8 + r9*2 - 0x12]
+; movsxd rax, dword [kernel_task]
+
 ; push 0x12
-; push 0x123456
+; push 0x1234
 ; push 0x12345678
-; imul eax, ebx, 1
-; imul eax, ebx, 0x1234
-; imul rax, rbx, 1
-; imul rax, rbx, 0x1234
-; imul eax, [ebx + ecx*2 + 0x10], 0x12
-; imul eax, [ebx + ecx*2 + 0x10], 0x1234
-; imul eax, [rbx + rcx*2 + 0x10], 0x12
-; imul eax, [rbx + rcx*2 + 0x10], 0x1234
-; imul rax, [ebx + ecx*2 + 0x10], 0x12
-; imul rax, [ebx + ecx*2 + 0x10], 0x1234
-; imul rax, [rbx + rcx*2 + 0x10], 0x12
-; imul rax, [rbx + rcx*2 + 0x10], 0x1234
-; rep insb
-; rep insw
-; rep insd
-; rep outsb
-; rep outsw
-; rep outsd
+
+; imul eax, ebx, 0x12
+; imul eax, ebx, 0x12345678
+; imul rax, rbx, 0x12
+; imul rax, rbx, 0x12345678
+; imul eax, dword [ebx + ecx*2 + 0x12], 0x12
+; imul eax, dword [ebx + ecx*2 + 0x12], 0x12345678
+; imul eax, dword [rbx + rcx*2 + 0x12], 0x12
+; imul eax, dword [rbx + rcx*2 + 0x12], 0x12345678
+; imul rax, qword [ebx + ecx*2 + 0x12], 0x12
+; imul rax, qword [ebx + ecx*2 + 0x12], 0x12345678
+; imul rax, qword [rbx + rcx*2 + 0x12], 0x12
+; imul rax, qword [rbx + rcx*2 + 0x12], 0x12345678
+
 ; insb
 ; insw
 ; insd
 ; outsb
 ; outsw
 ; outsd
+
 ; db 0x70, 0xF6
 ; db 0x71, 0xF4
 ; db 0x72, 0xF2
@@ -127,6 +133,16 @@ kernel_task:
 ; db 0x7D, 0xDC
 ; db 0x7E, 0xDA
 ; db 0x7F, 0xD8
+
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+
 ; db 0x80, 0xC0, 0x12 ; add al, 0x12
 ; add byte [eax + ebx*2 + 0x10], 0x12
 ; add byte [rax + rbx*2 + 0x10], 0x12

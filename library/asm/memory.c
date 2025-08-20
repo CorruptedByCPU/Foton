@@ -2,22 +2,45 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm ) {
+void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm, uint8_t operand ) {
 	// add comma?
 	if( asm -> comma_semaphore ) log( LIB_ASM_COLOR_DEFAULT","LIB_ASM_SEPARATOR );
 
+	// current bits
+	uint8_t bits = asm -> register_bits;
+
+	// change to 16 bit mode?
+	if( asm -> register_semaphore ) bits = WORD;
+
+	// change to 64 bit mode?
+	if( ! asm -> register_semaphore && asm -> rex.w ) bits = QWORD;
+
+	// strictly definied size for operand?
+	if( asm -> instruction.options & (F0 | F1 | F2) ) {
+		if( asm -> instruction.options & (B << (operand * LIB_ASM_OPTION_OPERAND_offset)) ) bits = BYTE;
+		if( asm -> instruction.options & (W << (operand * LIB_ASM_OPTION_OPERAND_offset)) ) bits = WORD;
+		if( asm -> instruction.options & (D << (operand * LIB_ASM_OPTION_OPERAND_offset)) ) bits = DWORD;
+		// if( asm -> instruction.options & (Q << (operand * LIB_ASM_OPTION_OPERAND_offset)) ) bits = QWORD;
+	}
+
 	// start memory access
-	log( LIB_ASM_COLOR_MEMORY"[" );
+	log( LIB_ASM_COLOR_MEMORY"%s [", lib_asm_size[ bits ] );
 
 	// there was something before displacement
 	uint8_t relative = FALSE;
 
 	// extended memory access?
 	if( asm -> sib.semaphore ) {
+		// current bits
+		bits = asm -> memory_bits;
+
+		// change to 32 bit mode?
+		if( asm -> memory_semaphore ) bits = DWORD;
+
 		// base register
 		if( asm -> modrm.mod || asm -> sib.base != 0x05 ) {
 			// show
-			log( LIB_ASM_COLOR_REGISTER"%s", r[ asm -> memory_bits ][ asm -> sib.base | (asm -> rex.b << 3) ] );
+			log( LIB_ASM_COLOR_REGISTER"%s", lib_asm_registers[ bits ][ asm -> sib.base | (asm -> rex.b << 3) ] );
 
 			// ready
 			relative = TRUE;
@@ -29,54 +52,45 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm ) {
 			if( relative ) log( LIB_ASM_COLOR_DEFAULT" + " );
 
 			// index register
-			log( LIB_ASM_COLOR_REGISTER"%s", r[ asm -> memory_bits ][ asm -> sib.index | (asm -> rex.x << 3) ] );
+			log( LIB_ASM_COLOR_REGISTER"%s", lib_asm_registers[ bits ][ asm -> sib.index | (asm -> rex.x << 3) ] );
 
 			// with scale?
-			if( asm -> sib.scale ) log( LIB_ASM_COLOR_SCALE"*%s", s[ asm -> sib.scale ] );
+			if( asm -> sib.scale ) log( LIB_ASM_COLOR_SCALE"*%s", lib_asm_scale[ asm -> sib.scale ] );
 
 			// ready
 			relative = TRUE;
 		}
-
-		// 32 bit displacement
-		if( ! relative ) {
-			// show
-			log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", (uint64_t) asm -> displacement );
-
-			// done
-			goto	end;
-		}
 	// no, simple one
 	} else {
-		// special case of addressing
-		if( asm -> modrm.mod == 0x00 && asm -> modrm.rm == 0x05 ) {
-			// for 32 bit CPU mode
-			if( asm -> memory_bits == DWORD ) {
-				// retrieve address
-				uint32_t address = (uint32_t) *((uint32_t *) asm -> rip); asm -> rip += 4;
+	// 	// special case of addressing
+	// 	if( asm -> modrm.mod == 0x00 && asm -> modrm.rm == 0x05 ) {
+	// 		// for 32 bit CPU mode
+	// 		if( asm -> memory_bits == DWORD ) {
+	// 			// retrieve address
+	// 			uint32_t address = (uint32_t) *((uint32_t *) asm -> rip); asm -> rip += 4;
 
-				// absolute address
-				log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", (uint32_t) address );
-			// for 64 bit CPU mode
-			} else {
-				// // if base doesn't exist
-				// if( ! asm -> sib.base ) {
-				// 	// absolute address
-				// 	address = *((uint32_t *) asm -> rip);
-				// 	log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", address );
-				// } else {
-					// relative address
-					log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uint64_t) asm -> rip + (int32_t) *((int32_t *) asm -> rip) );
-				// }
+	// 			// absolute address
+	// 			log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", (uint32_t) address );
+	// 		// for 64 bit CPU mode
+	// 		} else {
+	// 			// // if base doesn't exist
+	// 			// if( ! asm -> sib.base ) {
+	// 			// 	// absolute address
+	// 			// 	address = *((uint32_t *) asm -> rip);
+	// 			// 	log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", address );
+	// 			// } else {
+	// 				// relative address
+	// 				log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uint64_t) asm -> rip + (int32_t) *((int32_t *) asm -> rip) );
+	// 			// }
 
-				// leave displacement
-				asm -> rip += 4;
-			}
-		// default one
-		} else log( LIB_ASM_COLOR_REGISTER"%s", r[ asm -> memory_bits ][ asm -> modrm.rm | (asm -> rex.b << 3) ] );
+	// 			// leave displacement
+	// 			asm -> rip += 4;
+	// 		}
+	// 	// default one
+	// 	} else log( LIB_ASM_COLOR_REGISTER"%s", r[ asm -> memory_bits ][ asm -> modrm.rm | (asm -> rex.b << 3) ] );
 
-		// there are defaults
-		relative = TRUE;
+	// 	// there are defaults
+	// 	relative = TRUE;
 	}
 
 	// displacement

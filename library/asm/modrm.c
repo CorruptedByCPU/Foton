@@ -2,22 +2,27 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-uint8_t lib_asm_modrm( struct LIB_ASM_STRUCTURE *asm ) {
-	// ModR/M exist?
-	if( asm -> modrm.semaphore ) {
-		// calculate source/destination opcodes
-		uint8_t register_reg = asm -> modrm.reg | (asm -> rex.r << 3);
-		uint8_t register_rm = asm -> modrm.rm | (asm -> rex.b << 3);
+void lib_asm_modrm( struct LIB_ASM_STRUCTURE *asm ) {
+	// calculate source/destination opcodes
+	uint8_t register_reg = asm -> modrm.reg | (asm -> rex.r << 3);
+	uint8_t register_rm = asm -> modrm.rm | (asm -> rex.b << 3);
 
-		// direct register addressing mode
-		if( asm -> modrm.mod == 0x03 ) {
-			// invert source/destination?
-			if( asm -> instruction.options & FI ) {
-				// thats how instruction is design
-				register_reg = register_rm;
-				register_rm = asm -> modrm.reg | (asm -> rex.r << 3);
-			}
+	// direct register addressing mode
+	if( asm -> modrm.mod == 0x03 ) {
+		// invert source/destination?
+		if( asm -> instruction.options & FV ) {
+			// thats how instruction is designed
 
+			// destination
+			lib_asm_register( asm, 0, register_rm );
+
+			// separator required from now on
+			asm -> comma_semaphore = TRUE;
+
+			// source
+			lib_asm_register( asm, 1, register_reg );
+		// by default
+		} else {
 			// destination
 			lib_asm_register( asm, 0, register_reg );
 
@@ -25,52 +30,55 @@ uint8_t lib_asm_modrm( struct LIB_ASM_STRUCTURE *asm ) {
 			asm -> comma_semaphore = TRUE;
 
 			// source
-			lib_asm_register( asm, 0, register_rm );
-		// memory addressing mode
+			lib_asm_register( asm, 1, register_rm );
+		}
+	// memory addressing mode
+	} else {
+		// memory access first?
+		if( asm -> instruction.options & M ) {
+			// destination
+			lib_asm_memory( asm, 0 );
+
+			// separator required from now on
+			asm -> comma_semaphore = TRUE;
+
+			// source
+			lib_asm_register( asm, 1, register_reg );
+		// no, second
 		} else {
-			// show destination
-			if( asm -> instruction.options & M ) {
-				// destination
-				lib_asm_memory( asm );
+			// destination
+			lib_asm_register( asm, 0, register_reg );
 
-				// separator required from now on
-				asm -> comma_semaphore = TRUE;
+			// separator required from now on
+			asm -> comma_semaphore = TRUE;
 
-				// source
-				lib_asm_register( asm, 0, register_reg );
-			// and source
-			} else {
-				// exception
-				// there is no source register for opcode 0x8F (pop)
-				if( asm -> opcode != 0x8F ) {
-					// destination
-					lib_asm_register( asm, 0, register_reg );
+			// source
+			lib_asm_memory( asm, 1 );
 
-					// separator required from now on
-					asm -> comma_semaphore = TRUE;
-				} else {
-					// is this code below, really required?
-					// I never saw 16 bit POP in 64 bit CPU mode
+			// // exception
+			// // there is no source register for opcode 0x8F (pop)
+			// if( asm -> opcode != 0x8F ) {
+			// 	// destination
+			// 	lib_asm_register( asm, 0, register_reg );
 
-					// current bits
-					uint8_t bits = asm -> register_bits;
+			// 	// separator required from now on
+			// 	asm -> comma_semaphore = TRUE;
+			// } else {
+			// 	// is this code below, really required?
+			// 	// I never saw 16 bit POP in 64 bit CPU mode
 
-					// opcode cannot be 32 bit in 64 bit mode CPU
-					if( bits == DWORD ) bits = QWORD;
+			// 	// current bits
+			// 	uint8_t bits = asm -> register_bits;
 
-					// prefix
-					log( LIB_ASM_COLOR_MEMORY"%s ", size[ bits ] );
-				}
+			// 	// opcode cannot be 32 bit in 64 bit mode CPU
+			// 	if( bits == DWORD ) bits = QWORD;
 
-				// source
-				lib_asm_memory( asm );
-			}
+			// 	// prefix
+			// 	log( LIB_ASM_COLOR_MEMORY"%s ", size[ bits ] );
+			// }
+
+			// // source
+			// lib_asm_memory( asm );
 		}
 	}
-	
-	// instruction without ModR/M
-	else return FALSE;
-
-	// ModR/M parsed
-	return TRUE;
 }

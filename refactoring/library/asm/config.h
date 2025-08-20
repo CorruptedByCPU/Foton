@@ -29,33 +29,28 @@
 // show mnemonic opcode
 #define LIB_ASM_OPCODE
 
-#define	LIB_ASM_OPTION_OPERAND_offset	7
+#define	LIB_ASM_OPTION_FLAG_offset				7
+#define	LIB_ASM_OPTION_FLAG_2nd_operand_shift	LIB_ASM_OPTION_FLAG_offset
+#define	LIB_ASM_OPTION_FLAG_3rd_operand_shift	(LIB_ASM_OPTION_FLAG_offset + LIB_ASM_OPTION_FLAG_2nd_operand_shift)
 
 // type
-#define	M 0x00000001	// memory access
-#define	V 0x00000002	// value: immediate, offset, relative
-// #define	R 0x00000002	// register
+#define	R 0x00000001	// 0b00000000000000000000000000000001	// register
+#define	M 0x00000002	// 0b00000000000000000000000000000010	// memory
+#define	I 0x00000004	// 0b00000000000000000000000000000100	// immediete / offset / relative
 // size
-#define	B 0x00000004	// byte
-#define	W 0x00000008	// word
-#define	D 0x00000010	// dword
-// #define	Q 0x00000020	// qword
+#define	B 0x00000008	// 0b00000000000000000000000000001000	// byte
+#define	W 0x00000010	// 0b00000000000000000000000000010000	// word
+#define	D 0x00000020	// 0b00000000000000000000000000100000	// dword
+#define	Q 0x00000040	// 0b00000000000000000000000001000000	// qword
 // flag
-#define FM 0x00200000	// ModR/M exist
-#define	FV 0x00400000	// inverted source/destination of ModR/M
-#define	F0 0x00800000	// first operand size override
-#define	F1 0x01000000	// second operand size override
-#define F2 0x02000000	// third operand size override
-#define	FD 0x04000000	// register definied by instruction
-#define FE 0x08000000	// instruction without register
-#define	FR 0x10000000	// relative value
-// flag
-// #define	FR 0x00800000	// 0b00000001000000000000000000000000	// relative address
-// #define	FV 0x01000000	// 0b00000010000000000000000000000000	// inverted source/destination of ModR/M
-// #define	FT 0x08000000	// 0b00001000000000000000000000000000	// offset exist
-// #define	FH 0x10000000	// 0b00010000000000000000000000000000	// register hidden inside opcode
-// #define	FS 0x20000000	// 0b00100000000000000000000000000000	// signed
-// #define	FA 0x40000000	// 0b01000000000000000000000000000000	// accumulator
+#define	FR 0x01000000	// 0b00000001000000000000000000000000	// relative address
+#define	FI 0x02000000	// 0b00000010000000000000000000000000	// inverted source/destination of ModR/M
+#define	FO 0x04000000	// 0b00000100000000000000000000000000	// operand size override
+#define	FT 0x08000000	// 0b00001000000000000000000000000000	// offset exist
+#define	FH 0x10000000	// 0b00010000000000000000000000000000	// register hidden inside opcode
+#define	FS 0x20000000	// 0b00100000000000000000000000000000	// signed
+#define	FA 0x40000000	// 0b01000000000000000000000000000000	// accumulator
+#define FM 0x80000000	// 0b10000000000000000000000000000000	// ModR/M exist
 
 enum {
 	BYTE,
@@ -115,7 +110,7 @@ void lib_asm_value( struct LIB_ASM_STRUCTURE *asm );
 uint8_t lib_asm_name( struct LIB_ASM_STRUCTURE *asm );
 
 // prints memory access
-void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm, uint8_t operand );
+void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm );
 
 // prints register
 void lib_asm_register( struct LIB_ASM_STRUCTURE *asm, uint8_t operand, uint8_t reg );

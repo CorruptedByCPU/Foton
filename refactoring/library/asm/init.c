@@ -31,8 +31,8 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 		if( asm -> opcode == 0x64 || asm -> opcode == 0x65 ) continue;
 
 		// size override?
-		if( asm -> opcode == 0x66 ) { asm -> register_semaphore = TRUE; continue; }	// change registers size to 16 Bit
-		if( asm -> opcode == 0x67 ) { asm -> memory_semaphore = TRUE; continue; }	// change memory access to 32 bit
+		if( asm -> opcode == 0x66 ) { asm -> register_bits = WORD; asm -> register_semaphore = TRUE; continue; }	// change registers size to 16 Bit
+		if( asm -> opcode == 0x67 ) { asm -> memory_bits = DWORD; asm -> memory_semaphore = TRUE; continue; }	// change memory access to 32 bit
 
 		// exclusive memory access?
 		if( asm -> opcode == 0xF0 ) { log( LIB_ASM_COLOR_INSTRUCTION"lock\t" ); continue; }
@@ -43,7 +43,7 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 			// pause instruction?
 			if( *(asm -> rip) == 0x90 ) {
 				// get instruction properties
-				asm -> instruction = lib_asm_instruction_pause[ 0 ];
+				asm -> instruction = pause[ 0 ];
 
 				// leave next opcode
 				asm -> rip++;
@@ -91,10 +91,10 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 	}
 
 	// acquired opcode of NOP?
-	if( asm -> opcode == 0x90 && ! asm -> rex.semaphore ) asm -> instruction = lib_asm_instruction_nop[ 0 ];
+	if( asm -> opcode == 0x90 && ! asm -> rex.semaphore ) asm -> instruction = nop[ 0 ];
 	else
 		// get instruction properties from main table
-		asm -> instruction = lib_asm_instruction_master[ asm -> opcode ];
+		asm -> instruction = i[ asm -> opcode ];
 
 	// 2-Byte asm -> opcode?
 	if( asm -> opcode == 0x0F ) {

@@ -12,28 +12,16 @@ uint8_t lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
 		// properties of names
 		struct LIB_ASM_STRUCTURE_INSTRUCTION *group = asm -> instruction.group;
 
-		// // forced use of 64 bit?
-		// if( asm -> rex.w ) asm -> register_bits = QWORD;
+		// forced use of 64 bit?
+		if( asm -> rex.w ) asm -> register_bits = QWORD;
 
-		// // exception for opcode: 0xE3
-		// if( asm -> opcode == 0xE3 )
-		// 	// select name
-		// 	log( LIB_ASM_COLOR_INSTRUCTION"%s"LIB_ASM_SEPARATOR, group[ asm -> memory_bits ] );
-
-		// // select name
-		// else log( LIB_ASM_COLOR_INSTRUCTION"%s"LIB_ASM_SEPARATOR, group[ asm -> register_bits ] );
-
-		// current bits
-		uint8_t bits = asm -> register_bits;
-
-		// change to 16 bit mode?
-		if( asm -> register_semaphore ) bits = WORD;
-
-		// change to 64 bit mode?
-		if( ! asm -> register_semaphore && asm -> rex.w ) bits = QWORD;
+		// exception for opcode: 0xE3
+		if( asm -> opcode == 0xE3 )
+			// select name
+			log( LIB_ASM_COLOR_INSTRUCTION"%s"LIB_ASM_SEPARATOR, group[ asm -> memory_bits ] );
 
 		// select name
-		log( LIB_ASM_COLOR_INSTRUCTION"%s"LIB_ASM_SEPARATOR, group[ bits ] );
+		else log( LIB_ASM_COLOR_INSTRUCTION"%s"LIB_ASM_SEPARATOR, group[ asm -> register_bits ] );
 
 		// done
 		return TRUE;
