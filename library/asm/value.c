@@ -18,7 +18,7 @@ void lib_asm_value( struct LIB_ASM_STRUCTURE *asm ) {
 		if( asm -> register_semaphore ) bits = WORD;
 
 		// change to 64 bit mode? (only opcode 0xB8-0xBF, there is nothing else with 64 bit value)
-		if( asm -> rex.w && asm -> opcode >= 0xB8 && asm -> opcode <= 0xBF ) bits = QWORD;
+		if( asm -> rex.w && (asm -> opcode & 0xB8) == 0xB8 ) bits = QWORD;
 
 		// strictly definied size for operand?
 		if( asm -> instruction.options & (F0 | F1 | F2) ) {
@@ -42,7 +42,12 @@ void lib_asm_value( struct LIB_ASM_STRUCTURE *asm ) {
 				// relative type?
 				if( asm -> instruction.options & FR ) log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uintptr_t) asm -> rip + value );
 				// no
-				else log( LIB_ASM_COLOR_IMMEDIATE"0x%2X", value );
+				else {
+					// signed?
+					if( asm -> instruction.options & FS ) log( LIB_ASM_COLOR_IMMEDIATE"0x%2X", (uint8_t) value );
+					// no
+					else log( LIB_ASM_COLOR_IMMEDIATE"0x%2X", value );
+				}
 
 				// done
 				break;

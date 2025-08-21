@@ -30,9 +30,31 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 		// segment descriptors FS and GS doesn't exist in my OS
 		if( asm -> opcode == 0x64 || asm -> opcode == 0x65 ) continue;
 
-		// size override?
-		if( asm -> opcode == 0x66 ) { asm -> register_semaphore = TRUE; continue; }	// change registers size to 16 Bit
-		if( asm -> opcode == 0x67 ) { asm -> memory_semaphore = TRUE; continue; }	// change memory access to 32 bit
+		// operand size override?
+		if( asm -> opcode == 0x66 ) {
+			#ifdef DEBUF
+				log( "{r} " );
+			#endif
+			
+			// change registers size to 16 Bit
+			asm -> register_semaphore = TRUE;
+			
+			// next prefix
+			continue;
+		}
+
+		// memory addressing size override?
+		if( asm -> opcode == 0x67 ) {
+			#ifdef DEBUF
+				log( "{m} " );
+			#endif
+			
+			// change memory addressing to 32 bit
+			asm -> memory_semaphore = TRUE;
+			
+			// next prefix
+			continue;
+		}
 
 		// exclusive memory access?
 		if( asm -> opcode == 0xF0 ) { log( LIB_ASM_COLOR_INSTRUCTION"lock\t" ); continue; }
@@ -77,7 +99,7 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 			asm -> rex.semaphore = TRUE;
 
 			#ifdef DEBUF
-				log( "(w%ur%ux%ub%u)", asm -> rex.w, asm -> rex.r, asm -> rex.x, asm -> rex.b );
+				log( "(w%ur%ux%ub%u) ", asm -> rex.w, asm -> rex.r, asm -> rex.x, asm -> rex.b );
 			#endif
 
 			// ignore this REX if not last one
@@ -91,7 +113,7 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 	}
 
 	// acquired opcode of NOP?
-	if( asm -> opcode == 0x90 && ! asm -> rex.semaphore ) asm -> instruction = lib_asm_instruction_nop[ 0 ];
+	if( asm -> opcode == 0x90 && ! asm -> rex.semaphore && ! asm -> register_semaphore ) asm -> instruction = lib_asm_instruction_nop[ 0 ];
 	else
 		// get instruction properties from main table
 		asm -> instruction = lib_asm_instruction_master[ asm -> opcode ];
@@ -119,7 +141,7 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 		asm -> modrm.rm = modrm & 0x07;
 
 		#ifdef DEBUF
-			log( "(mod%ureg%urm%u)", asm -> modrm.mod, asm -> modrm.reg, asm -> modrm.rm );
+			log( "(mod%ureg%urm%u) ", asm -> modrm.mod, asm -> modrm.reg, asm -> modrm.rm );
 		#endif
 
 		// memory manipulation?
@@ -139,7 +161,7 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 				asm -> sib.base = sib & 7;
 
 				#ifdef DEBUF
-					log( "(s%ui%ub%u)", asm -> sib.scale, asm -> sib.index, asm -> sib.base );
+					log( "(s%ui%ub%u) ", asm -> sib.scale, asm -> sib.index, asm -> sib.base );
 				#endif
 
 				// set semaphore

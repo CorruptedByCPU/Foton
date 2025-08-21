@@ -34,4 +34,7 @@ void lib_asm_register( struct LIB_ASM_STRUCTURE *asm, uint8_t operand, uint8_t r
 
 	// default array
 	else log( LIB_ASM_COLOR_REGISTER"%s", lib_asm_registers[ bits ][ reg ] );
+
+	// separator required from now on
+	asm -> comma_semaphore = TRUE;
 }

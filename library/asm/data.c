@@ -18,38 +18,38 @@ uint8_t *lib_asm_scale[] = { (uint8_t *) "", (uint8_t *) "2", (uint8_t *) "4", (
 uint8_t *lib_asm_size[] = { (uint8_t *) "byte", (uint8_t *) "word", (uint8_t *) "dword", (uint8_t *) "qword" };
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_nop[ 1 ] = {
-	{ EMPTY }
+	{ (uint8_t *) "nop" }
 };
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_pause[ 1 ] = {
 	{ (uint8_t *) "pause" }
 };
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_1[] = {
-// 	{ (uint8_t *) "add" },
-// 	{ (uint8_t *) "or"  },
-// 	{ (uint8_t *) "adc" },
-// 	{ (uint8_t *) "sbb" },
-// 	{ (uint8_t *) "and" },
-// 	{ (uint8_t *) "sub" },
-// 	{ (uint8_t *) "xor" },
-// 	{ (uint8_t *) "cmp" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_1[] = {
+	{ (uint8_t *) "add" },
+	{ (uint8_t *) "or"  },
+	{ (uint8_t *) "adc" },
+	{ (uint8_t *) "sbb" },
+	{ (uint8_t *) "and" },
+	{ (uint8_t *) "sub" },
+	{ (uint8_t *) "xor" },
+	{ (uint8_t *) "cmp" }
+};
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_2[] = {
-// 	{ (uint8_t *) "rol" },
-// 	{ (uint8_t *) "ror" },
-// 	{ (uint8_t *) "rcl" },
-// 	{ (uint8_t *) "rcr" },
-// 	{ (uint8_t *) "shl" },
-// 	{ (uint8_t *) "shr" },
-// 	{ (uint8_t *) "" },
-// 	{ (uint8_t *) "sar" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_2[] = {
+	{ (uint8_t *) "rol" },
+	{ (uint8_t *) "ror" },
+	{ (uint8_t *) "rcl" },
+	{ (uint8_t *) "rcr" },
+	{ (uint8_t *) "shl" },
+	{ (uint8_t *) "shr" },
+	{ (uint8_t *) "" },
+	{ (uint8_t *) "sar" }
+};
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_3[] = {
-// 	{ (uint8_t *) "mov" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_3[] = {
+	{ (uint8_t *) "mov" }
+};
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_a[] = {
 	{ EMPTY },
@@ -63,63 +63,64 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_b[] = {
 	{ (uint8_t *) "outsd" }
 };
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_a[] = {
-// 	{ EMPTY },
-// 	{ (uint8_t *) "cbw" },
-// 	{ (uint8_t *) "cwde" },
-// 	{ (uint8_t *) "cdqe" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_c[] = {
+	{ EMPTY },
+	{ (uint8_t *) "cbw" },
+	{ (uint8_t *) "cwde" },
+	{ (uint8_t *) "cdqe" }
+};
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_b[] = {
-// 	{ EMPTY },
-// 	{ (uint8_t *) "cwd" },
-// 	{ (uint8_t *) "cdq" },
-// 	{ (uint8_t *) "cqo" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_d[] = {
+	{ EMPTY },
+	{ (uint8_t *) "cwd" },
+	{ (uint8_t *) "cdq" },
+	{ (uint8_t *) "cqo" }
+};
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_c[] = {
-// 	{ (uint8_t *) "movsb" },
-// 	{ (uint8_t *) "movsw" },
-// 	{ (uint8_t *) "movsd" },
-// 	{ (uint8_t *) "movsq" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_e[] = {
+	{ (uint8_t *) "movsb" },
+	{ (uint8_t *) "movsw" },
+	{ (uint8_t *) "movsd" },
+	{ (uint8_t *) "movsq" }
+};
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_d[] = {
-// 	{ (uint8_t *) "cmpsb" },
-// 	{ (uint8_t *) "cmpsw" },
-// 	{ (uint8_t *) "cmpsd" },
-// 	{ (uint8_t *) "cmpsq" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_f[] = {
+	{ (uint8_t *) "cmpsb" },
+	{ (uint8_t *) "cmpsw" },
+	{ (uint8_t *) "cmpsd" },
+	{ (uint8_t *) "cmpsq" }
+};
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_e[] = {
-// 	{ (uint8_t *) "stosb" },
-// 	{ (uint8_t *) "stosw" },
-// 	{ (uint8_t *) "stosd" },
-// 	{ (uint8_t *) "stosq" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_g[] = {
+	{ (uint8_t *) "stosb" },
+	{ (uint8_t *) "stosw" },
+	{ (uint8_t *) "stosd" },
+	{ (uint8_t *) "stosq" }
+};
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_f[] = {
-// 	{ (uint8_t *) "lodsb" },
-// 	{ (uint8_t *) "lodsw" },
-// 	{ (uint8_t *) "lodsd" },
-// 	{ (uint8_t *) "lodsq" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_h[] = {
+	{ (uint8_t *) "lodsb" },
+	{ (uint8_t *) "lodsw" },
+	{ (uint8_t *) "lodsd" },
+	{ (uint8_t *) "lodsq" }
+};
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_g[] = {
-// 	{ (uint8_t *) "scasb" },
-// 	{ (uint8_t *) "scasw" },
-// 	{ (uint8_t *) "scasd" },
-// 	{ (uint8_t *) "scasq" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_i[] = {
+	{ (uint8_t *) "scasb" },
+	{ (uint8_t *) "scasw" },
+	{ (uint8_t *) "scasd" },
+	{ (uint8_t *) "scasq" }
+};
 
-// struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_h[] = {
-// 	{ EMPTY },
-// 	{ EMPTY },
-// 	{ (uint8_t *) "jecxz" },
-// 	{ (uint8_t *) "jrcxz" }
-// };
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_j[] = {
+	{ EMPTY },
+	{ EMPTY },
+	{ (uint8_t *) "jecxz" },
+	{ (uint8_t *) "jrcxz" }
+};
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
+	// 0x00
 	{ (uint8_t *) "add", (M|B) | (B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 | FV },
 	{ (uint8_t *) "add", (M) | FM | FV },
 	{ (uint8_t *) "add", (B) | (M|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 },
@@ -136,6 +137,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ (uint8_t *) "or", (V) << LIB_ASM_OPTION_OPERAND_offset },
 	{ EMPTY },
 	{ EMPTY },
+	// 0x10
 	{ (uint8_t *) "adc", (M|B) | (B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 | FV },
 	{ (uint8_t *) "adc", (M) | FM | FV },
 	{ (uint8_t *) "adc", (B) | (M|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 },
@@ -152,6 +154,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ (uint8_t *) "sbb", (V) << LIB_ASM_OPTION_OPERAND_offset },
 	{ EMPTY },
 	{ EMPTY },
+	// 0x20
 	{ (uint8_t *) "and", (M|B) | (B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 | FV },
 	{ (uint8_t *) "and", (M) | FM | FV },
 	{ (uint8_t *) "and", (B) | (M|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 },
@@ -168,6 +171,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ (uint8_t *) "sub", (V) << LIB_ASM_OPTION_OPERAND_offset },
 	{ EMPTY },
 	{ EMPTY },
+	// 0x30
 	{ (uint8_t *) "xor", (M|B) | (B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 | FV },
 	{ (uint8_t *) "xor", (M) | FM | FV },
 	{ (uint8_t *) "xor", (B) | (M|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 },
@@ -184,6 +188,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ (uint8_t *) "cmp", (V) << LIB_ASM_OPTION_OPERAND_offset },
 	{ EMPTY },
 	{ EMPTY },
+	// 0x40
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
@@ -200,22 +205,24 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
-	{ (uint8_t *) "push", FR },
-	{ (uint8_t *) "push", FR },
-	{ (uint8_t *) "push", FR },
-	{ (uint8_t *) "push", FR },
-	{ (uint8_t *) "push", FR },
-	{ (uint8_t *) "push", FR },
-	{ (uint8_t *) "push", FR },
-	{ (uint8_t *) "push", FR },
-	{ (uint8_t *) "pop", FR },
-	{ (uint8_t *) "pop", FR },
-	{ (uint8_t *) "pop", FR },
-	{ (uint8_t *) "pop", FR },
-	{ (uint8_t *) "pop", FR },
-	{ (uint8_t *) "pop", FR },
-	{ (uint8_t *) "pop", FR },
-	{ (uint8_t *) "pop", FR },
+	// 0x50
+	{ (uint8_t *) "push", FD },
+	{ (uint8_t *) "push", FD },
+	{ (uint8_t *) "push", FD },
+	{ (uint8_t *) "push", FD },
+	{ (uint8_t *) "push", FD },
+	{ (uint8_t *) "push", FD },
+	{ (uint8_t *) "push", FD },
+	{ (uint8_t *) "push", FD },
+	{ (uint8_t *) "pop", FD },
+	{ (uint8_t *) "pop", FD },
+	{ (uint8_t *) "pop", FD },
+	{ (uint8_t *) "pop", FD },
+	{ (uint8_t *) "pop", FD },
+	{ (uint8_t *) "pop", FD },
+	{ (uint8_t *) "pop", FD },
+	{ (uint8_t *) "pop", FD },
+	// 0x60
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
@@ -232,6 +239,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ (uint8_t *) "insw/d", EMPTY, lib_asm_instruction_group_a },
 	{ (uint8_t *) "outsb" },
 	{ (uint8_t *) "outsw/d", EMPTY, lib_asm_instruction_group_b },
+	// 0x70
 	{ (uint8_t *) "jo", (V|B) | FE | FR | F0 },
 	{ (uint8_t *) "jno", (V|B) | FE | FR | F0 },
 	{ (uint8_t *) "jb", (V|B) | FE | FR | F0 },
@@ -248,12 +256,85 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ (uint8_t *) "jnl", (V|B) | FE | FR | F0 },
 	{ (uint8_t *) "jle", (V|B) | FE | FR | F0 },
 	{ (uint8_t *) "jnle", (V|B) | FE | FR | F0 },
+	// 0x80
+	{ EMPTY, (M|B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1, lib_asm_instruction_group_1 },
+	{ EMPTY, (M) | (V) << LIB_ASM_OPTION_OPERAND_offset | FM, lib_asm_instruction_group_1 },
 	{ EMPTY },
+	{ EMPTY, (M) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F1 | FS, lib_asm_instruction_group_1 },
+	{ (uint8_t *) "test", (M|B) | (B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 | FV },
+	{ (uint8_t *) "test", (M) | FM | FV },
+	{ (uint8_t *) "xchg", (B) | (M|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 | FV },
+	{ (uint8_t *) "xchg", (M) | FM | FV },
+	{ (uint8_t *) "mov", (M|B) | (B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 | FV },
+	{ (uint8_t *) "mov", (M) | FM | FV },
+	{ (uint8_t *) "mov", (B) | (M|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 | FV },
+	{ (uint8_t *) "mov", (M) << LIB_ASM_OPTION_OPERAND_offset | FM | FV },
 	{ EMPTY },
+	{ (uint8_t *) "lea", FM },
 	{ EMPTY },
+	{ (uint8_t *) "pop", FM | FE },
+	// 0x90
+	{ (uint8_t *) "xchg", FD },
+	{ (uint8_t *) "xchg", FD },
+	{ (uint8_t *) "xchg", FD },
+	{ (uint8_t *) "xchg", FD },
+	{ (uint8_t *) "xchg", FD },
+	{ (uint8_t *) "xchg", FD },
+	{ (uint8_t *) "xchg", FD },
+	{ (uint8_t *) "xchg", FD },
+	{ (uint8_t *) "cbw", EMPTY, lib_asm_instruction_group_c },
+	{ (uint8_t *) "cwd", EMPTY, lib_asm_instruction_group_d },
 	{ EMPTY },
+	{ (uint8_t *) "fwait" },
+	{ (uint8_t *) "pushfq" },
+	{ (uint8_t *) "popfq" },
+	{ (uint8_t *) "sahf" },
+	{ (uint8_t *) "lahf" },
+	// 0xA0
+	{ (uint8_t *) "mov", (B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FO | F0 | F1 },
+	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FO },
+	{ (uint8_t *) "mov", (V|B) | (B) << LIB_ASM_OPTION_OPERAND_offset | FO | F0 | F1 },
+	{ (uint8_t *) "mov", (V) | FO },
+	{ (uint8_t *) "movsb" },
+	{ (uint8_t *) "movsb", EMPTY, lib_asm_instruction_group_e },
+	{ (uint8_t *) "cmpsb" },
+	{ (uint8_t *) "cmpsb", EMPTY, lib_asm_instruction_group_f },
+	{ (uint8_t *) "test", (B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | F0 | F1 },
+	{ (uint8_t *) "test", (V) << LIB_ASM_OPTION_OPERAND_offset },
+	{ (uint8_t *) "stosb" },
+	{ (uint8_t *) "stosb", EMPTY, lib_asm_instruction_group_g },
+	{ (uint8_t *) "lodsb" },
+	{ (uint8_t *) "lodsb", EMPTY, lib_asm_instruction_group_h },
+	{ (uint8_t *) "scasb" },
+	{ (uint8_t *) "scasb", EMPTY, lib_asm_instruction_group_i },
+	// 0xB0
+	{ (uint8_t *) "mov", B | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FD | F0 | F1 },
+	{ (uint8_t *) "mov", B | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FD | F0 | F1 },
+	{ (uint8_t *) "mov", B | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FD | F0 | F1 },
+	{ (uint8_t *) "mov", B | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FD | F0 | F1 },
+	{ (uint8_t *) "mov", B | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FD | F0 | F1 },
+	{ (uint8_t *) "mov", B | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FD | F0 | F1 },
+	{ (uint8_t *) "mov", B | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FD | F0 | F1 },
+	{ (uint8_t *) "mov", B | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FD | F0 | F1 },
+	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FD },
+	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FD },
+	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FD },
+	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FD },
+	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FD },
+	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FD },
+	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FD },
+	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FD },
+	// 0xC0
+	// FV flag for 0xC0 and 0xC1 doesn't mean "inverse", but USE ModR/M.rm as register destination!
+	// instead of creating exception inside algorithm, I used properties of that flag :)
+	{ EMPTY, (M|B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | FV | F0 | F1, lib_asm_instruction_group_2 },
+	{ EMPTY, (M) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | FV | F1, lib_asm_instruction_group_2 },
+	{ (uint8_t *) "retn", (V|W) | FE | F0 },
+	{ (uint8_t *) "retn" },
 	{ EMPTY },
 	{ EMPTY },
+	{ EMPTY, (M|B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1, lib_asm_instruction_group_3 },
+	{ EMPTY, (M) | (V) << LIB_ASM_OPTION_OPERAND_offset | FM, lib_asm_instruction_group_3 },
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
@@ -262,6 +343,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
+	// 0xD0
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
@@ -278,6 +360,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
+	// 0xE0
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
@@ -294,72 +377,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
+	// 0xF0
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
@@ -376,79 +394,11 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY }
+
 };
 
 
-	// { EMPTY, (M|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_1 },				// 0x80
-	// { EMPTY, (M|D) | (I|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_1 },				// 0x81
-	// { EMPTY },				// 0x82
-	// { EMPTY, (M|D) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_1 },				// 0x83
-	// { (uint8_t *) "test", (M|B) | ((B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FO | FI },				// 0x84
-	// { (uint8_t *) "test", (M|D) | (D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO | FI },					// 0x85
-	// { (uint8_t *) "xchg", (M|B) | ((B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FO | FI },				// 0x86
-	// { (uint8_t *) "xchg", (M|D) | (D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO | FI },				// 0x87
-	// { (uint8_t *) "mov", (M|B) | ((B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FO | FI },				// 0x88
-	// { (uint8_t *) "mov", (M|D) | FM | FI },				// 0x89
-	// { (uint8_t *) "mov", (B) | ((M|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FO | FI },				// 0x8A
-	// { (uint8_t *) "mov", ((M|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FM | FI },				// 0x8B
-	// { EMPTY },				// 0x8C
-	// { (uint8_t *) "lea", FM },				// 0x8D
-	// { EMPTY },				// 0x8E
-	// { (uint8_t *) "pop", FM },				// 0x8F
-	// { (uint8_t *) "xchg", FH },				// 0x90
-	// { (uint8_t *) "xchg", FH },				// 0x91
-	// { (uint8_t *) "xchg", FH },				// 0x92
-	// { (uint8_t *) "xchg", FH },				// 0x93
-	// { (uint8_t *) "xchg", FH },				// 0x94
-	// { (uint8_t *) "xchg", FH },				// 0x95
-	// { (uint8_t *) "xchg", FH },				// 0x96
-	// { (uint8_t *) "xchg", FH },				// 0x97
-	// { (uint8_t *) "cbw", EMPTY, group_a },				// 0x98
-	// { (uint8_t *) "cwd", EMPTY, group_b },				// 0x99
-	// { EMPTY },				// 0x9A
-	// { (uint8_t *) "fwait" },				// 0x9B
-	// { (uint8_t *) "pushfq" },				// 0x9C
-	// { (uint8_t *) "popfq" },				// 0x9D
-	// { (uint8_t *) "sahf" },				// 0x9E
-	// { (uint8_t *) "lahf" },				// 0x9F
-	// { (uint8_t *) "mov", B | FM | FO },				// 0xA0
-	// { (uint8_t *) "mov", R | FT },				// 0xA1
-	// { (uint8_t *) "mov", B | (M) | FM | FO },				// 0xA2
-	// { (uint8_t *) "mov", ((R) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FT },				// 0xA3
-	// { (uint8_t *) "movsb" },				// 0xA4
-	// { (uint8_t *) "movsb", EMPTY, group_c },				// 0xA5
-	// { (uint8_t *) "cmpsb" },				// 0xA6
-	// { (uint8_t *) "cmpsb", EMPTY, group_d },				// 0xA7
-	// { (uint8_t *) "test", (R|B) | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FO },		// 0xA8
-	// { (uint8_t *) "test", (R) | (I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift },		// 0xA9
-	// { (uint8_t *) "stosb" },				// 0xAA
-	// { (uint8_t *) "stosb", EMPTY, group_e },				// 0xAB
-	// { (uint8_t *) "lodsb" },				// 0xAC
-	// { (uint8_t *) "lodsb", EMPTY, group_f },				// 0xAD
-	// { (uint8_t *) "scasb" },				// 0xAE
-	// { (uint8_t *) "scasb", EMPTY, group_g },				// 0xAF
-	// { (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB0
-	// { (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB1
-	// { (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB2
-	// { (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB3
-	// { (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB4
-	// { (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB5
-	// { (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB6
-	// { (uint8_t *) "mov", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xB7
-	// { (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},			// 0xB8
-	// { (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xB9
-	// { (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBA
-	// { (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBB
-	// { (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBC
-	// { (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBD
-	// { (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBE
-	// { (uint8_t *) "mov", ((I) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH	},				// 0xBF
-	// { EMPTY, (M|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_2 },				// 0xC0
-	// { EMPTY, (M|D) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM, group_2 },				// 0xC1
-	// { (uint8_t *) "retn", (I|W) | FO },				// 0xC2
-	// { (uint8_t *) "retn" },				// 0xC3
-	// { EMPTY },				// 0xC4
-	// { EMPTY },				// 0xC5
+
 	// { EMPTY, (M|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_3 },				// 0xC6
 	// { EMPTY, (M|D) | (I|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_3 },				// 0xC7
 	// { (uint8_t *) "enter", (I|W) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FO },				// 0xC8

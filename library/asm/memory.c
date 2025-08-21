@@ -62,35 +62,44 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm, uint8_t operand ) {
 		}
 	// no, simple one
 	} else {
-	// 	// special case of addressing
-	// 	if( asm -> modrm.mod == 0x00 && asm -> modrm.rm == 0x05 ) {
-	// 		// for 32 bit CPU mode
-	// 		if( asm -> memory_bits == DWORD ) {
-	// 			// retrieve address
-	// 			uint32_t address = (uint32_t) *((uint32_t *) asm -> rip); asm -> rip += 4;
+		// special case of addressing
+		if( asm -> modrm.mod == 0x00 && asm -> modrm.rm == 0x05 ) {
+			// for 32 bit addressing mode
+			if( asm -> memory_semaphore )
+				// absolute address
+				log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", *((uint32_t *) asm -> rip ) );
+			// for 64 bit addressing mode (default)
+			else
+				// relative address
+				log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uintptr_t) asm -> rip + *((int32_t *) asm -> rip) );
+			
+			// leave displacement
+			asm -> rip += 4;
+		// default one
+		} else {
+			// usage by: 0x83
 
-	// 			// absolute address
-	// 			log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", (uint32_t) address );
-	// 		// for 64 bit CPU mode
-	// 		} else {
-	// 			// // if base doesn't exist
-	// 			// if( ! asm -> sib.base ) {
-	// 			// 	// absolute address
-	// 			// 	address = *((uint32_t *) asm -> rip);
-	// 			// 	log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", address );
-	// 			// } else {
-	// 				// relative address
-	// 				log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uint64_t) asm -> rip + (int32_t) *((int32_t *) asm -> rip) );
-	// 			// }
+			// 0xC6 exception
+			if( asm -> opcode == 0xC6 ) {
+				// current bits
+				bits = asm -> register_bits;
 
-	// 			// leave displacement
-	// 			asm -> rip += 4;
-	// 		}
-	// 	// default one
-	// 	} else log( LIB_ASM_COLOR_REGISTER"%s", r[ asm -> memory_bits ][ asm -> modrm.rm | (asm -> rex.b << 3) ] );
+				// change addressing mode?
+				if( asm -> register_semaphore ) bits = DWORD;
+			} else {
+				// current bits
+				bits = asm -> memory_bits;
 
-	// 	// there are defaults
-	// 	relative = TRUE;
+				// change addressing mode?
+				if( asm -> memory_semaphore ) bits = DWORD;
+			}
+
+			// show register
+			log( LIB_ASM_COLOR_REGISTER"%s", lib_asm_registers[ bits ][ asm -> modrm.rm | (asm -> rex.b << 3) ] );
+		}
+		
+		// there are defaults
+		relative = TRUE;
 	}
 
 	// displacement
@@ -99,4 +108,7 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm, uint8_t operand ) {
 end:
 	// end memory access
 	log( LIB_ASM_COLOR_MEMORY"]" );
+
+	// separator required from now on
+	asm -> comma_semaphore = TRUE;
 }

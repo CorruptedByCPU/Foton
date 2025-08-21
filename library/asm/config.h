@@ -2,6 +2,8 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
+#define DEBUF	// shows additional informations instruction
+
 //=============================================================================
 #define	LIB_ASM_COLOR	// colorize
 
@@ -20,11 +22,18 @@
 	#define LIB_ASM_COLOR_INSTRUCTION
 	#define	LIB_ASM_COLOR_MEMORY
 	#define	LIB_ASM_COLOR_REGISTER
+	#define	LIB_ASM_COLOR_SCALE
 #endif
 //=============================================================================
 
-// separator between operators, use "\t" for tabulators
-#define	LIB_ASM_SEPARATOR		" "
+// separator between operators, by default SPACE
+#define	LIB_ASM_SEPARATOR_SIMPLE
+
+#ifdef LIB_ASM_SEPARATOR_SIMPLE
+	#define LIB_ASM_SEPARATOR	" "
+#else
+	#define	LIB_ASM_SEPARATOR	"\t"	// TAB
+#endif
 
 // show mnemonic opcode
 #define LIB_ASM_OPCODE
@@ -34,12 +43,10 @@
 // type
 #define	M 0x00000001	// memory access
 #define	V 0x00000002	// value: immediate, offset, relative
-// #define	R 0x00000002	// register
 // size
 #define	B 0x00000004	// byte
 #define	W 0x00000008	// word
 #define	D 0x00000010	// dword
-// #define	Q 0x00000020	// qword
 // flag
 #define FM 0x00200000	// ModR/M exist
 #define	FV 0x00400000	// inverted source/destination of ModR/M
@@ -49,13 +56,8 @@
 #define	FD 0x04000000	// register definied by instruction
 #define FE 0x08000000	// instruction without register
 #define	FR 0x10000000	// relative value
-// flag
-// #define	FR 0x00800000	// 0b00000001000000000000000000000000	// relative address
-// #define	FV 0x01000000	// 0b00000010000000000000000000000000	// inverted source/destination of ModR/M
-// #define	FT 0x08000000	// 0b00001000000000000000000000000000	// offset exist
-// #define	FH 0x10000000	// 0b00010000000000000000000000000000	// register hidden inside opcode
-// #define	FS 0x20000000	// 0b00100000000000000000000000000000	// signed
-// #define	FA 0x40000000	// 0b01000000000000000000000000000000	// accumulator
+#define	FS 0x20000000	// value is signed
+#define	FO 0x40000000	// offset value
 
 enum {
 	BYTE,
