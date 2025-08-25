@@ -63,6 +63,10 @@ void kernel_terminal_char( char character ) {
 					kernel -> terminal.pointer[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel_terminal_blend( kernel -> terminal.pointer[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ], (kernel -> terminal.color_foreground & 0x00FFFFFF) | color_foreground_alpha );
 				}
 
+		// sync character location
+		uint32_t *sync = kernel -> framebuffer_base_address + (kernel -> terminal.cursor_y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift) * LIB_FONT_MATRIX_height_pixel) + (kernel -> terminal.cursor_x * LIB_FONT_FAMILY_ROBOTO_MONO_KERNING);
+		for( uint64_t y = 0; y < LIB_FONT_MATRIX_height_pixel; y++ ) for( uint64_t x = 0; x < LIB_FONT_FAMILY_ROBOTO_MONO_KERNING; x++ ) sync[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel -> terminal.pointer[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ];
+
 		// set the new cursor position
 		kernel -> terminal.cursor_x++;
 	}
@@ -246,11 +250,6 @@ void kernel_terminal_printf( const char *string, ... ) {
 
 	// end of arguemnt list
 	va_end( argv );
-
-	// sync
-	for( uint64_t y = 0; y < kernel -> framebuffer_height_pixel; y++ )
-	for( uint64_t x = 0; x < kernel -> framebuffer_width_pixel; x++ )
-	kernel -> framebuffer_base_address[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel -> terminal.pixel[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] & ~STD_COLOR_mask;
 
 	// release function
 	MACRO_UNLOCK( kernel -> terminal.lock );
