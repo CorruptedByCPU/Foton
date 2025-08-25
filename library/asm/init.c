@@ -3,6 +3,7 @@
 ===============================================================================*/
 
 uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
+	// no Subset by default (different list of instructions)
 	// no REX available by default
 	// no ModR/M available by default
 	// no SIB available by default
@@ -126,8 +127,12 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 	// unknown instruction?
 	if( ! asm -> instruction.name && ! asm -> instruction.group ) return FALSE;	// yes, end of interpretation
 
-	// ModR/M exist for this mnemonic?
-	if( asm -> instruction.options & FM ) {	// yes
+	// exception
+	// it's subset of another instruction list
+	if( asm -> opcode == 0xF6 || asm -> opcode == 0xF7 || asm -> opcode == 0xFF ) asm -> subset = TRUE;
+
+	// ModR/M exist for this mnemonic? (or it's subset of instructions)
+	if( asm -> instruction.options & FM || asm -> subset ) {	// yes
 		// obtain opcode
 		uint8_t modrm = *(asm -> rip++);
 
@@ -171,6 +176,15 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 
 		// set semaphore
 		asm -> modrm.semaphore = TRUE;
+	}
+
+	// acquired ModR/M for subset?
+	if( asm -> subset ) {
+		// properties of names
+		struct LIB_ASM_STRUCTURE_INSTRUCTION *group = asm -> instruction.group;
+
+		// set different instruction list
+		asm -> instruction = group[ asm -> modrm.reg ];
 	}
 
 	// displacement at end of instruction?

@@ -51,6 +51,43 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_3[] = {
 	{ (uint8_t *) "mov" }
 };
 
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_4[] = {
+	{ (uint8_t *) "test", (M|B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | FE | F0 | F1 },
+	{ (uint8_t *) "test", (M|B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | FE | F0 | F1 },
+	{ (uint8_t *) "not", (M|B) | FM | FE | F0 },
+	{ (uint8_t *) "neg", (M|B) | FM | FE | F0 },
+	{ (uint8_t *) "mul", (M|B) | FM | FE | F0 },
+	{ (uint8_t *) "imul", (M|B) | FM | FE | F0 },
+	{ (uint8_t *) "div", (M|B) | FM | FE | F0 },
+	{ (uint8_t *) "idiv", (M|B) | FM | FE | F0 }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_5[] = {
+	{ (uint8_t *) "test", (M) | (V) << LIB_ASM_OPTION_OPERAND_offset | FM | FE },
+	{ (uint8_t *) "test", (M) | (V) << LIB_ASM_OPTION_OPERAND_offset | FM | FE },
+	{ (uint8_t *) "not", (M) | FM | FE | F0 },
+	{ (uint8_t *) "neg", (M) | FM | FE | F0 },
+	{ (uint8_t *) "mul", (M) | FM | FE | F0 },
+	{ (uint8_t *) "imul", (M) | FM | FE | F0 },
+	{ (uint8_t *) "div", (M) | FM | FE | F0 },
+	{ (uint8_t *) "idiv", (M) | FM | FE | F0 }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_6[] = {
+	{ (uint8_t *) "inc" },
+	{ (uint8_t *) "dec" }
+};
+
+struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_7[] = {
+	{ (uint8_t *) "inc", (M) | FM | FE },
+	{ (uint8_t *) "dec", (M) | FM | FE },
+	{ (uint8_t *) "call", (M) | FM | FE },
+	{ (uint8_t *) "callf", (M) | FM | FE },
+	{ (uint8_t *) "jmp", (M) | FM | FE },
+	{ (uint8_t *) "jmpf", (M) | FM | FE },
+	{ (uint8_t *) "push", (M) | FM | FE },
+};
+
 struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_a[] = {
 	{ EMPTY },
 	{ (uint8_t *) "insw" },
@@ -110,13 +147,6 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_i[] = {
 	{ (uint8_t *) "scasw" },
 	{ (uint8_t *) "scasd" },
 	{ (uint8_t *) "scasq" }
-};
-
-struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_group_j[] = {
-	{ EMPTY },
-	{ EMPTY },
-	{ (uint8_t *) "jecxz" },
-	{ (uint8_t *) "jrcxz" }
 };
 
 struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
@@ -260,7 +290,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ EMPTY, (M|B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1, lib_asm_instruction_group_1 },
 	{ EMPTY, (M) | (V) << LIB_ASM_OPTION_OPERAND_offset | FM, lib_asm_instruction_group_1 },
 	{ EMPTY },
-	{ EMPTY, (M) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F1 | FS, lib_asm_instruction_group_1 },
+	{ EMPTY, (M) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F1, lib_asm_instruction_group_1 },	// removed signed flag
 	{ (uint8_t *) "test", (M|B) | (B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 | FV },
 	{ (uint8_t *) "test", (M) | FM | FV },
 	{ (uint8_t *) "xchg", (B) | (M|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1 | FV },
@@ -325,29 +355,27 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FD },
 	{ (uint8_t *) "mov", (V) << LIB_ASM_OPTION_OPERAND_offset | FD },
 	// 0xC0
-	// FV flag for 0xC0 and 0xC1 doesn't mean "inverse", but USE ModR/M.rm as register destination!
-	// instead of creating exception inside algorithm, I used properties of that flag :)
 	{ EMPTY, (M|B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | FV | F0 | F1, lib_asm_instruction_group_2 },
 	{ EMPTY, (M) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | FV | F1, lib_asm_instruction_group_2 },
 	{ (uint8_t *) "retn", (V|W) | FE | F0 },
 	{ (uint8_t *) "retn" },
 	{ EMPTY },
 	{ EMPTY },
-	{ EMPTY, (M|B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | F0 | F1, lib_asm_instruction_group_3 },
-	{ EMPTY, (M) | (V) << LIB_ASM_OPTION_OPERAND_offset | FM, lib_asm_instruction_group_3 },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
+	{ EMPTY, (M|B) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FM | FV | F0 | F1, lib_asm_instruction_group_3 },
+	{ EMPTY, (M) | (V) << LIB_ASM_OPTION_OPERAND_offset | FM | FV, lib_asm_instruction_group_3 },
+	{ (uint8_t *) "enter", (V|W) | (V|B) << LIB_ASM_OPTION_OPERAND_offset | FE | F0 | F1 },	
+	{ (uint8_t *) "leave" },
+	{ (uint8_t *) "retf", (V|W) | FE | F0 },
+	{ (uint8_t *) "retf" },
+	{ (uint8_t *) "int3" },
+	{ (uint8_t *) "int", (V|B) | F0 | FE },
+	{ (uint8_t *) "into" },
+	{ (uint8_t *) "iretq" },
 	// 0xD0
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
+	{ EMPTY, (M|B) | FM | FV | F0, lib_asm_instruction_group_2 },
+	{ EMPTY, (M) | FM | FV, lib_asm_instruction_group_2 },
+	{ EMPTY, (M|B) | FM | FV | F0, lib_asm_instruction_group_2 },
+	{ EMPTY, (M) | FM | FV, lib_asm_instruction_group_2 },
 	{ EMPTY },
 	{ EMPTY },
 	{ EMPTY },
@@ -361,103 +389,40 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ EMPTY },
 	{ EMPTY },
 	// 0xE0
+	{ (uint8_t *) "loopnz", (V|B) | FR | F0 | FE },
+	{ (uint8_t *) "loopz", (V|B) | FR | F0 | FE },
+	{ (uint8_t *) "loop", (V|B) | FR | F0 | FE },
+	{ (uint8_t *) "jrcxz", (V|B) | FR | F0 | FE },
+	{ (uint8_t *) "in", B | (V|B) << LIB_ASM_OPTION_OPERAND_offset | F0 },
+	{ (uint8_t *) "in", (V|B) << LIB_ASM_OPTION_OPERAND_offset | F0 },
+	{ (uint8_t *) "out", (V|B) | FD | F0 },
+	{ (uint8_t *) "out", (V|B) | FD | F0 },
+	{ (uint8_t *) "call", (V) | FR | FE },
+	{ (uint8_t *) "jmp", (V) | FR | FE },
 	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
+	{ (uint8_t *) "jmp", (V|B) | F0 | FR | FE },
+	{ (uint8_t *) "in", FD },
+	{ (uint8_t *) "in", FD },
+	{ (uint8_t *) "out", FD },
+	{ (uint8_t *) "out", FD },
 	// 0xF0
 	{ EMPTY },
+	{ (uint8_t *) "debug" },
 	{ EMPTY },
 	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY },
-	{ EMPTY }
-
+	{ (uint8_t *) "hlt" },
+	{ (uint8_t *) "cmc" },
+	{ (uint8_t *) "", EMPTY, lib_asm_instruction_group_4 },
+	{ (uint8_t *) "", EMPTY, lib_asm_instruction_group_5 },
+	{ (uint8_t *) "clc" },
+	{ (uint8_t *) "stc" },
+	{ (uint8_t *) "cli" },
+	{ (uint8_t *) "sti" },
+	{ (uint8_t *) "cld" },
+	{ (uint8_t *) "std" },
+	{ EMPTY, (M|B) | FM | F0 | FV, lib_asm_instruction_group_6 },
+	{ (uint8_t *) "", EMPTY, lib_asm_instruction_group_7 }
 };
-
-
-
-	// { EMPTY, (M|B) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_3 },				// 0xC6
-	// { EMPTY, (M|D) | (I|D) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FM | FO, group_3 },				// 0xC7
-	// { (uint8_t *) "enter", (I|W) | (I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift | FO },				// 0xC8
-	// { (uint8_t *) "leave" },		// 0xC9
-	// { (uint8_t *) "retf", (I|W) | FO },	// 0xCA
-	// { (uint8_t *) "retf" },				// 0xCB
-	// { (uint8_t *) "int" },				// 0xCC
-	// { (uint8_t *) "int", (I|B) | FO },				// 0xCD
-	// { (uint8_t *) "into" },				// 0xCE
-	// { (uint8_t *) "iretq" },				// 0xCF
-	// { EMPTY, (M|B) | FM | FO, group_2 },				// 0xD0
-	// { EMPTY, (M|D) | FM, group_2 },				// 0xD1
-	// { EMPTY, (M|B) | FM | FO, group_2 },				// 0xD2
-	// { EMPTY, (M|D) | FM, group_2 },				// 0xD3
-	// { EMPTY },				// 0xD4
-	// { EMPTY },				// 0xD5
-	// { EMPTY },				// 0xD6
-	// { EMPTY },				// 0xD7
-	// { EMPTY },				// 0xD8
-	// { EMPTY },				// 0xD9
-	// { EMPTY },				// 0xDA
-	// { EMPTY },				// 0xDB
-	// { EMPTY },				// 0xDC
-	// { EMPTY },				// 0xDD
-	// { EMPTY },				// 0xDE
-	// { EMPTY },				// 0xDF
-	// { (uint8_t *) "loopnz", (I|B) | FR | FO },				// 0xE0
-	// { (uint8_t *) "loopz", (I|B) | FR | FO },				// 0xE1
-	// { (uint8_t *) "loop", (I|B) | FR | FO },				// 0xE2
-	// { (uint8_t *) "jcxz", (I|B) | FR | FO, group_h },				// 0xE3
-	// { (uint8_t *) "in", B | ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH | FO },				// 0xE4
-	// { (uint8_t *) "in", ((I|B) << LIB_ASM_OPTION_FLAG_2nd_operand_shift) | FH },				// 0xE5
-	// { (uint8_t *) "out", FH },			// 0xE6
-	// { (uint8_t *) "out", FH },				// 0xE7
-	// { (uint8_t *) "call", (I) | FR },				// 0xE8
-	// { (uint8_t *) "jmp", (I) | FR },				// 0xE9
-	// { EMPTY },				// 0xEA
-	// { (uint8_t *) "jmp", (I|B) | FO | FR },				// 0xEB
-	// { (uint8_t *) "in", FH },				// 0xEC
-	// { (uint8_t *) "in", FH },				// 0xED
-	// { (uint8_t *) "out", FH },				// 0xEE
-	// { (uint8_t *) "out", FH },				// 0xEF
-	// { EMPTY },				// 0xF0
-	// { EMPTY },				// 0xF1
-	// { EMPTY },				// 0xF2
-	// { EMPTY },				// 0xF3
-	// { (uint8_t *) "hlt" },				// 0xF4
-	// { (uint8_t *) "cmc" },				// 0xF5
-	// { EMPTY },				// 0xF6
-	// { EMPTY },				// 0xF7
-	// { (uint8_t *) "clc" },				// 0xF8
-	// { (uint8_t *) "stc" },				// 0xF9
-	// { (uint8_t *) "cli" },				// 0xFA
-	// { (uint8_t *) "sti" },				// 0xFB
-	// { (uint8_t *) "cld" },				// 0xFC
-	// { (uint8_t *) "std" },				// 0xFD
-	// { EMPTY },				// 0xFE
-	// { EMPTY }				// 0xFF
-// };
 
 // struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_slave[] = {
 // };

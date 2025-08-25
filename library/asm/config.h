@@ -2,7 +2,7 @@
  Copyright (C) Andrzej Adamczyk (at https://blackdev.org/). All rights reserved.
 ===============================================================================*/
 
-#define DEBUF	// shows additional informations instruction
+// #define DEBUF	// shows additional informations instruction
 
 //=============================================================================
 #define	LIB_ASM_COLOR	// colorize
@@ -97,6 +97,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION {
 struct LIB_ASM_STRUCTURE {
 	uint8_t	*rip;	// next opcode to interpret
 	uint8_t opcode;	// current opcode interview
+	uint8_t subset;
 	uint8_t	register_bits;	// register size
 	uint8_t register_semaphore;	// size changed
 	uint8_t memory_bits;	// memory access size

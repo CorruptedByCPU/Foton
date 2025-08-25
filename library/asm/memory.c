@@ -77,22 +77,13 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm, uint8_t operand ) {
 			asm -> rip += 4;
 		// default one
 		} else {
-			// usage by: 0x83
+			// usaged by: 0x83
 
-			// 0xC6 exception
-			if( asm -> opcode == 0xC6 ) {
-				// current bits
-				bits = asm -> register_bits;
+			// current bits
+			bits = asm -> memory_bits;
 
-				// change addressing mode?
-				if( asm -> register_semaphore ) bits = DWORD;
-			} else {
-				// current bits
-				bits = asm -> memory_bits;
-
-				// change addressing mode?
-				if( asm -> memory_semaphore ) bits = DWORD;
-			}
+			// change addressing mode?
+			if( asm -> memory_semaphore ) bits = DWORD;
 
 			// show register
 			log( LIB_ASM_COLOR_REGISTER"%s", lib_asm_registers[ bits ][ asm -> modrm.rm | (asm -> rex.b << 3) ] );

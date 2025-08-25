@@ -42,12 +42,7 @@ void lib_asm_value( struct LIB_ASM_STRUCTURE *asm ) {
 				// relative type?
 				if( asm -> instruction.options & FR ) log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uintptr_t) asm -> rip + value );
 				// no
-				else {
-					// signed?
-					if( asm -> instruction.options & FS ) log( LIB_ASM_COLOR_IMMEDIATE"0x%2X", (uint8_t) value );
-					// no
-					else log( LIB_ASM_COLOR_IMMEDIATE"0x%2X", value );
-				}
+				else log( LIB_ASM_COLOR_IMMEDIATE"0x%2X", value & STD_MASK_BYTE );
 
 				// done
 				break;
@@ -60,7 +55,7 @@ void lib_asm_value( struct LIB_ASM_STRUCTURE *asm ) {
 				// relative type?
 				if( asm -> instruction.options & FR ) log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uintptr_t) asm -> rip + value );
 				// no
-				else log( LIB_ASM_COLOR_IMMEDIATE"0x%4X", value );
+				else log( LIB_ASM_COLOR_IMMEDIATE"0x%4X", value & STD_MASK_WORD );
 
 				// done
 				break;
@@ -73,7 +68,7 @@ void lib_asm_value( struct LIB_ASM_STRUCTURE *asm ) {
 				// relative type?
 				if( asm -> instruction.options & FR ) log( LIB_ASM_COLOR_IMMEDIATE"0x%16X", (uintptr_t) asm -> rip + value );
 				// no
-				else log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", value );
+				else log( LIB_ASM_COLOR_IMMEDIATE"0x%8X", value & STD_MASK_DWORD );
 
 				// done
 				break;
