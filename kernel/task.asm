@@ -18,9 +18,43 @@ global	kernel_task
 align	0x08,	db	0x00
 kernel_task:
 
-; ; debug disassembler
+; ; ; debug disassembler
 ; xchg bx, bx
 ; int3
+
+; ;;; 2 byte opcodes
+; ; movzx eax, bl
+; db 0x0F, 0xB6, 0xC3
+
+; ; movzx ecx, byte [rax]
+; db 0x0F, 0xB6, 0x08
+
+; ; movzx edx, byte [rax+4]
+; db 0x0F, 0xB6, 0x50, 0x04
+
+; ; movzx rbx, byte [rax+rcx]
+; db 0x48, 0x0F, 0xB6, 0x1C, 0x08
+
+; ; movzx rsi, byte [rip+0x1234]
+; db 0x48, 0x0F, 0xB6, 0x35, 0x34, 0x12, 0x00, 0x00
+
+; ; movzx ecx, byte [rsp+0x10]
+; db 0x0F, 0xB6, 0x4C, 0x24, 0x10
+
+; ; movzx rdx, al
+; db 0x48, 0x0F, 0xB6, 0xD0
+
+; nop
+; nop
+; nop
+; nop
+; nop
+; nop
+; nop
+; nop
+
+
+;;; 1 byte opcodes
 ; add al, r8b
 ; add byte [eax + ebx*2 + 0x12], r8b
 ; add byte [rax + rbx*2 - 0x12], r8b
@@ -534,15 +568,6 @@ kernel_task:
 ; db 0xff, 0xf6		; push rsi
 ; db 0x67, 0xff, 0x75, 0x10	; push qword [ebp + 0x10]
 ; db 0xff, 0x75, 0x10	; push qword [rbp + 0x10]
-
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
 
 	; turn off Interrupt Flag
 	cli

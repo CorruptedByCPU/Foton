@@ -4,7 +4,8 @@
 
 uint8_t lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
 	#ifdef LIB_ASM_OPCODE
-		log( LIB_ASM_COLOR_DEFAULT"[%2X] ", asm -> opcode );
+		if( asm -> extended ) log( LIB_ASM_COLOR_DEFAULT"0F " ); else log( "   " );
+		log( LIB_ASM_COLOR_DEFAULT"%2X ", asm -> opcode );
 	#endif
 
 	// special case of name? (with options)

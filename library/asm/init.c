@@ -115,21 +115,32 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 
 	// acquired opcode of NOP?
 	if( asm -> opcode == 0x90 && ! asm -> rex.semaphore && ! asm -> register_semaphore ) asm -> instruction = lib_asm_instruction_nop[ 0 ];
-	else
+
+
+	// 2-Byte opcode?
+	if( asm -> opcode == 0x0F ) {
+		// remember
+		asm -> extended = TRUE;
+
+		// obtain second opcode
+		asm -> opcode = *(asm -> rip++);
+
+		// get instruction properties from main table
+		asm -> instruction = lib_asm_instruction_slave[ asm -> opcode ];
+
+		// unknown instruction?
+		if( ! asm -> instruction.name && ! asm -> instruction.group ) return FALSE;	// yes, end of interpretation
+	} else {
 		// get instruction properties from main table
 		asm -> instruction = lib_asm_instruction_master[ asm -> opcode ];
 
-	// 2-Byte asm -> opcode?
-	if( asm -> opcode == 0x0F ) {
-		// to do
+		// unknown instruction?
+		if( ! asm -> instruction.name && ! asm -> instruction.group ) return FALSE;	// yes, end of interpretation
+
+		// exception
+		// it's subset of another instruction list
+		if( asm -> opcode == 0xF6 || asm -> opcode == 0xF7 || asm -> opcode == 0xFF ) asm -> subset = TRUE;
 	}
-
-	// unknown instruction?
-	if( ! asm -> instruction.name && ! asm -> instruction.group ) return FALSE;	// yes, end of interpretation
-
-	// exception
-	// it's subset of another instruction list
-	if( asm -> opcode == 0xF6 || asm -> opcode == 0xF7 || asm -> opcode == 0xFF ) asm -> subset = TRUE;
 
 	// ModR/M exist for this mnemonic? (or it's subset of instructions)
 	if( asm -> instruction.options & FM || asm -> subset ) {	// yes
@@ -188,9 +199,9 @@ uint8_t lib_asm_init( struct LIB_ASM_STRUCTURE *asm ) {
 	}
 
 	// displacement at end of instruction?
-	if( asm -> modrm.mod == 0x00 && asm -> sib.base == 0x05 ) { asm -> displacement = (int32_t) *((uint32_t *) asm -> rip); asm -> rip += 4; }
-	if( asm -> modrm.mod == 0x01 ) { asm -> displacement = (int8_t) *(asm -> rip++); }
-	if( asm -> modrm.mod == 0x02 ) { asm -> displacement = (int32_t) *((uint32_t *) asm -> rip); asm -> rip += 4; }
+	if( asm -> modrm.mod == 0x00 && asm -> sib.base == 0x05 ) { asm -> displacement = (int32_t) *((uint32_t *) asm -> rip); asm -> rip += 4; asm -> displacement_size = DWORD; }
+	if( asm -> modrm.mod == 0x01 ) { asm -> displacement = (int8_t) *(asm -> rip++); asm -> displacement_size = BYTE; }
+	if( asm -> modrm.mod == 0x02 ) { asm -> displacement = (int32_t) *((uint32_t *) asm -> rip); asm -> rip += 4; asm -> displacement_size = DWORD; }
 
 	// everything prepared
 	return TRUE;

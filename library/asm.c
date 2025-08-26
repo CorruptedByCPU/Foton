@@ -30,7 +30,8 @@ uint64_t lib_asm( void *rip ) {
 	// are we ready for interpretation?
 	if( ! ready ) {	// nope
 		// message
-		log( LIB_ASM_COLOR_INSTRUCTION"db "LIB_ASM_COLOR_DATA"0x%2X", asm -> opcode );
+		log( LIB_ASM_COLOR_INSTRUCTION"db " ); if( asm -> extended ) log( LIB_ASM_COLOR_DATA"0x0F, " );
+		log( LIB_ASM_COLOR_DATA"0x%2X", asm -> opcode );
 
 		// we are done
 		goto end;

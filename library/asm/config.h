@@ -97,6 +97,7 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION {
 struct LIB_ASM_STRUCTURE {
 	uint8_t	*rip;	// next opcode to interpret
 	uint8_t opcode;	// current opcode interview
+	uint8_t extended;	// 2 Byte opcode?
 	uint8_t subset;
 	uint8_t	register_bits;	// register size
 	uint8_t register_semaphore;	// size changed
@@ -107,6 +108,7 @@ struct LIB_ASM_STRUCTURE {
 	struct LIB_ASM_STRUCTURE_MODRM			modrm;			// extended properties of instruction (not always awailable)
 	struct LIB_ASM_STRUCTURE_SIB			sib;			// specification of memory access (not always available)
 	int32_t displacement;	// suplementary value for ModR/M|SIB (not always available)
+	uint8_t displacement_size;	// BYTE/DWORD
 	uint8_t comma_semaphore;	// required for immediate/relative/offset
 								// should we put separator before operator
 };

@@ -13,7 +13,7 @@ void lib_asm_displacement( struct LIB_ASM_STRUCTURE *asm, uint8_t relative ) {
 		// no
 		else {
 			// for 4 Byte value
-			if( asm -> displacement < -0xFF || asm -> displacement > 0xFF ) {
+			if( asm -> displacement_size == DWORD ) {
 				// backward or forward?
 				if( asm -> displacement & STD_SIZE_DWORD_sign ) log( LIB_ASM_COLOR_DEFAULT" - "LIB_ASM_COLOR_IMMEDIATE"0x%8X", (uint32_t) -asm -> displacement );
 				else log( LIB_ASM_COLOR_DEFAULT" + "LIB_ASM_COLOR_IMMEDIATE"0x%8X", (uint32_t) asm -> displacement );

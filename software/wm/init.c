@@ -3,6 +3,8 @@
 ===============================================================================*/
 
 void wm_init( void ) {
+	// MACRO_DEBUF();
+
 	// Window Manager environment global variables/pointers
 	wm = (struct WM_STRUCTURE *) std_memory_alloc( MACRO_PAGE_ALIGN_UP( sizeof( struct WM_STRUCTURE ) ) >> STD_SHIFT_PAGE );
 

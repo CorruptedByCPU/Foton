@@ -31,7 +31,7 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	kernel_terminal_clean();
 
 	// say, hello!
-	log( "\n \033[38;5;118m|deBuffer| \033[38;5;245mby https://\033[38;5;250mblackdev.org\033[38;5;245m/        \033[0mMenu: (\033[38;5;11ms\033[0m)tep (\033[38;5;11mc\033[0m)ontinue\n\n" );
+	log( "\n \033[38;5;118m|deBuffer| \033[38;5;245mby https://\033[38;5;250mblackdev.org\033[38;5;245m/        \033[0mMenu: (\033[38;5;11ms\033[0m)tep (\033[38;5;11mc\033[0m)ontinue (\033[38;5;11md\033[0m)isassembly (\033[38;5;11me\033[0m)dit (\033[38;5;11mm\033[0m)emory\n\n" );
 	// if( kernel -> framebuffer_width_pixel < 1280 || kernel -> framebuffer_height_pixel < 720 ) { log( "\n\tAt least 1280x720 resolution is required." ); while( TRUE ); }
 
 	log( "\033[0m CPU State             EFLAGS (literals)    Stack                             Disassembly\n" );
@@ -109,6 +109,7 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	for( uint64_t i = 0; i < kernel -> terminal.height_char - (y + 1); i++ ) { kernel -> terminal.cursor_x = x; kernel_terminal_cursor(); log( "                                                                             \n" ); }
 	kernel -> terminal.cursor_y = y;
 	uint8_t *rip = (uint8_t *) exception -> rip;
+	if( *rip == 0xCC ) rip++;
 	for( uint64_t i = 0; i < kernel -> terminal.height_char - (y + 1); i++ ) {
 		kernel -> terminal.cursor_x = x; kernel_terminal_cursor();
 		log( "\033[38;5;243m%16X \033[0m", (uint64_t) rip );
@@ -120,8 +121,6 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 	}
 
 	// hold the door
-	MACRO_DEBUF();
-	MACRO_DEBUF();
 	volatile uint8_t a = TRUE;
 	while( a );
 }
