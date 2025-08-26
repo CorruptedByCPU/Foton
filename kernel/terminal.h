@@ -43,6 +43,7 @@
 		uint32_t	color_background;
 	};
 
+	void kernel_terminal_clean( void );
 	static void kernel_terminal_clean_character( void );
 	uint32_t kernel_terminal_color( uint8_t index );
 	static void kernel_terminal_cursor( void );

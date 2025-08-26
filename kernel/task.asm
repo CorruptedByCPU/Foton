@@ -18,7 +18,7 @@ global	kernel_task
 align	0x08,	db	0x00
 kernel_task:
 
-; debug disassembler
+; ; debug disassembler
 ; xchg bx, bx
 ; int3
 ; add al, r8b
@@ -272,27 +272,27 @@ kernel_task:
 ; cdq
 ; cqo
 
-; fwait
+; fwait`
 ; pushfq
 ; popfq
 ; sahf
 ; lahf
 
-; ; mov al, [0x123456789ABCDEF0]
+; ; mov al, byte [0x123456789ABCDEF0]
 ; db 0xA0, 0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12
-; ; mov ax, [0x123456789ABCDEF0]
+; ; mov ax, word [0x123456789ABCDEF0]
 ; db 0x66, 0xA1, 0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12
-; ; mov eax, [0x123456789ABCDEF0]
+; ; mov eax, dword [0x123456789ABCDEF0]
 ; db 0xA1, 0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12
-; ; mov rax, [0x123456789ABCDEF0]
+; ; mov rax, qword [0x123456789ABCDEF0]
 ; db 0x48, 0xA1, 0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12
-; ; mov [0x123456789ABCDEF0], al
+; ; mov byte [0x123456789ABCDEF0], al
 ; db 0xA2, 0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12
-; ; mov [0x123456789ABCDEF0], ax
+; ; mov word [0x123456789ABCDEF0], ax
 ; db 0x66, 0xA3, 0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12
-; ; mov [0x123456789ABCDEF0], eax
+; ; mov dword [0x123456789ABCDEF0], eax
 ; db 0xA3, 0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12
-; ; mov [0x123456789ABCDEF0], rax
+; ; mov qword [0x123456789ABCDEF0], rax
 ; db 0x48, 0xA3, 0xF0, 0xDE, 0xBC, 0x9A, 0x78, 0x56, 0x34, 0x12
 
 ; movsb
@@ -440,10 +440,12 @@ kernel_task:
 ; rol qword [rax], cl
 ; rol qword [0x12345678], cl
 
-; loopnz kernel_task
-; loopz kernel_task
-; loop kernel_task
-; jrcxz kernel_task
+; .test:
+
+; loopnz kernel_task.test
+; loopz kernel_task.test
+; loop kernel_task.test
+; jrcxz kernel_task.test
 
 ; in al, 0x10
 ; in ax, 0x10
@@ -495,11 +497,11 @@ kernel_task:
 ; ; idiv dword [rdi]
 ; db 0xF7, 0x3F
 
-; ; int byte [eax]
+; ; inc byte [eax]
 ; db 0x67, 0xFE, 0x00
-; ; int byte [rax]
+; ; inc byte [rax]
 ; db 0xFE, 0x00
-; ; int bl
+; ; inc bl
 ; db 0xFE, 0xC3
 ; ; dec byte [ebx]
 ; db 0x67, 0xFE, 0x0B
@@ -508,12 +510,14 @@ kernel_task:
 ; ; dec cl
 ; db 0xFE, 0xC9
 
+; inc ax
 ; inc eax
 ; inc rax
 ; inc dword [eax]
 ; inc qword [eax]
 ; inc dword [rax]
 ; inc qword [rax]
+; dec ax
 ; dec eax
 ; dec rax
 ; dec dword [eax]
@@ -524,23 +528,21 @@ kernel_task:
 ; call rax
 ; db 0x67, 0xff, 0x11		; call qword [ecx]
 ; db 0xff, 0x11		; call qword [rcx]
-; ; db 0xff, 0x18		; call far [rax]
 ; db 0xff, 0xe2		; jmp rdx
 ; db 0x67, 0xff, 0x27		; jmp qword [edi]
 ; db 0xff, 0x27		; jmp qword [rdi]
-; ; db 0xff, 0x2b		; jmp far [rbx]
 ; db 0xff, 0xf6		; push rsi
 ; db 0x67, 0xff, 0x75, 0x10	; push qword [ebp + 0x10]
 ; db 0xff, 0x75, 0x10	; push qword [rbp + 0x10]
 
-; nop
-; nop
-; nop
-; nop
-; nop
-; nop
-; nop
-; nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
 
 	; turn off Interrupt Flag
 	cli

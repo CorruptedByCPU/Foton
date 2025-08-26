@@ -22,7 +22,22 @@ void lib_asm_modrm( struct LIB_ASM_STRUCTURE *asm ) {
 		} else {
 			// exception
 			if( asm -> opcode == 0xFF ) {
-				// for sub instructions "call" and further
+				// for sub instructions "inc/dec"
+				if( asm -> modrm.reg == 0x00 || asm -> modrm.reg == 01 ) {
+					// current bits
+					uint8_t bits = asm -> register_bits;
+
+					// change to 16 bit mode?
+					if( asm -> register_semaphore ) bits = WORD;
+
+					// change to 64 bit mode?
+					if( ! asm -> register_semaphore && asm -> rex.w ) bits = QWORD;
+					
+					// destination
+					log( LIB_ASM_COLOR_REGISTER"%s", lib_asm_registers[ bits ][ asm -> modrm.rm ] );
+				}
+
+				// for sub instructions "call/jmp/push"
 				if( asm -> modrm.reg == 0x02 || asm -> modrm.reg == 04 || asm -> modrm.reg == 0x06 )
 					// destination
 					log( LIB_ASM_COLOR_REGISTER"%s", lib_asm_registers[ QWORD ][ asm -> modrm.rm ] );

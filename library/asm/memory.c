@@ -23,8 +23,8 @@ void lib_asm_memory( struct LIB_ASM_STRUCTURE *asm, uint8_t operand ) {
 		// if( asm -> instruction.options & (Q << (operand * LIB_ASM_OPTION_OPERAND_offset)) ) bits = QWORD;
 	}
 
-	// start memory access
-	log( LIB_ASM_COLOR_MEMORY"%s [", lib_asm_size[ bits ] );
+	// start memory access, with LEA exception
+	if( asm -> opcode != 0x8D ) log( LIB_ASM_COLOR_MEMORY"%s ", lib_asm_size[ bits ] ); log( LIB_ASM_COLOR_MEMORY"[" );
 
 	// there was something before displacement
 	uint8_t relative = FALSE;

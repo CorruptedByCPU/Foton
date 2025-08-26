@@ -27,6 +27,9 @@ void kernel_idt_exception( struct KERNEL_STRUCTURE_IDT_EXCEPTION *exception ) {
 
 	// time to hunt some BUGs
 
+	// clean terminal
+	kernel_terminal_clean();
+
 	// say, hello!
 	log( "\n \033[38;5;118m|deBuffer| \033[38;5;245mby https://\033[38;5;250mblackdev.org\033[38;5;245m/        \033[0mMenu: (\033[38;5;11ms\033[0m)tep (\033[38;5;11mc\033[0m)ontinue\n\n" );
 	// if( kernel -> framebuffer_width_pixel < 1280 || kernel -> framebuffer_height_pixel < 720 ) { log( "\n\tAt least 1280x720 resolution is required." ); while( TRUE ); }

@@ -266,9 +266,9 @@ struct LIB_ASM_STRUCTURE_INSTRUCTION lib_asm_instruction_master[] = {
 	{ (uint8_t *) "push", (V|B) | FE | F0 },
 	{ (uint8_t *) "imul", (M) << LIB_ASM_OPTION_OPERAND_offset | (V|B) << (LIB_ASM_OPTION_OPERAND_offset * 2) | FM | F2 },
 	{ (uint8_t *) "insb" },
-	{ (uint8_t *) "insw/d", EMPTY, lib_asm_instruction_group_a },
+	{ (uint8_t *) "", EMPTY, lib_asm_instruction_group_a },
 	{ (uint8_t *) "outsb" },
-	{ (uint8_t *) "outsw/d", EMPTY, lib_asm_instruction_group_b },
+	{ (uint8_t *) "", EMPTY, lib_asm_instruction_group_b },
 	// 0x70
 	{ (uint8_t *) "jo", (V|B) | FE | FR | F0 },
 	{ (uint8_t *) "jno", (V|B) | FE | FR | F0 },

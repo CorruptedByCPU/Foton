@@ -7,16 +7,10 @@ uint8_t lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
 		log( LIB_ASM_COLOR_DEFAULT"[%2X] ", asm -> opcode );
 	#endif
 
-	// special case of name?
-	if( asm -> instruction.name && asm -> instruction.options && asm -> instruction.group ) {
+	// special case of name? (with options)
+	if( asm -> instruction.name && ! asm -> instruction.options && asm -> instruction.group ) {
 		// properties of names
 		struct LIB_ASM_STRUCTURE_INSTRUCTION *group = asm -> instruction.group;
-
-		// forced use of 64 bit?
-		if( asm -> rex.w ) asm -> register_bits = QWORD;
-
-		// select name
-		log( LIB_ASM_COLOR_INSTRUCTION"%s"LIB_ASM_SEPARATOR, group[ asm -> register_bits ] );
 
 		// current bits
 		uint8_t bits = asm -> register_bits;
@@ -49,15 +43,7 @@ uint8_t lib_asm_name( struct LIB_ASM_STRUCTURE *asm ) {
 	if( asm -> opcode == 0xCC ) { log( LIB_ASM_COLOR_INSTRUCTION"int"LIB_ASM_SEPARATOR""LIB_ASM_COLOR_DATA"deBuffer" ); return TRUE; }
 
 	// show instruction name
-
-	// exception for INSD mnemonic
-	if( asm -> opcode == 0x6D && asm -> register_bits == DWORD ) log( LIB_ASM_COLOR_INSTRUCTION"insd" );
-		
-	// exception for OUTSD mnemonic
-	else if( asm -> opcode == 0x6F && asm -> register_bits == DWORD ) log( LIB_ASM_COLOR_INSTRUCTION"outsd" );
-
-	// default
-	else log( LIB_ASM_COLOR_INSTRUCTION"%s"LIB_ASM_SEPARATOR, name );
+	log( LIB_ASM_COLOR_INSTRUCTION"%s"LIB_ASM_SEPARATOR, name );
 
 	// done
 	return TRUE;

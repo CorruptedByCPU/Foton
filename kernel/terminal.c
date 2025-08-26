@@ -77,7 +77,7 @@ void kernel_terminal_char( char character ) {
 
 void kernel_terminal_clean( void ) {
 	// remove all text from terminal
-	for( uint64_t y = 0; y < kernel -> framebuffer_height_pixel; y++ ) for( uint64_t x = 0; x < kernel -> framebuffer_width_pixel; x++ ) kernel -> terminal.pixel[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel -> terminal.color_background;
+	for( uint64_t y = 0; y < kernel -> framebuffer_height_pixel; y++ ) for( uint64_t x = 0; x < kernel -> framebuffer_width_pixel; x++ ) kernel -> framebuffer_base_address[ (y * (kernel -> framebuffer_pitch_byte >> STD_VIDEO_DEPTH_shift)) + x ] = kernel -> terminal.color_background;
 }
 
 static void kernel_terminal_clean_character( void ) {
