@@ -29,8 +29,19 @@ int main( int argc, char *argv[] ) {
 	for( uint64_t p = 0; p < pixels; p++ )
 		alpha[ p ] = data[ (p * 4) + 3 ];
 
-	// save encoded alpha channel to new file
-	FILE *write = fopen( argv[ 1 ], "w" );
-	for( uint64_t e = 0; e < pixels; e++ ) fputc( alpha[ e ], write );
+	// save encoded alpha channel to new file as 
+	FILE *write = fopen( "font.h", "w" );
+
+	// array definition
+	fprintf( write, "uint8_t font_matrix[ %u ] = {\n\t", (unsigned int) pixels );
+
+	// include all alpha channel bytes
+	for( uint64_t e = 0; e < pixels; e++ ) {
+		fprintf( write, "0x%02X", alpha[ e ] );
+		if( e < pixels - 1 ) fprintf( write, ", " );
+		else fprintf( write, "\n}\n" );
+	}
+
+	// done
 	fclose( write );
 }
